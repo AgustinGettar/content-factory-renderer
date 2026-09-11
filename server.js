@@ -16,10 +16,19 @@ const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
 
 const FPS = 30;
-const SCENE_FADE_SECONDS = 0.22;
+const TRANSITION_SECONDS = 0.10;
 const AUDIO_FADE_IN_SECONDS = 0.12;
 const AUDIO_FADE_OUT_SECONDS = 0.18;
-const TARGET_ZOOM = 1.045;
+
+// We deliberately avoid zoompan here. The prior implementation could inherit
+// non-square pixel metadata from source images and make a 9:16 video appear
+// stretched or letterboxed in some players. Instead, every frame is normalized
+// to 1080x1920 with square pixels, enlarged uniformly to another 9:16 canvas,
+// and a moving 1080x1920 crop creates the camera motion.
+const OUTPUT_WIDTH = 1080;
+const OUTPUT_HEIGHT = 1920;
+const MOTION_WIDTH = 1152;
+const MOTION_HEIGHT = 2048;
 
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
@@ -76,39 +85,71 @@ async function getDuration(filePath) {
   return d;
 }
 
-function buildMotionFilter(sceneNumber, duration) {
-  const totalFrames = Math.max(1, Math.ceil(duration * FPS));
-  const zoomStep = Math.max(0.00001, (TARGET_ZOOM - 1) / totalFrames).toFixed(8);
-  const progress = `(on/${totalFrames})`;
-  const centerX = "iw/2-(iw/zoom/2)";
-  const centerY = "ih/2-(ih/zoom/2)";
+async function getVideoGeometry(filePath) {
+  const { stdout } = await execFileAsync("ffprobe", [
+    "-v", "error",
+    "-select_streams", "v:0",
+    "-show_entries", "stream=width,height,sample_aspect_ratio,display_aspect_ratio",
+    "-of", "json",
+    filePath,
+  ], { timeout: 60_000 });
+
+  const parsed = JSON.parse(stdout);
+  const stream = parsed?.streams?.[0];
+  if (!stream) throw new Error(`No video stream found: ${filePath}`);
+
+  return {
+    width: Number(stream.width),
+    height: Number(stream.height),
+    sar: stream.sample_aspect_ratio || "",
+    dar: stream.display_aspect_ratio || "",
+  };
+}
+
+function buildMotionCrop(sceneNumber, duration) {
+  const maxX = MOTION_WIDTH - OUTPUT_WIDTH;
+  const maxY = MOTION_HEIGHT - OUTPUT_HEIGHT;
+  const centerX = maxX / 2;
+  const centerY = maxY / 2;
+  const safeDuration = Math.max(0.1, Number(duration) || 0.1).toFixed(3);
+  const progress = `min(max(t/${safeDuration},0),1)`;
 
   const variant = (Number(sceneNumber) - 1) % 4;
-  let x = centerX;
-  let y = centerY;
+  let x = centerX.toFixed(1);
+  let y = centerY.toFixed(1);
 
-  if (variant === 1) {
-    x = `(iw-iw/zoom)*${progress}`;
+  if (variant === 0) {
+    x = `${centerX.toFixed(1)}+10*sin(t*0.55)`;
+    y = `${centerY.toFixed(1)}+14*sin(t*0.38)`;
+  } else if (variant === 1) {
+    x = `${maxX}*${progress}`;
+    y = centerY.toFixed(1);
   } else if (variant === 2) {
-    x = `(iw-iw/zoom)*(1-${progress})`;
-  } else if (variant === 3) {
-    y = `(ih-ih/zoom)*${progress}`;
+    x = `${maxX}*(1-${progress})`;
+    y = centerY.toFixed(1);
+  } else {
+    x = centerX.toFixed(1);
+    y = `${maxY}*${progress}`;
   }
 
-  return `zoompan=z='min(pzoom+${zoomStep},${TARGET_ZOOM})':x='${x}':y='${y}':d=1:s=1080x1920:fps=${FPS}`;
+  return `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:x='${x}':y='${y}'`;
 }
 
 async function renderScene(imagePath, audioPath, textPath, outputPath, showText, sceneNumber, duration) {
-  const fadeDuration = Math.min(SCENE_FADE_SECONDS, Math.max(0.08, duration / 5));
-  const fadeOutStart = Math.max(0, duration - fadeDuration);
+  const transitionDuration = Math.min(TRANSITION_SECONDS, Math.max(0.06, duration / 8));
+  const transitionOutStart = Math.max(0, duration - transitionDuration);
   const audioFadeIn = Math.min(AUDIO_FADE_IN_SECONDS, Math.max(0.05, duration / 6));
   const audioFadeOut = Math.min(AUDIO_FADE_OUT_SECONDS, Math.max(0.06, duration / 6));
   const audioFadeOutStart = Math.max(0, duration - audioFadeOut);
 
   const vf = [
-    "scale=1080:1920:force_original_aspect_ratio=increase",
-    "crop=1080:1920",
-    buildMotionFilter(sceneNumber, duration),
+    `scale=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:force_original_aspect_ratio=increase:flags=lanczos`,
+    `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}`,
+    "setsar=1",
+    `scale=${MOTION_WIDTH}:${MOTION_HEIGHT}:flags=lanczos`,
+    buildMotionCrop(sceneNumber, duration),
+    "setsar=1",
+    "setdar=9/16",
   ];
 
   if (showText) {
@@ -118,13 +159,11 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     );
   }
 
-  // Fades are intentionally applied after the text overlay so the whole scene,
-  // including the caption card, enters and leaves smoothly. This creates a
-  // lightweight transition between concatenated scenes without loading several
-  // 1080x1920 streams into memory at the same time.
   vf.push(
-    `fade=t=in:st=0:d=${fadeDuration.toFixed(3)}`,
-    `fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDuration.toFixed(3)}`
+    `fade=t=in:st=0:d=${transitionDuration.toFixed(3)}:color=white`,
+    `fade=t=out:st=${transitionOutStart.toFixed(3)}:d=${transitionDuration.toFixed(3)}:color=white`,
+    "setsar=1",
+    "setdar=9/16"
   );
 
   const af = [
@@ -144,9 +183,9 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     "-af", af.join(","),
     "-c:v", "libx264",
     "-preset", "ultrafast",
-    "-tune", "stillimage",
     "-r", String(FPS),
     "-pix_fmt", "yuv420p",
+    "-aspect", "9:16",
     "-c:a", "aac",
     "-b:a", "128k",
     "-ar", "48000",
@@ -159,6 +198,13 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     maxBuffer: 10 * 1024 * 1024,
     timeout: FFMPEG_TIMEOUT_MS,
   });
+
+  const geometry = await getVideoGeometry(outputPath);
+  if (geometry.width !== OUTPUT_WIDTH || geometry.height !== OUTPUT_HEIGHT) {
+    throw new Error(
+      `Scene ${sceneNumber} geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
+    );
+  }
 }
 
 async function concatScenes(files, listPath, outputPath) {
@@ -258,14 +304,27 @@ async function renderVideo(videoId) {
     await concatScenes(rendered, concatPath, finalPath);
 
     const duration = await getDuration(finalPath);
-    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}.mp4`;
+    const geometry = await getVideoGeometry(finalPath);
+
+    console.log(
+      `Video ${videoId}: final geometry ${geometry.width}x${geometry.height}, sar=${geometry.sar}, dar=${geometry.dar}`
+    );
+
+    if (geometry.width !== OUTPUT_WIDTH || geometry.height !== OUTPUT_HEIGHT) {
+      throw new Error(
+        `Final video geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
+      );
+    }
+
+    const renderVersion = Date.now();
+    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}-${renderVersion}.mp4`;
     const buffer = await fs.readFile(finalPath);
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_RENDERED)
       .upload(objectName, buffer, {
         contentType: "video/mp4",
-        upsert: true,
+        upsert: false,
         cacheControl: "3600",
       });
     if (uploadError) throw uploadError;
@@ -325,7 +384,10 @@ app.get("/health", (_req, res) => {
       render_api_token: hasRenderToken,
       bucket_rendered: true,
       visual_motion: true,
-      scene_fades: true,
+      scene_transitions: "white_dip",
+      output_geometry: "1080x1920",
+      square_pixels: true,
+      unique_render_urls: true,
     },
   });
 });
@@ -362,5 +424,7 @@ process.on("SIGINT", async () => {
 
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, visual_motion=on, scene_fades=on`);
+  console.log(
+    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, visual_motion=on, output=1080x1920`
+  );
 });

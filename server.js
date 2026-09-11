@@ -14,12 +14,6 @@ const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
-const SELF_URL = process.env.RENDER_EXTERNAL_URL || "https://content-factory-renderer.onrender.com";
-const KEEPALIVE_INTERVAL_MS = Number(process.env.KEEPALIVE_INTERVAL_MS || 3 * 60 * 1000);
-
-const FPS = 30;
-const OUTPUT_WIDTH = 1080;
-const OUTPUT_HEIGHT = 1920;
 
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
@@ -35,7 +29,6 @@ app.use(express.json({ limit: "1mb" }));
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
 let activeVideoId = null;
-let keepAliveTimer = null;
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -77,65 +70,10 @@ async function getDuration(filePath) {
   return d;
 }
 
-async function getVideoGeometry(filePath) {
-  const { stdout } = await execFileAsync("ffprobe", [
-    "-v", "error",
-    "-select_streams", "v:0",
-    "-show_entries", "stream=width,height,sample_aspect_ratio,display_aspect_ratio",
-    "-of", "json",
-    filePath,
-  ], { timeout: 60_000 });
-
-  const parsed = JSON.parse(stdout);
-  const stream = parsed?.streams?.[0];
-  if (!stream) throw new Error(`No video stream found: ${filePath}`);
-
-  return {
-    width: Number(stream.width),
-    height: Number(stream.height),
-    sar: stream.sample_aspect_ratio || "",
-    dar: stream.display_aspect_ratio || "",
-  };
-}
-
-function isSquarePixelRatio(sar) {
-  return !sar || sar === "1:1" || sar === "1/1";
-}
-
-function stopKeepAlive() {
-  if (keepAliveTimer) {
-    clearInterval(keepAliveTimer);
-    keepAliveTimer = null;
-  }
-}
-
-function startKeepAlive(videoId) {
-  stopKeepAlive();
-
-  const ping = async () => {
-    try {
-      const response = await fetch(`${SELF_URL}/health`, {
-        headers: { "x-render-keepalive": "1" },
-        signal: AbortSignal.timeout(15_000),
-      });
-      console.log(`Video ${videoId}: keepalive ${response.status}`);
-    } catch (err) {
-      console.warn(`Video ${videoId}: keepalive failed: ${safeError(err)}`);
-    }
-  };
-
-  keepAliveTimer = setInterval(ping, KEEPALIVE_INTERVAL_MS);
-  keepAliveTimer.unref?.();
-}
-
-async function renderScene(imagePath, audioPath, textPath, outputPath, showText, sceneNumber, duration) {
-  // Stable Shorts/Reels mode: normalize every source image directly to a
-  // full-screen 1080x1920 frame, crop overflow, and force square pixels.
-  // No camera motion, no zoompan, no DAR override.
+async function renderScene(imagePath, audioPath, textPath, outputPath, showText) {
   const vf = [
-    `scale=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:force_original_aspect_ratio=increase`,
-    `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}`,
-    "setsar=1",
+    "scale=1080:1920:force_original_aspect_ratio=increase",
+    "crop=1080:1920",
   ];
 
   if (showText) {
@@ -145,27 +83,23 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     );
   }
 
-  vf.push("setsar=1");
-
   await execFileAsync("ffmpeg", [
     "-y",
     "-threads", "1",
     "-filter_threads", "1",
     "-loop", "1",
-    "-framerate", String(FPS),
     "-i", imagePath,
     "-i", audioPath,
     "-vf", vf.join(","),
     "-c:v", "libx264",
     "-preset", "ultrafast",
     "-tune", "stillimage",
-    "-r", String(FPS),
+    "-r", "30",
     "-pix_fmt", "yuv420p",
     "-c:a", "aac",
     "-b:a", "128k",
     "-ar", "48000",
     "-ac", "2",
-    "-t", duration.toFixed(3),
     "-shortest",
     "-movflags", "+faststart",
     outputPath,
@@ -173,27 +107,11 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     maxBuffer: 10 * 1024 * 1024,
     timeout: FFMPEG_TIMEOUT_MS,
   });
-
-  const geometry = await getVideoGeometry(outputPath);
-  console.log(
-    `Scene ${sceneNumber}: geometry ${geometry.width}x${geometry.height}, sar=${geometry.sar}, dar=${geometry.dar}`
-  );
-
-  if (
-    geometry.width !== OUTPUT_WIDTH ||
-    geometry.height !== OUTPUT_HEIGHT ||
-    !isSquarePixelRatio(geometry.sar)
-  ) {
-    throw new Error(
-      `Scene ${sceneNumber} geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
-    );
-  }
 }
 
 async function concatScenes(files, listPath, outputPath) {
   const body = files.map((p) => `file '${p.replaceAll("'", "'\\''")}'`).join("\n");
   await fs.writeFile(listPath, body, "utf8");
-
   await execFileAsync("ffmpeg", [
     "-y",
     "-threads", "1",
@@ -232,8 +150,7 @@ async function renderVideo(videoId) {
 
     claimed = true;
     activeVideoId = videoId;
-    startKeepAlive(videoId);
-    console.log(`Starting render for video ${videoId} in stable vertical mode`);
+    console.log(`Starting render for video ${videoId}`);
 
     const { data: scenes, error: scenesError } = await supabase
       .from("scenes")
@@ -266,18 +183,10 @@ async function renderVideo(videoId) {
         downloadToFile(scene.audio_url, audioPath),
       ]);
 
-      const audioDuration = await getDuration(audioPath);
+      await getDuration(audioPath);
       const txt = wrapText(scene.on_screen_text);
       await fs.writeFile(textPath, txt, "utf8");
-      await renderScene(
-        imagePath,
-        audioPath,
-        textPath,
-        scenePath,
-        Boolean(txt),
-        scene.scene_number,
-        audioDuration
-      );
+      await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt));
       rendered.push(scenePath);
 
       console.log(`Video ${videoId}: scene ${scene.scene_number} complete`);
@@ -289,31 +198,14 @@ async function renderVideo(videoId) {
     await concatScenes(rendered, concatPath, finalPath);
 
     const duration = await getDuration(finalPath);
-    const geometry = await getVideoGeometry(finalPath);
-
-    console.log(
-      `Video ${videoId}: final geometry ${geometry.width}x${geometry.height}, sar=${geometry.sar}, dar=${geometry.dar}`
-    );
-
-    if (
-      geometry.width !== OUTPUT_WIDTH ||
-      geometry.height !== OUTPUT_HEIGHT ||
-      !isSquarePixelRatio(geometry.sar)
-    ) {
-      throw new Error(
-        `Final video geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
-      );
-    }
-
-    const renderVersion = Date.now();
-    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}-${renderVersion}.mp4`;
+    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}.mp4`;
     const buffer = await fs.readFile(finalPath);
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_RENDERED)
       .upload(objectName, buffer, {
         contentType: "video/mp4",
-        upsert: false,
+        upsert: true,
         cacheControl: "3600",
       });
     if (uploadError) throw uploadError;
@@ -341,18 +233,15 @@ async function renderVideo(videoId) {
       }).eq("id", videoId);
     }
   } finally {
-    stopKeepAlive();
     if (activeVideoId === videoId) activeVideoId = null;
     if (workDir) await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
 async function requeueActiveVideo(reason) {
-  stopKeepAlive();
   if (!supabase || !activeVideoId) return;
   const videoId = activeVideoId;
   activeVideoId = null;
-
   try {
     await supabase
       .from("videos")
@@ -370,19 +259,11 @@ app.get("/health", (_req, res) => {
   res.status(ready ? 200 : 503).json({
     ok: ready,
     service: "content-factory-renderer",
-    active_video_id: activeVideoId,
     config: {
       supabase_url: true,
       supabase_service_role_key: hasSupabaseKey,
       render_api_token: hasRenderToken,
       bucket_rendered: true,
-      render_mode: "stable_vertical",
-      visual_motion: false,
-      output_geometry: "1080x1920",
-      square_pixels: true,
-      unique_render_urls: true,
-      fps: FPS,
-      keepalive_seconds: Math.round(KEEPALIVE_INTERVAL_MS / 1000),
     },
   });
 });
@@ -419,7 +300,5 @@ process.on("SIGINT", async () => {
 
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(
-    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, mode=stable_vertical, output=1080x1920, fps=${FPS}`
-  );
+  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1`);
 });

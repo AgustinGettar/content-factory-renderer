@@ -15,6 +15,12 @@ const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
 
+const FPS = 30;
+const SCENE_FADE_SECONDS = 0.22;
+const AUDIO_FADE_IN_SECONDS = 0.12;
+const AUDIO_FADE_OUT_SECONDS = 0.18;
+const TARGET_ZOOM = 1.045;
+
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
 
@@ -70,10 +76,39 @@ async function getDuration(filePath) {
   return d;
 }
 
-async function renderScene(imagePath, audioPath, textPath, outputPath, showText) {
+function buildMotionFilter(sceneNumber, duration) {
+  const totalFrames = Math.max(1, Math.ceil(duration * FPS));
+  const zoomStep = Math.max(0.00001, (TARGET_ZOOM - 1) / totalFrames).toFixed(8);
+  const progress = `(on/${totalFrames})`;
+  const centerX = "iw/2-(iw/zoom/2)";
+  const centerY = "ih/2-(ih/zoom/2)";
+
+  const variant = (Number(sceneNumber) - 1) % 4;
+  let x = centerX;
+  let y = centerY;
+
+  if (variant === 1) {
+    x = `(iw-iw/zoom)*${progress}`;
+  } else if (variant === 2) {
+    x = `(iw-iw/zoom)*(1-${progress})`;
+  } else if (variant === 3) {
+    y = `(ih-ih/zoom)*${progress}`;
+  }
+
+  return `zoompan=z='min(pzoom+${zoomStep},${TARGET_ZOOM})':x='${x}':y='${y}':d=1:s=1080x1920:fps=${FPS}`;
+}
+
+async function renderScene(imagePath, audioPath, textPath, outputPath, showText, sceneNumber, duration) {
+  const fadeDuration = Math.min(SCENE_FADE_SECONDS, Math.max(0.08, duration / 5));
+  const fadeOutStart = Math.max(0, duration - fadeDuration);
+  const audioFadeIn = Math.min(AUDIO_FADE_IN_SECONDS, Math.max(0.05, duration / 6));
+  const audioFadeOut = Math.min(AUDIO_FADE_OUT_SECONDS, Math.max(0.06, duration / 6));
+  const audioFadeOutStart = Math.max(0, duration - audioFadeOut);
+
   const vf = [
     "scale=1080:1920:force_original_aspect_ratio=increase",
     "crop=1080:1920",
+    buildMotionFilter(sceneNumber, duration),
   ];
 
   if (showText) {
@@ -83,23 +118,40 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText)
     );
   }
 
+  // Fades are intentionally applied after the text overlay so the whole scene,
+  // including the caption card, enters and leaves smoothly. This creates a
+  // lightweight transition between concatenated scenes without loading several
+  // 1080x1920 streams into memory at the same time.
+  vf.push(
+    `fade=t=in:st=0:d=${fadeDuration.toFixed(3)}`,
+    `fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${fadeDuration.toFixed(3)}`
+  );
+
+  const af = [
+    `afade=t=in:st=0:d=${audioFadeIn.toFixed(3)}`,
+    `afade=t=out:st=${audioFadeOutStart.toFixed(3)}:d=${audioFadeOut.toFixed(3)}`,
+  ];
+
   await execFileAsync("ffmpeg", [
     "-y",
     "-threads", "1",
     "-filter_threads", "1",
     "-loop", "1",
+    "-framerate", String(FPS),
     "-i", imagePath,
     "-i", audioPath,
     "-vf", vf.join(","),
+    "-af", af.join(","),
     "-c:v", "libx264",
     "-preset", "ultrafast",
     "-tune", "stillimage",
-    "-r", "30",
+    "-r", String(FPS),
     "-pix_fmt", "yuv420p",
     "-c:a", "aac",
     "-b:a", "128k",
     "-ar", "48000",
     "-ac", "2",
+    "-t", duration.toFixed(3),
     "-shortest",
     "-movflags", "+faststart",
     outputPath,
@@ -183,10 +235,18 @@ async function renderVideo(videoId) {
         downloadToFile(scene.audio_url, audioPath),
       ]);
 
-      await getDuration(audioPath);
+      const audioDuration = await getDuration(audioPath);
       const txt = wrapText(scene.on_screen_text);
       await fs.writeFile(textPath, txt, "utf8");
-      await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt));
+      await renderScene(
+        imagePath,
+        audioPath,
+        textPath,
+        scenePath,
+        Boolean(txt),
+        scene.scene_number,
+        audioDuration
+      );
       rendered.push(scenePath);
 
       console.log(`Video ${videoId}: scene ${scene.scene_number} complete`);
@@ -264,6 +324,8 @@ app.get("/health", (_req, res) => {
       supabase_service_role_key: hasSupabaseKey,
       render_api_token: hasRenderToken,
       bucket_rendered: true,
+      visual_motion: true,
+      scene_fades: true,
     },
   });
 });
@@ -300,5 +362,5 @@ process.on("SIGINT", async () => {
 
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1`);
+  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, visual_motion=on, scene_fades=on`);
 });

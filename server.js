@@ -13,10 +13,8 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
+const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
 
-// Important: the service must be able to boot even if a secret was not linked
-// correctly in Render. /health will report which configuration item is missing
-// without ever revealing secret values.
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
 
@@ -30,6 +28,7 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+let activeVideoId = null;
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -65,7 +64,7 @@ async function getDuration(filePath) {
     "-show_entries", "format=duration",
     "-of", "default=noprint_wrappers=1:nokey=1",
     filePath,
-  ]);
+  ], { timeout: 60_000 });
   const d = Number.parseFloat(stdout.trim());
   if (!Number.isFinite(d) || d <= 0) throw new Error(`Invalid duration: ${filePath}`);
   return d;
@@ -76,6 +75,7 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText)
     "scale=1080:1920:force_original_aspect_ratio=increase",
     "crop=1080:1920",
   ];
+
   if (showText) {
     vf.push(
       "drawbox=x=60:y=ih-500:w=iw-120:h=300:color=black@0.35:t=fill",
@@ -85,38 +85,54 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText)
 
   await execFileAsync("ffmpeg", [
     "-y",
+    "-threads", "1",
+    "-filter_threads", "1",
     "-loop", "1",
     "-i", imagePath,
     "-i", audioPath,
     "-vf", vf.join(","),
     "-c:v", "libx264",
-    "-preset", "veryfast",
+    "-preset", "ultrafast",
     "-tune", "stillimage",
     "-r", "30",
     "-pix_fmt", "yuv420p",
     "-c:a", "aac",
-    "-b:a", "192k",
+    "-b:a", "128k",
     "-ar", "48000",
     "-ac", "2",
     "-shortest",
     "-movflags", "+faststart",
     outputPath,
-  ], { maxBuffer: 10 * 1024 * 1024 });
+  ], {
+    maxBuffer: 10 * 1024 * 1024,
+    timeout: FFMPEG_TIMEOUT_MS,
+  });
 }
 
 async function concatScenes(files, listPath, outputPath) {
   const body = files.map((p) => `file '${p.replaceAll("'", "'\\''")}'`).join("\n");
   await fs.writeFile(listPath, body, "utf8");
   await execFileAsync("ffmpeg", [
-    "-y", "-f", "concat", "-safe", "0", "-i", listPath,
-    "-c", "copy", "-movflags", "+faststart", outputPath,
-  ], { maxBuffer: 10 * 1024 * 1024 });
+    "-y",
+    "-threads", "1",
+    "-f", "concat",
+    "-safe", "0",
+    "-i", listPath,
+    "-c", "copy",
+    "-movflags", "+faststart",
+    outputPath,
+  ], {
+    maxBuffer: 10 * 1024 * 1024,
+    timeout: FFMPEG_TIMEOUT_MS,
+  });
 }
 
 async function renderVideo(videoId) {
   if (!supabase) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured on the Render service");
 
   let workDir;
+  let claimed = false;
+
   try {
     const { data: video, error: lockError } = await supabase
       .from("videos")
@@ -127,7 +143,14 @@ async function renderVideo(videoId) {
       .maybeSingle();
 
     if (lockError) throw lockError;
-    if (!video) return;
+    if (!video) {
+      console.log(`Video ${videoId} was not queued; render skipped`);
+      return;
+    }
+
+    claimed = true;
+    activeVideoId = videoId;
+    console.log(`Starting render for video ${videoId}`);
 
     const { data: scenes, error: scenesError } = await supabase
       .from("scenes")
@@ -153,6 +176,8 @@ async function renderVideo(videoId) {
       const textPath = path.join(workDir, `scene-${n}.txt`);
       const scenePath = path.join(workDir, `scene-${n}.mp4`);
 
+      console.log(`Video ${videoId}: rendering scene ${scene.scene_number}/${scenes.length}`);
+
       await Promise.all([
         downloadToFile(scene.image_url, imagePath),
         downloadToFile(scene.audio_url, audioPath),
@@ -163,10 +188,13 @@ async function renderVideo(videoId) {
       await fs.writeFile(textPath, txt, "utf8");
       await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt));
       rendered.push(scenePath);
+
+      console.log(`Video ${videoId}: scene ${scene.scene_number} complete`);
     }
 
     const concatPath = path.join(workDir, "concat.txt");
     const finalPath = path.join(workDir, "final.mp4");
+    console.log(`Video ${videoId}: concatenating ${rendered.length} scenes`);
     await concatScenes(rendered, concatPath, finalPath);
 
     const duration = await getDuration(finalPath);
@@ -197,15 +225,32 @@ async function renderVideo(videoId) {
 
     console.log(`Rendered video ${videoId}: ${renderUrl}`);
   } catch (err) {
-    console.error(err);
-    if (supabase) {
+    console.error(`Render failed for video ${videoId}:`, err);
+    if (supabase && claimed) {
       await supabase.from("videos").update({
         status: "failed",
         error_message: safeError(err),
       }).eq("id", videoId);
     }
   } finally {
+    if (activeVideoId === videoId) activeVideoId = null;
     if (workDir) await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+async function requeueActiveVideo(reason) {
+  if (!supabase || !activeVideoId) return;
+  const videoId = activeVideoId;
+  activeVideoId = null;
+  try {
+    await supabase
+      .from("videos")
+      .update({ status: "queued", error_message: reason })
+      .eq("id", videoId)
+      .eq("status", "rendering");
+    console.log(`Requeued video ${videoId}: ${reason}`);
+  } catch (err) {
+    console.error(`Could not requeue video ${videoId}:`, err);
   }
 }
 
@@ -228,8 +273,6 @@ app.post("/render", (req, res) => {
     return res.status(503).json({ ok: false, error: "renderer_not_configured", missing: ["SUPABASE_SERVICE_ROLE_KEY"] });
   }
 
-  // If a token is configured, enforce it. If it is not configured yet, allow
-  // requests temporarily so deployment/configuration can be completed first.
   if (hasRenderToken && req.get("x-render-token") !== RENDER_API_TOKEN) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
@@ -243,7 +286,19 @@ app.post("/render", (req, res) => {
   setImmediate(() => renderVideo(videoId));
 });
 
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received; preparing renderer shutdown");
+  await requeueActiveVideo("Renderer restarted while processing; automatically requeued");
+  process.exit(0);
+});
+
+process.on("SIGINT", async () => {
+  console.log("SIGINT received; preparing renderer shutdown");
+  await requeueActiveVideo("Renderer stopped while processing; automatically requeued");
+  process.exit(0);
+});
+
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}`);
+  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1`);
 });

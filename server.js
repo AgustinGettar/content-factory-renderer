@@ -78,8 +78,8 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText)
   ];
   if (showText) {
     vf.push(
-      "drawbox=x=60:y=h-500:w=w-120:h=300:color=black@0.35:t=fill",
-      `drawtext=fontfile='${FONT_PATH}':textfile='${textPath}':fontcolor=white:fontsize=72:line_spacing=18:x=(w-text_w)/2:y=h-355-text_h/2`
+      "drawbox=x=60:y=ih-500:w=iw-120:h=300:color=black@0.35:t=fill",
+      `drawtext=fontfile='${FONT_PATH}':textfile='${textPath}':fontcolor=white:fontsize=72:line_spacing=18:x=(main_w-text_w)/2:y=main_h-355-text_h/2`
     );
   }
 

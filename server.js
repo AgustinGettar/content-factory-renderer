@@ -17,17 +17,9 @@ const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000
 const SELF_URL = process.env.RENDER_EXTERNAL_URL || "https://content-factory-renderer.onrender.com";
 const KEEPALIVE_INTERVAL_MS = Number(process.env.KEEPALIVE_INTERVAL_MS || 3 * 60 * 1000);
 
-const FPS = 24;
-const TRANSITION_SECONDS = 0.10;
-const AUDIO_FADE_IN_SECONDS = 0.12;
-const AUDIO_FADE_OUT_SECONDS = 0.18;
-
-// Keep a real 9:16 frame at every stage. Motion is created by scaling once to
-// a slightly larger 9:16 canvas and moving a 1080x1920 crop over it.
+const FPS = 30;
 const OUTPUT_WIDTH = 1080;
 const OUTPUT_HEIGHT = 1920;
-const MOTION_WIDTH = 1152;
-const MOTION_HEIGHT = 2048;
 
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
@@ -106,6 +98,10 @@ async function getVideoGeometry(filePath) {
   };
 }
 
+function isSquarePixelRatio(sar) {
+  return !sar || sar === "1:1" || sar === "1/1";
+}
+
 function stopKeepAlive() {
   if (keepAliveTimer) {
     clearInterval(keepAliveTimer);
@@ -132,51 +128,14 @@ function startKeepAlive(videoId) {
   keepAliveTimer.unref?.();
 }
 
-function buildMotionCrop(sceneNumber, duration) {
-  const maxX = MOTION_WIDTH - OUTPUT_WIDTH;
-  const maxY = MOTION_HEIGHT - OUTPUT_HEIGHT;
-  const centerX = maxX / 2;
-  const centerY = maxY / 2;
-  const safeDuration = Math.max(0.1, Number(duration) || 0.1).toFixed(3);
-  const progress = `min(max(t/${safeDuration},0),1)`;
-
-  const variant = (Number(sceneNumber) - 1) % 4;
-  let x = centerX.toFixed(1);
-  let y = centerY.toFixed(1);
-
-  if (variant === 0) {
-    x = `${centerX.toFixed(1)}+10*sin(t*0.55)`;
-    y = `${centerY.toFixed(1)}+14*sin(t*0.38)`;
-  } else if (variant === 1) {
-    x = `${maxX}*${progress}`;
-    y = centerY.toFixed(1);
-  } else if (variant === 2) {
-    x = `${maxX}*(1-${progress})`;
-    y = centerY.toFixed(1);
-  } else {
-    x = centerX.toFixed(1);
-    y = `${maxY}*${progress}`;
-  }
-
-  return `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:x='${x}':y='${y}'`;
-}
-
 async function renderScene(imagePath, audioPath, textPath, outputPath, showText, sceneNumber, duration) {
-  const transitionDuration = Math.min(TRANSITION_SECONDS, Math.max(0.06, duration / 8));
-  const transitionOutStart = Math.max(0, duration - transitionDuration);
-  const audioFadeIn = Math.min(AUDIO_FADE_IN_SECONDS, Math.max(0.05, duration / 6));
-  const audioFadeOut = Math.min(AUDIO_FADE_OUT_SECONDS, Math.max(0.06, duration / 6));
-  const audioFadeOutStart = Math.max(0, duration - audioFadeOut);
-
-  // One scaling pass only. The previous version scaled to 1080x1920 and then
-  // scaled again to the motion canvas, which cost a lot of CPU on the free plan.
+  // Stable Shorts/Reels mode: normalize every source image directly to a
+  // full-screen 1080x1920 frame, crop overflow, and force square pixels.
+  // No camera motion, no zoompan, no DAR override.
   const vf = [
-    `scale=${MOTION_WIDTH}:${MOTION_HEIGHT}:force_original_aspect_ratio=increase:flags=fast_bilinear`,
-    `crop=${MOTION_WIDTH}:${MOTION_HEIGHT}`,
+    `scale=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:force_original_aspect_ratio=increase`,
+    `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}`,
     "setsar=1",
-    buildMotionCrop(sceneNumber, duration),
-    "setsar=1",
-    "setdar=9/16",
   ];
 
   if (showText) {
@@ -186,17 +145,7 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     );
   }
 
-  vf.push(
-    `fade=t=in:st=0:d=${transitionDuration.toFixed(3)}:color=white`,
-    `fade=t=out:st=${transitionOutStart.toFixed(3)}:d=${transitionDuration.toFixed(3)}:color=white`,
-    "setsar=1",
-    "setdar=9/16"
-  );
-
-  const af = [
-    `afade=t=in:st=0:d=${audioFadeIn.toFixed(3)}`,
-    `afade=t=out:st=${audioFadeOutStart.toFixed(3)}:d=${audioFadeOut.toFixed(3)}`,
-  ];
+  vf.push("setsar=1");
 
   await execFileAsync("ffmpeg", [
     "-y",
@@ -207,12 +156,11 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
     "-i", imagePath,
     "-i", audioPath,
     "-vf", vf.join(","),
-    "-af", af.join(","),
     "-c:v", "libx264",
     "-preset", "ultrafast",
+    "-tune", "stillimage",
     "-r", String(FPS),
     "-pix_fmt", "yuv420p",
-    "-aspect", "9:16",
     "-c:a", "aac",
     "-b:a", "128k",
     "-ar", "48000",
@@ -227,7 +175,15 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
   });
 
   const geometry = await getVideoGeometry(outputPath);
-  if (geometry.width !== OUTPUT_WIDTH || geometry.height !== OUTPUT_HEIGHT) {
+  console.log(
+    `Scene ${sceneNumber}: geometry ${geometry.width}x${geometry.height}, sar=${geometry.sar}, dar=${geometry.dar}`
+  );
+
+  if (
+    geometry.width !== OUTPUT_WIDTH ||
+    geometry.height !== OUTPUT_HEIGHT ||
+    !isSquarePixelRatio(geometry.sar)
+  ) {
     throw new Error(
       `Scene ${sceneNumber} geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
     );
@@ -237,6 +193,7 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
 async function concatScenes(files, listPath, outputPath) {
   const body = files.map((p) => `file '${p.replaceAll("'", "'\\''")}'`).join("\n");
   await fs.writeFile(listPath, body, "utf8");
+
   await execFileAsync("ffmpeg", [
     "-y",
     "-threads", "1",
@@ -276,7 +233,7 @@ async function renderVideo(videoId) {
     claimed = true;
     activeVideoId = videoId;
     startKeepAlive(videoId);
-    console.log(`Starting render for video ${videoId}`);
+    console.log(`Starting render for video ${videoId} in stable vertical mode`);
 
     const { data: scenes, error: scenesError } = await supabase
       .from("scenes")
@@ -338,7 +295,11 @@ async function renderVideo(videoId) {
       `Video ${videoId}: final geometry ${geometry.width}x${geometry.height}, sar=${geometry.sar}, dar=${geometry.dar}`
     );
 
-    if (geometry.width !== OUTPUT_WIDTH || geometry.height !== OUTPUT_HEIGHT) {
+    if (
+      geometry.width !== OUTPUT_WIDTH ||
+      geometry.height !== OUTPUT_HEIGHT ||
+      !isSquarePixelRatio(geometry.sar)
+    ) {
       throw new Error(
         `Final video geometry invalid: ${geometry.width}x${geometry.height} sar=${geometry.sar} dar=${geometry.dar}`
       );
@@ -391,6 +352,7 @@ async function requeueActiveVideo(reason) {
   if (!supabase || !activeVideoId) return;
   const videoId = activeVideoId;
   activeVideoId = null;
+
   try {
     await supabase
       .from("videos")
@@ -414,14 +376,13 @@ app.get("/health", (_req, res) => {
       supabase_service_role_key: hasSupabaseKey,
       render_api_token: hasRenderToken,
       bucket_rendered: true,
-      visual_motion: true,
-      scene_transitions: "white_dip",
+      render_mode: "stable_vertical",
+      visual_motion: false,
       output_geometry: "1080x1920",
       square_pixels: true,
       unique_render_urls: true,
       fps: FPS,
       keepalive_seconds: Math.round(KEEPALIVE_INTERVAL_MS / 1000),
-      scaling: "single_pass_fast_bilinear",
     },
   });
 });
@@ -459,6 +420,6 @@ process.on("SIGINT", async () => {
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
   console.log(
-    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, fps=${FPS}, visual_motion=on, output=1080x1920, keepalive=${Math.round(KEEPALIVE_INTERVAL_MS / 1000)}s`
+    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, mode=stable_vertical, output=1080x1920, fps=${FPS}`
   );
 });

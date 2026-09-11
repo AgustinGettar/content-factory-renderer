@@ -14,17 +14,16 @@ const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
+const SELF_URL = process.env.RENDER_EXTERNAL_URL || "https://content-factory-renderer.onrender.com";
+const KEEPALIVE_INTERVAL_MS = Number(process.env.KEEPALIVE_INTERVAL_MS || 3 * 60 * 1000);
 
-const FPS = 30;
+const FPS = 24;
 const TRANSITION_SECONDS = 0.10;
 const AUDIO_FADE_IN_SECONDS = 0.12;
 const AUDIO_FADE_OUT_SECONDS = 0.18;
 
-// We deliberately avoid zoompan here. The prior implementation could inherit
-// non-square pixel metadata from source images and make a 9:16 video appear
-// stretched or letterboxed in some players. Instead, every frame is normalized
-// to 1080x1920 with square pixels, enlarged uniformly to another 9:16 canvas,
-// and a moving 1080x1920 crop creates the camera motion.
+// Keep a real 9:16 frame at every stage. Motion is created by scaling once to
+// a slightly larger 9:16 canvas and moving a 1080x1920 crop over it.
 const OUTPUT_WIDTH = 1080;
 const OUTPUT_HEIGHT = 1920;
 const MOTION_WIDTH = 1152;
@@ -44,6 +43,7 @@ app.use(express.json({ limit: "1mb" }));
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
 let activeVideoId = null;
+let keepAliveTimer = null;
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -106,6 +106,32 @@ async function getVideoGeometry(filePath) {
   };
 }
 
+function stopKeepAlive() {
+  if (keepAliveTimer) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
+  }
+}
+
+function startKeepAlive(videoId) {
+  stopKeepAlive();
+
+  const ping = async () => {
+    try {
+      const response = await fetch(`${SELF_URL}/health`, {
+        headers: { "x-render-keepalive": "1" },
+        signal: AbortSignal.timeout(15_000),
+      });
+      console.log(`Video ${videoId}: keepalive ${response.status}`);
+    } catch (err) {
+      console.warn(`Video ${videoId}: keepalive failed: ${safeError(err)}`);
+    }
+  };
+
+  keepAliveTimer = setInterval(ping, KEEPALIVE_INTERVAL_MS);
+  keepAliveTimer.unref?.();
+}
+
 function buildMotionCrop(sceneNumber, duration) {
   const maxX = MOTION_WIDTH - OUTPUT_WIDTH;
   const maxY = MOTION_HEIGHT - OUTPUT_HEIGHT;
@@ -142,11 +168,12 @@ async function renderScene(imagePath, audioPath, textPath, outputPath, showText,
   const audioFadeOut = Math.min(AUDIO_FADE_OUT_SECONDS, Math.max(0.06, duration / 6));
   const audioFadeOutStart = Math.max(0, duration - audioFadeOut);
 
+  // One scaling pass only. The previous version scaled to 1080x1920 and then
+  // scaled again to the motion canvas, which cost a lot of CPU on the free plan.
   const vf = [
-    `scale=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}:force_original_aspect_ratio=increase:flags=lanczos`,
-    `crop=${OUTPUT_WIDTH}:${OUTPUT_HEIGHT}`,
+    `scale=${MOTION_WIDTH}:${MOTION_HEIGHT}:force_original_aspect_ratio=increase:flags=fast_bilinear`,
+    `crop=${MOTION_WIDTH}:${MOTION_HEIGHT}`,
     "setsar=1",
-    `scale=${MOTION_WIDTH}:${MOTION_HEIGHT}:flags=lanczos`,
     buildMotionCrop(sceneNumber, duration),
     "setsar=1",
     "setdar=9/16",
@@ -248,6 +275,7 @@ async function renderVideo(videoId) {
 
     claimed = true;
     activeVideoId = videoId;
+    startKeepAlive(videoId);
     console.log(`Starting render for video ${videoId}`);
 
     const { data: scenes, error: scenesError } = await supabase
@@ -352,12 +380,14 @@ async function renderVideo(videoId) {
       }).eq("id", videoId);
     }
   } finally {
+    stopKeepAlive();
     if (activeVideoId === videoId) activeVideoId = null;
     if (workDir) await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
 async function requeueActiveVideo(reason) {
+  stopKeepAlive();
   if (!supabase || !activeVideoId) return;
   const videoId = activeVideoId;
   activeVideoId = null;
@@ -378,6 +408,7 @@ app.get("/health", (_req, res) => {
   res.status(ready ? 200 : 503).json({
     ok: ready,
     service: "content-factory-renderer",
+    active_video_id: activeVideoId,
     config: {
       supabase_url: true,
       supabase_service_role_key: hasSupabaseKey,
@@ -388,6 +419,9 @@ app.get("/health", (_req, res) => {
       output_geometry: "1080x1920",
       square_pixels: true,
       unique_render_urls: true,
+      fps: FPS,
+      keepalive_seconds: Math.round(KEEPALIVE_INTERVAL_MS / 1000),
+      scaling: "single_pass_fast_bilinear",
     },
   });
 });
@@ -425,6 +459,6 @@ process.on("SIGINT", async () => {
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
   console.log(
-    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, visual_motion=on, output=1080x1920`
+    `Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, fps=${FPS}, visual_motion=on, output=1080x1920, keepalive=${Math.round(KEEPALIVE_INTERVAL_MS / 1000)}s`
   );
 });

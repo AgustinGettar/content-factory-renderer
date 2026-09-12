@@ -29,9 +29,8 @@ app.use(express.json({ limit: "1mb" }));
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
 
-// Renderer concurrency guard.
-// One FFmpeg video at a time keeps the free Render instance from wasting CPU/RAM.
-// reservedVideoIds contains both the active video and videos waiting locally.
+// One heavy FFmpeg video at a time. This protects the free Render instance and
+// prevents duplicate Make/Supabase events from starting concurrent renders.
 let activeVideoId = null;
 let workerRunning = false;
 const pendingVideoIds = [];
@@ -77,9 +76,8 @@ async function getDuration(filePath) {
   return d;
 }
 
-// IMPORTANT: this is intentionally the proven original full-screen vertical path.
-// Do not add zoom/pan/aspect overrides here. It fills 1080x1920 by proportional
-// scaling + center crop, matching the first version that displayed correctly.
+// Proven original vertical renderer. Keep this visual path untouched while we
+// build Lumi Animated separately: proportional fill + center crop to 1080x1920.
 async function renderScene(imagePath, audioPath, textPath, outputPath, showText) {
   const vf = [
     "scale=1080:1920:force_original_aspect_ratio=increase",
@@ -144,8 +142,7 @@ async function renderVideo(videoId) {
   let claimed = false;
 
   try {
-    // Database-side claim: only a queued video can become rendering.
-    // This remains the second safety layer after the in-process de-duplication.
+    // Final database-side claim. Only queued -> rendering is allowed.
     const { data: video, error: lockError } = await supabase
       .from("videos")
       .update({ status: "rendering", error_message: null })
@@ -211,7 +208,7 @@ async function renderVideo(videoId) {
 
     const duration = await getDuration(finalPath);
 
-    // Unique object name prevents stale CDN/Telegram cache without query strings.
+    // Unique URL per render avoids stale CDN/Telegram copies without ?v= query strings.
     const renderVersion = Date.now();
     const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}-${renderVersion}.mp4`;
     const buffer = await fs.readFile(finalPath);
@@ -274,7 +271,7 @@ async function runRenderQueue() {
 }
 
 function enqueueRender(videoId, source = "api") {
-  // Same video already active or waiting: acknowledge but do not spend any resources.
+  // Duplicate request for an active/waiting video: no FFmpeg, no extra work.
   if (reservedVideoIds.has(videoId)) {
     console.log(`Video ${videoId}: duplicate render request ignored (${source})`);
     return {
@@ -298,6 +295,59 @@ function enqueueRender(videoId, source = "api") {
   };
 }
 
+// Normal production entry point. Make only sends video_id; this endpoint owns
+// readiness checking and the atomic draft -> queued transition.
+async function requestRenderIfReady(videoId) {
+  if (reservedVideoIds.has(videoId)) {
+    console.log(`Video ${videoId}: readiness request ignored; already reserved`);
+    return {
+      accepted: false,
+      reason: "already_reserved",
+      active_video_id: activeVideoId,
+      queue_length: pendingVideoIds.length,
+    };
+  }
+
+  const { data: readiness, error: readinessError } = await supabase
+    .from("video_render_readiness")
+    .select("video_id,is_ready,video_status")
+    .eq("video_id", videoId)
+    .maybeSingle();
+
+  if (readinessError) throw readinessError;
+  if (!readiness) {
+    return { accepted: false, reason: "readiness_not_found" };
+  }
+
+  if (!readiness.is_ready) {
+    return { accepted: false, reason: "not_ready" };
+  }
+
+  if (readiness.video_status !== "draft") {
+    return {
+      accepted: false,
+      reason: `status_${readiness.video_status}`,
+    };
+  }
+
+  // Atomic claim at the orchestration boundary. If multiple scene events race,
+  // exactly one request can change draft -> queued.
+  const { data: queuedVideo, error: queueError } = await supabase
+    .from("videos")
+    .update({ status: "queued", error_message: null })
+    .eq("id", videoId)
+    .eq("status", "draft")
+    .select("id")
+    .maybeSingle();
+
+  if (queueError) throw queueError;
+  if (!queuedVideo) {
+    return { accepted: false, reason: "already_claimed" };
+  }
+
+  return enqueueRender(videoId, "render_if_ready");
+}
+
 async function recoverQueuedVideos() {
   if (!supabase) return;
 
@@ -310,6 +360,7 @@ async function recoverQueuedVideos() {
       .limit(10);
 
     if (error) throw error;
+
     for (const row of data ?? []) {
       enqueueRender(Number(row.id), "startup_recovery");
     }
@@ -353,12 +404,40 @@ app.get("/health", (_req, res) => {
       bucket_rendered: true,
       single_flight: true,
       duplicate_protection: true,
+      atomic_ready_claim: true,
       startup_recovery: true,
       visual_mode: "proven_static_vertical",
     },
   });
 });
 
+// Preferred production endpoint: one Make HTTP operation replaces GET readiness
+// + PATCH queued + POST render.
+app.post("/render-if-ready", async (req, res) => {
+  if (!supabase) {
+    return res.status(503).json({ ok: false, error: "renderer_not_configured", missing: ["SUPABASE_SERVICE_ROLE_KEY"] });
+  }
+
+  if (hasRenderToken && req.get("x-render-token") !== RENDER_API_TOKEN) {
+    return res.status(401).json({ ok: false, error: "unauthorized" });
+  }
+
+  const videoId = Number(req.body?.video_id);
+  if (!Number.isInteger(videoId) || videoId <= 0) {
+    return res.status(400).json({ ok: false, error: "video_id must be a positive integer" });
+  }
+
+  try {
+    const result = await requestRenderIfReady(videoId);
+    return res.status(202).json({ ok: true, video_id: videoId, ...result });
+  } catch (err) {
+    console.error(`Readiness/queue failed for video ${videoId}:`, err);
+    return res.status(500).json({ ok: false, video_id: videoId, error: safeError(err) });
+  }
+});
+
+// Backward-compatible/manual endpoint. It expects video.status already queued,
+// but still benefits from duplicate protection and single-flight execution.
 app.post("/render", (req, res) => {
   if (!supabase) {
     return res.status(503).json({ ok: false, error: "renderer_not_configured", missing: ["SUPABASE_SERVICE_ROLE_KEY"] });
@@ -373,12 +452,8 @@ app.post("/render", (req, res) => {
     return res.status(400).json({ ok: false, error: "video_id must be a positive integer" });
   }
 
-  const result = enqueueRender(videoId, "api");
-  return res.status(202).json({
-    ok: true,
-    video_id: videoId,
-    ...result,
-  });
+  const result = enqueueRender(videoId, "direct_render_api");
+  return res.status(202).json({ ok: true, video_id: videoId, ...result });
 });
 
 process.on("SIGTERM", async () => {
@@ -395,9 +470,8 @@ process.on("SIGINT", async () => {
 
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, single_flight=on, duplicate_protection=on`);
+  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, single_flight=on, duplicate_protection=on, atomic_ready_claim=on`);
 
-  // Give the service a few seconds to settle, then recover any queued work
-  // that survived a restart/deploy without needing another Make operation.
+  // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
 });

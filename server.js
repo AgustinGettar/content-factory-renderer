@@ -28,7 +28,14 @@ const app = express();
 app.use(express.json({ limit: "1mb" }));
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
+
+// Renderer concurrency guard.
+// One FFmpeg video at a time keeps the free Render instance from wasting CPU/RAM.
+// reservedVideoIds contains both the active video and videos waiting locally.
 let activeVideoId = null;
+let workerRunning = false;
+const pendingVideoIds = [];
+const reservedVideoIds = new Set();
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -70,6 +77,9 @@ async function getDuration(filePath) {
   return d;
 }
 
+// IMPORTANT: this is intentionally the proven original full-screen vertical path.
+// Do not add zoom/pan/aspect overrides here. It fills 1080x1920 by proportional
+// scaling + center crop, matching the first version that displayed correctly.
 async function renderScene(imagePath, audioPath, textPath, outputPath, showText) {
   const vf = [
     "scale=1080:1920:force_original_aspect_ratio=increase",
@@ -134,6 +144,8 @@ async function renderVideo(videoId) {
   let claimed = false;
 
   try {
+    // Database-side claim: only a queued video can become rendering.
+    // This remains the second safety layer after the in-process de-duplication.
     const { data: video, error: lockError } = await supabase
       .from("videos")
       .update({ status: "rendering", error_message: null })
@@ -144,7 +156,7 @@ async function renderVideo(videoId) {
 
     if (lockError) throw lockError;
     if (!video) {
-      console.log(`Video ${videoId} was not queued; render skipped`);
+      console.log(`Video ${videoId}: claim skipped because status is not queued`);
       return;
     }
 
@@ -198,15 +210,18 @@ async function renderVideo(videoId) {
     await concatScenes(rendered, concatPath, finalPath);
 
     const duration = await getDuration(finalPath);
-    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}.mp4`;
+
+    // Unique object name prevents stale CDN/Telegram cache without query strings.
+    const renderVersion = Date.now();
+    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}-${renderVersion}.mp4`;
     const buffer = await fs.readFile(finalPath);
 
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_RENDERED)
       .upload(objectName, buffer, {
         contentType: "video/mp4",
-        upsert: true,
-        cacheControl: "3600",
+        upsert: false,
+        cacheControl: "31536000",
       });
     if (uploadError) throw uploadError;
 
@@ -238,6 +253,75 @@ async function renderVideo(videoId) {
   }
 }
 
+async function runRenderQueue() {
+  if (workerRunning) return;
+  workerRunning = true;
+
+  try {
+    while (pendingVideoIds.length > 0) {
+      const videoId = pendingVideoIds.shift();
+      if (!videoId) continue;
+
+      try {
+        await renderVideo(videoId);
+      } finally {
+        reservedVideoIds.delete(videoId);
+      }
+    }
+  } finally {
+    workerRunning = false;
+  }
+}
+
+function enqueueRender(videoId, source = "api") {
+  // Same video already active or waiting: acknowledge but do not spend any resources.
+  if (reservedVideoIds.has(videoId)) {
+    console.log(`Video ${videoId}: duplicate render request ignored (${source})`);
+    return {
+      accepted: false,
+      reason: "already_reserved",
+      active_video_id: activeVideoId,
+      queue_length: pendingVideoIds.length,
+    };
+  }
+
+  reservedVideoIds.add(videoId);
+  pendingVideoIds.push(videoId);
+  console.log(`Video ${videoId}: queued locally (${source}), queue=${pendingVideoIds.length}`);
+  setImmediate(() => runRenderQueue());
+
+  return {
+    accepted: true,
+    reason: activeVideoId ? "queued_behind_active_render" : "queued_for_render",
+    active_video_id: activeVideoId,
+    queue_length: pendingVideoIds.length,
+  };
+}
+
+async function recoverQueuedVideos() {
+  if (!supabase) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("videos")
+      .select("id")
+      .eq("status", "queued")
+      .order("updated_at", { ascending: true })
+      .limit(10);
+
+    if (error) throw error;
+    for (const row of data ?? []) {
+      enqueueRender(Number(row.id), "startup_recovery");
+    }
+
+    if (data?.length) {
+      console.log(`Startup recovery found ${data.length} queued video(s)`);
+    }
+  } catch (err) {
+    console.warn(`Startup recovery failed: ${safeError(err)}`);
+  }
+}
+
 async function requeueActiveVideo(reason) {
   if (!supabase || !activeVideoId) return;
   const videoId = activeVideoId;
@@ -259,11 +343,18 @@ app.get("/health", (_req, res) => {
   res.status(ready ? 200 : 503).json({
     ok: ready,
     service: "content-factory-renderer",
+    active_video_id: activeVideoId,
+    queue_length: pendingVideoIds.length,
+    reserved_video_ids: [...reservedVideoIds],
     config: {
       supabase_url: true,
       supabase_service_role_key: hasSupabaseKey,
       render_api_token: hasRenderToken,
       bucket_rendered: true,
+      single_flight: true,
+      duplicate_protection: true,
+      startup_recovery: true,
+      visual_mode: "proven_static_vertical",
     },
   });
 });
@@ -282,8 +373,12 @@ app.post("/render", (req, res) => {
     return res.status(400).json({ ok: false, error: "video_id must be a positive integer" });
   }
 
-  res.status(202).json({ ok: true, accepted: true, video_id: videoId });
-  setImmediate(() => renderVideo(videoId));
+  const result = enqueueRender(videoId, "api");
+  return res.status(202).json({
+    ok: true,
+    video_id: videoId,
+    ...result,
+  });
 });
 
 process.on("SIGTERM", async () => {
@@ -300,5 +395,9 @@ process.on("SIGINT", async () => {
 
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
-  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1`);
+  console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, single_flight=on, duplicate_protection=on`);
+
+  // Give the service a few seconds to settle, then recover any queued work
+  // that survived a restart/deploy without needing another Make operation.
+  setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
 });

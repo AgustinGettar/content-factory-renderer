@@ -22,6 +22,7 @@ const execFileAsync = promisify(execFile);
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://hdptwtzhpfdrqiuezjhu.supabase.co";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
+const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
@@ -64,7 +65,11 @@ function safeError(err) {
 }
 
 function authorized(req) {
-  return hasRenderToken && req.get("x-render-token") === RENDER_API_TOKEN;
+  const suppliedToken = req.get("x-render-token");
+  return Boolean(suppliedToken) && (
+    (hasRenderToken && suppliedToken === RENDER_API_TOKEN) ||
+    (ADMIN_API_TOKEN && suppliedToken === ADMIN_API_TOKEN)
+  );
 }
 
 function htmlEscape(value) {

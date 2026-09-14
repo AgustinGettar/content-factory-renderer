@@ -24,6 +24,7 @@ are introduced behind separate endpoints.
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 RENDER_API_TOKEN
+ADMIN_API_TOKEN
 BUCKET_RENDERED=rendered-videos
 PORT=3000
 BLENDER_BIN=blender
@@ -36,6 +37,10 @@ YOUTUBE_REDIRECT_URI=https://content-factory-renderer.onrender.com/youtube/oauth
 YOUTUBE_ALLOW_PUBLIC=false
 
 Do not commit secrets.
+
+`RENDER_API_TOKEN` remains dedicated to the automated renderer. Use the
+separate `ADMIN_API_TOKEN` for the Blender pilot and YouTube administration
+endpoints so testing cannot invalidate the automation credential.
 
 ## Production order
 

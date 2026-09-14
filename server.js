@@ -583,10 +583,11 @@ app.post("/lumi/pilot", (req, res) => {
   const job = {
     id: crypto.randomUUID(),
     status: "queued",
-    width: full ? 720 : 360,
-    height: full ? 1280 : 640,
-    fps: 24,
-    seconds: 12,
+    quality: full ? "review" : "smoke",
+    width: full ? 720 : 270,
+    height: full ? 1280 : 480,
+    fps: full ? 24 : 12,
+    seconds: full ? 12 : 8,
     created_at: new Date().toISOString(),
   };
   pilotJobs.set(job.id, job);

@@ -12,6 +12,7 @@ are introduced behind separate endpoints.
 - POST /lumi/pilot
   - Header: x-render-token
   - Body: {"quality":"smoke"} or {"quality":"review"}
+  - `smoke` is a compact 270x480/12 fps cloud proof; `review` is 720x1280/24 fps
   - Returns an asynchronous job id; poll GET /lumi/pilot/:jobId
 - GET /youtube/status
 - POST /youtube/oauth/start

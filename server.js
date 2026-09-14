@@ -749,10 +749,10 @@ app.post("/lumi/2d-pilot", (req, res) => {
     status: "queued",
     mode: "canonical_2d",
     quality: "character_motion_review",
-    width: 540,
-    height: 960,
-    fps: 24,
-    seconds: 6,
+    width: 360,
+    height: 640,
+    fps: 12,
+    seconds: 4,
     created_at: new Date().toISOString(),
   };
   pilotJobs.set(job.id, job);

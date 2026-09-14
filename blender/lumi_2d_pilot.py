@@ -147,7 +147,9 @@ def build_scene(args):
     scene.frame_start = 1
     scene.frame_end = frames
     scene.render.engine = "BLENDER_EEVEE"
-    scene.eevee.taa_render_samples = 16
+    # One sample is sufficient for the unlit 2D artwork and keeps review jobs
+    # inside the limits of Render's 0.15 CPU free instance.
+    scene.eevee.taa_render_samples = 1
     scene.render.resolution_x = args.width
     scene.render.resolution_y = args.height
     scene.render.resolution_percentage = 100

@@ -10,9 +10,9 @@ are introduced behind separate endpoints.
   - Header: x-render-token: <RENDER_API_TOKEN>
   - Body: {"video_id": 123}
 - POST /lumi/pilot
-  - Header: x-render-token
-  - Body: {"quality":"smoke"} or {"quality":"review"}
-  - `smoke` is a compact 270x480/8 fps Workbench proof; `review` is 720x1280/24 fps with Eevee
+  - Retired legacy 3D prototype; returns HTTP 410 so it cannot be generated accidentally
+- POST /lumi/2d-pilot
+  - Renders the approved canonical Lumi artwork with natural 2D motion, blinks and wand sparkles
   - Returns an asynchronous job id; poll GET /lumi/pilot/:jobId
 - POST /voice/generate
   - Header: x-render-token

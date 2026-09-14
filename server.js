@@ -6,7 +6,7 @@ import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import crypto from "node:crypto";
-import { blenderVersion, renderLumiPilot } from "./lib/blender.js";
+import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
 import {
@@ -130,7 +130,8 @@ async function runPilotJob(job) {
   const workDir = await fs.mkdtemp(path.join(os.tmpdir(), `lumi-pilot-${job.id}-`));
   const outputPath = path.join(workDir, "lumi-pilot.mp4");
   try {
-    await renderLumiPilot({
+    const renderer = job.mode === "canonical_2d" ? renderLumi2DPilot : renderLumiPilot;
+    await renderer({
       outputPath,
       width: job.width,
       height: job.height,
@@ -528,8 +529,9 @@ app.get("/health", (_req, res) => {
       duplicate_protection: true,
       atomic_ready_claim: true,
       startup_recovery: true,
-      visual_mode: detectedBlenderVersion ? "blender_3d_pilot_ready" : "proven_static_vertical",
+      visual_mode: detectedBlenderVersion ? "canonical_2d_blender_ready" : "proven_static_vertical",
       blender: detectedBlenderVersion,
+      canonical_lumi_2d: true,
       openai_tts_configured: Boolean(OPENAI_API_KEY),
       youtube_oauth_configured: youtubeConfigMissing().length === 0,
     },
@@ -727,21 +729,30 @@ app.post("/render", (req, res) => {
 // renderer until the user approves Lumi's final 3D model and voice.
 app.post("/lumi/pilot", (req, res) => {
   if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  return res.status(410).json({
+    ok: false,
+    error: "legacy_3d_lumi_retired",
+    replacement: "/lumi/2d-pilot",
+  });
+});
+
+app.post("/lumi/2d-pilot", (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   if (!supabase || !detectedBlenderVersion) {
     return res.status(503).json({ ok: false, error: "blender_renderer_not_ready" });
   }
   if (activePilotJobId) {
     return res.status(409).json({ ok: false, error: "pilot_already_rendering", job_id: activePilotJobId });
   }
-  const full = req.body?.quality === "review";
   const job = {
     id: crypto.randomUUID(),
     status: "queued",
-    quality: full ? "review" : "smoke",
-    width: full ? 720 : 270,
-    height: full ? 1280 : 480,
-    fps: full ? 24 : 8,
-    seconds: full ? 12 : 8,
+    mode: "canonical_2d",
+    quality: "character_motion_review",
+    width: 540,
+    height: 960,
+    fps: 24,
+    seconds: 6,
     created_at: new Date().toISOString(),
   };
   pilotJobs.set(job.id, job);

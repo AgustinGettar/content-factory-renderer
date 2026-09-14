@@ -9,6 +9,8 @@ COPY server.js ./
 COPY lib ./lib
 COPY blender ./blender
 COPY assets ./assets
+COPY test ./test
+RUN node --check server.js && npm test
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["npm","start"]

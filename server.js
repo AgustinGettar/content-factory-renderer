@@ -6,6 +6,8 @@ import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import crypto from "node:crypto";
+import { renderScene } from "./lib/render-media.js";
+import { renderProfile, validateManifest, verifyAssetHash, isApprovedFinal } from "./lib/render-profiles.js";
 import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
@@ -64,6 +66,8 @@ const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
 // One heavy FFmpeg video at a time. This protects the free Render instance and
 // prevents duplicate Make/Supabase events from starting concurrent renders.
 let activeVideoId = null;
+let activeRenderAttemptId = null;
+let recoveryRunning = false;
 let workerRunning = false;
 const pendingVideoIds = [];
 const reservedVideoIds = new Set();
@@ -199,47 +203,6 @@ async function getDuration(filePath) {
   return d;
 }
 
-// Proven original vertical renderer. Keep this visual path untouched while we
-// build Lumi Animated separately: proportional fill + center crop to 1080x1920.
-async function renderScene(imagePath, audioPath, textPath, outputPath, showText) {
-  const vf = [
-    "scale=1080:1920:force_original_aspect_ratio=increase",
-    "crop=1080:1920",
-  ];
-
-  if (showText) {
-    vf.push(
-      "drawbox=x=60:y=ih-500:w=iw-120:h=300:color=black@0.35:t=fill",
-      `drawtext=fontfile='${FONT_PATH}':textfile='${textPath}':fontcolor=white:fontsize=72:line_spacing=18:x=(main_w-text_w)/2:y=main_h-355-text_h/2`
-    );
-  }
-
-  await execFileAsync("ffmpeg", [
-    "-y",
-    "-threads", "1",
-    "-filter_threads", "1",
-    "-loop", "1",
-    "-i", imagePath,
-    "-i", audioPath,
-    "-vf", vf.join(","),
-    "-c:v", "libx264",
-    "-preset", "ultrafast",
-    "-tune", "stillimage",
-    "-r", "30",
-    "-pix_fmt", "yuv420p",
-    "-c:a", "aac",
-    "-b:a", "128k",
-    "-ar", "48000",
-    "-ac", "2",
-    "-shortest",
-    "-movflags", "+faststart",
-    outputPath,
-  ], {
-    maxBuffer: 10 * 1024 * 1024,
-    timeout: FFMPEG_TIMEOUT_MS,
-  });
-}
-
 async function concatScenes(files, listPath, outputPath) {
   const body = files.map((p) => `file '${p.replaceAll("'", "'\\''")}'`).join("\n");
   await fs.writeFile(listPath, body, "utf8");
@@ -259,117 +222,106 @@ async function concatScenes(files, listPath, outputPath) {
 }
 
 async function renderVideo(videoId) {
-  if (!supabase) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured on the Render service");
-
+  if (!supabase) throw new Error("SUPABASE_SERVICE_ROLE_KEY is not configured");
   let workDir;
   let claimed = false;
-
+  let heartbeat;
+  const attemptId = crypto.randomUUID();
   try {
-    // Final database-side claim. Only queued -> rendering is allowed.
-    const { data: video, error: lockError } = await supabase
-      .from("videos")
-      .update({ status: "rendering", error_message: null })
-      .eq("id", videoId)
-      .eq("status", "queued")
-      .select("id,channel_id,title,aspect_ratio,language")
-      .maybeSingle();
-
-    if (lockError) throw lockError;
-    if (!video) {
-      console.log(`Video ${videoId}: claim skipped because status is not queued`);
-      return;
-    }
-
+    const { data: claim, error: claimError } = await supabase.rpc("cf_claim_render", {
+      p_video: videoId, p_attempt: attemptId,
+    });
+    if (claimError) throw claimError;
+    if (!claim) return;
     claimed = true;
+    const video = claim.video;
+    const manifest = validateManifest(video, claim.manifest);
+    const profile = renderProfile(video.render_stage);
     activeVideoId = videoId;
-    console.log(`Starting render for video ${videoId}`);
-
-    const { data: scenes, error: scenesError } = await supabase
-      .from("scenes")
-      .select("id,scene_number,narration,on_screen_text,image_url,audio_url")
-      .eq("video_id", videoId)
-      .order("scene_number", { ascending: true });
-
-    if (scenesError) throw scenesError;
-    if (!scenes?.length) throw new Error(`Video ${videoId} has no scenes`);
-
-    const missing = scenes.filter((s) => !s.image_url || !s.audio_url);
-    if (missing.length) {
-      throw new Error(`Missing assets in scenes: ${missing.map((s) => s.scene_number).join(", ")}`);
-    }
-
-    workDir = await fs.mkdtemp(path.join(os.tmpdir(), `cf-${videoId}-`));
+    activeRenderAttemptId = attemptId;
+    heartbeat = setInterval(() => {
+      supabase.rpc("cf_renew_render_lease", {p_video:videoId,p_attempt:attemptId})
+        .then(({error}) => { if (error) console.warn("Render lease renewal failed:", safeError(error)); })
+        .catch(() => console.warn("Render lease temporarily unavailable"));
+    }, 20_000);
+    heartbeat.unref?.();
+    console.log("Starting " + video.render_stage + " render for video " + videoId + " revision " + video.content_revision);
+    workDir = await fs.mkdtemp(path.join(os.tmpdir(), "cf-" + videoId + "-"));
     const rendered = [];
-
-    for (const scene of scenes) {
+    const assetHost = new URL(SUPABASE_URL).hostname;
+    for (const scene of manifest.scenes) {
       const n = String(scene.scene_number).padStart(2, "0");
-      const imagePath = path.join(workDir, `scene-${n}.png`);
-      const audioPath = path.join(workDir, `scene-${n}.mp3`);
-      const textPath = path.join(workDir, `scene-${n}.txt`);
-      const scenePath = path.join(workDir, `scene-${n}.mp4`);
-
-      console.log(`Video ${videoId}: rendering scene ${scene.scene_number}/${scenes.length}`);
-
+      const imagePath = path.join(workDir, "scene-" + n + ".png");
+      const audioPath = path.join(workDir, "scene-" + n + ".mp3");
+      const textPath = path.join(workDir, "scene-" + n + ".txt");
+      const scenePath = path.join(workDir, "scene-" + n + ".mp4");
+      for (const assetUrl of [scene.image_url, scene.audio_url]) {
+        const asset = new URL(assetUrl);
+        if (asset.protocol !== "https:" || asset.hostname !== assetHost || !asset.pathname.startsWith("/storage/v1/object/")) {
+          throw new Error("Los recursos deben estar guardados en el almacenamiento del proyecto.");
+        }
+      }
       await Promise.all([
         downloadToFile(scene.image_url, imagePath),
         downloadToFile(scene.audio_url, audioPath),
       ]);
-
-      await getDuration(audioPath);
+      const digest = async file => crypto.createHash("sha256").update(await fs.readFile(file)).digest("hex");
+      const [imageHash, audioHash] = await Promise.all([digest(imagePath), digest(audioPath)]);
+      if (video.render_stage === "final") {
+        verifyAssetHash(scene.image_sha256, imageHash, "imagen " + n);
+        verifyAssetHash(scene.audio_sha256, audioHash, "voz " + n);
+      }
+      scene.image_sha256 = imageHash;
+      scene.audio_sha256 = audioHash;
+      scene.duration_seconds = await getDuration(audioPath);
+      if (scene.duration_seconds > 180) throw new Error("Una escena supera el límite de tres minutos.");
       const txt = wrapText(scene.on_screen_text);
       await fs.writeFile(textPath, txt, "utf8");
-      await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt));
+      await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt), profile, {fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
       rendered.push(scenePath);
-
-      console.log(`Video ${videoId}: scene ${scene.scene_number} complete`);
+      console.log("Video " + videoId + ": " + video.render_stage + " scene " + n + " complete");
     }
-
-    const concatPath = path.join(workDir, "concat.txt");
-    const finalPath = path.join(workDir, "final.mp4");
-    console.log(`Video ${videoId}: concatenating ${rendered.length} scenes`);
-    await concatScenes(rendered, concatPath, finalPath);
-
-    const duration = await getDuration(finalPath);
-
-    // Unique URL per render avoids stale CDN/Telegram copies without ?v= query strings.
-    const renderVersion = Date.now();
-    const objectName = `channel-${video.channel_id ?? "unknown"}-video-${videoId}-${renderVersion}.mp4`;
-    const buffer = await fs.readFile(finalPath);
-
-    const { error: uploadError } = await supabase.storage
-      .from(BUCKET_RENDERED)
-      .upload(objectName, buffer, {
-        contentType: "video/mp4",
-        upsert: false,
-        cacheControl: "31536000",
+    if (video.render_stage === "preview") {
+      const { data: saved, error: saveError } = await supabase.rpc("cf_save_render_manifest", {
+        p_video:videoId,p_attempt:attemptId,p_revision:video.content_revision,p_manifest:manifest,
       });
+      if (saveError) throw saveError;
+      if (!saved) throw new Error("El intento venció; se descartó esta vista previa.");
+    }
+    const finalPath = path.join(workDir, "result.mp4");
+    await concatScenes(rendered, path.join(workDir, "concat.txt"), finalPath);
+    const duration = await getDuration(finalPath);
+    const objectName = "channel-" + video.channel_id + "/video-" + videoId + "/r" +
+      video.content_revision + "-" + video.render_stage + "-" + attemptId + ".mp4";
+    const {error:uploadError} = await supabase.storage.from(BUCKET_RENDERED).upload(
+      objectName, await fs.readFile(finalPath),
+      {contentType:"video/mp4",upsert:false,cacheControl:"31536000"}
+    );
     if (uploadError) throw uploadError;
-
-    const renderUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_RENDERED}/${objectName}`;
-
-    const { error: updateError } = await supabase
-      .from("videos")
-      .update({
-        status: "rendered",
-        render_url: renderUrl,
-        duration_seconds: Number(duration.toFixed(2)),
-        error_message: null,
-      })
-      .eq("id", videoId);
-    if (updateError) throw updateError;
-
-    console.log(`Rendered video ${videoId}: ${renderUrl}`);
+    const renderUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_RENDERED + "/" + objectName;
+    const { data: completed, error: completeError } = await supabase.rpc("cf_complete_render", {
+      p_video:videoId,p_attempt:attemptId,p_revision:video.content_revision,p_url:renderUrl,
+      p_duration:Number(duration.toFixed(2)),
+    });
+    if (completeError) throw completeError;
+    if (!completed) throw new Error("El intento venció. Este archivo no se habilitó para revisión ni publicación.");
+    console.log("Completed " + video.render_stage + " video " + videoId + " at " + profile.width + "x" + profile.height);
   } catch (err) {
-    console.error(`Render failed for video ${videoId}:`, err);
+    console.error("Render failed for video " + videoId + ":", safeError(err));
     if (supabase && claimed) {
-      await supabase.from("videos").update({
-        status: "failed",
-        error_message: safeError(err),
-      }).eq("id", videoId);
+      const {error} = await supabase.rpc("cf_fail_render", {p_video:videoId,p_attempt:attemptId,p_error:safeError(err)});
+      if (error) console.warn("Could not record render failure:", safeError(error));
+    } else if (supabase) {
+      await supabase.from("videos").update({status:"failed",error_message:safeError(err)})
+        .eq("id",videoId).eq("status","queued");
     }
   } finally {
-    if (activeVideoId === videoId) activeVideoId = null;
-    if (workDir) await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+    if (heartbeat) clearInterval(heartbeat);
+    if (activeRenderAttemptId === attemptId) {
+      activeRenderAttemptId = null;
+      if (activeVideoId === videoId) activeVideoId = null;
+    }
+    if (workDir) await fs.rm(workDir, {recursive:true,force:true}).catch(() => {});
   }
 }
 
@@ -442,6 +394,8 @@ async function requestRenderIfReady(videoId) {
     return { accepted: false, reason: "readiness_not_found" };
   }
 
+  if (readiness.video_status === "queued") return enqueueRender(videoId, "durable_queued_render");
+
   if (!readiness.is_ready) {
     return { accepted: false, reason: "not_ready" };
   }
@@ -472,9 +426,11 @@ async function requestRenderIfReady(videoId) {
 }
 
 async function recoverQueuedVideos() {
-  if (!supabase) return;
-
+  if (!supabase || recoveryRunning) return;
+  recoveryRunning = true;
   try {
+    const {error: recoveryError} = await supabase.rpc("cf_recover_expired_renders");
+    if (recoveryError) throw recoveryError;
     const { data, error } = await supabase
       .from("videos")
       .select("id")
@@ -492,24 +448,14 @@ async function recoverQueuedVideos() {
       console.log(`Startup recovery found ${data.length} queued video(s)`);
     }
   } catch (err) {
-    console.warn(`Startup recovery failed: ${safeError(err)}`);
-  }
+    console.warn(`Queue recovery failed: ${safeError(err)}`);
+  } finally { recoveryRunning = false; }
 }
 
-async function requeueActiveVideo(reason) {
-  if (!supabase || !activeVideoId) return;
-  const videoId = activeVideoId;
-  activeVideoId = null;
-  try {
-    await supabase
-      .from("videos")
-      .update({ status: "queued", error_message: reason })
-      .eq("id", videoId)
-      .eq("status", "rendering");
-    console.log(`Requeued video ${videoId}: ${reason}`);
-  } catch (err) {
-    console.error(`Could not requeue video ${videoId}:`, err);
-  }
+async function requeueActiveVideo() {
+  if (!supabase || !activeVideoId || !activeRenderAttemptId) return;
+  const {error} = await supabase.rpc("cf_release_render", {p_video:activeVideoId,p_attempt:activeRenderAttemptId});
+  if (error) console.warn("Could not release render lease:", safeError(error));
 }
 
 app.get("/health", (_req, res) => {
@@ -532,6 +478,10 @@ app.get("/health", (_req, res) => {
       visual_mode: detectedBlenderVersion ? "canonical_2d_blender_ready" : "proven_static_vertical",
       blender: detectedBlenderVersion,
       canonical_lumi_2d: true,
+      staged_rendering: "ld-hd-v1",
+      preview_resolution: "360x640",
+      final_resolution: "1080x1920",
+      final_requires_approval: true,
       openai_tts_configured: Boolean(OPENAI_API_KEY),
       youtube_oauth_configured: youtubeConfigMissing().length === 0,
     },
@@ -687,7 +637,7 @@ app.post("/render-if-ready", async (req, res) => {
     return res.status(503).json({ ok: false, error: "renderer_not_configured", missing: ["SUPABASE_SERVICE_ROLE_KEY"] });
   }
 
-  if (hasRenderToken && req.get("x-render-token") !== RENDER_API_TOKEN) {
+  if (!authorized(req)) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
 
@@ -712,7 +662,7 @@ app.post("/render", (req, res) => {
     return res.status(503).json({ ok: false, error: "renderer_not_configured", missing: ["SUPABASE_SERVICE_ROLE_KEY"] });
   }
 
-  if (hasRenderToken && req.get("x-render-token") !== RENDER_API_TOKEN) {
+  if (!authorized(req)) {
     return res.status(401).json({ ok: false, error: "unauthorized" });
   }
 
@@ -861,7 +811,7 @@ app.post("/youtube/upload", async (req, res) => {
   try {
     const { data: video, error: videoError } = await supabase
       .from("videos")
-      .select("id,channel_id,title,script,render_url,status")
+      .select("id,channel_id,title,script,render_url,status,render_stage,content_revision,final_revision,approved_revision")
       .eq("id", videoId)
       .maybeSingle();
     if (videoError) throw videoError;
@@ -870,14 +820,14 @@ app.post("/youtube/upload", async (req, res) => {
     }
     const { data: review, error: reviewError } = await supabase
       .from("cf_video_reviews")
-      .select("verdict,reviewed_at")
+      .select("verdict,reviewed_at,content_revision")
       .eq("video_id", videoId)
       .order("reviewed_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (reviewError) throw reviewError;
-    if (review?.verdict !== "approved") {
-      return res.status(409).json({ ok: false, error: "video_not_approved" });
+    if (!isApprovedFinal(video, review)) {
+      return res.status(409).json({ ok: false, error: "approved_hd_revision_required" });
     }
     const connection = await getYouTubeConnection(video.channel_id || 1);
     if (!connection || connection.status !== "connected") {
@@ -964,4 +914,5 @@ app.listen(Number(PORT), "0.0.0.0", () => {
 
   // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
+  setInterval(() => recoverQueuedVideos(), 30_000).unref?.();
 });

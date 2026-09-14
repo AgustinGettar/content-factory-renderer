@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import crypto from "node:crypto";
 import { blenderVersion, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
+import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
 import {
   buildAuthorizationUrl,
   buildVideoMetadata,
@@ -24,6 +25,7 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
 const ADMIN_API_TOKEN = process.env.ADMIN_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
+const BUCKET_AUDIO = process.env.BUCKET_AUDIO || "generated-audio";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
 const BLENDER_BIN = process.env.BLENDER_BIN || "blender";
@@ -35,6 +37,15 @@ const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_ENCRYPTION_KEY || "";
 const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || "";
 const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || `${RENDER_EXTERNAL_URL}/youtube/oauth/callback`;
 const YOUTUBE_ALLOW_PUBLIC = process.env.YOUTUBE_ALLOW_PUBLIC === "true";
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
+const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
+const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "marin";
+const OPENAI_TTS_INSTRUCTIONS = process.env.OPENAI_TTS_INSTRUCTIONS || DEFAULT_TTS_INSTRUCTIONS;
+
+const SUPPORTED_TTS_VOICES = new Set([
+  "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
+  "marin", "nova", "onyx", "sage", "shimmer", "verse",
+]);
 
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
@@ -519,9 +530,152 @@ app.get("/health", (_req, res) => {
       startup_recovery: true,
       visual_mode: detectedBlenderVersion ? "blender_3d_pilot_ready" : "proven_static_vertical",
       blender: detectedBlenderVersion,
+      openai_tts_configured: Boolean(OPENAI_API_KEY),
       youtube_oauth_configured: youtubeConfigMissing().length === 0,
     },
   });
+});
+
+// Generate narration in the cloud without Make. The active character profile
+// controls the voice, so Lumi keeps one approved sound across every scene.
+app.post("/voice/generate", async (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!supabase) return res.status(503).json({ ok: false, error: "renderer_not_configured" });
+  if (!OPENAI_API_KEY) {
+    return res.status(503).json({ ok: false, error: "openai_api_not_configured", missing: ["OPENAI_API_KEY"] });
+  }
+
+  const requestedVideoId = Number(req.body?.video_id);
+  const requestedSceneId = Number(req.body?.scene_id);
+  const videoIdValid = Number.isInteger(requestedVideoId) && requestedVideoId > 0;
+  const sceneIdValid = Number.isInteger(requestedSceneId) && requestedSceneId > 0;
+  if (videoIdValid === sceneIdValid) {
+    return res.status(400).json({ ok: false, error: "send_exactly_one_of_video_id_or_scene_id" });
+  }
+
+  try {
+    let selectedScene = null;
+    let videoId = requestedVideoId;
+    if (sceneIdValid) {
+      const { data, error } = await supabase
+        .from("scenes")
+        .select("id,video_id,scene_number,narration,image_url,audio_url,status,metadata")
+        .eq("id", requestedSceneId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return res.status(404).json({ ok: false, error: "scene_not_found" });
+      selectedScene = data;
+      videoId = Number(data.video_id);
+    }
+
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id,channel_id,status")
+      .eq("id", videoId)
+      .maybeSingle();
+    if (videoError) throw videoError;
+    if (!video) return res.status(404).json({ ok: false, error: "video_not_found" });
+    if (!["draft", "generating", "failed"].includes(video.status)) {
+      return res.status(409).json({ ok: false, error: "video_locked_for_asset_changes", status: video.status });
+    }
+
+    const channelId = Number(video.channel_id || 1);
+    const { data: character, error: characterError } = await supabase
+      .from("characters")
+      .select("id,name,voice_profile")
+      .eq("channel_id", channelId)
+      .eq("active", true)
+      .order("id", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (characterError) throw characterError;
+
+    const profile = character?.voice_profile || {};
+    const model = profile.model || OPENAI_TTS_MODEL;
+    const voice = String(profile.voice || OPENAI_TTS_VOICE).toLowerCase();
+    const instructions = profile.instructions || OPENAI_TTS_INSTRUCTIONS;
+    if (!SUPPORTED_TTS_VOICES.has(voice)) {
+      return res.status(422).json({ ok: false, error: "unsupported_tts_voice", voice });
+    }
+
+    let scenes;
+    if (selectedScene) {
+      scenes = [selectedScene];
+    } else {
+      const { data, error } = await supabase
+        .from("scenes")
+        .select("id,video_id,scene_number,narration,image_url,audio_url,status,metadata")
+        .eq("video_id", videoId)
+        .order("scene_number", { ascending: true });
+      if (error) throw error;
+      scenes = data || [];
+    }
+    if (!scenes.length) return res.status(404).json({ ok: false, error: "no_scenes_found" });
+
+    const generated = [];
+    const skipped = [];
+    for (const scene of scenes) {
+      if (!String(scene.narration || "").trim()) {
+        skipped.push({ scene_id: scene.id, reason: "empty_narration" });
+        continue;
+      }
+      if (scene.audio_url && req.body?.force !== true) {
+        skipped.push({ scene_id: scene.id, reason: "audio_already_exists" });
+        continue;
+      }
+
+      const speech = await synthesizeSpeech({
+        apiKey: OPENAI_API_KEY,
+        input: scene.narration,
+        model,
+        voice,
+        instructions,
+      });
+      const version = Date.now();
+      const objectName = `channel-${channelId}/video-${video.id}/scene-${scene.scene_number}-${version}.mp3`;
+      const { error: uploadError } = await supabase.storage.from(BUCKET_AUDIO).upload(objectName, speech.buffer, {
+        contentType: "audio/mpeg",
+        upsert: false,
+        cacheControl: "31536000",
+      });
+      if (uploadError) throw uploadError;
+
+      const audioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_AUDIO}/${objectName}`;
+      const metadata = {
+        ...(scene.metadata || {}),
+        audio: {
+          provider: "openai",
+          model: speech.model,
+          voice: speech.voice,
+          generated_at: new Date().toISOString(),
+          disclosure: "Voz generada con inteligencia artificial",
+        },
+      };
+      const { error: updateError } = await supabase.from("scenes").update({
+        audio_url: audioUrl,
+        metadata,
+        status: scene.image_url ? "ready" : scene.status,
+      }).eq("id", scene.id);
+      if (updateError) throw updateError;
+      generated.push({ scene_id: scene.id, scene_number: scene.scene_number, audio_url: audioUrl });
+    }
+
+    await supabase.from("videos").update({ voice_id: voice, error_message: null }).eq("id", video.id);
+    return res.json({
+      ok: true,
+      video_id: video.id,
+      character: character?.name || "Lumi",
+      model,
+      voice,
+      generated,
+      skipped,
+    });
+  } catch (error) {
+    const status = error instanceof OpenAIRequestError ? error.status : 500;
+    const code = error instanceof OpenAIRequestError ? error.code : "voice_generation_failed";
+    console.error("Voice generation failed:", error);
+    return res.status(status).json({ ok: false, error: code, message: safeError(error) });
+  }
 });
 
 // Preferred production endpoint: one Make HTTP operation replaces GET readiness
@@ -738,7 +892,7 @@ app.post("/youtube/upload", async (req, res) => {
     }
     const metadata = buildVideoMetadata({
       title: video.title,
-      description: `${video.script || "Una microclase de Lumi para aprender jugando."}\n\n#Lumi #AprenderJugando #Shorts`,
+      description: `${video.script || "Una microclase de Lumi para aprender jugando."}\n\nLa voz de este video fue generada con inteligencia artificial.\n\n#Lumi #AprenderJugando #Shorts`,
       privacyStatus,
       publishAt: req.body?.publish_at || null,
     });

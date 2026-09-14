@@ -14,6 +14,10 @@ are introduced behind separate endpoints.
   - Body: {"quality":"smoke"} or {"quality":"review"}
   - `smoke` is a compact 270x480/8 fps Workbench proof; `review` is 720x1280/24 fps with Eevee
   - Returns an asynchronous job id; poll GET /lumi/pilot/:jobId
+- POST /voice/generate
+  - Header: x-render-token
+  - Body: `{\"video_id\":123}` or `{\"scene_id\":456}`
+  - Uses Lumi's active voice profile, writes MP3 files to Supabase and skips existing audio unless `force:true`
 - GET /youtube/status
 - POST /youtube/oauth/start
 - GET /youtube/oauth/callback
@@ -27,6 +31,7 @@ SUPABASE_SERVICE_ROLE_KEY
 RENDER_API_TOKEN
 ADMIN_API_TOKEN
 BUCKET_RENDERED=rendered-videos
+BUCKET_AUDIO=generated-audio
 PORT=3000
 BLENDER_BIN=blender
 BLENDER_TIMEOUT_MS=1800000
@@ -36,6 +41,10 @@ YOUTUBE_CLIENT_SECRET
 YOUTUBE_OAUTH_STATE
 YOUTUBE_REDIRECT_URI=https://content-factory-renderer.onrender.com/youtube/oauth/callback
 YOUTUBE_ALLOW_PUBLIC=false
+OPENAI_API_KEY
+OPENAI_TTS_MODEL=gpt-4o-mini-tts
+OPENAI_TTS_VOICE=marin
+OPENAI_TTS_INSTRUCTIONS=<friendly Spanish narration direction>
 
 Do not commit secrets.
 
@@ -46,7 +55,7 @@ endpoints so testing cannot invalidate the automation credential.
 ## Production order
 
 1. Deploy and run the low-resolution Blender smoke pilot.
-2. Review Lumi's official model, motion and voice before enabling episode renders.
+2. Generate narration directly with OpenAI and review Lumi's official model, motion and voice.
 3. Configure Google OAuth and connect the actual channel once.
 4. Upload the first approved episode as `private` and review it in YouTube Studio.
 5. Only then schedule or publish it.

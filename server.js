@@ -5,6 +5,17 @@ import path from "node:path";
 import os from "node:os";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import crypto from "node:crypto";
+import { blenderVersion, renderLumiPilot } from "./lib/blender.js";
+import { decryptJson, encryptJson } from "./lib/security.js";
+import {
+  buildAuthorizationUrl,
+  buildVideoMetadata,
+  exchangeAuthorizationCode,
+  getOwnChannel,
+  refreshAccessToken,
+  uploadVideoBuffer,
+} from "./lib/youtube.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -14,6 +25,15 @@ const RENDER_API_TOKEN = process.env.RENDER_API_TOKEN || "";
 const BUCKET_RENDERED = process.env.BUCKET_RENDERED || "rendered-videos";
 const PORT = process.env.PORT || "3000";
 const FFMPEG_TIMEOUT_MS = Number(process.env.FFMPEG_TIMEOUT_MS || 15 * 60 * 1000);
+const BLENDER_BIN = process.env.BLENDER_BIN || "blender";
+const BLENDER_TIMEOUT_MS = Number(process.env.BLENDER_TIMEOUT_MS || 30 * 60 * 1000);
+const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || "";
+const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET || "";
+const YOUTUBE_OAUTH_STATE = process.env.YOUTUBE_OAUTH_STATE || "";
+const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_ENCRYPTION_KEY || "";
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL || "";
+const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || `${RENDER_EXTERNAL_URL}/youtube/oauth/callback`;
+const YOUTUBE_ALLOW_PUBLIC = process.env.YOUTUBE_ALLOW_PUBLIC === "true";
 
 const hasSupabaseKey = Boolean(SUPABASE_SERVICE_ROLE_KEY);
 const hasRenderToken = Boolean(RENDER_API_TOKEN);
@@ -35,9 +55,95 @@ let activeVideoId = null;
 let workerRunning = false;
 const pendingVideoIds = [];
 const reservedVideoIds = new Set();
+const pilotJobs = new Map();
+let activePilotJobId = null;
+let detectedBlenderVersion = null;
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
+}
+
+function authorized(req) {
+  return hasRenderToken && req.get("x-render-token") === RENDER_API_TOKEN;
+}
+
+function htmlEscape(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
+function youtubeConfigMissing() {
+  return [
+    ["YOUTUBE_CLIENT_ID", YOUTUBE_CLIENT_ID],
+    ["YOUTUBE_CLIENT_SECRET", YOUTUBE_CLIENT_SECRET],
+    ["YOUTUBE_OAUTH_STATE", YOUTUBE_OAUTH_STATE],
+    ["TOKEN_ENCRYPTION_KEY", TOKEN_ENCRYPTION_KEY],
+    ["YOUTUBE_REDIRECT_URI", YOUTUBE_REDIRECT_URI],
+  ].filter(([, value]) => !value).map(([name]) => name);
+}
+
+async function getYouTubeConnection(channelId = 1) {
+  const { data, error } = await supabase
+    .from("social_connections")
+    .select("channel_id,platform,account_id,account_name,credentials_ciphertext,credentials_iv,credentials_auth_tag,status,connected_at")
+    .eq("channel_id", channelId)
+    .eq("platform", "youtube")
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function setIntegrationStatus(platform, status) {
+  const { data: settings, error } = await supabase
+    .from("cf_bot_settings")
+    .select("id,integrations")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!settings) return;
+  await supabase.from("cf_bot_settings").update({
+    integrations: { ...(settings.integrations || {}), [platform]: status },
+  }).eq("id", settings.id);
+}
+
+async function runPilotJob(job) {
+  activePilotJobId = job.id;
+  job.status = "rendering";
+  job.started_at = new Date().toISOString();
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), `lumi-pilot-${job.id}-`));
+  const outputPath = path.join(workDir, "lumi-pilot.mp4");
+  try {
+    await renderLumiPilot({
+      outputPath,
+      width: job.width,
+      height: job.height,
+      fps: job.fps,
+      seconds: job.seconds,
+      binary: BLENDER_BIN,
+      timeoutMs: BLENDER_TIMEOUT_MS,
+    });
+    const buffer = await fs.readFile(outputPath);
+    const objectName = `pilots/lumi-blender-${Date.now()}.mp4`;
+    const { error: uploadError } = await supabase.storage.from(BUCKET_RENDERED).upload(objectName, buffer, {
+      contentType: "video/mp4",
+      upsert: false,
+      cacheControl: "31536000",
+    });
+    if (uploadError) throw uploadError;
+    job.status = "completed";
+    job.render_url = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_RENDERED}/${objectName}`;
+    job.size_bytes = buffer.length;
+    job.finished_at = new Date().toISOString();
+  } catch (error) {
+    job.status = "failed";
+    job.error = safeError(error);
+    job.finished_at = new Date().toISOString();
+    console.error(`Lumi pilot ${job.id} failed:`, error);
+  } finally {
+    activePilotJobId = null;
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {});
+  }
 }
 
 function wrapText(text, maxChars = 24) {
@@ -406,7 +512,9 @@ app.get("/health", (_req, res) => {
       duplicate_protection: true,
       atomic_ready_claim: true,
       startup_recovery: true,
-      visual_mode: "proven_static_vertical",
+      visual_mode: detectedBlenderVersion ? "blender_3d_pilot_ready" : "proven_static_vertical",
+      blender: detectedBlenderVersion,
+      youtube_oauth_configured: youtubeConfigMissing().length === 0,
     },
   });
 });
@@ -456,6 +564,212 @@ app.post("/render", (req, res) => {
   return res.status(202).json({ ok: true, video_id: videoId, ...result });
 });
 
+// Cloud-only visual pilot. It is deliberately separate from the proven static
+// renderer until the user approves Lumi's final 3D model and voice.
+app.post("/lumi/pilot", (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!supabase || !detectedBlenderVersion) {
+    return res.status(503).json({ ok: false, error: "blender_renderer_not_ready" });
+  }
+  if (activePilotJobId) {
+    return res.status(409).json({ ok: false, error: "pilot_already_rendering", job_id: activePilotJobId });
+  }
+  const full = req.body?.quality === "review";
+  const job = {
+    id: crypto.randomUUID(),
+    status: "queued",
+    width: full ? 720 : 360,
+    height: full ? 1280 : 640,
+    fps: 24,
+    seconds: 12,
+    created_at: new Date().toISOString(),
+  };
+  pilotJobs.set(job.id, job);
+  setImmediate(() => runPilotJob(job));
+  return res.status(202).json({ ok: true, job });
+});
+
+app.get("/lumi/pilot/:jobId", (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const job = pilotJobs.get(req.params.jobId);
+  if (!job) return res.status(404).json({ ok: false, error: "pilot_job_not_found" });
+  return res.json({ ok: true, job });
+});
+
+app.get("/youtube/status", async (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!supabase) return res.status(503).json({ ok: false, error: "renderer_not_configured" });
+  try {
+    const connection = await getYouTubeConnection(1);
+    return res.json({
+      ok: true,
+      oauth_configured: youtubeConfigMissing().length === 0,
+      missing: youtubeConfigMissing(),
+      connected: connection?.status === "connected",
+      account: connection ? { id: connection.account_id, name: connection.account_name, connected_at: connection.connected_at } : null,
+    });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: safeError(error) });
+  }
+});
+
+app.post("/youtube/oauth/start", (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const missing = youtubeConfigMissing();
+  if (missing.length) return res.status(503).json({ ok: false, error: "youtube_oauth_not_configured", missing });
+  return res.json({
+    ok: true,
+    authorization_url: buildAuthorizationUrl({
+      clientId: YOUTUBE_CLIENT_ID,
+      redirectUri: YOUTUBE_REDIRECT_URI,
+      state: YOUTUBE_OAUTH_STATE,
+    }),
+  });
+});
+
+app.get("/youtube/oauth/callback", async (req, res) => {
+  if (req.query.state !== YOUTUBE_OAUTH_STATE || !req.query.code) {
+    return res.status(400).type("html").send("<h1>Conexión rechazada</h1><p>El estado de autorización no es válido.</p>");
+  }
+  const missing = youtubeConfigMissing();
+  if (!supabase || missing.length) {
+    return res.status(503).type("html").send("<h1>Conexión no disponible</h1><p>Falta configurar el publicador.</p>");
+  }
+  try {
+    const tokens = await exchangeAuthorizationCode({
+      clientId: YOUTUBE_CLIENT_ID,
+      clientSecret: YOUTUBE_CLIENT_SECRET,
+      redirectUri: YOUTUBE_REDIRECT_URI,
+      code: String(req.query.code),
+    });
+    const account = await getOwnChannel(tokens.access_token);
+    const previous = await getYouTubeConnection(1);
+    let previousCredentials = {};
+    if (previous?.credentials_ciphertext) {
+      previousCredentials = decryptJson({
+        ciphertext: previous.credentials_ciphertext,
+        iv: previous.credentials_iv,
+        auth_tag: previous.credentials_auth_tag,
+      }, TOKEN_ENCRYPTION_KEY);
+    }
+    const credentials = {
+      refresh_token: tokens.refresh_token || previousCredentials.refresh_token,
+      scope: tokens.scope || previousCredentials.scope,
+    };
+    if (!credentials.refresh_token) throw new Error("Google did not return a refresh token; revoke the prior consent and reconnect");
+    const encrypted = encryptJson(credentials, TOKEN_ENCRYPTION_KEY);
+    const { error } = await supabase.from("social_connections").upsert({
+      channel_id: 1,
+      platform: "youtube",
+      account_id: account.id,
+      account_name: account.title,
+      credentials_ciphertext: encrypted.ciphertext,
+      credentials_iv: encrypted.iv,
+      credentials_auth_tag: encrypted.auth_tag,
+      status: "connected",
+      connected_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "channel_id,platform" });
+    if (error) throw error;
+    await supabase.from("channel_platforms").update({ account_label: account.title }).eq("channel_id", 1).eq("platform", "youtube");
+    await setIntegrationStatus("youtube", "connected");
+    return res.type("html").send(`<h1>YouTube conectado</h1><p>Canal: ${htmlEscape(account.title)}</p><p>Ya podés cerrar esta ventana.</p>`);
+  } catch (error) {
+    console.error("YouTube OAuth callback failed:", error);
+    return res.status(500).type("html").send(`<h1>No se pudo conectar YouTube</h1><p>${htmlEscape(safeError(error))}</p>`);
+  }
+});
+
+app.post("/youtube/upload", async (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!supabase) return res.status(503).json({ ok: false, error: "renderer_not_configured" });
+  const videoId = Number(req.body?.video_id);
+  if (!Number.isInteger(videoId) || videoId <= 0) {
+    return res.status(400).json({ ok: false, error: "video_id must be a positive integer" });
+  }
+  try {
+    const { data: video, error: videoError } = await supabase
+      .from("videos")
+      .select("id,channel_id,title,script,render_url,status")
+      .eq("id", videoId)
+      .maybeSingle();
+    if (videoError) throw videoError;
+    if (!video?.render_url || video.status !== "rendered") {
+      return res.status(409).json({ ok: false, error: "video_not_rendered" });
+    }
+    const { data: review, error: reviewError } = await supabase
+      .from("cf_video_reviews")
+      .select("verdict,reviewed_at")
+      .eq("video_id", videoId)
+      .order("reviewed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (reviewError) throw reviewError;
+    if (review?.verdict !== "approved") {
+      return res.status(409).json({ ok: false, error: "video_not_approved" });
+    }
+    const connection = await getYouTubeConnection(video.channel_id || 1);
+    if (!connection || connection.status !== "connected") {
+      return res.status(409).json({ ok: false, error: "youtube_not_connected" });
+    }
+    const credentials = decryptJson({
+      ciphertext: connection.credentials_ciphertext,
+      iv: connection.credentials_iv,
+      auth_tag: connection.credentials_auth_tag,
+    }, TOKEN_ENCRYPTION_KEY);
+    const token = await refreshAccessToken({
+      clientId: YOUTUBE_CLIENT_ID,
+      clientSecret: YOUTUBE_CLIENT_SECRET,
+      refreshToken: credentials.refresh_token,
+    });
+    const mediaResponse = await fetch(video.render_url);
+    if (!mediaResponse.ok) throw new Error(`Video download failed (${mediaResponse.status})`);
+    const buffer = Buffer.from(await mediaResponse.arrayBuffer());
+    if (buffer.length > 200 * 1024 * 1024) throw new Error("Video exceeds the 200 MB publisher limit");
+    const privacyStatus = req.body?.privacy_status || "private";
+    if (privacyStatus === "public" && !YOUTUBE_ALLOW_PUBLIC) {
+      return res.status(403).json({ ok: false, error: "public_uploads_not_enabled" });
+    }
+    const metadata = buildVideoMetadata({
+      title: video.title,
+      description: `${video.script || "Una microclase de Lumi para aprender jugando."}\n\n#Lumi #AprenderJugando #Shorts`,
+      privacyStatus,
+      publishAt: req.body?.publish_at || null,
+    });
+    const youtubeVideo = await uploadVideoBuffer({
+      accessToken: token.access_token,
+      buffer,
+      contentType: mediaResponse.headers.get("content-type") || "video/mp4",
+      metadata,
+    });
+    const published = metadata.status.privacyStatus === "public";
+    const { error: publicationError } = await supabase.from("publications").insert({
+      video_id: video.id,
+      channel_id: video.channel_id,
+      platform: "youtube",
+      account_label: connection.account_name,
+      status: published ? "published" : (metadata.status.publishAt ? "scheduled" : "pending"),
+      scheduled_at: metadata.status.publishAt || null,
+      published_at: published ? new Date().toISOString() : null,
+      external_id: youtubeVideo.id,
+      external_url: `https://www.youtube.com/watch?v=${youtubeVideo.id}`,
+      metrics: {},
+    });
+    if (publicationError) console.warn(`YouTube upload logged with warning: ${safeError(publicationError)}`);
+    return res.status(201).json({
+      ok: true,
+      video_id: video.id,
+      youtube_video_id: youtubeVideo.id,
+      youtube_url: `https://www.youtube.com/watch?v=${youtubeVideo.id}`,
+      privacy_status: metadata.status.privacyStatus,
+      publish_at: metadata.status.publishAt || null,
+    });
+  } catch (error) {
+    console.error(`YouTube upload failed for video ${videoId}:`, error);
+    return res.status(500).json({ ok: false, error: safeError(error) });
+  }
+});
+
 process.on("SIGTERM", async () => {
   console.log("SIGTERM received; preparing renderer shutdown");
   await requeueActiveVideo("Renderer restarted while processing; automatically requeued");
@@ -471,6 +785,11 @@ process.on("SIGINT", async () => {
 app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`Renderer listening on ${PORT}`);
   console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, single_flight=on, duplicate_protection=on, atomic_ready_claim=on`);
+
+  blenderVersion(BLENDER_BIN).then((version) => {
+    detectedBlenderVersion = version;
+    console.log(`Blender: ${version || "not available"}`);
+  });
 
   // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();

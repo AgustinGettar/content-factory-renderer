@@ -278,8 +278,8 @@ def build_scene(args):
     wand_star = star("Wand star", (2.54, -0.12, 6.92), 0.50, 0.23, 0.16, glow, lumi)
 
     # Lesson props: one distractor and the correct yellow answer.
-    red_prop = uv_sphere("Red circle", (-1.35, 0.3, 1.0), (0.62, 0.24, 0.62), red, root=lumi)
-    yellow_prop = star("Yellow answer", (1.25, -0.02, 1.0), 0.72, 0.33, 0.18, glow, lumi)
+    red_prop = uv_sphere("Red circle", (-1.35, 0.3, 1.2), (0.62, 0.24, 0.62), red, root=lumi)
+    yellow_prop = star("Yellow answer", (1.25, -0.02, 1.2), 0.72, 0.33, 0.18, glow, lumi)
     for prop in (red_prop, yellow_prop):
         final_scale = prop.scale.copy()
         keyframe(prop, args.fps * 3, scale=(0.001, 0.001, 0.001))
@@ -289,7 +289,7 @@ def build_scene(args):
     keyframe(yellow_prop, int(args.fps * 7.35), scale=(1.28, 1.28, 1.28))
     keyframe(yellow_prop, int(args.fps * 7.7), scale=(1, 1, 1))
 
-    question = text_object("¿Cuál es amarillo?", (0, -0.25, 0.08), 0.48, white)
+    question = text_object("¿Cuál es amarillo?", (0, -0.25, 0.62), 0.48, white)
     keyframe(question, args.fps * 3, scale=(0.001, 0.001, 0.001))
     keyframe(question, args.fps * 4, scale=(1, 1, 1))
 

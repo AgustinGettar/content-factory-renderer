@@ -586,7 +586,7 @@ app.post("/lumi/pilot", (req, res) => {
     quality: full ? "review" : "smoke",
     width: full ? 720 : 270,
     height: full ? 1280 : 480,
-    fps: full ? 24 : 12,
+    fps: full ? 24 : 8,
     seconds: full ? 12 : 8,
     created_at: new Date().toISOString(),
   };

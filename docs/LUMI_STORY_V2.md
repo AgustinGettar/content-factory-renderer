@@ -14,6 +14,7 @@ La referencia aportada es una grabación de 42,83 s de un video de conteo con pe
 - Letras, figuras, colores y cantidades se dibujan de forma determinista, sin pedir tipografía a la IA. Los conteos usan estrellas y una cantidad por escena. Se excluyen estrellas decorativas del fondo de conteo. La varita tiene un destello durante respuestas que no sean de conteo.
 - El audio decide la duración: redondeo hacia arriba a 30 fps, silencio explícito y 0,2 s de cola. No se acelera ni recorta la voz. Los intermedios animados usan PCM; el video completo se normaliza a objetivo −16 LUFS / −1,5 dBTP y codifica a AAC una sola vez.
 - La vista previa congela los metadatos, tiempos, actuación facial y hashes del personaje además de las imágenes y la voz. Editar la producción invalida la aprobación. El HD usa ese mismo manifiesto. Los manifiestos anteriores conservan el compositor estático o el primer recorte v2 según corresponda; añadir la boca nueva no altera una vista previa aprobada anteriormente.
+- El compositor decodifica cada imagen fija una sola vez y reutiliza el fotograma preparado. Esto evita decodificar PNG grandes y rasterizar los SVG 30 veces por segundo. La optimización se comparó con el render anterior: los 166 fotogramas de una escena real tuvieron hashes idénticos.
 
 ## Activación
 

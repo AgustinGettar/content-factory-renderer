@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { renderProfile } from "../lib/render-profiles.js";
 import { createTimeline, validateProduction, validateSpokenText, verifyTimeline } from "../lib/story-timeline.js";
 import { renderStoryScene, focusSVG } from "../lib/story-renderer.js";
+import { analyzePerformance } from "../lib/lumi-performance.js";
 const exec = promisify(execFile);
 const production = {version:"lumi-story-v2",role:"question",pause_after_seconds:1.5,focus:{kind:"letter",value:"A",color:"blue"}};
 
@@ -37,7 +38,8 @@ for (const stage of ["preview","final"]) test(`story ${stage} encodes motion and
     await exec("ffmpeg",["-v","error","-f","lavfi","-i","sine=frequency=440:sample_rate=48000","-t","0.4",audioPath]);
     await fs.writeFile(textPath,"¡A de aprender!\n100% {Lumi}");
     const timeline=createTimeline(.4,production),profile=renderProfile(stage);
-    await renderStoryScene({imagePath,audioPath,textPath,outputPath,production,timeline,profile,timeoutMs:120000});
+    const performance=await analyzePerformance(audioPath,timeline);
+    await renderStoryScene({imagePath,audioPath,textPath,outputPath,production,timeline,performance,profile,timeoutMs:120000});
     const {stdout}=await exec("ffprobe",["-v","error","-show_entries","format=duration:stream=codec_type,width,height,r_frame_rate,codec_name","-of","json",outputPath]);
     const result=JSON.parse(stdout),v=result.streams.find(s=>s.codec_type==="video");
     assert.deepEqual([v.width,v.height,v.r_frame_rate],[profile.width,profile.height,"30/1"]);

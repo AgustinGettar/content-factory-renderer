@@ -9,6 +9,7 @@ import crypto from "node:crypto";
 import { renderScene } from "./lib/render-media.js";
 import { renderStoryScene, CHARACTER_FILES } from "./lib/story-renderer.js";
 import { STORY_VERSION, validateProduction, validateSpokenText, createTimeline, verifyTimeline } from "./lib/story-timeline.js";
+import { ACTOR_VERSION, MOUTH_FILE, analyzePerformance, validatePerformance } from "./lib/lumi-performance.js";
 import { renderProfile, validateManifest, verifyAssetHash, isApprovedFinal } from "./lib/render-profiles.js";
 import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
@@ -247,7 +248,10 @@ async function renderVideo(videoId) {
         scene.production = validateProduction(scene.production);
         validateSpokenText(scene.narration);
       }
-      const hashes = await Promise.all(CHARACTER_FILES.map(async file =>
+      if (video.render_stage === "preview") manifest.actor_renderer = ACTOR_VERSION;
+      if (manifest.actor_renderer && manifest.actor_renderer !== ACTOR_VERSION) throw new Error("La actuación aprobada necesita su motor original.");
+      const actorFiles = manifest.actor_renderer ? [...CHARACTER_FILES,MOUTH_FILE] : CHARACTER_FILES;
+      const hashes = await Promise.all(actorFiles.map(async file =>
         crypto.createHash("sha256").update(await fs.readFile(path.resolve(file))).digest("hex")));
       if (video.render_stage === "final") {
         if (!Array.isArray(manifest.character_sha256) || manifest.character_sha256.length !== hashes.length) throw new Error("Falta la identidad de Lumi aprobada.");
@@ -302,7 +306,12 @@ async function renderVideo(videoId) {
           ? verifyTimeline(scene.timeline, audioDuration, scene.production)
           : createTimeline(audioDuration, scene.production);
         scene.duration_seconds = scene.timeline.duration_seconds;
-        await renderStoryScene({imagePath,audioPath,textPath,outputPath:scenePath,profile,production:scene.production,timeline:scene.timeline,fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
+        if (manifest.actor_renderer) {
+          scene.performance = video.render_stage === "final"
+            ? validatePerformance(scene.performance,scene.timeline)
+            : await analyzePerformance(audioPath,scene.timeline);
+        }
+        await renderStoryScene({imagePath,audioPath,textPath,outputPath:scenePath,profile,production:scene.production,timeline:scene.timeline,performance:manifest.actor_renderer ? scene.performance : null,fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
       } else {
         scene.duration_seconds = audioDuration;
         await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt), profile, {fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
@@ -509,6 +518,7 @@ app.get("/health", (_req, res) => {
       canonical_lumi_2d: true,
       staged_rendering: "ld-hd-v1",
       story_renderer: STORY_VERSION,
+      actor_renderer: ACTOR_VERSION,
       preview_resolution: "360x640",
       final_resolution: "1080x1920",
       final_requires_approval: true,

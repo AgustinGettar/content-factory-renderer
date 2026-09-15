@@ -7,6 +7,8 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import crypto from "node:crypto";
 import { renderScene } from "./lib/render-media.js";
+import { renderStoryScene, CHARACTER_FILES } from "./lib/story-renderer.js";
+import { STORY_VERSION, validateProduction, validateSpokenText, createTimeline, verifyTimeline } from "./lib/story-timeline.js";
 import { renderProfile, validateManifest, verifyAssetHash, isApprovedFinal } from "./lib/render-profiles.js";
 import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
@@ -203,7 +205,7 @@ async function getDuration(filePath) {
   return d;
 }
 
-async function concatScenes(files, listPath, outputPath) {
+async function concatScenes(files, listPath, outputPath, storyProfile = null) {
   const body = files.map((p) => `file '${p.replaceAll("'", "'\\''")}'`).join("\n");
   await fs.writeFile(listPath, body, "utf8");
   await execFileAsync("ffmpeg", [
@@ -212,7 +214,7 @@ async function concatScenes(files, listPath, outputPath) {
     "-f", "concat",
     "-safe", "0",
     "-i", listPath,
-    "-c", "copy",
+    ...(storyProfile ? ["-c:v", "copy", "-af", "loudnorm=I=-16:TP=-1.5:LRA=9", "-c:a", "aac", "-b:a", storyProfile.audioBitrate, "-ar", "48000", "-ac", "2"] : ["-c", "copy"]),
     "-movflags", "+faststart",
     outputPath,
   ], {
@@ -237,6 +239,24 @@ async function renderVideo(videoId) {
     const video = claim.video;
     const manifest = validateManifest(video, claim.manifest);
     const profile = renderProfile(video.render_stage);
+    const story = manifest.scenes.some(scene => scene.production != null);
+    if (story) {
+      if (video.render_stage === "final" && manifest.renderer !== STORY_VERSION) throw new Error("Falta el motor de la vista previa aprobada.");
+      manifest.renderer = STORY_VERSION;
+      for (const scene of manifest.scenes) {
+        scene.production = validateProduction(scene.production);
+        validateSpokenText(scene.narration);
+      }
+      const hashes = await Promise.all(CHARACTER_FILES.map(async file =>
+        crypto.createHash("sha256").update(await fs.readFile(path.resolve(file))).digest("hex")));
+      if (video.render_stage === "final") {
+        if (!Array.isArray(manifest.character_sha256) || manifest.character_sha256.length !== hashes.length) throw new Error("Falta la identidad de Lumi aprobada.");
+        hashes.forEach((hash,i) => verifyAssetHash(manifest.character_sha256[i],hash,"Lumi " + i));
+      }
+      manifest.character_sha256 = hashes;
+    } else if (manifest.renderer && manifest.renderer !== "static-v1") {
+      throw new Error("Motor de render no compatible con este manifiesto.");
+    }
     activeVideoId = videoId;
     activeRenderAttemptId = attemptId;
     heartbeat = setInterval(() => {
@@ -254,7 +274,7 @@ async function renderVideo(videoId) {
       const imagePath = path.join(workDir, "scene-" + n + ".png");
       const audioPath = path.join(workDir, "scene-" + n + ".mp3");
       const textPath = path.join(workDir, "scene-" + n + ".txt");
-      const scenePath = path.join(workDir, "scene-" + n + ".mp4");
+      const scenePath = path.join(workDir, "scene-" + n + (story ? ".mkv" : ".mp4"));
       for (const assetUrl of [scene.image_url, scene.audio_url]) {
         const asset = new URL(assetUrl);
         if (asset.protocol !== "https:" || asset.hostname !== assetHost || !asset.pathname.startsWith("/storage/v1/object/")) {
@@ -273,11 +293,20 @@ async function renderVideo(videoId) {
       }
       scene.image_sha256 = imageHash;
       scene.audio_sha256 = audioHash;
-      scene.duration_seconds = await getDuration(audioPath);
-      if (scene.duration_seconds > 180) throw new Error("Una escena supera el límite de tres minutos.");
+      const audioDuration = await getDuration(audioPath);
+      if (audioDuration > 180) throw new Error("Una escena supera el límite de tres minutos.");
       const txt = wrapText(scene.on_screen_text);
       await fs.writeFile(textPath, txt, "utf8");
-      await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt), profile, {fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
+      if (story) {
+        scene.timeline = video.render_stage === "final"
+          ? verifyTimeline(scene.timeline, audioDuration, scene.production)
+          : createTimeline(audioDuration, scene.production);
+        scene.duration_seconds = scene.timeline.duration_seconds;
+        await renderStoryScene({imagePath,audioPath,textPath,outputPath:scenePath,profile,production:scene.production,timeline:scene.timeline,fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
+      } else {
+        scene.duration_seconds = audioDuration;
+        await renderScene(imagePath, audioPath, textPath, scenePath, Boolean(txt), profile, {fontPath:FONT_PATH,timeoutMs:FFMPEG_TIMEOUT_MS});
+      }
       rendered.push(scenePath);
       console.log("Video " + videoId + ": " + video.render_stage + " scene " + n + " complete");
     }
@@ -289,7 +318,7 @@ async function renderVideo(videoId) {
       if (!saved) throw new Error("El intento venció; se descartó esta vista previa.");
     }
     const finalPath = path.join(workDir, "result.mp4");
-    await concatScenes(rendered, path.join(workDir, "concat.txt"), finalPath);
+    await concatScenes(rendered, path.join(workDir, "concat.txt"), finalPath, story ? profile : null);
     const duration = await getDuration(finalPath);
     const objectName = "channel-" + video.channel_id + "/video-" + videoId + "/r" +
       video.content_revision + "-" + video.render_stage + "-" + attemptId + ".mp4";
@@ -479,6 +508,7 @@ app.get("/health", (_req, res) => {
       blender: detectedBlenderVersion,
       canonical_lumi_2d: true,
       staged_rendering: "ld-hd-v1",
+      story_renderer: STORY_VERSION,
       preview_resolution: "360x640",
       final_resolution: "1080x1920",
       final_requires_approval: true,

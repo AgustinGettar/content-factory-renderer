@@ -14,6 +14,15 @@ import { renderProfile, validateManifest, verifyAssetHash, isApprovedFinal } fro
 import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
+import { CreativeValidationError } from "./lib/av2/contracts.js";
+import { executePrepareOperation } from "./lib/av2/creative-engine.js";
+import { Av2PersistenceError, SupabaseCreativeArtifactStore } from "./lib/av2/persistence.js";
+import {
+  AV2_BENCHMARK_ID,
+  Av2IntegrationError,
+  Av2PipelineIntegration,
+  executeIntegratedOperation,
+} from "./lib/av2/pipeline-integration.js";
 import {
   buildAuthorizationUrl,
   buildVideoMetadata,
@@ -46,6 +55,8 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
 const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "marin";
 const OPENAI_TTS_INSTRUCTIONS = process.env.OPENAI_TTS_INSTRUCTIONS || DEFAULT_TTS_INSTRUCTIONS;
+const CREATIVE_ENGINE_VERSION = process.env.CREATIVE_ENGINE_VERSION || "legacy";
+const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -60,6 +71,13 @@ const supabase = hasSupabaseKey
       auth: { persistSession: false, autoRefreshToken: false },
     })
   : null;
+
+const av2Integration = supabase ? new Av2PipelineIntegration({
+  store: new SupabaseCreativeArtifactStore(supabase),
+  logger: creativeLog,
+  engineVersion: CREATIVE_ENGINE_VERSION,
+  benchmarkOnly: AV2_BENCHMARK_ONLY,
+}) : null;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -80,6 +98,18 @@ let detectedBlenderVersion = null;
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
+}
+
+function creativeLog(entry) {
+  const allowed = [
+    "component", "event", "operation", "episode_id", "idea_id", "scene_id",
+    "job_id", "video_id", "artifact_id", "attempt", "generation_attempt", "repair_attempt",
+    "error_code", "error_count", "request_hash", "content_hash", "episode_sha256", "ideas_sha256",
+    "creative_engine_version", "episode_schema_version", "scene_schema_version",
+    "cache_hit", "validation_result", "persistence_result", "legacy_adaptation_result",
+  ];
+  const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
+  console.info(JSON.stringify(safe));
 }
 
 function authorized(req) {
@@ -524,8 +554,58 @@ app.get("/health", (_req, res) => {
       final_requires_approval: true,
       openai_tts_configured: Boolean(OPENAI_API_KEY),
       youtube_oauth_configured: youtubeConfigMissing().length === 0,
+      creative_engine_version: CREATIVE_ENGINE_VERSION,
+      creative_engine_v2_available: true,
+      creative_engine_v2_benchmark_only: AV2_BENCHMARK_ONLY,
+      creative_engine_v2_persistence: Boolean(av2Integration),
     },
   });
+});
+
+// Make remains the generation orchestrator. This authenticated helper builds
+// one structured request, validates the response, and derives legacy fields.
+// Persisted operations are idempotent by request hash; pure operations remain
+// available for contract validation. This route never renders or enqueues media.
+app.post("/av2/prepare", async (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (CREATIVE_ENGINE_VERSION !== "v2") {
+    return res.status(409).json({ ok: false, error: "creative_engine_v2_disabled" });
+  }
+  try {
+    const persistedOperations = new Set([
+      "resolve_ideas", "accept_ideas_persisted", "resolve_plan", "accept_plan_persisted",
+      "repair_plan_persisted", "attach_video", "record_failure",
+    ]);
+    if (persistedOperations.has(req.body?.operation)) {
+      if (!av2Integration) throw new Av2PersistenceError("AV2 persistence is not configured");
+      return res.json(await executeIntegratedOperation(req.body, { integration: av2Integration }));
+    }
+    if (AV2_BENCHMARK_ONLY && req.body?.context?.benchmark_id !== AV2_BENCHMARK_ID) {
+      throw new Av2IntegrationError("creative_engine_v2_not_selected", "benchmark_not_allowed", { status: 409 });
+    }
+    return res.json(executePrepareOperation(req.body, { logger: creativeLog }));
+  } catch (error) {
+    const validation = error instanceof CreativeValidationError;
+    const persistence = error instanceof Av2PersistenceError;
+    const integration = error instanceof Av2IntegrationError;
+    creativeLog({
+      component: "creative_engine_v2",
+      event: "prepare_failed",
+      operation: req.body?.operation,
+      episode_id: req.body?.payload?.episode?.id,
+      attempt: req.body?.attempt,
+      error_code: error.code || "prepare_invalid",
+      error_count: error.errors?.length,
+    });
+    const status = validation ? 422 : (persistence ? 503 : (integration ? error.status : 400));
+    return res.status(status).json({
+      ok: false,
+      error: error.code || "prepare_invalid",
+      message: safeError(error),
+      recoverable: Boolean(error.recoverable || persistence),
+      ...(validation ? { validation_errors: error.errors.slice(0, 40) } : {}),
+    });
+  }
 });
 
 // Generate narration in the cloud without Make. The active character profile

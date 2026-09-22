@@ -1,0 +1,1034 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://content-factory.local/schemas/episode-plan.v2.schema.json",
+  "title": "Content Factory Episode Plan V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "episode",
+    "entities",
+    "scenes"
+  ],
+  "properties": {
+    "version": {
+      "const": "cf-episode/2.0"
+    },
+    "episode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "language",
+        "category",
+        "age_range",
+        "learning",
+        "story_premise",
+        "world_ref",
+        "style_ref",
+        "character_lock_ref",
+        "voice_profile_ref",
+        "duration_target",
+        "story_beats",
+        "music_direction",
+        "continuity_initial",
+        "requires",
+        "transitions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{2,63}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "language": {
+          "enum": [
+            "es-419"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 48
+        },
+        "age_range": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min_years",
+            "max_years"
+          ],
+          "properties": {
+            "min_years": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            },
+            "max_years": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 10
+            }
+          }
+        },
+        "learning": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objective_id",
+            "objective",
+            "success_test"
+          ],
+          "properties": {
+            "objective_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]+$"
+            },
+            "objective": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            },
+            "secondary_skill": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "success_test": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 320
+            }
+          }
+        },
+        "story_premise": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "world_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "style_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "character_lock_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "voice_profile_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "duration_target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "min_seconds",
+            "target_seconds",
+            "max_seconds"
+          ],
+          "properties": {
+            "min_seconds": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 600
+            },
+            "target_seconds": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 600
+            },
+            "max_seconds": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 600
+            }
+          }
+        },
+        "story_beats": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "function"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^beat_[a-z0-9_-]+$"
+              },
+              "function": {
+                "enum": [
+                  "setup",
+                  "discovery",
+                  "development",
+                  "question",
+                  "answer",
+                  "recap",
+                  "close"
+                ]
+              },
+              "summary": {
+                "type": "string",
+                "maxLength": 240
+              }
+            }
+          }
+        },
+        "music_direction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "motif_ref",
+            "mood",
+            "rules"
+          ],
+          "properties": {
+            "motif_ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "mood": {
+              "type": "string",
+              "maxLength": 160
+            },
+            "rules": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "string",
+                "maxLength": 180
+              }
+            }
+          }
+        },
+        "continuity_initial": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "array",
+              "object",
+              "null"
+            ]
+          }
+        },
+        "requires": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 64,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.-]+$"
+          }
+        },
+        "transitions": {
+          "type": "array",
+          "maxItems": 29,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "from_scene",
+              "to_scene",
+              "type",
+              "overlap_frames"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^edge_[a-z0-9_-]+$"
+              },
+              "from_scene": {
+                "type": "string"
+              },
+              "to_scene": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "cut",
+                  "occlusion",
+                  "match_action",
+                  "crossfade"
+                ]
+              },
+              "motivated_by": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "overlap_frames": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 90
+              }
+            }
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "asset_ref",
+          "tags"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{1,63}$"
+          },
+          "kind": {
+            "enum": [
+              "character",
+              "prop",
+              "animal",
+              "environment",
+              "occluder",
+              "overlay"
+            ]
+          },
+          "asset_ref": {
+            "$ref": "#/$defs/ref"
+          },
+          "tags": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 24,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_-]*$"
+            }
+          }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/scene"
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{1,63}$"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32
+        }
+      }
+    },
+    "timeRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "anchor"
+      ],
+      "properties": {
+        "anchor": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{1,95}$"
+        },
+        "offset_seconds": {
+          "type": "number",
+          "minimum": -120,
+          "maximum": 120,
+          "default": 0
+        }
+      }
+    },
+    "vec3": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minimum": -1000,
+        "maximum": 1000
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "transform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_m",
+        "rotation_deg",
+        "scale"
+      ],
+      "properties": {
+        "position_m": {
+          "$ref": "#/$defs/vec3"
+        },
+        "rotation_deg": {
+          "$ref": "#/$defs/vec3"
+        },
+        "scale": {
+          "$ref": "#/$defs/vec3"
+        }
+      }
+    },
+    "scene": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "beat_ref",
+        "educational_goal",
+        "duration_target_seconds",
+        "stage",
+        "actions",
+        "camera",
+        "audio",
+        "effects",
+        "text",
+        "transition_in",
+        "transition_out",
+        "continuity",
+        "assertions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^s[0-9]{2}$"
+        },
+        "beat_ref": {
+          "type": "string",
+          "pattern": "^beat_[a-z0-9_-]+$"
+        },
+        "educational_goal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "duration_target_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 120
+        },
+        "stage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "environment_ref",
+            "lighting_ref",
+            "placements"
+          ],
+          "properties": {
+            "environment_ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "lighting_ref": {
+              "$ref": "#/$defs/ref"
+            },
+            "placements": {
+              "type": "array",
+              "maxItems": 128,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "entity_id",
+                  "layer",
+                  "transform",
+                  "visible"
+                ],
+                "properties": {
+                  "entity_id": {
+                    "type": "string"
+                  },
+                  "layer": {
+                    "enum": [
+                      "background",
+                      "midground",
+                      "foreground",
+                      "overlay"
+                    ]
+                  },
+                  "transform": {
+                    "$ref": "#/$defs/transform"
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "entity_id",
+              "action_id",
+              "start",
+              "duration_seconds",
+              "parameters"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "entity_id": {
+                "type": "string"
+              },
+              "action_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_.-]+$"
+              },
+              "start": {
+                "$ref": "#/$defs/timeRef"
+              },
+              "duration_seconds": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 120
+              },
+              "parameters": {
+                "type": "object",
+                "maxProperties": 24
+              },
+              "expression": {
+                "type": "string",
+                "maxLength": 48
+              },
+              "gaze_target": {
+                "type": "string",
+                "maxLength": 64
+              }
+            }
+          }
+        },
+        "camera": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "shot",
+            "subjects",
+            "move",
+            "from",
+            "to",
+            "start",
+            "duration_seconds",
+            "easing",
+            "framing"
+          ],
+          "properties": {
+            "shot": {
+              "enum": [
+                "extreme_wide",
+                "wide",
+                "medium",
+                "close",
+                "detail"
+              ]
+            },
+            "subjects": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "items": {
+                "type": "string"
+              }
+            },
+            "move": {
+              "enum": [
+                "static",
+                "pan",
+                "tilt",
+                "dolly",
+                "push_in",
+                "pull_out",
+                "orbit"
+              ]
+            },
+            "from": {
+              "$ref": "#/$defs/cameraPose"
+            },
+            "to": {
+              "$ref": "#/$defs/cameraPose"
+            },
+            "start": {
+              "$ref": "#/$defs/timeRef"
+            },
+            "duration_seconds": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 120
+            },
+            "easing": {
+              "$ref": "#/$defs/easing"
+            },
+            "framing": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "safe_region",
+                "intent"
+              ],
+              "properties": {
+                "safe_region": {
+                  "enum": [
+                    "action_safe",
+                    "learning_safe",
+                    "text_safe"
+                  ]
+                },
+                "intent": {
+                  "type": "string",
+                  "maxLength": 240
+                }
+              }
+            }
+          }
+        },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "utterances",
+            "pauses",
+            "music_cues",
+            "sound_effects"
+          ],
+          "properties": {
+            "utterances": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/utterance"
+              }
+            },
+            "pauses": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "after_utterance",
+                  "duration_seconds",
+                  "purpose"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "after_utterance": {
+                    "type": "string"
+                  },
+                  "duration_seconds": {
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 10
+                  },
+                  "purpose": {
+                    "enum": [
+                      "breath",
+                      "dramatic",
+                      "child_response",
+                      "educational"
+                    ]
+                  }
+                }
+              }
+            },
+            "music_cues": {
+              "type": "array",
+              "maxItems": 16,
+              "items": {
+                "$ref": "#/$defs/audioCue"
+              }
+            },
+            "sound_effects": {
+              "type": "array",
+              "maxItems": 32,
+              "items": {
+                "$ref": "#/$defs/audioCue"
+              }
+            }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "origin",
+              "start",
+              "duration_seconds",
+              "seed",
+              "parameters"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "sparkles",
+                  "glow",
+                  "light_rays",
+                  "dust",
+                  "foreground_pass"
+                ]
+              },
+              "origin": {
+                "type": "string"
+              },
+              "destination": {
+                "type": "string"
+              },
+              "start": {
+                "$ref": "#/$defs/timeRef"
+              },
+              "duration_seconds": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 30
+              },
+              "seed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "parameters": {
+                "type": "object",
+                "maxProperties": 20
+              }
+            }
+          }
+        },
+        "text": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "content",
+              "region",
+              "start",
+              "duration_seconds",
+              "style_ref"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 80
+              },
+              "region": {
+                "enum": [
+                  "top",
+                  "center",
+                  "bottom",
+                  "learning_safe"
+                ]
+              },
+              "start": {
+                "$ref": "#/$defs/timeRef"
+              },
+              "duration_seconds": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 120
+              },
+              "style_ref": {
+                "$ref": "#/$defs/ref"
+              }
+            }
+          }
+        },
+        "transition_in": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transition_out": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "continuity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "preconditions",
+            "operations"
+          ],
+          "properties": {
+            "preconditions": {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "$ref": "#/$defs/stateRule"
+              }
+            },
+            "operations": {
+              "type": "array",
+              "maxItems": 64,
+              "items": {
+                "$ref": "#/$defs/stateRule"
+              }
+            }
+          }
+        },
+        "assertions": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "type",
+              "severity",
+              "expected"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "entity_visible",
+                  "entity_count",
+                  "voice_silence",
+                  "character_present",
+                  "safe_area",
+                  "min_motion",
+                  "continuity_state"
+                ]
+              },
+              "severity": {
+                "enum": [
+                  "BLOCKER",
+                  "WARNING",
+                  "INFO"
+                ]
+              },
+              "entities": {
+                "type": "array",
+                "uniqueItems": true,
+                "maxItems": 128,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "window": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "properties": {
+                  "start": {
+                    "$ref": "#/$defs/timeRef"
+                  },
+                  "end": {
+                    "$ref": "#/$defs/timeRef"
+                  }
+                }
+              },
+              "expected": {}
+            }
+          }
+        }
+      }
+    },
+    "cameraPose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "position_m",
+        "target_m",
+        "fov_y_deg"
+      ],
+      "properties": {
+        "position_m": {
+          "$ref": "#/$defs/vec3"
+        },
+        "target_m": {
+          "$ref": "#/$defs/vec3"
+        },
+        "fov_y_deg": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 100
+        }
+      }
+    },
+    "easing": {
+      "enum": [
+        "hold",
+        "linear",
+        "ease_in",
+        "ease_out",
+        "ease_in_out"
+      ]
+    },
+    "utterance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "speaker",
+        "text",
+        "emotion",
+        "delivery",
+        "expected_voice"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "speaker": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "emotion": {
+          "enum": [
+            "warm",
+            "curious",
+            "surprised",
+            "encouraging",
+            "celebratory",
+            "attentive"
+          ]
+        },
+        "delivery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pace",
+            "emphasis"
+          ],
+          "properties": {
+            "pace": {
+              "enum": [
+                "slow",
+                "natural",
+                "brisk"
+              ]
+            },
+            "emphasis": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "string",
+                "maxLength": 40
+              }
+            }
+          }
+        },
+        "expected_voice": {
+          "type": "boolean"
+        }
+      }
+    },
+    "audioCue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "cue_ref",
+        "start",
+        "gain_db"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "cue_ref": {
+          "$ref": "#/$defs/ref"
+        },
+        "start": {
+          "$ref": "#/$defs/timeRef"
+        },
+        "gain_db": {
+          "type": "number",
+          "minimum": -60,
+          "maximum": 6
+        },
+        "sync_to": {
+          "type": "string"
+        }
+      }
+    },
+    "stateRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "path",
+        "value"
+      ],
+      "properties": {
+        "op": {
+          "enum": [
+            "equals",
+            "set",
+            "append_unique",
+            "remove"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]+$"
+        },
+        "value": {}
+      }
+    }
+  }
+}

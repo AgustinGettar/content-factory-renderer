@@ -14,12 +14,15 @@ import { acceptEpisodeGeneration } from "../lib/av2/creative-engine.js";
 import {
   AV2_BENCHMARK_IDEA,
   AV2_BENCHMARK_IDEMPOTENCY_KEY,
+  buildOpenAIRequestEnvelope,
   buildOpenAIResponseRequest,
+  inspectOpenAIRequestEnvelope,
   runCanonicalBenchmark,
 } from "../lib/av2/benchmark-runner.js";
 import { buildEpisodePlanRequest } from "../lib/av2/prompts.js";
 import {
   AV2_LLM_EPISODE_TRANSPORT_SCHEMA_NAME,
+  AV2_LLM_EPISODE_TRANSPORT_SCHEMA,
   AV2_LLM_EPISODE_TRANSPORT_VERSION,
   inspectOpenAIStructuredOutputSchema,
   transportToAv2Domain,
@@ -27,11 +30,11 @@ import {
 } from "../lib/av2/llm-transport.js";
 import { InMemoryCreativeArtifactStore } from "../lib/av2/persistence.js";
 import { Av2PipelineIntegration } from "../lib/av2/pipeline-integration.js";
+import { requestFixture } from "./fixtures/lumi-cinco-huevos.openai-request.js";
 
 const fixture = JSON.parse(await readFile(
   new URL("./fixtures/lumi-cinco-huevos.transport.json", import.meta.url), "utf8",
 ));
-
 function clone(value = fixture) {
   return structuredClone(value);
 }
@@ -54,6 +57,25 @@ test("transport schema is OpenAI strict-compatible and request uses it exactly",
   assert.equal(body.text.format.schema, request.response_format.schema);
   assert.match(body.input[0].content, new RegExp(AV2_LLM_EPISODE_TRANSPORT_VERSION.replace("/", "\\/")));
   assert.equal(JSON.stringify(body).includes('"type":"json_object"'), false);
+  const envelope = buildOpenAIRequestEnvelope(request, { model: "gpt-5-mini" });
+  assert.deepEqual(envelope, requestFixture);
+  const requestInspection = inspectOpenAIRequestEnvelope(envelope);
+  assert.equal(requestInspection.ok, true);
+  assert.equal(requestInspection.api, "responses");
+  assert.ok(requestInspection.serialized_request_bytes < 120000);
+});
+
+test("Attempt 3 HTTP 400 regression rejects untyped enum and const strict subschemas", () => {
+  const oldSchema = structuredClone(AV2_LLM_EPISODE_TRANSPORT_SCHEMA);
+  delete oldSchema.properties.transport_version.type;
+  delete oldSchema.properties.episode_plan.properties.episode.properties.language.type;
+  const inspection = inspectOpenAIStructuredOutputSchema(oldSchema);
+  assert.equal(inspection.ok, false);
+  assert.ok(inspection.errors.some((error) => error.path === "/properties/transport_version" && error.keyword === "type"));
+  assert.ok(inspection.errors.some((error) => (
+    error.path === "/properties/episode_plan/properties/episode/properties/language" && error.keyword === "type"
+  )));
+  assert.equal(inspectOpenAIStructuredOutputSchema().ok, true);
 });
 
 test("canonical transport fixture passes the complete local AV2 pipeline", () => {
@@ -156,7 +178,7 @@ test("H arbitrary transport fields are rejected", () => {
   assert.ok(result.errors.some((error) => error.keyword === "additionalProperties"));
 });
 
-test("failed benchmark retry rebinds one logical row, persists once, then caches", async () => {
+test("failed benchmark attempt 3 rebinds to attempt 4 on one logical row, persists once, then caches", async () => {
   const store = new InMemoryCreativeArtifactStore();
   const prior = await store.create({
     artifact_type: "episode_plan",
@@ -172,11 +194,11 @@ test("failed benchmark retry rebinds one logical row, persists once, then caches
     status: "failed",
     validation_status: "invalid",
     content_hash: null,
-    generation_attempt: 2,
+    generation_attempt: 3,
     repair_attempt: 0,
-    generation_metadata: { provider_call_count: 2 },
-    last_error_code: "episode_plan_invalid",
-    last_error: { code: "episode_plan_invalid", recoverable: false, failure_id: "attempt-2" },
+    generation_metadata: { provider_call_count: 3 },
+    last_error_code: "openai_generation_failed",
+    last_error: { code: "openai_generation_failed", recoverable: false, failure_id: "attempt-3" },
   });
   const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
   let providerCalls = 0;
@@ -201,14 +223,14 @@ test("failed benchmark retry rebinds one logical row, persists once, then caches
   assert.equal(cached.episode_sha256, generated.episode_sha256);
   assert.equal(cached.cache_hit, true);
   assert.equal(store.records[0].status, "valid");
-  assert.equal(store.records[0].generation_attempt, 3);
-  assert.equal(store.records[0].generation_metadata.provider_call_count, 3);
+  assert.equal(store.records[0].generation_attempt, 4);
+  assert.equal(store.records[0].generation_metadata.provider_call_count, 4);
   assert.deepEqual(store.records[0].generation_metadata.previous_failures, [{
-    attempt: 2, code: "episode_plan_invalid", recoverable: false, failure_id: "attempt-2",
+    attempt: 3, code: "openai_generation_failed", recoverable: false, failure_id: "attempt-3",
   }]);
 });
 
-test("generation attempt four is rejected before persistence or provider work", async () => {
+test("generation attempt five is rejected before persistence or provider work", async () => {
   const store = new InMemoryCreativeArtifactStore();
   await store.create({
     artifact_type: "episode_plan",
@@ -224,7 +246,7 @@ test("generation attempt four is rejected before persistence or provider work", 
     status: "failed",
     validation_status: "invalid",
     content_hash: null,
-    generation_attempt: 3,
+    generation_attempt: 4,
     repair_attempt: 0,
   });
   const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
@@ -237,5 +259,5 @@ test("generation attempt four is rejected before persistence or provider work", 
     (error) => error.code === "generation_limit_exceeded",
   );
   assert.equal(store.records.length, 1);
-  assert.equal(store.records[0].generation_attempt, 3);
+  assert.equal(store.records[0].generation_attempt, 4);
 });

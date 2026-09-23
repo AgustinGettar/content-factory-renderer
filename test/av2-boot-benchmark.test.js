@@ -133,3 +133,51 @@ test("canonical benchmark records the actual retry attempt on provider failure",
   );
   assert.equal(recorded.failureId, `benchmark:${"b".repeat(64)}:2`);
 });
+
+test("OpenAI HTTP errors retain only safe diagnostics and count the provider call", async () => {
+  const logs = [];
+  const store = new InMemoryCreativeArtifactStore();
+  const integration = new Av2PipelineIntegration({
+    store,
+    engineVersion: "v2",
+    benchmarkOnly: true,
+    logger: (entry) => logs.push(entry),
+  });
+  await assert.rejects(
+    () => runCanonicalBenchmark({
+      integration,
+      apiKey: "configured",
+      fetchImpl: async () => ({
+        ok: false,
+        status: 400,
+        headers: { get: (name) => name === "x-request-id" ? "req_safe_123" : null },
+        json: async () => ({
+          error: {
+            type: "invalid_request_error",
+            code: "invalid_json_schema",
+            param: "text.format.schema",
+            message: "Invalid schema; never leak sk-secret or Bearer token-value",
+          },
+        }),
+      }),
+    }),
+    (error) => error.code === "openai_generation_failed"
+      && error.diagnostic?.request_id === "req_safe_123",
+  );
+  assert.equal(store.records.length, 1);
+  const row = store.records[0];
+  assert.equal(row.generation_metadata.provider_call_count, 1);
+  assert.deepEqual(row.last_error.provider_error, {
+    http_status: 400,
+    type: "invalid_request_error",
+    code: "invalid_json_schema",
+    param: "text.format.schema",
+    message: "Invalid schema; never leak [REDACTED] or Bearer [REDACTED]",
+    request_id: "req_safe_123",
+  });
+  const serialized = JSON.stringify({ logs, row });
+  assert.equal(serialized.includes("sk-secret"), false);
+  assert.equal(serialized.includes("token-value"), false);
+  assert.ok(logs.some((entry) => entry.event === "generation_failed"
+    && entry.provider_error_code === "invalid_json_schema"));
+});

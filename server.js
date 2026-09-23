@@ -16,7 +16,6 @@ import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
 import { CreativeValidationError } from "./lib/av2/contracts.js";
 import { runCanonicalBenchmark } from "./lib/av2/benchmark-runner.js";
-import { runBootBenchmark, shouldRunBootBenchmark } from "./lib/av2/boot-benchmark.js";
 import { executePrepareOperation } from "./lib/av2/creative-engine.js";
 import { Av2PersistenceError, SupabaseCreativeArtifactStore } from "./lib/av2/persistence.js";
 import {
@@ -60,7 +59,6 @@ const OPENAI_TTS_INSTRUCTIONS = process.env.OPENAI_TTS_INSTRUCTIONS || DEFAULT_T
 const OPENAI_CREATIVE_MODEL = process.env.OPENAI_CREATIVE_MODEL || "gpt-5-mini";
 const CREATIVE_ENGINE_VERSION = process.env.CREATIVE_ENGINE_VERSION || "legacy";
 const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
-const AV2_RUN_BENCHMARK_ON_BOOT = process.env.AV2_RUN_BENCHMARK_ON_BOOT === "true";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -111,7 +109,6 @@ function creativeLog(entry) {
     "error_code", "error_count", "request_hash", "content_hash", "episode_sha256", "ideas_sha256",
     "creative_engine_version", "episode_schema_version", "scene_schema_version",
     "cache_hit", "validation_result", "persistence_result", "legacy_adaptation_result",
-    "benchmark_id", "provider_calls", "recovery_result", "idempotency_result",
   ];
   const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
   console.info(JSON.stringify(safe));
@@ -563,7 +560,6 @@ app.get("/health", (_req, res) => {
       creative_engine_v2_available: true,
       creative_engine_v2_benchmark_only: AV2_BENCHMARK_ONLY,
       creative_engine_v2_persistence: Boolean(av2Integration),
-      creative_engine_v2_benchmark_on_boot: AV2_RUN_BENCHMARK_ON_BOOT,
     },
   });
 });
@@ -1053,25 +1049,4 @@ app.listen(Number(PORT), "0.0.0.0", () => {
   // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
   setInterval(() => recoverQueuedVideos(), 30_000).unref?.();
-
-  if (shouldRunBootBenchmark({
-    engineVersion: CREATIVE_ENGINE_VERSION,
-    benchmarkOnly: AV2_BENCHMARK_ONLY,
-    runOnBoot: AV2_RUN_BENCHMARK_ON_BOOT,
-  })) {
-    setImmediate(() => runBootBenchmark({
-      integration: av2Integration,
-      apiKey: OPENAI_API_KEY,
-      model: OPENAI_CREATIVE_MODEL,
-      logger: creativeLog,
-    }).catch((error) => {
-      creativeLog({
-        component: "av2_boot_benchmark",
-        event: "benchmark_failed",
-        benchmark_id: AV2_BENCHMARK_ID,
-        error_code: error.code || "benchmark_failed",
-      });
-      console.error(`AV2 boot benchmark failed: ${safeError(error)}`);
-    }));
-  }
 });

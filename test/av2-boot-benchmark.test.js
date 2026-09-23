@@ -5,6 +5,8 @@ import { runBootBenchmark, shouldRunBootBenchmark } from "../lib/av2/boot-benchm
 import { runCanonicalBenchmark } from "../lib/av2/benchmark-runner.js";
 import { InMemoryCreativeArtifactStore } from "../lib/av2/persistence.js";
 import { Av2PipelineIntegration } from "../lib/av2/pipeline-integration.js";
+import { buildEpisodePlanRequest } from "../lib/av2/prompts.js";
+import { AV2_BENCHMARK_IDEA } from "../lib/av2/benchmark-runner.js";
 
 function fixture() {
   const payload = { version: "episode-plan.v2", episode: { id: "lumi_cinco_huevos" }, scenes: [] };
@@ -92,7 +94,7 @@ test("boot benchmark rejects any provider replay during cache verification", asy
   );
 });
 
-test("canonical benchmark uses JSON mode for the open AV2 episode contract", async () => {
+test("canonical benchmark sends the closed AV2 transport schema in strict mode", async () => {
   const store = new InMemoryCreativeArtifactStore();
   const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
   let requestBody;
@@ -105,7 +107,9 @@ test("canonical benchmark uses JSON mode for the open AV2 episode contract", asy
     () => runCanonicalBenchmark({ integration, apiKey: "configured", fetchImpl }),
     (error) => error.code === "openai_generation_failed",
   );
-  assert.deepEqual(requestBody.text.format, { type: "json_object" });
+  assert.equal(requestBody.text.format.type, "json_schema");
+  assert.equal(requestBody.text.format.strict, true);
+  assert.equal(requestBody.text.format.name, "av2_llm_episode_transport_v1");
 });
 
 test("canonical benchmark records the actual retry attempt on provider failure", async () => {
@@ -115,7 +119,7 @@ test("canonical benchmark records the actual retry attempt on provider failure",
       state: "generate",
       request_hash: "b".repeat(64),
       generation_attempt: 2,
-      request: { instructions: "Return JSON", input: {}, response_format: {} },
+      request: buildEpisodePlanRequest({ idea: AV2_BENCHMARK_IDEA }),
     }),
     recordFailure: async (failure) => { recorded = failure; },
   };

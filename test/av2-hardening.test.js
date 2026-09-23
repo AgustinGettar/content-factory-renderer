@@ -28,7 +28,6 @@ import {
   AV2_BENCHMARK_IDEMPOTENCY_KEY,
   buildOpenAIRequestEnvelope,
   inspectOpenAIRequestEnvelope,
-  replayPersistedBenchmark,
   runCanonicalBenchmark,
 } from "../lib/av2/benchmark-runner.js";
 import { buildEpisodePlanRequest, buildIdeasRequest, buildRepairRequest } from "../lib/av2/prompts.js";
@@ -133,6 +132,33 @@ test("canonicalizer repairs derivable anchors, transition edges and one-frame du
   assert.equal(canonical.plan.scenes[0].transition_out, canonical.plan.episode.transitions[0].id);
 });
 
+test("canonicalizer repairs Attempt 5 flat continuity paths and canonical count aliases", () => {
+  const plan = transportToAv2Domain(clone());
+  plan.episode.learning.objective_id = "count_1_5";
+  plan.episode.continuity_initial["props_state.eggs_found"] = structuredClone(plan.episode.continuity_initial.collected_eggs);
+  plan.episode.continuity_initial["educational_progress.count"] = plan.episode.continuity_initial.educational_progress.count_reached;
+  delete plan.episode.continuity_initial.collected_eggs;
+  delete plan.episode.continuity_initial.props_state;
+  delete plan.episode.continuity_initial.educational_progress;
+  for (const scene of plan.scenes) {
+    for (const rule of [...scene.continuity.preconditions, ...scene.continuity.operations]) {
+      if (rule.path === "collected_eggs") rule.path = "props_state.eggs_found";
+      if (rule.path === "educational_progress.count_reached") rule.path = "educational_progress.count";
+    }
+  }
+
+  assert.equal(validateEpisodePlan(plan, { throwOnError: false }).ok, false);
+  const canonical = canonicalizeAv2Timeline(plan);
+  assert.equal(validateEpisodePlan(canonical.plan, { throwOnError: false }).ok, true);
+  assert.equal(canonical.plan.episode.learning.objective_id, "count_1_to_5");
+  assert.deepEqual(canonical.plan.episode.continuity_initial.collected_eggs, []);
+  assert.equal(canonical.plan.episode.continuity_initial.educational_progress.count_reached, 0);
+  assert.ok(canonical.plan.scenes.some((scene) => scene.continuity.operations.some(
+    (rule) => rule.path === "collected_eggs",
+  )));
+  assert.deepEqual(canonicalizeAv2Timeline(canonical.plan).plan, canonical.plan);
+});
+
 test("51.1333 seconds exceeds the explicit one-frame normalization tolerance", () => {
   const plan = transportToAv2Domain(clone());
   plan.scenes.at(-1).duration_target_seconds = 11.1333;
@@ -226,13 +252,19 @@ test("provider raw survives semantic failure and replays after integration resta
   assert.equal(store.records[0].status, "failed");
 
   const restartedIntegration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
-  const replayed = await replayPersistedBenchmark({
+  let providerCalls = 0;
+  const replayed = await runCanonicalBenchmark({
     integration: restartedIntegration,
-    requestHash: resolved.request_hash,
-    generationAttempt: resolved.generation_attempt,
-    context,
+    apiKey: "configured",
+    fetchImpl: async () => {
+      providerCalls += 1;
+      throw new Error("offline replay attempted network access");
+    },
   });
   assert.equal(replayed.state, "ready");
+  assert.equal(replayed.provider_calls, 0);
+  assert.equal(replayed.replayed_provider_output, true);
+  assert.equal(providerCalls, 0);
   assert.equal(store.providerOutputs.length, 1);
   assert.equal(store.providerOutputs[0].provider_response_id, "resp_survives_restart");
   assert.equal(store.providerOutputs[0].generation_attempt, 1);

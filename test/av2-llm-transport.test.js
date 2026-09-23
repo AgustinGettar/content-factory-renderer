@@ -230,7 +230,7 @@ test("failed benchmark attempt 3 rebinds to attempt 4 on one logical row, persis
   }]);
 });
 
-test("generation attempt five is rejected before persistence or provider work", async () => {
+test("generation attempt six is rejected before persistence or provider work", async () => {
   const store = new InMemoryCreativeArtifactStore();
   await store.create({
     artifact_type: "episode_plan",
@@ -246,7 +246,7 @@ test("generation attempt five is rejected before persistence or provider work", 
     status: "failed",
     validation_status: "invalid",
     content_hash: null,
-    generation_attempt: 4,
+    generation_attempt: 5,
     repair_attempt: 0,
   });
   const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
@@ -259,5 +259,5 @@ test("generation attempt five is rejected before persistence or provider work", 
     (error) => error.code === "generation_limit_exceeded",
   );
   assert.equal(store.records.length, 1);
-  assert.equal(store.records[0].generation_attempt, 4);
+  assert.equal(store.records[0].generation_attempt, 5);
 });

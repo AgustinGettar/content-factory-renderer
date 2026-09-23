@@ -3,7 +3,7 @@ import { AV2_LLM_EPISODE_TRANSPORT_SCHEMA } from "../../lib/av2/llm-transport.js
 const instructions = `EDUCACIÓN
 - Una habilidad principal observable y adecuada al rango de edad.
 - El aprendizaje ocurre mediante acciones visibles y correspondencias correctas.
-- Incluí pregunta concreta, pausa real para responder, confirmación y recapitulación.
+- Incluí exactamente una pregunta infantil clara, una pausa child_response de al menos 2 segundos, confirmación y recapitulación.
 - La narración deja espacio a reacción, observación, movimiento y transición.
 
 HISTORIA
@@ -21,12 +21,18 @@ ESCENAS
 - Usá IDs/referencias y parámetros breves. No escondas órdenes en párrafos de visual_prompt.
 - La cámara y el movimiento deben estar motivados por historia o aprendizaje.
 - narration vive únicamente en audio.utterances. Los silencios son audio.pauses.
+- Gramática local de anchors: scene.start, scene.end, <id_local>.start o <id_local>.end. No uses scene_start, scene_end, mid_scene ni referencias cruzadas.
 
 CONTINUIDAD
 - continuity_initial más operations produce el estado. Cada precondition debe coincidir con el estado anterior.
 - continuity_initial debe incluir location, narrative_state, lumi_position, props_state, educational_progress, secondary_characters y persistent_elements, aunque algún dominio sea vacío.
 - Conservá ubicación, progreso educativo, inventario, props, secundarios y estado narrativo mediante operations explícitas.
 - Nunca reinicies objetos encontrados sin una operación o elipsis declarada.
+
+DURACIÓN
+- HARD RANGE: el total calculado debe estar entre 40 y 50 segundos, inclusive. TARGET: 48 segundos.
+- Total calculado = SUM(scene.duration_target_seconds) - SUM(transition.overlap_frames / 30).
+- 48 no es un límite rígido; menos de 40 o más de 50 invalida el plan.
 
 CONTRATO DE TRANSPORTE
 - Emití exclusivamente av2-llm-episode-transport/1 según el JSON Schema adjunto.
@@ -37,8 +43,11 @@ CONTRATO DE TRANSPORTE
 
 SALIDA
 - Respondé únicamente el JSON que valida el schema estricto. Sin markdown ni explicación.
-- IDs únicos y referencias existentes. 30 fps conceptual, 40-50 s objetivo y transiciones declaradas una vez.
-- No incluyas URLs, hashes inventados, comandos de renderer, FFmpeg, Blender ni prompts de generación visual.`;
+- IDs únicos y referencias existentes. Cada transición se declara una vez y corresponde al límite entre escenas consecutivas.
+- No incluyas URLs, hashes inventados, comandos de renderer, FFmpeg, Blender ni prompts de generación visual.
+
+CONTEO
+- Si el objetivo es contar 1→5, declará exactamente cinco entidades countable y hacé observable la progresión 1, 2, 3, 4, 5 mediante acciones y continuidad.`;
 
 const input = JSON.stringify({
   selected_idea: {

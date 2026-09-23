@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { contentHash } from "../lib/av2/contracts.js";
 import { runBootBenchmark, shouldRunBootBenchmark } from "../lib/av2/boot-benchmark.js";
+import { runCanonicalBenchmark } from "../lib/av2/benchmark-runner.js";
+import { InMemoryCreativeArtifactStore } from "../lib/av2/persistence.js";
+import { Av2PipelineIntegration } from "../lib/av2/pipeline-integration.js";
 
 function fixture() {
   const payload = { version: "episode-plan.v2", episode: { id: "lumi_cinco_huevos" }, scenes: [] };
@@ -87,4 +90,20 @@ test("boot benchmark rejects any provider replay during cache verification", asy
     }),
     (error) => error.code === "benchmark_provider_replay",
   );
+});
+
+test("canonical benchmark uses JSON mode for the open AV2 episode contract", async () => {
+  const store = new InMemoryCreativeArtifactStore();
+  const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
+  let requestBody;
+  const fetchImpl = async (_url, init) => {
+    requestBody = JSON.parse(init.body);
+    return { ok: false, status: 400 };
+  };
+
+  await assert.rejects(
+    () => runCanonicalBenchmark({ integration, apiKey: "configured", fetchImpl }),
+    (error) => error.code === "openai_generation_failed",
+  );
+  assert.deepEqual(requestBody.text.format, { type: "json_object" });
 });

@@ -146,6 +146,11 @@ test("canonicalizer repairs Attempt 5 flat continuity paths and canonical count 
       if (rule.path === "educational_progress.count_reached") rule.path = "educational_progress.count";
     }
   }
+  plan.scenes[6].continuity.operations.push({
+    op: "set",
+    path: "educational_progress.count",
+    value: 5,
+  });
 
   assert.equal(validateEpisodePlan(plan, { throwOnError: false }).ok, false);
   const canonical = canonicalizeAv2Timeline(plan);
@@ -156,6 +161,9 @@ test("canonicalizer repairs Attempt 5 flat continuity paths and canonical count 
   assert.ok(canonical.plan.scenes.some((scene) => scene.continuity.operations.some(
     (rule) => rule.path === "collected_eggs",
   )));
+  assert.equal(canonical.plan.scenes[6].continuity.operations.some(
+    (rule) => rule.path === "educational_progress.count_reached" && rule.value === 5,
+  ), false);
   assert.deepEqual(canonicalizeAv2Timeline(canonical.plan).plan, canonical.plan);
 });
 

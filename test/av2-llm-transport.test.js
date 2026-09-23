@@ -207,3 +207,35 @@ test("failed benchmark retry rebinds one logical row, persists once, then caches
     attempt: 2, code: "episode_plan_invalid", recoverable: false, failure_id: "attempt-2",
   }]);
 });
+
+test("generation attempt four is rejected before persistence or provider work", async () => {
+  const store = new InMemoryCreativeArtifactStore();
+  await store.create({
+    artifact_type: "episode_plan",
+    request_hash: "c".repeat(64),
+    idempotency_key: AV2_BENCHMARK_IDEMPOTENCY_KEY,
+    benchmark_id: "lumi_cinco_huevos",
+    episode_id: "lumi_cinco_huevos",
+    creative_engine_version: CREATIVE_ENGINE_VERSION,
+    episode_schema_version: EPISODE_PLAN_VERSION,
+    scene_schema_version: SCENE_PLAN_VERSION,
+    adapter_version: LEGACY_ADAPTER_VERSION,
+    renderer_version: "lumi-story-v2",
+    status: "failed",
+    validation_status: "invalid",
+    content_hash: null,
+    generation_attempt: 3,
+    repair_attempt: 0,
+  });
+  const integration = new Av2PipelineIntegration({ store, engineVersion: "v2", benchmarkOnly: true });
+  await assert.rejects(
+    () => integration.resolvePlan({
+      idea: AV2_BENCHMARK_IDEA,
+      context: { benchmark_id: "lumi_cinco_huevos", episode_id: "lumi_cinco_huevos" },
+      idempotencyKey: AV2_BENCHMARK_IDEMPOTENCY_KEY,
+    }),
+    (error) => error.code === "generation_limit_exceeded",
+  );
+  assert.equal(store.records.length, 1);
+  assert.equal(store.records[0].generation_attempt, 3);
+});

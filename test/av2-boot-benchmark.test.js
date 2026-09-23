@@ -107,3 +107,25 @@ test("canonical benchmark uses JSON mode for the open AV2 episode contract", asy
   );
   assert.deepEqual(requestBody.text.format, { type: "json_object" });
 });
+
+test("canonical benchmark records the actual retry attempt on provider failure", async () => {
+  let recorded;
+  const integration = {
+    resolvePlan: async () => ({
+      state: "generate",
+      request_hash: "b".repeat(64),
+      generation_attempt: 2,
+      request: { instructions: "Return JSON", input: {}, response_format: {} },
+    }),
+    recordFailure: async (failure) => { recorded = failure; },
+  };
+  await assert.rejects(
+    () => runCanonicalBenchmark({
+      integration,
+      apiKey: "configured",
+      fetchImpl: async () => ({ ok: false, status: 400 }),
+    }),
+    (error) => error.code === "openai_generation_failed",
+  );
+  assert.equal(recorded.failureId, `benchmark:${"b".repeat(64)}:2`);
+});

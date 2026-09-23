@@ -616,6 +616,7 @@ app.post("/av2/prepare", async (req, res) => {
       error: error.code || "prepare_invalid",
       message: safeError(error),
       recoverable: Boolean(error.recoverable || persistence),
+      ...(persistence && error.diagnostic ? { diagnostic: error.diagnostic } : {}),
       ...(validation ? { validation_errors: error.errors.slice(0, 40) } : {}),
     });
   }

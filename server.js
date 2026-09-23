@@ -15,6 +15,7 @@ import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blende
 import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
 import { CreativeValidationError } from "./lib/av2/contracts.js";
+import { runCanonicalBenchmark } from "./lib/av2/benchmark-runner.js";
 import { executePrepareOperation } from "./lib/av2/creative-engine.js";
 import { Av2PersistenceError, SupabaseCreativeArtifactStore } from "./lib/av2/persistence.js";
 import {
@@ -55,6 +56,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
 const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "marin";
 const OPENAI_TTS_INSTRUCTIONS = process.env.OPENAI_TTS_INSTRUCTIONS || DEFAULT_TTS_INSTRUCTIONS;
+const OPENAI_CREATIVE_MODEL = process.env.OPENAI_CREATIVE_MODEL || "gpt-5-mini";
 const CREATIVE_ENGINE_VERSION = process.env.CREATIVE_ENGINE_VERSION || "legacy";
 const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
 
@@ -572,6 +574,17 @@ app.post("/av2/prepare", async (req, res) => {
     return res.status(409).json({ ok: false, error: "creative_engine_v2_disabled" });
   }
   try {
+    if (req.body?.operation === "benchmark_generate") {
+      if (AV2_BENCHMARK_ONLY && req.body?.context?.benchmark_id !== AV2_BENCHMARK_ID) {
+        throw new Av2IntegrationError("creative_engine_v2_not_selected", "benchmark_not_allowed", { status: 409 });
+      }
+      if (!av2Integration) throw new Av2PersistenceError("AV2 persistence is not configured");
+      return res.json(await runCanonicalBenchmark({
+        integration: av2Integration,
+        apiKey: OPENAI_API_KEY,
+        model: OPENAI_CREATIVE_MODEL,
+      }));
+    }
     const persistedOperations = new Set([
       "resolve_ideas", "accept_ideas_persisted", "resolve_plan", "accept_plan_persisted",
       "repair_plan_persisted", "attach_video", "record_failure",

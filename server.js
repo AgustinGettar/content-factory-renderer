@@ -26,6 +26,11 @@ import {
   executeIntegratedOperation,
 } from "./lib/av2/pipeline-integration.js";
 import {
+  SupabaseAssetV2Store,
+  runVisualBenchmarkOnBoot,
+  shouldRunVisualBenchmark,
+} from "./lib/asset-v2/index.js";
+import {
   buildAuthorizationUrl,
   buildVideoMetadata,
   exchangeAuthorizationCode,
@@ -61,6 +66,7 @@ const OPENAI_CREATIVE_MODEL = process.env.OPENAI_CREATIVE_MODEL || "gpt-5-mini";
 const CREATIVE_ENGINE_VERSION = process.env.CREATIVE_ENGINE_VERSION || "legacy";
 const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
 const AV2_RUN_BENCHMARK_ON_BOOT = process.env.AV2_RUN_BENCHMARK_ON_BOOT === "true";
+const ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT = process.env.ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT === "true";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -82,6 +88,7 @@ const av2Integration = supabase ? new Av2PipelineIntegration({
   engineVersion: CREATIVE_ENGINE_VERSION,
   benchmarkOnly: AV2_BENCHMARK_ONLY,
 }) : null;
+const assetV2Store = supabase ? new SupabaseAssetV2Store(supabase) : null;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -112,6 +119,16 @@ function creativeLog(entry) {
     "creative_engine_version", "episode_schema_version", "scene_schema_version",
     "cache_hit", "validation_result", "persistence_result", "legacy_adaptation_result",
     "benchmark_id", "provider_calls", "recovery_result", "idempotency_result",
+  ];
+  const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
+  console.info(JSON.stringify(safe));
+}
+
+function assetV2Log(entry) {
+  const allowed = [
+    "component", "event", "scene_id", "asset_id", "asset_hash", "error_code",
+    "planned_provider_calls", "provider_calls", "cache_hits", "successful_generations",
+    "failed_generations",
   ];
   const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
   console.info(JSON.stringify(safe));
@@ -1072,6 +1089,27 @@ app.listen(Number(PORT), "0.0.0.0", () => {
         error_code: error.code || "benchmark_failed",
       });
       console.error(`AV2 boot benchmark failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunVisualBenchmark({
+    engineVersion: CREATIVE_ENGINE_VERSION,
+    benchmarkOnly: AV2_BENCHMARK_ONLY,
+    runOnBoot: ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT,
+  })) {
+    setImmediate(() => runVisualBenchmarkOnBoot({
+      supabase,
+      store: assetV2Store,
+      apiKey: OPENAI_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: assetV2Log,
+    }).catch((error) => {
+      assetV2Log({
+        component: "asset_v2_visual_benchmark",
+        event: "visual_benchmark_failed",
+        error_code: error.diagnostic?.code || error.code || "visual_benchmark_failed",
+      });
+      console.error(`Asset V2 visual benchmark failed: ${safeError(error)}`);
     }));
   }
 });

@@ -7,6 +7,7 @@ import {
   GENERATIVE_VIDEO_SOURCE,
   buildModelInput,
   compileGenerativeVideoPromptV1,
+  parseEstimateUsd,
 } from "../lib/generative-video-benchmark-v1.js";
 
 test("Generative Video V1 is exactly two fixed model calls over the canonical S17 source", () => {
@@ -52,4 +53,10 @@ test("unapproved models cannot be injected into the benchmark runner", () => {
     () => buildModelInput({ model: "third/model", input: {} }, "https://example.test/s17.png", prompt),
     /generative_video_model_not_allowed/,
   );
+});
+
+test("missing provider USD fields cannot be mistaken for a zero-cost estimate", () => {
+  assert.equal(parseEstimateUsd({ usd: "2.311" }), 2.311);
+  assert.equal(parseEstimateUsd({ cost: { usd: 0.231 } }), 0.231);
+  assert.throws(() => parseEstimateUsd({ detail: "estimate unavailable" }), /higgsfield_estimate_missing_usd/);
 });

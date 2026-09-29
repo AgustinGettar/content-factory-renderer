@@ -100,3 +100,24 @@ Temporal QA persisted for S13/S14/S15/S16/S18; Assembly Gate=8/9. Next authorize
 Production main, Telegram, Make, queues, publication, approval workflow, Draft→HD production.
 No CI/tests/npm ci repetition. No runner rewrite without demonstrated defect.
 No multimedia before migration/staging/default-OFF/dry-claim gates pass.
+
+
+## S19 Controlled Repair Attempt — 2026-09-29
+- REPAIR_DESIGN=explicit staging-only S19/IMAGE exception; SOURCE_REPAIR_REQUIRED; repair_attempt=0 input; one ledger claim at attempt=1; unique pilot/scene/stage/attempt key; original run/asset/QA preserved; no general retry/variant/terminal regeneration.
+- REPAIR_TESTS=PASS: normal terminal claim blocked; non-S19 rejected; VIDEO rejected; missing SOURCE_REPAIR_REQUIRED rejected; production rejected; attempt 0 accepted; duplicate rejected; attempt 1 rejected; provider not invoked by tests.
+- CI=GREEN run 36646853533 (focused + relevant regression).
+- MIGRATION=yes additive lumi_pilot_repairs; RLS enabled; anon/authenticated denied; service_role only; dry insert/duplicate/rollback PASS; zero fake rows.
+- STAGING=LIVE commit 47b53d491cc69b2e7a63dd5f3efb7bf054ebdc5e; health HTTP 200; repair flag was enabled only for the one controlled boot and is now OFF.
+- DRY_REPAIR_PROOF=PASS (attempt 0 accepted logically; duplicate rejected; rollback cleanup left no rows).
+- S19_REPAIR_ATTEMPT=1
+- S19_REPAIR_STATUS=SOURCE_REPAIR_FAILED / S19_REPAIR_EXHAUSTED
+- S19_REPAIR_ERROR=asset_v2_persistence_scene_specification_failed before new asset/provider request persisted; no repair request ID; no repair hash; original S19 artifact and blockers preserved.
+- S19_VIDEO=NOT_EXECUTED (repair failed; no Kling call).
+- IMAGE_CALLS=6/6
+- IMAGE_COST=USD 0.590649
+- KLING_CALLS=5/6
+- KLING_COST=USD 1.155000
+- ASSEMBLY_GATE=8/9
+- NEXT_ACTION=SOURCE_REPAIR_FAILED_NO_RETRY
+- RUNNER_OFF=YES; AUTORUN=false
+- PRODUCTION=main@5fe5556395829e78817771f96d33cce3f692965d intact; no production deploy.

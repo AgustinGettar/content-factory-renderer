@@ -40,6 +40,12 @@ import {
   refreshAccessToken,
   uploadVideoBuffer,
 } from "./lib/youtube.js";
+import {
+  createGenerativeVideoReviewUrlsV1,
+  getGenerativeVideoBenchmarkStatusV1,
+  preflightGenerativeVideoBenchmarkV1,
+  runGenerativeVideoBenchmarkV1,
+} from "./lib/generative-video-benchmark-v1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -70,6 +76,11 @@ const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
 const AV2_RUN_BENCHMARK_ON_BOOT = process.env.AV2_RUN_BENCHMARK_ON_BOOT === "true";
 const ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT = process.env.ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT === "true";
 const ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT = process.env.ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT === "true";
+const HF_API_KEY = process.env.HF_API_KEY || "";
+const HIGGSFIELD_BENCHMARK_V1_ENABLED = process.env.HIGGSFIELD_BENCHMARK_V1_ENABLED === "true";
+const HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED = process.env.HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED === "true";
+const HIGGSFIELD_BENCHMARK_TOKEN = process.env.HIGGSFIELD_BENCHMARK_TOKEN || "";
+const HIGGSFIELD_BENCHMARK_MAX_USD = Number(process.env.HIGGSFIELD_BENCHMARK_MAX_USD || "2.731");
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -109,6 +120,8 @@ const reservedVideoIds = new Set();
 const pilotJobs = new Map();
 let activePilotJobId = null;
 let detectedBlenderVersion = null;
+let activeGenerativeVideoBenchmark = null;
+let generativeVideoBenchmarkState = { status: "idle", provider_calls: 0 };
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -143,6 +156,12 @@ function authorized(req) {
     (hasRenderToken && suppliedToken === RENDER_API_TOKEN) ||
     (ADMIN_API_TOKEN && suppliedToken === ADMIN_API_TOKEN)
   );
+}
+
+function generativeVideoBenchmarkAuthorized(req) {
+  const suppliedToken = req.get("x-benchmark-token");
+  return HIGGSFIELD_BENCHMARK_V1_ENABLED && Boolean(HIGGSFIELD_BENCHMARK_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === HIGGSFIELD_BENCHMARK_TOKEN;
 }
 
 function htmlEscape(value) {
@@ -586,8 +605,95 @@ app.get("/health", (_req, res) => {
       creative_engine_v2_benchmark_on_boot: AV2_RUN_BENCHMARK_ON_BOOT,
       asset_v2_visual_benchmark_on_boot: ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT,
       asset_v2_visual_benchmark_v11_on_boot: ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT,
+      higgsfield_api_key_configured: Boolean(HF_API_KEY),
+      higgsfield_benchmark_v1_enabled: HIGGSFIELD_BENCHMARK_V1_ENABLED,
+      higgsfield_benchmark_v1_autorun: false,
     },
   });
+});
+
+app.post("/benchmarks/generative-video-v1/preflight", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightGenerativeVideoBenchmarkV1({
+      supabase,
+      apiKey: HF_API_KEY,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      maxUsd: HIGGSFIELD_BENCHMARK_MAX_USD,
+    });
+    return res.json({
+      ok: result.ready,
+      api_key_configured: result.api_key_configured,
+      auth_verified: result.auth_verified,
+      balance_api: result.balance_api,
+      balance_sufficient: result.balance_sufficient,
+      balance_evidence: result.balance_evidence,
+      models_available: result.models_available,
+      source_hash_match: result.source_hash_match,
+      prompt_ready: result.prompt_ready,
+      prompt_hash: result.prompt_hash,
+      estimates: result.estimates,
+      total_usd: result.total_usd,
+      max_total_usd: result.max_total_usd,
+      cost_gate_passed: result.cost_gate_passed,
+      provider_calls_so_far: 0,
+    });
+  } catch (error) {
+    return res.status(error.http_status === 401 ? 401 : 409).json({
+      ok: false,
+      error: error.code || error.message || "preflight_failed",
+      http_status: error.http_status || null,
+    });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1/run", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeGenerativeVideoBenchmark) {
+    return res.status(202).json({ ok: true, already_running: true, state: generativeVideoBenchmarkState });
+  }
+  generativeVideoBenchmarkState = { status: "starting", provider_calls: 0, started_at: new Date().toISOString() };
+  activeGenerativeVideoBenchmark = runGenerativeVideoBenchmarkV1({
+    supabase,
+    apiKey: HF_API_KEY,
+    balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+    maxUsd: HIGGSFIELD_BENCHMARK_MAX_USD,
+    onUpdate: (update) => {
+      generativeVideoBenchmarkState = { ...generativeVideoBenchmarkState, ...update, updated_at: new Date().toISOString() };
+    },
+  }).then((summary) => {
+    generativeVideoBenchmarkState = { ...generativeVideoBenchmarkState, status: summary.status, summary };
+  }).catch((error) => {
+    generativeVideoBenchmarkState = {
+      ...generativeVideoBenchmarkState,
+      status: "failed",
+      error: error.code || error.message || "benchmark_failed",
+      http_status: error.http_status || null,
+    };
+  }).finally(() => {
+    activeGenerativeVideoBenchmark = null;
+  });
+  return res.status(202).json({ ok: true, started: true, state: generativeVideoBenchmarkState });
+});
+
+app.get("/benchmarks/generative-video-v1/status", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const persisted = await getGenerativeVideoBenchmarkStatusV1({ supabase });
+    return res.json({ ok: true, runtime: generativeVideoBenchmarkState, persisted });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "status_failed" });
+  }
+});
+
+app.get("/benchmarks/generative-video-v1/outputs", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const outputs = await createGenerativeVideoReviewUrlsV1({ supabase });
+    return res.json({ ok: true, outputs });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "outputs_failed" });
+  }
 });
 
 // Make remains the generation orchestrator. This authenticated helper builds

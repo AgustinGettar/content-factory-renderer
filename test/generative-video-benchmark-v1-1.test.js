@@ -59,5 +59,5 @@ test("Kling input remains five seconds, single-shot and audio off", () => {
 });
 
 test("unsupported scene prompt is rejected", () => {
-  assert.throws(() => compileGenerativeVideoPromptV1("s19"), /generative_video_scene_not_allowed/);
+  assert.throws(() => compileGenerativeVideoPromptV1("s20"), /generative_video_scene_not_allowed/);
 });

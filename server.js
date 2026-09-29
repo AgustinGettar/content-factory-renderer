@@ -643,6 +643,7 @@ app.post("/benchmarks/generative-video-v1/preflight", async (req, res) => {
       ok: false,
       error: error.code || error.message || "preflight_failed",
       http_status: error.http_status || null,
+      diagnostic: error.diagnostic || null,
     });
   }
 });

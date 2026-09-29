@@ -35,3 +35,4 @@ jobs:
       - name: Relevant AV2 and renderer regression
         run: node --test test/asset-engine-v2.test.js test/asset-visual-qa-v12.test.js test/av2-hardening.test.js test/render-profiles.test.js
 # repair-gate
+# boot-shape-fix

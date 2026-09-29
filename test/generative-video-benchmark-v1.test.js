@@ -58,5 +58,6 @@ test("unapproved models cannot be injected into the benchmark runner", () => {
 test("missing provider USD fields cannot be mistaken for a zero-cost estimate", () => {
   assert.equal(parseEstimateUsd({ usd: "2.311" }), 2.311);
   assert.equal(parseEstimateUsd({ cost: { usd: 0.231 } }), 0.231);
+  assert.equal(parseEstimateUsd({ pricing_description: "Request costs roughly $0.2056 per second at 480p, $0.4622 at 720p." }), 2.311);
   assert.throws(() => parseEstimateUsd({ detail: "estimate unavailable" }), /higgsfield_estimate_missing_usd/);
 });

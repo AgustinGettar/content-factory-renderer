@@ -46,6 +46,12 @@ import {
   preflightGenerativeVideoBenchmarkV1,
   runGenerativeVideoBenchmarkV1,
 } from "./lib/generative-video-benchmark-v1.js";
+import {
+  createGenerativeVideoReviewUrlsV11,
+  getGenerativeVideoBenchmarkStatusV11,
+  preflightGenerativeVideoBenchmarkV11,
+  runGenerativeVideoBenchmarkV11,
+} from "./lib/generative-video-benchmark-v1-1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -81,6 +87,9 @@ const HIGGSFIELD_BENCHMARK_V1_ENABLED = process.env.HIGGSFIELD_BENCHMARK_V1_ENAB
 const HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED = process.env.HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED === "true";
 const HIGGSFIELD_BENCHMARK_TOKEN = process.env.HIGGSFIELD_BENCHMARK_TOKEN || "";
 const HIGGSFIELD_BENCHMARK_MAX_USD = Number(process.env.HIGGSFIELD_BENCHMARK_MAX_USD || "2.731");
+const HIGGSFIELD_BENCHMARK_V11_ENABLED = process.env.HIGGSFIELD_BENCHMARK_V11_ENABLED === "true";
+const HIGGSFIELD_BENCHMARK_V11_TOKEN = process.env.HIGGSFIELD_BENCHMARK_V11_TOKEN || "";
+const HIGGSFIELD_BENCHMARK_V11_MAX_USD = Number(process.env.HIGGSFIELD_BENCHMARK_V11_MAX_USD || "1.00");
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -122,6 +131,8 @@ let activePilotJobId = null;
 let detectedBlenderVersion = null;
 let activeGenerativeVideoBenchmark = null;
 let generativeVideoBenchmarkState = { status: "idle", provider_calls: 0 };
+let activeGenerativeVideoBenchmarkV11 = null;
+let generativeVideoBenchmarkV11State = { status: "idle", provider_calls: 0 };
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -162,6 +173,12 @@ function generativeVideoBenchmarkAuthorized(req) {
   const suppliedToken = req.get("x-benchmark-token");
   return HIGGSFIELD_BENCHMARK_V1_ENABLED && Boolean(HIGGSFIELD_BENCHMARK_TOKEN)
     && Boolean(suppliedToken) && suppliedToken === HIGGSFIELD_BENCHMARK_TOKEN;
+}
+
+function generativeVideoBenchmarkV11Authorized(req) {
+  const suppliedToken = req.get("x-benchmark-token");
+  return HIGGSFIELD_BENCHMARK_V11_ENABLED && Boolean(HIGGSFIELD_BENCHMARK_V11_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === HIGGSFIELD_BENCHMARK_V11_TOKEN;
 }
 
 function htmlEscape(value) {
@@ -608,6 +625,8 @@ app.get("/health", (_req, res) => {
       higgsfield_api_key_configured: Boolean(HF_API_KEY),
       higgsfield_benchmark_v1_enabled: HIGGSFIELD_BENCHMARK_V1_ENABLED,
       higgsfield_benchmark_v1_autorun: false,
+      higgsfield_benchmark_v1_1_enabled: HIGGSFIELD_BENCHMARK_V11_ENABLED,
+      higgsfield_benchmark_v1_1_autorun: false,
     },
   });
 });
@@ -691,6 +710,90 @@ app.get("/benchmarks/generative-video-v1/outputs", async (req, res) => {
   if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const outputs = await createGenerativeVideoReviewUrlsV1({ supabase });
+    return res.json({ ok: true, outputs });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "outputs_failed" });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1-1/preflight", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightGenerativeVideoBenchmarkV11({
+      supabase,
+      apiKey: HF_API_KEY,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      maxUsd: HIGGSFIELD_BENCHMARK_V11_MAX_USD,
+    });
+    return res.json({
+      ok: result.ready,
+      api_key_configured: result.api_key_configured,
+      auth_verified: result.auth_verified,
+      balance_api: result.balance_api,
+      balance_sufficient: result.balance_sufficient,
+      balance_evidence: result.balance_evidence,
+      model_available: result.model_available,
+      source_hashes_match: result.source_hashes_match,
+      prompt_ready: result.prompt_ready,
+      estimates: result.estimates,
+      total_usd: result.total_usd,
+      max_total_usd: result.max_total_usd,
+      cost_gate_passed: result.cost_gate_passed,
+      provider_calls_so_far: result.provider_calls_so_far,
+    });
+  } catch (error) {
+    return res.status(error.http_status === 401 ? 401 : 409).json({
+      ok: false,
+      error: error.code || error.message || "preflight_failed",
+      http_status: error.http_status || null,
+      diagnostic: error.diagnostic || null,
+    });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1-1/run", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeGenerativeVideoBenchmarkV11) {
+    return res.status(202).json({ ok: true, already_running: true, state: generativeVideoBenchmarkV11State });
+  }
+  generativeVideoBenchmarkV11State = { status: "starting", provider_calls: 0, started_at: new Date().toISOString() };
+  activeGenerativeVideoBenchmarkV11 = runGenerativeVideoBenchmarkV11({
+    supabase,
+    apiKey: HF_API_KEY,
+    balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+    maxUsd: HIGGSFIELD_BENCHMARK_V11_MAX_USD,
+    onUpdate: (update) => {
+      generativeVideoBenchmarkV11State = { ...generativeVideoBenchmarkV11State, ...update, updated_at: new Date().toISOString() };
+    },
+  }).then((summary) => {
+    generativeVideoBenchmarkV11State = { ...generativeVideoBenchmarkV11State, status: summary.status, summary };
+  }).catch((error) => {
+    generativeVideoBenchmarkV11State = {
+      ...generativeVideoBenchmarkV11State,
+      status: "failed",
+      error: error.code || error.message || "benchmark_failed",
+      http_status: error.http_status || null,
+    };
+  }).finally(() => {
+    activeGenerativeVideoBenchmarkV11 = null;
+  });
+  return res.status(202).json({ ok: true, started: true, state: generativeVideoBenchmarkV11State });
+});
+
+app.get("/benchmarks/generative-video-v1-1/status", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const persisted = await getGenerativeVideoBenchmarkStatusV11({ supabase });
+    return res.json({ ok: true, runtime: generativeVideoBenchmarkV11State, persisted });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "status_failed" });
+  }
+});
+
+app.get("/benchmarks/generative-video-v1-1/outputs", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const outputs = await createGenerativeVideoReviewUrlsV11({ supabase });
     return res.json({ ok: true, outputs });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.code || error.message || "outputs_failed" });

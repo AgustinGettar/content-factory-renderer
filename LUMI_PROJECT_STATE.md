@@ -6,7 +6,7 @@
 - State handoff branch: lumi-pilot-migration-handoff (documentation only; no CI rerun)
 - Production authority: main@5fe5556; no production changes during this execution
 - Approved reusable scenes: S11, S12, S17
-- S13/S14/S15/S16/S18: IMAGE generated and QA accepted; VIDEO generated, Temporal QA not recorded
+- S13/S14/S15/S16/S18: IMAGE accepted; VIDEO generated; Temporal QA persisted (S13/S15/S16/S18 PASS_WITH_WARNING, S14 PASS)
 - S19: SOURCE_REPAIR_REQUIRED; do not reuse for VIDEO
 - Accepted narrative: ep_lumi_huevos_001 / lumi_cinco_huevos
 
@@ -27,9 +27,11 @@
 - S18 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=351efe26-7df7-48ca-903e-e35e338aabba; output_hash=aaf56baf7675845d5a70a0595c69bdb5fcfadf756248f1f2d05c1ce564638cff; TEMPORAL_QA=NOT_RECORDED
 - KLING_CALLS=5/6
 - KLING_COST=USD 1.155000
+- TEMPORAL_QA=PASS_WITH_WARNING/PASS for S13/S14/S15/S16/S18
+- S19_REPAIR_ATTEMPT=0 (not started; failed source artifact preserved)
 - Generated clips are persisted; no retries, no variants, and no resubmissions were issued in this session.
 - Temporal QA requires access to the private video objects; no temporal QA record is present in the current runtime.
-- ASSEMBLY_GATE=3/9 confirmed; 8/9 potential pending Temporal QA; S19 blocked confirmed reusable clips; 8/9 potential pending Temporal QA; S19 unavailable.
+- ASSEMBLY_GATE=8/9 confirmed after persisted Temporal QA; S19 blocked confirmed reusable clips; 8/9 potential pending Temporal QA; S19 unavailable.
 
 ## Gates
 - PILOT_CODE_VALIDATED=YES
@@ -92,7 +94,7 @@
 REPAIR_S19_SOURCE_IMAGE_ONE_SHOT
 Do not execute the repair in this session.
 Do not generate more images, retry, create variants, reuse S19 for VIDEO, or exceed the image budget.
-Complete Temporal QA for the five persisted Kling clips when private video-object inspection is available; only then classify PASS/PASS_WITH_WARNING/BLOCKER and update Assembly Gate.
+Temporal QA persisted for S13/S14/S15/S16/S18; Assembly Gate=8/9. Next authorized action is REPAIR_S19_SOURCE_IMAGE_ONE_SHOT; preserve the failed S19 artifact and do not retry automatically.
 
 ## DO_NOT_TOUCH
 Production main, Telegram, Make, queues, publication, approval workflow, Draft→HD production.

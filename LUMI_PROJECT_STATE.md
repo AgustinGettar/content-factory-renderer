@@ -29,9 +29,18 @@
 - Valid IMAGE/VIDEO, duplicate rejection, invalid stage/status rejection, terminal states=PASS
 - TRANSACTIONAL_ROLLBACK=PASS
 - PILOT_ROWS=0
-- STAGING_DEPLOY=NOT_PERFORMED
-- STAGING_DEFAULT_OFF_PROOF=PENDING
-- DRY_CLAIM=PENDING (runtime integration proof not yet performed)
+- STAGING_DEPLOY=LIVE
+- STAGING_SHA=d373641e234e3b1b1985cd2348149a07ddcfc5b2
+- STAGING_DEPLOY_ID=dep-dau3g8h7lnhs73f9av70
+- STAGING_HEALTH=HTTP 200 / ok=true
+- PRODUCTION_HEALTH=HTTP 200 / ok=true; active_video_id=null; queue_length=0
+- PRODUCTION_LIVE_SHA=5fe5556395829e78817771f96d33cce3f692965d
+- PRODUCTION_DEPLOY_UNCHANGED=dep-dako6lvqj5pc73d8qju0
+- STAGING_DEFAULT_OFF_PROOF=PASS (MERGE flags false; health autorun/enabled=false; post-deploy logs contain no provider activity)
+- DRY_CLAIM_DB=PASS (S13 IMAGE first insert accepted, second unique-key insert rejected/cache-safe; terminal states representable; service_role; rollback)
+- DRY_CLAIM_RUNTIME=PENDING: Render connector exposes no remote command/job execution or dry-only runner operation. Existing boot runner invokes providers after a successful claim. Do not enable it for a dry proof.
+- DRY_CLAIM_FULL_GATE=PENDING
+- CLEANUP=PASS; pilot_rows=0; s13_image_rows=0; S13 real=NOT_STARTED
 
 ## Accounting
 - IMAGE_CALLS=0/6
@@ -43,15 +52,23 @@
 - MASTER=NOT_CREATED
 
 ## Runtime
-- Preserved reported state: pilot boot OFF, image runner OFF, Higgsfield runner OFF, autorun=false
-- Live runtime flags not reverified in this execution
-- No Render deployment or environment mutation performed
-- No provider calls performed
+- LUMI_RUNTIME_ENV=staging configured by MERGE.
+- LUMI_PILOT_BOOT_ENABLED=false; AV2_PILOT_RUN_ON_BOOT=false.
+- LUMI_PRODUCTION_PILOT_ENABLED=false.
+- AV2_RUN_BENCHMARK_ON_BOOT=false.
+- ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT=false.
+- ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT=false.
+- HIGGSFIELD_BENCHMARK_V1_ENABLED=false; HIGGSFIELD_BENCHMARK_V11_ENABLED=false.
+- PILOT_BOOT_ENABLED=false; IMAGE_RUNNER=false; HIGGSFIELD_RUNNER=false; AUTORUN=false.
+- Env MERGE triggered an initial default-OFF deploy of the prior SHA; then deployed sanitized CI-validated runtime.
+- Sanitized runtime contains the exact validated runtime/test/migration blobs; no CI rerun and no provider calls.
+- No production mutation performed.
 
 ## NEXT_ACTION
-Confirm Render workspace My Workspace (tea-dahl5nh594qs73ffjhcg), as required by the Render connector before selecting a workspace.
-Then inspect content-factory-av2-staging and its sanitized source; set nonsecret flags by MERGE, deploy validated runtime default-OFF, verify health/logs/production, and perform dry claim without provider.
-Only after all gates PASS, execute the authorized serial one-shot pilot and QA.
+Complete runtime-level claimPilotRun integration proof through an authorized provider-free remote execution capability. No such capability is exposed by the current Render connector.
+Do not equate the completed SQL/DB proof with running claimPilotRun in staging.
+Latest user instruction explicitly prohibits providers; keep all flags OFF and all scene generation NOT_STARTED.
+No credential request, HTTP execution workaround, Cloud Browser, Make, or runner rewrite.
 
 ## DO_NOT_TOUCH
 Production main, Telegram, Make, queues, publication, approval workflow, Draft→HD production.

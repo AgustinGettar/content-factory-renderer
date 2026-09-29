@@ -1,0 +1,2554 @@
+{
+  "status": "valid",
+  "payload": {
+    "scenes": [
+      {
+        "id": "s11",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [
+            {
+              "id": "m1_intro",
+              "start": {
+                "anchor": "scene.start",
+                "offset_seconds": 0
+              },
+              "cue_ref": {
+                "id": "playful_motif",
+                "version": "1.0"
+              },
+              "gain_db": -6
+            }
+          ],
+          "utterances": [
+            {
+              "id": "u1_gallina",
+              "text": "¡Oh no! Cinco huevos se han salido de la cesta.",
+              "emotion": "surprised",
+              "speaker": "gallina_amable",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "cinco"
+                ]
+              },
+              "expected_voice": true
+            },
+            {
+              "id": "u1_lumi",
+              "text": "No te preocupes, amiga. Los buscaremos juntos.",
+              "emotion": "warm",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "juntos"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "background",
+              "visible": true,
+              "entity_id": "garden_env",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  0,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "gallina_amable",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  -1,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  0.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "basket",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  1.2,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "wand",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  0.6,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": false,
+              "entity_id": "egg_1",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": false,
+              "entity_id": "egg_2",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  6,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": false,
+              "entity_id": "egg_3",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  7,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": false,
+              "entity_id": "egg_4",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  8,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": false,
+              "entity_id": "egg_5",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  9,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              0,
+              0,
+              0
+            ],
+            "fov_y_deg": 40,
+            "position_m": [
+              0,
+              2,
+              3
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0,
+              0
+            ],
+            "fov_y_deg": 40,
+            "position_m": [
+              0,
+              2,
+              3
+            ]
+          },
+          "move": "static",
+          "shot": "wide",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_in_out",
+          "framing": {
+            "intent": "present characters and the empty basket",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "gallina_amable",
+            "basket"
+          ],
+          "duration_seconds": 6
+        },
+        "actions": [
+          {
+            "id": "act1_gallina_worried",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0
+            },
+            "action_id": "express_worry",
+            "entity_id": "gallina_amable",
+            "expression": "concerned",
+            "parameters": {},
+            "gaze_target": "lumi",
+            "duration_seconds": 2.5
+          },
+          {
+            "id": "act1_lumi_wave",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.5
+            },
+            "action_id": "wave_wand",
+            "entity_id": "lumi",
+            "expression": "attentive",
+            "parameters": {
+              "sparkle": true
+            },
+            "gaze_target": "gallina_amable",
+            "duration_seconds": 2
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_hook",
+        "assertions": [
+          {
+            "id": "a1_gallina_present",
+            "type": "character_present",
+            "entities": [
+              "gallina_amable"
+            ],
+            "expected": "present",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "search_started"
+            },
+            {
+              "op": "set",
+              "path": "lumi_position",
+              "value": "at_path_start"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": []
+            }
+          ]
+        },
+        "transition_in": null,
+        "transition_out": "edge_1_2",
+        "educational_goal": "Introducir el problema: hay cinco huevos perdidos.",
+        "duration_target_seconds": 6
+      },
+      {
+        "id": "s12",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u2_lumi_found1",
+              "text": "¡Mira! Un huevo. Uno.",
+              "emotion": "surprised",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Uno"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  1,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_1",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  3,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              2.5,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              1.2,
+              1.6,
+              2
+            ]
+          },
+          "from": {
+            "target_m": [
+              1,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.8,
+              2.5
+            ]
+          },
+          "move": "dolly",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_in",
+          "framing": {
+            "intent": "highlight first egg and count one",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "egg_1"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act2_lumi_step",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.2
+            },
+            "action_id": "walk_to_egg1",
+            "entity_id": "lumi",
+            "expression": "curious",
+            "parameters": {},
+            "gaze_target": "egg_1",
+            "duration_seconds": 1.8
+          },
+          {
+            "id": "act2_lumi_point",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 2.2
+            },
+            "action_id": "point",
+            "entity_id": "lumi",
+            "expression": "surprised",
+            "parameters": {},
+            "gaze_target": "egg_1",
+            "duration_seconds": 1.2
+          }
+        ],
+        "effects": [
+          {
+            "id": "e1_sparkle_egg1",
+            "seed": 11,
+            "type": "sparkles",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 2
+            },
+            "origin": "wand",
+            "parameters": {},
+            "destination": "egg_1",
+            "duration_seconds": 1
+          }
+        ],
+        "beat_ref": "beat_find1",
+        "assertions": [
+          {
+            "id": "a2_egg1_visible",
+            "type": "entity_visible",
+            "entities": [
+              "egg_1"
+            ],
+            "expected": "visible",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "append_unique",
+              "path": "collected_eggs",
+              "value": "egg_1"
+            },
+            {
+              "op": "set",
+              "path": "educational_progress.count_reached",
+              "value": 1
+            },
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "found_1"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": []
+            }
+          ]
+        },
+        "transition_in": "edge_1_2",
+        "transition_out": "edge_2_3",
+        "educational_goal": "Encontrar el primer huevo y mostrar correspondencia 1:1 (uno).",
+        "duration_target_seconds": 5
+      },
+      {
+        "id": "s13",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u3_lumi_found2",
+              "text": "Y este es el segundo. Dos.",
+              "emotion": "curious",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Dos"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_2",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  4,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  2,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              3.8,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              2.2,
+              1.5,
+              1.8
+            ]
+          },
+          "from": {
+            "target_m": [
+              3,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              1.5,
+              1.7,
+              2.2
+            ]
+          },
+          "move": "push_in",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_in",
+          "framing": {
+            "intent": "show second egg and count two",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "egg_2"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act3_lumi_move2",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.1
+            },
+            "action_id": "walk_to_egg2",
+            "entity_id": "lumi",
+            "expression": "curious",
+            "parameters": {},
+            "gaze_target": "egg_2",
+            "duration_seconds": 1.6
+          },
+          {
+            "id": "act3_tap_egg2",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 2
+            },
+            "action_id": "tap",
+            "entity_id": "lumi",
+            "expression": "attentive",
+            "parameters": {},
+            "gaze_target": "egg_2",
+            "duration_seconds": 1
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_find2",
+        "assertions": [
+          {
+            "id": "a3_egg2_visible",
+            "type": "entity_visible",
+            "entities": [
+              "egg_2"
+            ],
+            "expected": "visible",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "append_unique",
+              "path": "collected_eggs",
+              "value": "egg_2"
+            },
+            {
+              "op": "set",
+              "path": "educational_progress.count_reached",
+              "value": 2
+            },
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "found_2"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": [
+                "egg_1"
+              ]
+            }
+          ]
+        },
+        "transition_in": "edge_2_3",
+        "transition_out": "edge_3_4",
+        "educational_goal": "Encontrar el segundo huevo y contar hasta dos.",
+        "duration_target_seconds": 5
+      },
+      {
+        "id": "s14",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u4_lumi_found3",
+              "text": "¡Aquí está el tercero! Tres.",
+              "emotion": "curious",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Tres"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_3",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  4,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              5.5,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              3.8,
+              1.6,
+              1.8
+            ]
+          },
+          "from": {
+            "target_m": [
+              4,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              2.5,
+              1.6,
+              2
+            ]
+          },
+          "move": "pan",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "linear",
+          "framing": {
+            "intent": "show third egg and count three",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "egg_3"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act4_search3",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.2
+            },
+            "action_id": "look_under_grass",
+            "entity_id": "lumi",
+            "expression": "curious",
+            "parameters": {},
+            "gaze_target": "egg_3",
+            "duration_seconds": 1.5
+          },
+          {
+            "id": "act4_pick3",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 2
+            },
+            "action_id": "pick_up",
+            "entity_id": "lumi",
+            "expression": "attentive",
+            "parameters": {},
+            "gaze_target": "egg_3",
+            "duration_seconds": 1.5
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_find3",
+        "assertions": [
+          {
+            "id": "a4_egg3_visible",
+            "type": "entity_visible",
+            "entities": [
+              "egg_3"
+            ],
+            "expected": "visible",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "append_unique",
+              "path": "collected_eggs",
+              "value": "egg_3"
+            },
+            {
+              "op": "set",
+              "path": "educational_progress.count_reached",
+              "value": 3
+            },
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "found_3"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": [
+                "egg_1",
+                "egg_2"
+              ]
+            }
+          ]
+        },
+        "transition_in": "edge_3_4",
+        "transition_out": "edge_4_5",
+        "educational_goal": "Encontrar el tercer huevo y contar hasta tres.",
+        "duration_target_seconds": 5
+      },
+      {
+        "id": "s15",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u5_lumi_found4",
+              "text": "¡Y aquí está el cuarto! Cuatro.",
+              "emotion": "curious",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Cuatro"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_4",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  7,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              7,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              6.8,
+              1.6,
+              1.8
+            ]
+          },
+          "from": {
+            "target_m": [
+              5.5,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              4.5,
+              1.6,
+              2
+            ]
+          },
+          "move": "pan",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_in",
+          "framing": {
+            "intent": "show fourth egg and count four",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "egg_4"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act5_spot4",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.3
+            },
+            "action_id": "spot_near_trunk",
+            "entity_id": "lumi",
+            "expression": "surprised",
+            "parameters": {},
+            "gaze_target": "egg_4",
+            "duration_seconds": 1.2
+          },
+          {
+            "id": "act5_pick4",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 1.8
+            },
+            "action_id": "pick_up",
+            "entity_id": "lumi",
+            "expression": "attentive",
+            "parameters": {},
+            "gaze_target": "egg_4",
+            "duration_seconds": 1.6
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_find4",
+        "assertions": [
+          {
+            "id": "a5_egg4_visible",
+            "type": "entity_visible",
+            "entities": [
+              "egg_4"
+            ],
+            "expected": "visible",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "append_unique",
+              "path": "collected_eggs",
+              "value": "egg_4"
+            },
+            {
+              "op": "set",
+              "path": "educational_progress.count_reached",
+              "value": 4
+            },
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "found_4"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": [
+                "egg_1",
+                "egg_2",
+                "egg_3"
+              ]
+            }
+          ]
+        },
+        "transition_in": "edge_4_5",
+        "transition_out": "edge_5_6",
+        "educational_goal": "Encontrar el cuarto huevo y contar hasta cuatro.",
+        "duration_target_seconds": 5
+      },
+      {
+        "id": "s16",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u6_lumi_found5",
+              "text": "¡El quinto! Cinco huevos en total.",
+              "emotion": "celebratory",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Cinco"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_5",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  8.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  7,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              8.5,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              7.5,
+              1.4,
+              1.6
+            ]
+          },
+          "from": {
+            "target_m": [
+              7.5,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              5.5,
+              1.6,
+              2
+            ]
+          },
+          "move": "dolly",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_out",
+          "framing": {
+            "intent": "show fifth egg and complete the count",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "egg_5"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act6_spot5",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.2
+            },
+            "action_id": "spot_on_path",
+            "entity_id": "lumi",
+            "expression": "surprised",
+            "parameters": {},
+            "gaze_target": "egg_5",
+            "duration_seconds": 1.1
+          },
+          {
+            "id": "act6_pick5",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 1.6
+            },
+            "action_id": "pick_up",
+            "entity_id": "lumi",
+            "expression": "celebratory",
+            "parameters": {},
+            "gaze_target": "egg_5",
+            "duration_seconds": 1.8
+          }
+        ],
+        "effects": [
+          {
+            "id": "e6_glow_eggs",
+            "seed": 22,
+            "type": "glow",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 2
+            },
+            "origin": "egg_5",
+            "parameters": {},
+            "duration_seconds": 1.5
+          }
+        ],
+        "beat_ref": "beat_find5",
+        "assertions": [
+          {
+            "id": "a6_egg5_visible",
+            "type": "entity_visible",
+            "entities": [
+              "egg_5"
+            ],
+            "expected": "visible",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "append_unique",
+              "path": "collected_eggs",
+              "value": "egg_5"
+            },
+            {
+              "op": "set",
+              "path": "educational_progress.count_reached",
+              "value": 5
+            },
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "found_5"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": [
+                "egg_1",
+                "egg_2",
+                "egg_3",
+                "egg_4"
+              ]
+            }
+          ]
+        },
+        "transition_in": "edge_5_6",
+        "transition_out": "edge_6_7",
+        "educational_goal": "Encontrar el quinto huevo y completar la cuenta hasta cinco.",
+        "duration_target_seconds": 5
+      },
+      {
+        "id": "s17",
+        "text": [],
+        "audio": {
+          "pauses": [
+            {
+              "id": "p_child_response",
+              "purpose": "child_response",
+              "after_utterance": "u7_lumi_question",
+              "duration_seconds": 2.5
+            }
+          ],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u7_lumi_question",
+              "text": "¿Cuántos huevos encontramos en total? Di el número en voz alta.",
+              "emotion": "encouraging",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "slow",
+                "emphasis": [
+                  "¿Cuántos?"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  6,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "gallina_amable",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_1",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  3,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_2",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  4,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_3",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_4",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  7,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_5",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  8.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              6,
+              0,
+              0
+            ],
+            "fov_y_deg": 50,
+            "position_m": [
+              6,
+              1.6,
+              1.5
+            ]
+          },
+          "from": {
+            "target_m": [
+              6,
+              0,
+              0
+            ],
+            "fov_y_deg": 50,
+            "position_m": [
+              6,
+              1.6,
+              1.5
+            ]
+          },
+          "move": "static",
+          "shot": "close",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "prompt child response",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi"
+          ],
+          "duration_seconds": 6
+        },
+        "actions": [
+          {
+            "id": "act7_lumi_ask",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0
+            },
+            "action_id": "face_camera",
+            "entity_id": "lumi",
+            "expression": "attentive",
+            "parameters": {},
+            "gaze_target": "child",
+            "duration_seconds": 0.5
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_question",
+        "assertions": [
+          {
+            "id": "a7_waiting_answer",
+            "type": "voice_silence",
+            "expected": null,
+            "severity": "INFO"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "waiting_answer"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "collected_eggs",
+              "value": [
+                "egg_1",
+                "egg_2",
+                "egg_3",
+                "egg_4",
+                "egg_5"
+              ]
+            }
+          ]
+        },
+        "transition_in": "edge_6_7",
+        "transition_out": "edge_7_8",
+        "educational_goal": "Pedir al niño que cuente cuántos huevos hay en total y esperar la respuesta.",
+        "duration_target_seconds": 6
+      },
+      {
+        "id": "s18",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [],
+          "utterances": [
+            {
+              "id": "u8_lumi_confirm",
+              "text": "¡Muy bien! Cinco huevos en total. Uno, dos, tres, cuatro, cinco.",
+              "emotion": "celebratory",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "Cinco"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  6,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "gallina_amable",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_1",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  3,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_2",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  4,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_3",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  5.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_4",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  7,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "egg_5",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  8.5,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              6,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              5.8,
+              1.6,
+              1.8
+            ]
+          },
+          "from": {
+            "target_m": [
+              6,
+              0,
+              0
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              5.8,
+              1.6,
+              1.8
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "confirm child's answer and recount",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "gallina_amable"
+          ],
+          "duration_seconds": 6
+        },
+        "actions": [
+          {
+            "id": "act8_lumi_nod",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.2
+            },
+            "action_id": "nod",
+            "entity_id": "lumi",
+            "expression": "encouraging",
+            "parameters": {},
+            "gaze_target": "child",
+            "duration_seconds": 1
+          },
+          {
+            "id": "act8_lumi_recount",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 1.4
+            },
+            "action_id": "gesture_count",
+            "entity_id": "lumi",
+            "expression": "warm",
+            "parameters": {},
+            "gaze_target": "eggs",
+            "duration_seconds": 3
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_answer",
+        "assertions": [
+          {
+            "id": "a8_confirm_count",
+            "type": "continuity_state",
+            "expected": 5,
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "answer_confirmed"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "waiting_answer"
+            }
+          ]
+        },
+        "transition_in": "edge_7_8",
+        "transition_out": "edge_8_9",
+        "educational_goal": "Confirmar la respuesta y recuento con el niño.",
+        "duration_target_seconds": 6
+      },
+      {
+        "id": "s19",
+        "text": [],
+        "audio": {
+          "pauses": [],
+          "music_cues": [
+            {
+              "id": "m9_fanfare",
+              "start": {
+                "anchor": "scene.start",
+                "offset_seconds": 3.2
+              },
+              "cue_ref": {
+                "id": "playful_motif",
+                "version": "1.0"
+              },
+              "gain_db": -2
+            }
+          ],
+          "utterances": [
+            {
+              "id": "u9_lumi_recap",
+              "text": "¡Bien hecho! Juntos encontramos cinco huevos y ahora están seguros en la cesta.",
+              "emotion": "celebratory",
+              "speaker": "lumi",
+              "delivery": {
+                "pace": "natural",
+                "emphasis": [
+                  "cinco huevos"
+                ]
+              },
+              "expected_voice": true
+            },
+            {
+              "id": "u9_gallina_thanks",
+              "text": "¡Gracias, Lumi! ¡Qué feliz estoy!",
+              "emotion": "celebratory",
+              "speaker": "gallina_amable",
+              "delivery": {
+                "pace": "brisk",
+                "emphasis": [
+                  "gracias"
+                ]
+              },
+              "expected_voice": true
+            }
+          ],
+          "sound_effects": []
+        },
+        "stage": {
+          "placements": [
+            {
+              "layer": "foreground",
+              "visible": true,
+              "entity_id": "basket",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  1.2,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "lumi",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  3,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            },
+            {
+              "layer": "midground",
+              "visible": true,
+              "entity_id": "gallina_amable",
+              "transform": {
+                "scale": [
+                  1,
+                  1,
+                  1
+                ],
+                "position_m": [
+                  1,
+                  0,
+                  0
+                ],
+                "rotation_deg": [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            }
+          ],
+          "lighting_ref": {
+            "id": "day_clear",
+            "version": "1.0"
+          },
+          "environment_ref": {
+            "id": "garden_world",
+            "version": "catalog-v1"
+          }
+        },
+        "camera": {
+          "to": {
+            "target_m": [
+              1.2,
+              0,
+              0
+            ],
+            "fov_y_deg": 40,
+            "position_m": [
+              1.5,
+              1.8,
+              2.3
+            ]
+          },
+          "from": {
+            "target_m": [
+              2,
+              0,
+              0
+            ],
+            "fov_y_deg": 40,
+            "position_m": [
+              2,
+              2,
+              3
+            ]
+          },
+          "move": "orbit",
+          "shot": "wide",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "ease_out",
+          "framing": {
+            "intent": "show resolution and celebration",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "gallina_amable",
+            "basket"
+          ],
+          "duration_seconds": 5
+        },
+        "actions": [
+          {
+            "id": "act9_place_eggs",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 0.4
+            },
+            "action_id": "place_eggs_in_basket",
+            "entity_id": "lumi",
+            "expression": "warm",
+            "parameters": {
+              "eggs": [
+                "egg_1",
+                "egg_2",
+                "egg_3",
+                "egg_4",
+                "egg_5"
+              ]
+            },
+            "gaze_target": "basket",
+            "duration_seconds": 2.8
+          },
+          {
+            "id": "act9_gallina_happy",
+            "start": {
+              "anchor": "scene.start",
+              "offset_seconds": 3.2
+            },
+            "action_id": "celebrate",
+            "entity_id": "gallina_amable",
+            "expression": "celebratory",
+            "parameters": {},
+            "gaze_target": "lumi",
+            "duration_seconds": 1.2
+          }
+        ],
+        "effects": [],
+        "beat_ref": "beat_recap",
+        "assertions": [
+          {
+            "id": "a9_basket_has_eggs",
+            "type": "continuity_state",
+            "entities": [
+              "basket"
+            ],
+            "expected": "basket_has_eggs",
+            "severity": "BLOCKER"
+          }
+        ],
+        "continuity": {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "resolved"
+            },
+            {
+              "op": "append_unique",
+              "path": "persistent_elements",
+              "value": "basket_has_eggs"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "educational_progress.count_reached",
+              "value": 5
+            }
+          ]
+        },
+        "transition_in": "edge_8_9",
+        "transition_out": null,
+        "educational_goal": "Recapitular la cuenta y celebrar: devolver huevos a la cesta.",
+        "duration_target_seconds": 5
+      }
+    ],
+    "episode": {
+      "id": "ep_lumi_huevos_001",
+      "title": "Lumi y los cinco huevos",
+      "category": "números",
+      "language": "es-419",
+      "learning": {
+        "objective": "Contar del uno al cinco con correspondencia uno a uno.",
+        "objective_id": "count_1_to_5",
+        "success_test": "El niño cuenta correctamente los cinco huevos en voz alta.",
+        "secondary_skill": "atención y seguimiento"
+      },
+      "requires": [
+        "garden_world",
+        "lumi_model_v1",
+        "gallina_model_v1",
+        "egg_asset_v1",
+        "basket_asset_v1"
+      ],
+      "age_range": {
+        "max_years": 5,
+        "min_years": 3
+      },
+      "style_ref": {
+        "id": "kid_friendly",
+        "version": "1.0"
+      },
+      "world_ref": {
+        "id": "garden_world",
+        "version": "catalog-v1"
+      },
+      "story_beats": [
+        {
+          "id": "beat_hook",
+          "summary": "Lumi y la gallina descubren que faltan cinco huevos; comienza la búsqueda.",
+          "function": "setup"
+        },
+        {
+          "id": "beat_find1",
+          "summary": "Lumi encuentra el primer huevo bajo unas hojas y lo muestra.",
+          "function": "discovery"
+        },
+        {
+          "id": "beat_find2",
+          "summary": "Lumi encuentra el segundo huevo junto a una piedra.",
+          "function": "development"
+        },
+        {
+          "id": "beat_find3",
+          "summary": "Lumi descubre el tercero escondido en la hierba.",
+          "function": "development"
+        },
+        {
+          "id": "beat_find4",
+          "summary": "Lumi encuentra el cuarto huevo cerca del tronco.",
+          "function": "development"
+        },
+        {
+          "id": "beat_find5",
+          "summary": "Lumi halla el quinto huevo en el sendero y los reúne.",
+          "function": "development"
+        },
+        {
+          "id": "beat_question",
+          "summary": "Lumi pregunta al niño cuántos huevos hay en total y espera su respuesta.",
+          "function": "question"
+        },
+        {
+          "id": "beat_answer",
+          "summary": "Lumi confirma la respuesta del niño y recuenta con él.",
+          "function": "answer"
+        },
+        {
+          "id": "beat_recap",
+          "summary": "La gallina celebra, Lumi pone los cinco huevos en la cesta y todos festejan.",
+          "function": "recap"
+        }
+      ],
+      "transitions": [
+        {
+          "id": "edge_1_2",
+          "type": "cut",
+          "to_scene": "s12",
+          "from_scene": "s11",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_2_3",
+          "type": "cut",
+          "to_scene": "s13",
+          "from_scene": "s12",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_3_4",
+          "type": "cut",
+          "to_scene": "s14",
+          "from_scene": "s13",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_4_5",
+          "type": "cut",
+          "to_scene": "s15",
+          "from_scene": "s14",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_5_6",
+          "type": "cut",
+          "to_scene": "s16",
+          "from_scene": "s15",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_6_7",
+          "type": "cut",
+          "to_scene": "s17",
+          "from_scene": "s16",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_7_8",
+          "type": "cut",
+          "to_scene": "s18",
+          "from_scene": "s17",
+          "overlap_frames": 0
+        },
+        {
+          "id": "edge_8_9",
+          "type": "cut",
+          "to_scene": "s19",
+          "from_scene": "s18",
+          "overlap_frames": 0
+        }
+      ],
+      "story_premise": "Una brisa escondió cinco huevos y Lumi debe devolverlos a la cesta siguiendo el sendero.",
+      "duration_target": {
+        "max_seconds": 50,
+        "min_seconds": 40,
+        "target_seconds": 48
+      },
+      "music_direction": {
+        "mood": "alegre y suave",
+        "rules": [
+          "tema suave durante la búsqueda",
+          "ligero crecimiento en las confirmaciones",
+          "breve estallido celebratorio en la resolución"
+        ],
+        "motif_ref": {
+          "id": "playful_motif",
+          "version": "1.0"
+        }
+      },
+      "voice_profile_ref": {
+        "id": "lumi_voice",
+        "version": "1.0"
+      },
+      "character_lock_ref": {
+        "id": "lumi",
+        "version": "1.0"
+      },
+      "continuity_initial": {
+        "location": "garden_path",
+        "props_state": {},
+        "lumi_position": "with_gallina",
+        "collected_eggs": [],
+        "narrative_state": "start",
+        "persistent_elements": [
+          "basket_present"
+        ],
+        "educational_progress": {
+          "count_reached": 0
+        },
+        "secondary_characters": [
+          "gallina_amable"
+        ]
+      }
+    },
+    "version": "cf-episode/2.0",
+    "entities": [
+      {
+        "id": "lumi",
+        "kind": "character",
+        "tags": [
+          "protagonist",
+          "magical"
+        ],
+        "asset_ref": {
+          "id": "lumi",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "gallina_amable",
+        "kind": "animal",
+        "tags": [
+          "secondary",
+          "worried"
+        ],
+        "asset_ref": {
+          "id": "gallina_model_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "basket",
+        "kind": "prop",
+        "tags": [
+          "goal",
+          "container"
+        ],
+        "asset_ref": {
+          "id": "basket_asset_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "wand",
+        "kind": "prop",
+        "tags": [
+          "attention_guide"
+        ],
+        "asset_ref": {
+          "id": "lumi_wand_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "garden_env",
+        "kind": "environment",
+        "tags": [
+          "outdoor",
+          "path"
+        ],
+        "asset_ref": {
+          "id": "garden_world",
+          "version": "catalog-v1"
+        }
+      },
+      {
+        "id": "egg_1",
+        "kind": "prop",
+        "tags": [
+          "countable",
+          "egg"
+        ],
+        "asset_ref": {
+          "id": "egg_asset_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "egg_2",
+        "kind": "prop",
+        "tags": [
+          "countable",
+          "egg"
+        ],
+        "asset_ref": {
+          "id": "egg_asset_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "egg_3",
+        "kind": "prop",
+        "tags": [
+          "countable",
+          "egg"
+        ],
+        "asset_ref": {
+          "id": "egg_asset_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "egg_4",
+        "kind": "prop",
+        "tags": [
+          "countable",
+          "egg"
+        ],
+        "asset_ref": {
+          "id": "egg_asset_v1",
+          "version": "1.0"
+        }
+      },
+      {
+        "id": "egg_5",
+        "kind": "prop",
+        "tags": [
+          "countable",
+          "egg"
+        ],
+        "asset_ref": {
+          "id": "egg_asset_v1",
+          "version": "1.0"
+        }
+      }
+    ]
+  },
+  "artifact_id": "090490f8-0e75-47ca-8a2c-5f3340c7f413",
+  "content_hash": "11f9f31566f2a9090dbbbaa97f9461c84563b9eb6868ad8630ba6a5824a2ea01",
+  "generation_attempt": 5,
+  "scene_schema_version": "cf-scene/2.0",
+  "episode_schema_version": "cf-episode/2.0",
+  "creative_engine_version": "v2"
+}

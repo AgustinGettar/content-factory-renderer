@@ -8,7 +8,8 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
-    "express": "^5.1.0"
+    "@supabase/supabase-js": "2.57.4",
+    "ajv": "8.20.0",
+    "express": "5.1.0"
   }
 }

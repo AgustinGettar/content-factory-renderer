@@ -14,6 +14,24 @@ import { renderProfile, validateManifest, verifyAssetHash, isApprovedFinal } fro
 import { blenderVersion, renderLumi2DPilot, renderLumiPilot } from "./lib/blender.js";
 import { decryptJson, encryptJson } from "./lib/security.js";
 import { DEFAULT_TTS_INSTRUCTIONS, OpenAIRequestError, synthesizeSpeech } from "./lib/openai.js";
+import { CreativeValidationError } from "./lib/av2/contracts.js";
+import { runCanonicalBenchmark } from "./lib/av2/benchmark-runner.js";
+import { runBootBenchmark, shouldRunBootBenchmark } from "./lib/av2/boot-benchmark.js";
+import { executePrepareOperation } from "./lib/av2/creative-engine.js";
+import { Av2PersistenceError, SupabaseCreativeArtifactStore } from "./lib/av2/persistence.js";
+import {
+  AV2_BENCHMARK_ID,
+  Av2IntegrationError,
+  Av2PipelineIntegration,
+  executeIntegratedOperation,
+} from "./lib/av2/pipeline-integration.js";
+import {
+  SupabaseAssetV2Store,
+  runVisualBenchmarkOnBoot,
+  runVisualBenchmarkV11OnBoot,
+  shouldRunVisualBenchmark,
+  shouldRunVisualBenchmarkV11,
+} from "./lib/asset-v2/index.js";
 import {
   buildAuthorizationUrl,
   buildVideoMetadata,
@@ -22,6 +40,32 @@ import {
   refreshAccessToken,
   uploadVideoBuffer,
 } from "./lib/youtube.js";
+import {
+  createGenerativeVideoReviewUrlsV1,
+  getGenerativeVideoBenchmarkStatusV1,
+  preflightGenerativeVideoBenchmarkV1,
+  runGenerativeVideoBenchmarkV1,
+} from "./lib/generative-video-benchmark-v1.js";
+import {
+  createGenerativeVideoReviewUrlsV11,
+  getGenerativeVideoBenchmarkStatusV11,
+  preflightGenerativeVideoBenchmarkV11,
+  runGenerativeVideoBenchmarkV11,
+} from "./lib/generative-video-benchmark-v1-1.js";
+import {
+  createPilotReviewUrls,
+  getPilotStatus,
+  preflightPilotImages,
+  preflightPilotVideos,
+  recordPilotVisualQA,
+  runPilotImages,
+  runPilotVideos,
+} from "./lib/lumi-production-pilot-v1.js";
+import {
+  runLumiPilotOnBoot,
+  shouldRunLumiPilotOnBoot,
+} from "./lib/lumi-production-pilot-boot.js";
+import { runPilotCommand } from "./lib/lumi-pilot-internal.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -46,6 +90,25 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 const OPENAI_TTS_MODEL = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
 const OPENAI_TTS_VOICE = process.env.OPENAI_TTS_VOICE || "marin";
 const OPENAI_TTS_INSTRUCTIONS = process.env.OPENAI_TTS_INSTRUCTIONS || DEFAULT_TTS_INSTRUCTIONS;
+const OPENAI_CREATIVE_MODEL = process.env.OPENAI_CREATIVE_MODEL || "gpt-5-mini";
+const CREATIVE_ENGINE_VERSION = process.env.CREATIVE_ENGINE_VERSION || "legacy";
+const AV2_BENCHMARK_ONLY = process.env.AV2_BENCHMARK_ONLY !== "false";
+const AV2_RUN_BENCHMARK_ON_BOOT = process.env.AV2_RUN_BENCHMARK_ON_BOOT === "true";
+const ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT = process.env.ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT === "true";
+const ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT = process.env.ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT === "true";
+const HF_API_KEY = process.env.HF_API_KEY || "";
+const HIGGSFIELD_BENCHMARK_V1_ENABLED = process.env.HIGGSFIELD_BENCHMARK_V1_ENABLED === "true";
+const HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED = process.env.HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED === "true";
+const HIGGSFIELD_BENCHMARK_TOKEN = process.env.HIGGSFIELD_BENCHMARK_TOKEN || "";
+const HIGGSFIELD_BENCHMARK_MAX_USD = Number(process.env.HIGGSFIELD_BENCHMARK_MAX_USD || "2.731");
+const HIGGSFIELD_BENCHMARK_V11_ENABLED = process.env.HIGGSFIELD_BENCHMARK_V11_ENABLED === "true";
+const HIGGSFIELD_BENCHMARK_V11_TOKEN = process.env.HIGGSFIELD_BENCHMARK_V11_TOKEN || "";
+const HIGGSFIELD_BENCHMARK_V11_MAX_USD = Number(process.env.HIGGSFIELD_BENCHMARK_V11_MAX_USD || "1.00");
+const LUMI_PRODUCTION_PILOT_ENABLED = process.env.LUMI_PRODUCTION_PILOT_ENABLED === "true";
+const LUMI_PRODUCTION_PILOT_TOKEN = process.env.LUMI_PRODUCTION_PILOT_TOKEN || "";
+const LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD || "2.00");
+const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD || "3.00");
+const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -60,6 +123,14 @@ const supabase = hasSupabaseKey
       auth: { persistSession: false, autoRefreshToken: false },
     })
   : null;
+
+const av2Integration = supabase ? new Av2PipelineIntegration({
+  store: new SupabaseCreativeArtifactStore(supabase),
+  logger: creativeLog,
+  engineVersion: CREATIVE_ENGINE_VERSION,
+  benchmarkOnly: AV2_BENCHMARK_ONLY,
+}) : null;
+const assetV2Store = supabase ? new SupabaseAssetV2Store(supabase) : null;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -77,9 +148,38 @@ const reservedVideoIds = new Set();
 const pilotJobs = new Map();
 let activePilotJobId = null;
 let detectedBlenderVersion = null;
+let activeGenerativeVideoBenchmark = null;
+let generativeVideoBenchmarkState = { status: "idle", provider_calls: 0 };
+let activeGenerativeVideoBenchmarkV11 = null;
+let generativeVideoBenchmarkV11State = { status: "idle", provider_calls: 0 };
+let activeLumiProductionPilot = null;
+let lumiProductionPilotState = { status: "idle", phase: null, provider_calls: 0 };
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
+}
+
+function creativeLog(entry) {
+  const allowed = [
+    "component", "event", "operation", "episode_id", "idea_id", "scene_id",
+    "job_id", "video_id", "artifact_id", "attempt", "generation_attempt", "repair_attempt",
+    "error_code", "error_count", "request_hash", "content_hash", "episode_sha256", "ideas_sha256",
+    "creative_engine_version", "episode_schema_version", "scene_schema_version",
+    "cache_hit", "validation_result", "persistence_result", "legacy_adaptation_result",
+    "benchmark_id", "provider_calls", "recovery_result", "idempotency_result",
+  ];
+  const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
+  console.info(JSON.stringify(safe));
+}
+
+function assetV2Log(entry) {
+  const allowed = [
+    "component", "event", "scene_id", "asset_id", "asset_hash", "error_code",
+    "planned_provider_calls", "provider_calls", "cache_hits", "successful_generations",
+    "failed_generations", "preflight_hash",
+  ];
+  const safe = Object.fromEntries(allowed.filter((key) => entry[key] !== undefined).map((key) => [key, entry[key]]));
+  console.info(JSON.stringify(safe));
 }
 
 function authorized(req) {
@@ -88,6 +188,24 @@ function authorized(req) {
     (hasRenderToken && suppliedToken === RENDER_API_TOKEN) ||
     (ADMIN_API_TOKEN && suppliedToken === ADMIN_API_TOKEN)
   );
+}
+
+function generativeVideoBenchmarkAuthorized(req) {
+  const suppliedToken = req.get("x-benchmark-token");
+  return HIGGSFIELD_BENCHMARK_V1_ENABLED && Boolean(HIGGSFIELD_BENCHMARK_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === HIGGSFIELD_BENCHMARK_TOKEN;
+}
+
+function generativeVideoBenchmarkV11Authorized(req) {
+  const suppliedToken = req.get("x-benchmark-token");
+  return HIGGSFIELD_BENCHMARK_V11_ENABLED && Boolean(HIGGSFIELD_BENCHMARK_V11_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === HIGGSFIELD_BENCHMARK_V11_TOKEN;
+}
+
+function lumiProductionPilotAuthorized(req) {
+  const suppliedToken = req.get("x-pilot-token");
+  return LUMI_PRODUCTION_PILOT_ENABLED && Boolean(LUMI_PRODUCTION_PILOT_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === LUMI_PRODUCTION_PILOT_TOKEN;
 }
 
 function htmlEscape(value) {
@@ -524,8 +642,393 @@ app.get("/health", (_req, res) => {
       final_requires_approval: true,
       openai_tts_configured: Boolean(OPENAI_API_KEY),
       youtube_oauth_configured: youtubeConfigMissing().length === 0,
+      creative_engine_version: CREATIVE_ENGINE_VERSION,
+      creative_engine_v2_available: true,
+      creative_engine_v2_benchmark_only: AV2_BENCHMARK_ONLY,
+      creative_engine_v2_persistence: Boolean(av2Integration),
+      creative_engine_v2_benchmark_on_boot: AV2_RUN_BENCHMARK_ON_BOOT,
+      asset_v2_visual_benchmark_on_boot: ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT,
+      asset_v2_visual_benchmark_v11_on_boot: ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT,
+      higgsfield_api_key_configured: Boolean(HF_API_KEY),
+      higgsfield_benchmark_v1_enabled: HIGGSFIELD_BENCHMARK_V1_ENABLED,
+      higgsfield_benchmark_v1_autorun: false,
+      higgsfield_benchmark_v1_1_enabled: HIGGSFIELD_BENCHMARK_V11_ENABLED,
+      higgsfield_benchmark_v1_1_autorun: false,
+      lumi_production_pilot_v1_enabled: LUMI_PRODUCTION_PILOT_ENABLED,
+      lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
     },
   });
+});
+
+app.post("/pilots/lumi-cinco-huevos-v1/images/preflight", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightPilotImages({
+      supabase,
+      supabaseUrl: SUPABASE_URL,
+      maxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
+    });
+    const { plan: _plan, existing: _existing, ...safe } = result;
+    return res.json({ ok: result.ready, ...safe, openai_image_configured: Boolean(OPENAI_API_KEY) });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message || "pilot_image_preflight_failed" });
+  }
+});
+
+app.post("/pilots/lumi-cinco-huevos-v1/images/run", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeLumiProductionPilot) return res.status(202).json({ ok: true, already_running: true, state: lumiProductionPilotState });
+  lumiProductionPilotState = { status: "starting", phase: "images", provider_calls: 0, started_at: new Date().toISOString() };
+  activeLumiProductionPilot = runPilotCommand({
+    env: { ...process.env, LUMI_RUNTIME_ENV },
+    supabase, store: assetV2Store, openAiApiKey: OPENAI_API_KEY,
+    supabaseUrl: SUPABASE_URL, sceneId: req.body?.scene_id, stage: "IMAGE",
+    imageMaxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
+    onUpdate: (update) => { lumiProductionPilotState = { ...lumiProductionPilotState, ...update, updated_at: new Date().toISOString() }; },
+  }).then((summary) => {
+    lumiProductionPilotState = { ...lumiProductionPilotState, status: summary.status, summary };
+  }).catch((error) => {
+    lumiProductionPilotState = { ...lumiProductionPilotState, status: "failed", error: error.code || error.message || "pilot_image_generation_failed" };
+  }).finally(() => { activeLumiProductionPilot = null; });
+  return res.status(202).json({ ok: true, started: true, state: lumiProductionPilotState });
+});
+
+app.post("/pilots/lumi-cinco-huevos-v1/images/qa", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordPilotVisualQA({
+      supabase,
+      sceneId: req.body?.scene_id,
+      assetHash: req.body?.asset_hash,
+      observation: req.body?.observation,
+    });
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message || "pilot_visual_qa_failed" });
+  }
+});
+
+app.post("/pilots/lumi-cinco-huevos-v1/videos/preflight", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightPilotVideos({
+      supabase,
+      apiKey: HF_API_KEY,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      maxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+    });
+    const { scenes: _scenes, ...safe } = result;
+    return res.json({ ok: result.ready, ...safe });
+  } catch (error) {
+    return res.status(error.http_status === 401 ? 401 : 409).json({
+      ok: false, error: error.code || error.message || "pilot_video_preflight_failed", http_status: error.http_status || null,
+    });
+  }
+});
+
+app.post("/pilots/lumi-cinco-huevos-v1/videos/run", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeLumiProductionPilot) return res.status(202).json({ ok: true, already_running: true, state: lumiProductionPilotState });
+  lumiProductionPilotState = { status: "starting", phase: "videos", provider_calls: 0, started_at: new Date().toISOString() };
+  activeLumiProductionPilot = runPilotCommand({
+    env: { ...process.env, LUMI_RUNTIME_ENV },
+    supabase, store: assetV2Store, higgsfieldApiKey: HF_API_KEY,
+    sceneId: req.body?.scene_id, stage: "VIDEO",
+    balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+    videoMaxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+    onUpdate: (update) => { lumiProductionPilotState = { ...lumiProductionPilotState, ...update, updated_at: new Date().toISOString() }; },
+  }).then((summary) => {
+    lumiProductionPilotState = { ...lumiProductionPilotState, status: summary.status, summary };
+  }).catch((error) => {
+    lumiProductionPilotState = { ...lumiProductionPilotState, status: "failed", error: error.code || error.message || "pilot_video_generation_failed" };
+  }).finally(() => { activeLumiProductionPilot = null; });
+  return res.status(202).json({ ok: true, started: true, state: lumiProductionPilotState });
+});
+
+app.get("/pilots/lumi-cinco-huevos-v1/status", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, runtime: lumiProductionPilotState, persisted: await getPilotStatus({ supabase }) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "pilot_status_failed" });
+  }
+});
+
+app.get("/pilots/lumi-cinco-huevos-v1/outputs", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, ...(await createPilotReviewUrls({ supabase })) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "pilot_outputs_failed" });
+  }
+});
+
+// Staging-only, manually operated control surface. It never submits on load,
+// retains the pilot token only in the current page input, and does not persist it.
+app.get("/pilots/lumi-cinco-huevos-v1/control", (_req, res) => {
+  if (!LUMI_PRODUCTION_PILOT_ENABLED) return res.status(404).send("Not found");
+  res.set({ "Cache-Control": "no-store", "Referrer-Policy": "no-referrer", "X-Frame-Options": "DENY" });
+  return res.type("html").send(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lumi Pilot V1 Control</title>
+<style>body{font:16px system-ui;max-width:760px;margin:2rem auto;padding:0 1rem;background:#f8fafc;color:#17213a}label{display:block;margin:1rem 0}input,select,textarea,button{font:inherit;padding:.6rem}input,textarea{width:100%;box-sizing:border-box}textarea{min-height:10rem}button{margin:.3rem}.row{display:flex;flex-wrap:wrap}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;padding:1rem;border:1px solid #ccd}a{display:block;margin:.5rem}</style>
+<h1>Lumi Production Pilot V1</h1><p>Manual staging control. No action runs on page load. No automatic retries.</p>
+<label>Pilot token <input id="token" type="password" autocomplete="off"></label>
+<label>Scene <select id="scene"><option>s13</option><option>s14</option><option>s15</option><option>s16</option><option>s18</option><option>s19</option></select></label>
+<div class="row"><button data-action="images/preflight">Image preflight</button><button data-action="images/run">Generate one image</button><button data-action="videos/preflight">Video preflight</button><button data-action="videos/run">Generate one video</button><button data-action="status">Status</button><button data-action="outputs">Outputs</button></div>
+<label>Visual QA observation JSON (for selected scene) <textarea id="observation" spellcheck="false"></textarea></label><label>Asset SHA-256 <input id="assetHash" autocomplete="off"></label><button id="qa">Record image QA</button>
+<pre id="result" aria-live="polite">Idle</pre><div id="links"></div>
+<script>
+const root='/pilots/lumi-cinco-huevos-v1/';
+const result=document.getElementById('result'), links=document.getElementById('links');
+async function request(action, method='GET', payload){
+  result.textContent='Working: '+action; links.textContent='';
+  try {
+    const response=await fetch(root+action,{method,headers:{'x-pilot-token':document.getElementById('token').value,'content-type':'application/json'},...(payload?{body:JSON.stringify(payload)}:{})});
+    const data=await response.json(); result.textContent=JSON.stringify(data,null,2);
+    if(action==='outputs'){
+      for(const item of [...(data.images||[]),...(data.videos||[])]){
+        if(!item.signed_url)continue;
+        const a=document.createElement('a'); a.href=item.signed_url; a.target='_blank'; a.rel='noreferrer noopener';
+        a.textContent=item.scene_id+' '+(item.asset_hash?'image':'original MP4'); links.append(a);
+      }
+    }
+  } catch(error){result.textContent='Request failed: '+String(error.message).slice(0,200);}
+}
+document.querySelectorAll('button[data-action]').forEach(button=>button.addEventListener('click',()=>{
+  const action=button.dataset.action, method=action==='status'||action==='outputs'?'GET':'POST';
+  request(action,method,action.endsWith('/run')?{scene_id:document.getElementById('scene').value}:undefined);
+}));
+document.getElementById('qa').addEventListener('click',()=>{
+  try{request('images/qa','POST',{scene_id:document.getElementById('scene').value,asset_hash:document.getElementById('assetHash').value,observation:JSON.parse(document.getElementById('observation').value)});}
+  catch{result.textContent='Invalid observation JSON';}
+});
+</script></html>`);
+});
+
+app.post("/benchmarks/generative-video-v1/preflight", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightGenerativeVideoBenchmarkV1({
+      supabase,
+      apiKey: HF_API_KEY,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      maxUsd: HIGGSFIELD_BENCHMARK_MAX_USD,
+    });
+    return res.json({
+      ok: result.ready,
+      api_key_configured: result.api_key_configured,
+      auth_verified: result.auth_verified,
+      balance_api: result.balance_api,
+      balance_sufficient: result.balance_sufficient,
+      balance_evidence: result.balance_evidence,
+      models_available: result.models_available,
+      source_hash_match: result.source_hash_match,
+      prompt_ready: result.prompt_ready,
+      prompt_hash: result.prompt_hash,
+      estimates: result.estimates,
+      total_usd: result.total_usd,
+      max_total_usd: result.max_total_usd,
+      cost_gate_passed: result.cost_gate_passed,
+      provider_calls_so_far: 0,
+    });
+  } catch (error) {
+    return res.status(error.http_status === 401 ? 401 : 409).json({
+      ok: false,
+      error: error.code || error.message || "preflight_failed",
+      http_status: error.http_status || null,
+      diagnostic: error.diagnostic || null,
+    });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1/run", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeGenerativeVideoBenchmark) {
+    return res.status(202).json({ ok: true, already_running: true, state: generativeVideoBenchmarkState });
+  }
+  generativeVideoBenchmarkState = { status: "starting", provider_calls: 0, started_at: new Date().toISOString() };
+  activeGenerativeVideoBenchmark = runGenerativeVideoBenchmarkV1({
+    supabase,
+    apiKey: HF_API_KEY,
+    balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+    maxUsd: HIGGSFIELD_BENCHMARK_MAX_USD,
+    onUpdate: (update) => {
+      generativeVideoBenchmarkState = { ...generativeVideoBenchmarkState, ...update, updated_at: new Date().toISOString() };
+    },
+  }).then((summary) => {
+    generativeVideoBenchmarkState = { ...generativeVideoBenchmarkState, status: summary.status, summary };
+  }).catch((error) => {
+    generativeVideoBenchmarkState = {
+      ...generativeVideoBenchmarkState,
+      status: "failed",
+      error: error.code || error.message || "benchmark_failed",
+      http_status: error.http_status || null,
+    };
+  }).finally(() => {
+    activeGenerativeVideoBenchmark = null;
+  });
+  return res.status(202).json({ ok: true, started: true, state: generativeVideoBenchmarkState });
+});
+
+app.get("/benchmarks/generative-video-v1/status", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const persisted = await getGenerativeVideoBenchmarkStatusV1({ supabase });
+    return res.json({ ok: true, runtime: generativeVideoBenchmarkState, persisted });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "status_failed" });
+  }
+});
+
+app.get("/benchmarks/generative-video-v1/outputs", async (req, res) => {
+  if (!generativeVideoBenchmarkAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const outputs = await createGenerativeVideoReviewUrlsV1({ supabase });
+    return res.json({ ok: true, outputs });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "outputs_failed" });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1-1/preflight", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await preflightGenerativeVideoBenchmarkV11({
+      supabase,
+      apiKey: HF_API_KEY,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      maxUsd: HIGGSFIELD_BENCHMARK_V11_MAX_USD,
+    });
+    return res.json({
+      ok: result.ready,
+      api_key_configured: result.api_key_configured,
+      auth_verified: result.auth_verified,
+      balance_api: result.balance_api,
+      balance_sufficient: result.balance_sufficient,
+      balance_evidence: result.balance_evidence,
+      model_available: result.model_available,
+      source_hashes_match: result.source_hashes_match,
+      prompt_ready: result.prompt_ready,
+      estimates: result.estimates,
+      total_usd: result.total_usd,
+      max_total_usd: result.max_total_usd,
+      cost_gate_passed: result.cost_gate_passed,
+      provider_calls_so_far: result.provider_calls_so_far,
+    });
+  } catch (error) {
+    return res.status(error.http_status === 401 ? 401 : 409).json({
+      ok: false,
+      error: error.code || error.message || "preflight_failed",
+      http_status: error.http_status || null,
+      diagnostic: error.diagnostic || null,
+    });
+  }
+});
+
+app.post("/benchmarks/generative-video-v1-1/run", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (activeGenerativeVideoBenchmarkV11) {
+    return res.status(202).json({ ok: true, already_running: true, state: generativeVideoBenchmarkV11State });
+  }
+  generativeVideoBenchmarkV11State = { status: "starting", provider_calls: 0, started_at: new Date().toISOString() };
+  activeGenerativeVideoBenchmarkV11 = runGenerativeVideoBenchmarkV11({
+    supabase,
+    apiKey: HF_API_KEY,
+    balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+    maxUsd: HIGGSFIELD_BENCHMARK_V11_MAX_USD,
+    onUpdate: (update) => {
+      generativeVideoBenchmarkV11State = { ...generativeVideoBenchmarkV11State, ...update, updated_at: new Date().toISOString() };
+    },
+  }).then((summary) => {
+    generativeVideoBenchmarkV11State = { ...generativeVideoBenchmarkV11State, status: summary.status, summary };
+  }).catch((error) => {
+    generativeVideoBenchmarkV11State = {
+      ...generativeVideoBenchmarkV11State,
+      status: "failed",
+      error: error.code || error.message || "benchmark_failed",
+      http_status: error.http_status || null,
+    };
+  }).finally(() => {
+    activeGenerativeVideoBenchmarkV11 = null;
+  });
+  return res.status(202).json({ ok: true, started: true, state: generativeVideoBenchmarkV11State });
+});
+
+app.get("/benchmarks/generative-video-v1-1/status", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const persisted = await getGenerativeVideoBenchmarkStatusV11({ supabase });
+    return res.json({ ok: true, runtime: generativeVideoBenchmarkV11State, persisted });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "status_failed" });
+  }
+});
+
+app.get("/benchmarks/generative-video-v1-1/outputs", async (req, res) => {
+  if (!generativeVideoBenchmarkV11Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const outputs = await createGenerativeVideoReviewUrlsV11({ supabase });
+    return res.json({ ok: true, outputs });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "outputs_failed" });
+  }
+});
+
+// Make remains the generation orchestrator. This authenticated helper builds
+// one structured request, validates the response, and derives legacy fields.
+// Persisted operations are idempotent by request hash; pure operations remain
+// available for contract validation. This route never renders or enqueues media.
+app.post("/av2/prepare", async (req, res) => {
+  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (CREATIVE_ENGINE_VERSION !== "v2") {
+    return res.status(409).json({ ok: false, error: "creative_engine_v2_disabled" });
+  }
+  try {
+    if (req.body?.operation === "benchmark_generate") {
+      if (AV2_BENCHMARK_ONLY && req.body?.context?.benchmark_id !== AV2_BENCHMARK_ID) {
+        throw new Av2IntegrationError("creative_engine_v2_not_selected", "benchmark_not_allowed", { status: 409 });
+      }
+      if (!av2Integration) throw new Av2PersistenceError("AV2 persistence is not configured");
+      return res.json(await runCanonicalBenchmark({
+        integration: av2Integration,
+        apiKey: OPENAI_API_KEY,
+        model: OPENAI_CREATIVE_MODEL,
+      }));
+    }
+    const persistedOperations = new Set([
+      "resolve_ideas", "accept_ideas_persisted", "resolve_plan", "accept_plan_persisted",
+      "repair_plan_persisted", "attach_video", "record_failure",
+    ]);
+    if (persistedOperations.has(req.body?.operation)) {
+      if (!av2Integration) throw new Av2PersistenceError("AV2 persistence is not configured");
+      return res.json(await executeIntegratedOperation(req.body, { integration: av2Integration }));
+    }
+    if (AV2_BENCHMARK_ONLY && req.body?.context?.benchmark_id !== AV2_BENCHMARK_ID) {
+      throw new Av2IntegrationError("creative_engine_v2_not_selected", "benchmark_not_allowed", { status: 409 });
+    }
+    return res.json(executePrepareOperation(req.body, { logger: creativeLog }));
+  } catch (error) {
+    const validation = error instanceof CreativeValidationError;
+    const persistence = error instanceof Av2PersistenceError;
+    const integration = error instanceof Av2IntegrationError;
+    creativeLog({
+      component: "creative_engine_v2",
+      event: "prepare_failed",
+      operation: req.body?.operation,
+      episode_id: req.body?.payload?.episode?.id,
+      attempt: req.body?.attempt,
+      error_code: error.code || "prepare_invalid",
+      error_count: error.errors?.length,
+    });
+    const status = validation ? 422 : (persistence ? 503 : (integration ? error.status : 400));
+    return res.status(status).json({
+      ok: false,
+      error: error.code || "prepare_invalid",
+      message: safeError(error),
+      recoverable: Boolean(error.recoverable || persistence),
+      ...(persistence && error.diagnostic ? { diagnostic: error.diagnostic } : {}),
+      ...(validation ? { validation_errors: error.errors.slice(0, 40) } : {}),
+    });
+  }
 });
 
 // Generate narration in the cloud without Make. The active character profile
@@ -955,4 +1458,90 @@ app.listen(Number(PORT), "0.0.0.0", () => {
   // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
   setInterval(() => recoverQueuedVideos(), 30_000).unref?.();
+
+  if (shouldRunBootBenchmark({
+    engineVersion: CREATIVE_ENGINE_VERSION,
+    benchmarkOnly: AV2_BENCHMARK_ONLY,
+    runOnBoot: AV2_RUN_BENCHMARK_ON_BOOT,
+  })) {
+    setImmediate(() => runBootBenchmark({
+      integration: av2Integration,
+      apiKey: OPENAI_API_KEY,
+      model: OPENAI_CREATIVE_MODEL,
+      logger: creativeLog,
+    }).catch((error) => {
+      creativeLog({
+        component: "av2_boot_benchmark",
+        event: "benchmark_failed",
+        benchmark_id: AV2_BENCHMARK_ID,
+        error_code: error.code || "benchmark_failed",
+      });
+      console.error(`AV2 boot benchmark failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunVisualBenchmark({
+    engineVersion: CREATIVE_ENGINE_VERSION,
+    benchmarkOnly: AV2_BENCHMARK_ONLY,
+    runOnBoot: ASSET_V2_RUN_VISUAL_BENCHMARK_ON_BOOT,
+  })) {
+    setImmediate(() => runVisualBenchmarkOnBoot({
+      supabase,
+      store: assetV2Store,
+      apiKey: OPENAI_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: assetV2Log,
+    }).catch((error) => {
+      assetV2Log({
+        component: "asset_v2_visual_benchmark",
+        event: "visual_benchmark_failed",
+        error_code: error.diagnostic?.code || error.code || "visual_benchmark_failed",
+      });
+      console.error(`Asset V2 visual benchmark failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunVisualBenchmarkV11({
+    engineVersion: CREATIVE_ENGINE_VERSION,
+    benchmarkOnly: AV2_BENCHMARK_ONLY,
+    runOnBoot: ASSET_V2_RUN_VISUAL_BENCHMARK_V11_ON_BOOT,
+  })) {
+    setImmediate(() => runVisualBenchmarkV11OnBoot({
+      supabase,
+      store: assetV2Store,
+      apiKey: OPENAI_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: assetV2Log,
+    }).catch((error) => {
+      assetV2Log({
+        component: "asset_v2_visual_benchmark_v11",
+        event: "visual_benchmark_v11_failed",
+        error_code: error.diagnostic?.code || error.code || "visual_benchmark_v11_failed",
+      });
+      console.error(`Asset V2 visual benchmark V1.1 failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunLumiPilotOnBoot(process.env)) {
+    setImmediate(() => runLumiPilotOnBoot({
+      env: process.env,
+      supabase,
+      store: assetV2Store,
+      openAiApiKey: OPENAI_API_KEY,
+      higgsfieldApiKey: HF_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      imageMaxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
+      videoMaxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+      logger: assetV2Log,
+    }).catch((error) => {
+      assetV2Log({
+        component: "lumi_pilot_boot",
+        event: "one_shot_failed",
+        scene_id: String(process.env.AV2_PILOT_RUN_SCENE || "").toLowerCase(),
+        error_code: error.code || error.message || "lumi_pilot_boot_failed",
+      });
+      console.error(`Lumi pilot one-shot failed: ${safeError(error)}`);
+    }));
+  }
 });

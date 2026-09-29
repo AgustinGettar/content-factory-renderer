@@ -61,6 +61,11 @@ import {
   runPilotImages,
   runPilotVideos,
 } from "./lib/lumi-production-pilot-v1.js";
+import {
+  runLumiPilotOnBoot,
+  shouldRunLumiPilotOnBoot,
+} from "./lib/lumi-production-pilot-boot.js";
+import { runPilotCommand } from "./lib/lumi-pilot-internal.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -103,6 +108,7 @@ const LUMI_PRODUCTION_PILOT_ENABLED = process.env.LUMI_PRODUCTION_PILOT_ENABLED 
 const LUMI_PRODUCTION_PILOT_TOKEN = process.env.LUMI_PRODUCTION_PILOT_TOKEN || "";
 const LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD || "2.00");
 const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD || "3.00");
+const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -649,7 +655,7 @@ app.get("/health", (_req, res) => {
       higgsfield_benchmark_v1_1_enabled: HIGGSFIELD_BENCHMARK_V11_ENABLED,
       higgsfield_benchmark_v1_1_autorun: false,
       lumi_production_pilot_v1_enabled: LUMI_PRODUCTION_PILOT_ENABLED,
-      lumi_production_pilot_v1_autorun: false,
+      lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
     },
   });
 });
@@ -673,13 +679,11 @@ app.post("/pilots/lumi-cinco-huevos-v1/images/run", async (req, res) => {
   if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   if (activeLumiProductionPilot) return res.status(202).json({ ok: true, already_running: true, state: lumiProductionPilotState });
   lumiProductionPilotState = { status: "starting", phase: "images", provider_calls: 0, started_at: new Date().toISOString() };
-  activeLumiProductionPilot = runPilotImages({
-    supabase,
-    store: assetV2Store,
-    apiKey: OPENAI_API_KEY,
-    supabaseUrl: SUPABASE_URL,
-    sceneId: req.body?.scene_id,
-    maxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
+  activeLumiProductionPilot = runPilotCommand({
+    env: { ...process.env, LUMI_RUNTIME_ENV },
+    supabase, store: assetV2Store, openAiApiKey: OPENAI_API_KEY,
+    supabaseUrl: SUPABASE_URL, sceneId: req.body?.scene_id, stage: "IMAGE",
+    imageMaxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
     onUpdate: (update) => { lumiProductionPilotState = { ...lumiProductionPilotState, ...update, updated_at: new Date().toISOString() }; },
   }).then((summary) => {
     lumiProductionPilotState = { ...lumiProductionPilotState, status: summary.status, summary };
@@ -726,12 +730,12 @@ app.post("/pilots/lumi-cinco-huevos-v1/videos/run", async (req, res) => {
   if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   if (activeLumiProductionPilot) return res.status(202).json({ ok: true, already_running: true, state: lumiProductionPilotState });
   lumiProductionPilotState = { status: "starting", phase: "videos", provider_calls: 0, started_at: new Date().toISOString() };
-  activeLumiProductionPilot = runPilotVideos({
-    supabase,
-    apiKey: HF_API_KEY,
-    sceneId: req.body?.scene_id,
+  activeLumiProductionPilot = runPilotCommand({
+    env: { ...process.env, LUMI_RUNTIME_ENV },
+    supabase, store: assetV2Store, higgsfieldApiKey: HF_API_KEY,
+    sceneId: req.body?.scene_id, stage: "VIDEO",
     balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
-    maxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+    videoMaxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
     onUpdate: (update) => { lumiProductionPilotState = { ...lumiProductionPilotState, ...update, updated_at: new Date().toISOString() }; },
   }).then((summary) => {
     lumiProductionPilotState = { ...lumiProductionPilotState, status: summary.status, summary };
@@ -1515,6 +1519,29 @@ app.listen(Number(PORT), "0.0.0.0", () => {
         error_code: error.diagnostic?.code || error.code || "visual_benchmark_v11_failed",
       });
       console.error(`Asset V2 visual benchmark V1.1 failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunLumiPilotOnBoot(process.env)) {
+    setImmediate(() => runLumiPilotOnBoot({
+      env: process.env,
+      supabase,
+      store: assetV2Store,
+      openAiApiKey: OPENAI_API_KEY,
+      higgsfieldApiKey: HF_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
+      imageMaxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
+      videoMaxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+      logger: assetV2Log,
+    }).catch((error) => {
+      assetV2Log({
+        component: "lumi_pilot_boot",
+        event: "one_shot_failed",
+        scene_id: String(process.env.AV2_PILOT_RUN_SCENE || "").toLowerCase(),
+        error_code: error.code || error.message || "lumi_pilot_boot_failed",
+      });
+      console.error(`Lumi pilot one-shot failed: ${safeError(error)}`);
     }));
   }
 });

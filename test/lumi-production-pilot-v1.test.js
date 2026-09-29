@@ -13,6 +13,11 @@ import {
   evaluatePilotVisualQA,
 } from "../lib/lumi-production-pilot-v1.js";
 import { compileGenerativeVideoPromptV1 } from "../lib/generative-video-benchmark-v1.js";
+import {
+  readLumiPilotBootConfig,
+  runLumiPilotOnBoot,
+  shouldRunLumiPilotOnBoot,
+} from "../lib/lumi-production-pilot-boot.js";
 
 const fixture = JSON.parse(fs.readFileSync(new URL("./fixtures/av2-canonical-lumi-cinco-huevos.accepted.json", import.meta.url), "utf8"));
 
@@ -91,4 +96,37 @@ test("pilot semantic QA keeps counting eggs FULL and rejects an unsafe or extra 
   const extra = structuredClone(observation);
   extra.egg_count_verified = 2;
   assert.equal(evaluatePilotVisualQA({ sceneId: "s13", manifest: specification.manifest, observation: extra }).accepted, false);
+});
+
+test("one-shot boot is disabled by default and rejects non-pilot scenes", () => {
+  assert.equal(shouldRunLumiPilotOnBoot({}), false);
+  assert.equal(shouldRunLumiPilotOnBoot({
+    LUMI_PRODUCTION_PILOT_ENABLED: "true", AV2_PILOT_RUN_ON_BOOT: "true",
+    AV2_PILOT_RUN_STAGE: "IMAGE", AV2_PILOT_RUN_SCENE: "S11", LUMI_RUNTIME_ENV: "staging",
+  }), false);
+  assert.deepEqual(readLumiPilotBootConfig({
+    LUMI_PRODUCTION_PILOT_ENABLED: "true", AV2_PILOT_RUN_ON_BOOT: "true",
+    AV2_PILOT_RUN_STAGE: "video", AV2_PILOT_RUN_SCENE: "S13", LUMI_RUNTIME_ENV: "staging",
+  }), { enabled: true, stage: "VIDEO", sceneId: "s13" });
+});
+
+test("one-shot boot dispatches exactly one stage and preserves cache-hit zero-call result", async () => {
+  const env = {
+    LUMI_PRODUCTION_PILOT_ENABLED: "true", AV2_PILOT_RUN_ON_BOOT: "true",
+    AV2_PILOT_RUN_STAGE: "IMAGE", AV2_PILOT_RUN_SCENE: "S13", LUMI_RUNTIME_ENV: "staging",
+  };
+  let imageInvocations = 0;
+  let videoInvocations = 0;
+  const result = await runLumiPilotOnBoot({
+    env, supabase: {}, store: {}, logger: () => {},
+    runCommand: async ({ sceneId }) => {
+      imageInvocations += 1;
+      assert.equal(sceneId, "s13");
+      return { status: "cache_hit", provider_calls: 0 };
+    },
+  });
+  assert.equal(result.status, "cache_hit");
+  assert.equal(result.provider_calls, 0);
+  assert.equal(imageInvocations, 1);
+  assert.equal(videoInvocations, 0);
 });

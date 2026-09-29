@@ -66,6 +66,7 @@ import {
   shouldRunLumiPilotOnBoot,
 } from "./lib/lumi-production-pilot-boot.js";
 import { runPilotCommand } from "./lib/lumi-pilot-internal.js";
+import { runPilotRepairCommand } from "./lib/lumi-pilot-repair.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -1533,6 +1534,7 @@ app.listen(Number(PORT), "0.0.0.0", () => {
       balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED,
       imageMaxUsd: LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD,
       videoMaxUsd: LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD,
+      runRepairCommand: runPilotRepairCommand,
       logger: assetV2Log,
     }).catch((error) => {
       assetV2Log({

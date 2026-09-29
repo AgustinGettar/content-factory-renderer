@@ -5,10 +5,28 @@ import { claimPilotRun, runPilotCommand, validatePilotCommand } from "../lib/lum
 function fakeSupabase(rows = []) {
   return { from(table) {
     assert.equal(table, "lumi_pilot_runs");
-    const query = { filters: {}, patch: null, select() { return this; }, eq(key, value) { this.filters[key] = value; return this; },
-      async insert(row) { if (rows.some((x) => x.pilot_id === row.pilot_id && x.scene_id === row.scene_id && x.stage === row.stage)) return { error: { code: "23505" } }; const saved = { id: String(rows.length + 1), ...row }; rows.push(saved); return { data: saved, error: null }; },
+    const query = { filters: {}, patch: null, insertResult: null, select() { return this; }, eq(key, value) { this.filters[key] = value; return this; },
+      insert(row) {
+        if (rows.some((x) => x.pilot_id === row.pilot_id && x.scene_id === row.scene_id && x.stage === row.stage)) {
+          this.insertResult = { data: null, error: { code: "23505" } };
+          return this;
+        }
+        const saved = { id: String(rows.length + 1), ...row };
+        rows.push(saved);
+        this.insertResult = { data: saved, error: null };
+        return this;
+      },
       async update(patch) { this.patch = patch; return this; },
-      async single() { const row = rows.find((x) => Object.entries(this.filters).every(([k, v]) => x[k] === v)); if (this.patch && row) Object.assign(row, this.patch); return { data: row, error: row ? null : { code: "PGRST116" } }; },
+      async single() {
+        if (this.insertResult) {
+          const result = this.insertResult;
+          this.insertResult = null;
+          return result;
+        }
+        const row = rows.find((x) => Object.entries(this.filters).every(([k, v]) => x[k] === v));
+        if (this.patch && row) Object.assign(row, this.patch);
+        return { data: row, error: row ? null : { code: "PGRST116" } };
+      },
       async maybeSingle() { const row = rows.find((x) => Object.entries(this.filters).every(([k, v]) => x[k] === v)); return { data: row || null, error: null }; },
       then(resolve, reject) { return Promise.resolve({ data: rows.filter((x) => Object.entries(this.filters).every(([k, v]) => x[k] === v)), error: null }).then(resolve, reject); },
     }; return query;

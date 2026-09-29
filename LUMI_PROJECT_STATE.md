@@ -6,8 +6,30 @@
 - State handoff branch: lumi-pilot-migration-handoff (documentation only; no CI rerun)
 - Production authority: main@5fe5556; no production changes during this execution
 - Approved reusable scenes: S11, S12, S17
-- S13/S14/S15/S16/S18/S19: NOT_STARTED
+- S13/S14/S15/S16/S18: IMAGE generated and QA accepted; VIDEO generated, Temporal QA not recorded
+- S19: SOURCE_REPAIR_REQUIRED; do not reuse for VIDEO
 - Accepted narrative: ep_lumi_huevos_001 / lumi_cinco_huevos
+
+## Media Pilot — IMAGE / KLING
+
+- IMAGE_CALLS=6/6
+- IMAGE_COST=USD 0.590649
+- S13 IMAGE=APPROVED_WITH_WARNING
+- S14 IMAGE=APPROVED
+- S15 IMAGE=APPROVED_WITH_WARNING
+- S16 IMAGE=APPROVED_WITH_WARNING
+- S18 IMAGE=APPROVED_WITH_WARNING
+- S19 IMAGE=SOURCE_REPAIR_REQUIRED (5 BLOCKERS; eggs partially occluded by basket)
+- S13 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=80b042d9-1660-4bd2-bd13-6534f843e88d; output_hash=f47445bc1baa664577927bb0ea1954750d7a339d7b721fd3ee76649de676ae97; TEMPORAL_QA=NOT_RECORDED
+- S14 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=300ad518-a453-4f74-ae5d-bbd766677d02; output_hash=c70acabbf431d55c55bac019f1d083dbc09117bf7d5552aa7077d1911dd6a990; TEMPORAL_QA=NOT_RECORDED
+- S15 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=cfee3798-5d3e-453e-82a5-2c761c289c51; output_hash=8a1d14f8902947e0aeacf44a202a996e3038fcd4b6ad1e7c44cd70a649fcc0c2; TEMPORAL_QA=NOT_RECORDED
+- S16 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=619feac9-f590-4f6f-a717-9a61f4a7051e; output_hash=b2bd94e2926f4ff30c1f8226bd6cd62ab5661a67c066a827ebb8d4705cc719d3; TEMPORAL_QA=NOT_RECORDED
+- S18 VIDEO=SUCCEEDED; model=kling-video/v3.0/std/image-to-video; audio=off; request_id=351efe26-7df7-48ca-903e-e35e338aabba; output_hash=aaf56baf7675845d5a70a0595c69bdb5fcfadf756248f1f2d05c1ce564638cff; TEMPORAL_QA=NOT_RECORDED
+- KLING_CALLS=5/6
+- KLING_COST=USD 1.155000
+- Generated clips are persisted; no retries, no variants, and no resubmissions were issued in this session.
+- Temporal QA requires access to the private video objects; no temporal QA record is present in the current runtime.
+- ASSEMBLY_GATE=3/9 confirmed; 8/9 potential pending Temporal QA; S19 blocked confirmed reusable clips; 8/9 potential pending Temporal QA; S19 unavailable.
 
 ## Gates
 - PILOT_CODE_VALIDATED=YES
@@ -43,9 +65,11 @@
 - CLEANUP=PASS; pilot_rows=0; s13_image_rows=0; S13 real=NOT_STARTED
 
 ## Accounting
-- IMAGE_CALLS=0/6
-- KLING_CALLS=0/6
-- COST=USD 0
+- IMAGE_CALLS=6/6
+- IMAGE_COST=USD 0.590649
+- KLING_CALLS=5/6
+- KLING_COST=USD 1.155000
+- COST=USD 1.745649
 - IMAGE_HARD_BUDGET=USD 2.00
 - VIDEO_HARD_BUDGET=USD 3.00
 - ASSEMBLY_GATE=3/9
@@ -65,10 +89,10 @@
 - No production mutation performed.
 
 ## NEXT_ACTION
-Complete runtime-level claimPilotRun integration proof through an authorized provider-free remote execution capability. No such capability is exposed by the current Render connector.
-Do not equate the completed SQL/DB proof with running claimPilotRun in staging.
-Latest user instruction explicitly prohibits providers; keep all flags OFF and all scene generation NOT_STARTED.
-No credential request, HTTP execution workaround, Cloud Browser, Make, or runner rewrite.
+REPAIR_S19_SOURCE_IMAGE_ONE_SHOT
+Do not execute the repair in this session.
+Do not generate more images, retry, create variants, reuse S19 for VIDEO, or exceed the image budget.
+Complete Temporal QA for the five persisted Kling clips when private video-object inspection is available; only then classify PASS/PASS_WITH_WARNING/BLOCKER and update Assembly Gate.
 
 ## DO_NOT_TOUCH
 Production main, Telegram, Make, queues, publication, approval workflow, Draft→HD production.

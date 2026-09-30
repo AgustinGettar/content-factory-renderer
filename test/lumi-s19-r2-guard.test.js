@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { R2, validateR2, claimR2, dispatchR2, patchR2 } from "../lib/lumi-s19-r2-guard.js";
+import { R2, validateR2, claimR2, dispatchR2, isR2SourceApproved, patchR2 } from "../lib/lumi-s19-r2-guard.js";
 
 function fakeDb() {
   const rows = [];
@@ -61,4 +61,16 @@ test("budget and concurrent duplicate guards",async()=>{
   const db=fakeDb();await assert.rejects(claimR2({...args,supabase:db,estimatedUsd:0.16}),/budget/);
   const results=await Promise.allSettled([claimR2({...args,supabase:db}),claimR2({...args,supabase:db})]);
   assert.equal(results.filter(r=>r.status==="fulfilled").length,1);
+});
+
+test("human review approves source without overwriting automated blocker", async()=>{
+  const db=fakeDb();const image=await claimR2({...args,supabase:db});
+  const visual_qa={accepted:false,status:"BLOCKER",blocker_count:5};
+  const human_creative_review={status:"APPROVED_WITH_WARNING",
+    provenance:{decision:"USER_EXPLICIT_HUMAN_CREATIVE_REVIEW"}};
+  await patchR2(db,image,{status:"SUCCEEDED",result:{...image.result,visual_qa,
+    human_creative_review,source_status:"HUMAN_APPROVED_FOR_VIDEO"}});
+  assert.equal(isR2SourceApproved(image),true);
+  assert.equal(image.result.visual_qa.status,"BLOCKER");
+  await claimR2({...args,supabase:db,stage:"VIDEO",estimatedUsd:0.231});
 });

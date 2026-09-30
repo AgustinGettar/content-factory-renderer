@@ -96,3 +96,39 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `RUNNER_STATE`: pilot boot OFF; repair gate OFF; image runner OFF; Higgsfield runner OFF; autorun=false; manual pilot surface OFF.
 - `PRODUCTION`: `main@5fe5556` intact; no production deploy.
 - `FINAL_DISPOSITION`: `S19_VIDEO_QA_BLOCKER`; no master; Human Creative Review cannot begin from this S19 video.
+
+## Security deploy and S19-R2 preparation — 2026-09-30
+
+- `LAST_COMPLETED_ACTION`: Deployed the CI-validated durable provider-dispatch guard from `lumi-pilot-ci-validation@6ccab977765e5d6d48b6eb6cc079e391f819d201` as sanitized staging runtime `av2-staging-runtime@bd34e022b479374fc4a9a7a2e57e456bd42ffcb2`; Render deploy `dep-dauf76u0tbcc73f6suq0` is LIVE, `/health` returned HTTP 200, and deploy/startup logs contain zero image or Kling provider execution.
+- `FIRST_PENDING_ACTION`: Obtain explicit authorization for one S19-R2 IMAGE execution and, only after its Visual QA passes, one S19-R2 Kling execution.
+- `SECURITY_FIX_DEPLOYED`: `true`
+- `SECURITY_FIX_SOURCE`: `6ccab977765e5d6d48b6eb6cc079e391f819d201`; local tests `83/83 PASS`; CI `36705669398 GREEN`.
+- `STAGING_SHA`: `bd34e022b479374fc4a9a7a2e57e456bd42ffcb2`
+- `STAGING_HEALTH`: `200`; service `content-factory-av2-staging`; active video `null`; queue length `0`.
+- `RUNNERS`: `LUMI_RUNTIME_ENV=staging`; pilot boot OFF; repair gate OFF; image runners OFF; Higgsfield runners OFF; AV2 benchmark boot OFF; autorun=false.
+- `UNEXPECTED_PROVIDER_CALLS_DURING_DEPLOY`: image `0`; Kling `0`.
+- `PRODUCTION`: `main@5fe5556395829e78817771f96d33cce3f692965d`; health HTTP 200; no new deploy; unchanged.
+- `S19_TERMINAL`: `true`; original claims and history remain closed and immutable; no status reset, retry, resubmit, request-ID reuse or provider call occurred.
+- `S19_IMAGE_REQUEST_ID`: `req_a40559d461ef42b182d219bd813e1b30`
+- `S19_KLING_REQUEST_ID`: `78fcf851-ba90-4206-b5eb-c09c5825d243`
+- `S19_IMAGE_QA`: `PASS`
+- `S19_VIDEO_QA`: `BLOCKER` — additional eggs appear in the basket and Lumi develops a non-canonical abdomen/tail.
+- `ASSEMBLY_GATE`: `8/9`
+- `MASTER_STATUS`: `NOT_STARTED`
+
+### S19-R2 minimal canonical representation
+
+- `S19_R2_DESIGN_STATUS`: `DEFINED_SAFE_NOT_EXECUTED`
+- `REVISION_ID`: `s19-r2`; `PILOT_ID`: `lumi_cinco_huevos_v1_s19_r2`; canonical scene remains `s19`; narrative purpose remains `recap_and_close`.
+- `SEMANTICS`: S19-R2 is a new explicit creative revision, not `repair_attempt=2`, not a retry/variant of either terminal request, and does not modify the original `lumi_pilot_runs` or `lumi_pilot_repairs` records.
+- `EXISTING_MECHANISMS_ONLY`: use `lumi_pilot_runs` with the distinct revision pilot ID and its existing unique key `(pilot_id, scene_id, stage)` for one IMAGE row and one VIDEO row; pass `maxCalls=1` per stage. Use the existing Asset V2 manifest/asset lineage fields; no schema migration or arbitrary retry architecture is required.
+- `IMAGE_IDENTITY`: manifest version `scene-asset-manifest/production-pilot-v1-s19-r2`; asset variant `production_pilot_v1_source_s19_r2`; new specification/request hashes; `parent_asset_id=883f54de-242d-4cd2-a80c-d1fc9999e8c0`; provenance metadata names parent scene `s19`, revision `s19-r2`, and both terminal request IDs without reusing them.
+- `VIDEO_IDENTITY`: revision-scoped immutable storage prefix containing `s19-r2`, source hash and prompt hash; its own planned/submitted/completed records. A durable planned record precedes submission; ambiguous dispatch blocks resubmission. It never reads or writes the terminal S19 video base path.
+- `AUTHORIZATION_GATE`: staging only; exact revision `s19-r2`; exact scene `s19`; explicit `LUMI_S19_R2_ENABLED=true`; IMAGE maximum once and Kling maximum once; no boot hook or autorun. Production, other scenes, duplicate claims and any pre-existing/ambiguous stage row are rejected before provider dispatch.
+- `SOURCE_IMAGE_CONSTRAINTS`: exactly five canonical eggs (`egg_01` through `egg_05`) simultaneously visible, complete, unoccluded, clearly separated and individually countable; no additional, duplicated, fused or hidden egg; basket must not cover any egg. Preserve full Lumi Character Lock, canonical silhouette, torso, wings, limbs, face, clothing and wand; forbid added abdomen, tail, appendages, torso deformation or silhouette mutation. Preserve world, camera, lighting and recap purpose.
+- `KLING_EGG_CONSTRAINTS`: exact egg count remains five for every frame; no appearance, disappearance, duplication, fusion, morphing or count-changing movement between basket interior/exterior.
+- `KLING_LUMI_CONSTRAINTS`: canonical body silhouette throughout; no abdomen growth, tail, extra limbs, body elongation or torso mutation; canonical wings remain stable; hands and arms remain anatomically coherent.
+- `KLING_MOTION_CONSTRAINTS`: conservative animation, natural small gestures, no aggressive body transformation, minimal camera movement when needed for stability, and continuous pedagogical readability.
+- `RESTART_AND_DUPLICATE_POLICY`: acquiring either revision stage consumes that stage's sole authorized opportunity before dispatch; the existing unique ledger key rejects concurrent/duplicate acquisition; image specification claiming and video `planned.json` preserve restart safety; no automatic resubmission after an ambiguous dispatch.
+- `PROVIDER_EXECUTION`: `0`; no S19-R2 image, Kling video or master exists.
+- `NEXT_ACTION`: `AUTHORIZE_S19_R2_EXECUTION`

@@ -1,0 +1,326 @@
+{
+  "preset_id": "LUMI_SHORT_PRODUCTION_PRESET_V1",
+  "version": "1.0.0",
+  "status": "READY_NOT_ACTIVE",
+  "frozen_at": "2026-09-30",
+  "authority": {
+    "basis": "Human-approved first pilot only",
+    "episode_id": "ep_lumi_huevos_001",
+    "approved_master": "LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4",
+    "approved_master_sha256": "51d354c230972478ef784fc29ecfe0ad32d5f441ed2bfff0c00b33bb60eaf18c",
+    "base_master_preserved": "LUMI_PILOT_CINCO_HUEVOS_V1.mp4",
+    "base_master_sha256": "4374bb617713f9ba264fe473409df5e0b73dc382898c50bfd135ef6e6558a380",
+    "master_manifest": "SHORT_MASTER_MANIFEST_V1_1.json",
+    "base_manifest": "SHORT_MASTER_MANIFEST_V1.json",
+    "human_review": "APPROVED",
+    "automatic_activation": false
+  },
+  "scope": {
+    "applies_to": "Future Lumi educational Shorts after explicit authorization",
+    "does_not_activate": [
+      "production",
+      "Telegram",
+      "Make",
+      "queues",
+      "publication",
+      "second episode"
+    ]
+  },
+  "av2_structure": {
+    "required": true,
+    "plan_layers": [
+      "Episode Plan V2",
+      "Scene Plan V2",
+      "asset provenance",
+      "scene-level QA",
+      "master manifest"
+    ],
+    "default_scene_count": 9,
+    "default_arc": [
+      "hook/problem",
+      "progressive discoveries",
+      "child question with real response pause",
+      "confirmation/recount",
+      "reward/recap/close"
+    ],
+    "validation": {
+      "schema": "required",
+      "semantic": "required",
+      "continuity": "required",
+      "renderability": "required",
+      "content_hash_and_cache": "required"
+    }
+  },
+  "timing": {
+    "master_target_seconds": {
+      "minimum": 48.0,
+      "maximum": 50.0
+    },
+    "approved_reference_seconds": 49.166667,
+    "scene_duration_targets_seconds": {
+      "hook_problem": 6.5,
+      "progressive_discovery": 4.3,
+      "child_question_pause_scene": 7.5,
+      "confirmation_recount": 6.0,
+      "reward_recap_close": 7.5
+    },
+    "pedagogical_pause": {
+      "required_when_child_response_is_requested": true,
+      "reference_response_time_seconds": 2.5,
+      "preserve_minimum_visual_motion": true
+    },
+    "redistribution_policy": "Keep the master inside 48–50 seconds by subtle retiming, transition overlap, micro-motion editorial, or timing redistribution; never by a perceptible static last-frame hold."
+  },
+  "format": {
+    "canvas": "1080x1920",
+    "aspect_ratio": "9:16",
+    "fps": 30,
+    "video_codec": "H.264 High",
+    "audio_codec": "AAC LC",
+    "audio_sample_rate_hz": 48000,
+    "audio_channels": 2,
+    "pixel_format": "yuv420p",
+    "faststart": true
+  },
+  "character_lock": {
+    "required": true,
+    "canonical_character": "Lumi",
+    "source_of_truth": "Accepted AV2 character identity and approved pilot assets",
+    "must_remain_stable": [
+      "identity",
+      "face",
+      "eyes",
+      "antennae",
+      "wings",
+      "wardrobe",
+      "wand",
+      "body proportions",
+      "color palette",
+      "child-friendly expression language"
+    ],
+    "forbidden": [
+      "identity drift",
+      "anatomy drift",
+      "extra appendages",
+      "missing appendages",
+      "face morphing",
+      "wardrobe substitution"
+    ]
+  },
+  "world_continuity": {
+    "required": true,
+    "source_of_truth": "Accepted Episode Plan V2, Scene Plan V2 and approved scene assets",
+    "lock_across_scenes": [
+      "location logic",
+      "lighting direction",
+      "palette",
+      "prop identity",
+      "object state",
+      "educational object count",
+      "spatial progression"
+    ],
+    "continuity_warnings": "Persist and surface; never silently erase."
+  },
+  "visual_prompt_compiler": {
+    "required_blocks": [
+      "educational intent",
+      "scene action",
+      "character lock",
+      "world continuity",
+      "composition for 9:16",
+      "count/object locks",
+      "negative constraints",
+      "safe area for captions and overlays"
+    ],
+    "deterministic_fixed_prompts": true,
+    "manual_prompt_intervention_default": false,
+    "counting_scene_priority": "stability_over_motion_complexity"
+  },
+  "visual_qa_v1_2": {
+    "required_before_video_generation": true,
+    "classification": [
+      "BLOCKER",
+      "WARNING",
+      "INFO"
+    ],
+    "checks": [
+      "Lumi identity and anatomy",
+      "object count and countability",
+      "no duplication or disappearance",
+      "world and prop continuity",
+      "composition and vertical safe area",
+      "educational correctness",
+      "renderability"
+    ],
+    "record_policy": "Automated findings are immutable audit records.",
+    "human_override_policy": {
+      "separate_record": true,
+      "requires_scope_reason_and_decision": true,
+      "does_not_delete_automated_finding": true,
+      "must_not_hide_serious_temporal_failure": true
+    }
+  },
+  "generative_video_prompt_compiler": {
+    "mode": "image_to_video",
+    "motion_default": "conservative",
+    "counting_scene_priority": "stability_over_motion_complexity",
+    "temporal_locks": [
+      "exact object count",
+      "no duplication",
+      "no disappearance",
+      "stable character anatomy",
+      "no extra appendages",
+      "no morphing",
+      "stable prop identity"
+    ],
+    "camera_motion": "subtle and motivated",
+    "subject_motion": "simple, readable and compatible with educational counting"
+  },
+  "kling_image_to_video": {
+    "provider_role": "approved source image to short scene clip",
+    "generation_policy": "one-shot",
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "restart_safe": true,
+    "persistent_claim_required": true,
+    "request_id_persistence": "immediate",
+    "provider_call_accounting": "required",
+    "ambiguous_dispatch": "block automatic resubmission"
+  },
+  "temporal_qa": {
+    "required_per_scene": true,
+    "required_before_assembly": true,
+    "checks": [
+      "object-count stability",
+      "duplication/disappearance",
+      "Lumi anatomy",
+      "extra appendages",
+      "morphing",
+      "visual continuity",
+      "black frames",
+      "corrupt frames",
+      "decode errors",
+      "accidental freeze"
+    ],
+    "sampling": "scene-wide, with denser inspection around transitions and pedagogical objects",
+    "serious_failure_override": "forbidden"
+  },
+  "voice": {
+    "profile": "Warm, natural, friendly preschool teacher; clear, cheerful and never rushed.",
+    "model": "gpt-4o-mini-tts",
+    "voice": "marin",
+    "one_stem_per_scene": true,
+    "default_stem_count_for_nine_scene_structure": 9,
+    "voice_priority": "dominant"
+  },
+  "audio": {
+    "final_mix_reference": {
+      "integrated_lufs": -20.4,
+      "true_peak_dbfs": -3.9,
+      "clipping": false
+    },
+    "music": {
+      "policy": "supportive and ducked beneath narration",
+      "must_not_mask_voice": true
+    },
+    "sfx": {
+      "policy": "selective",
+      "allowed_roles": [
+        "wand sparkle",
+        "discovery cue",
+        "magic cue",
+        "reward cue"
+      ],
+      "avoid": "continuous or distracting effects"
+    }
+  },
+  "captions": {
+    "source": "deterministic from canonical AV2 narration",
+    "format": "ASS burned-in",
+    "vertical_safe_area": "required",
+    "sync_qa": "required",
+    "educational_numbers_and_terms": "must exactly match the lesson"
+  },
+  "educational_overlays": {
+    "deterministic": true,
+    "safe_area_required": true,
+    "counting_values": "must match the visible stable object count",
+    "readability": "large, high-contrast and uncluttered",
+    "timing": "aligned to narration and visual evidence"
+  },
+  "freeze_prevention": {
+    "target": "ACCIDENTAL_FREEZE=0",
+    "forbidden": "Perceptible static last-frame extension",
+    "gap_resolution_order": [
+      "subtle retiming",
+      "transition overlap",
+      "editorial micro-motion",
+      "timing redistribution"
+    ],
+    "pedagogical_pause_rule": "Keep the full response window while preserving minimum visible motion.",
+    "editorial_micro_motion": {
+      "allowed": true,
+      "reference_type": "centered slow push-in",
+      "reference_maximum_scale_change_percent": 1.8,
+      "must_not_change_creative_content": true
+    },
+    "master_freeze_scan": {
+      "required_before_human_review": true,
+      "reference_detector": "ffmpeg freezedetect",
+      "noise_threshold_db": -50,
+      "minimum_duration_seconds": 0.35,
+      "all_detected_segments_require_classification": true
+    }
+  },
+  "final_mastering": {
+    "video_encoder": "libx264",
+    "preset": "medium",
+    "crf": 16,
+    "resolution": "1080x1920",
+    "aspect_ratio": "9:16",
+    "video_codec": "H.264",
+    "audio_codec": "AAC",
+    "required_master_qa": [
+      "9/9 assembly or episode-declared complete assembly",
+      "duration 48–50 seconds",
+      "voice present and intelligible",
+      "music and SFX balance",
+      "caption sync and safe area",
+      "educational correctness",
+      "no black or corrupt frames",
+      "no decode errors",
+      "ACCIDENTAL_FREEZE=0"
+    ],
+    "freeze_qa_before_human_review": true
+  },
+  "qa_governance": {
+    "automated_qa_and_human_review_are_separate": true,
+    "automated_warning_or_blocker_is_preserved": true,
+    "human_override_is_traceable": true,
+    "human_override_fields": [
+      "reviewer decision",
+      "scope",
+      "reason",
+      "timestamp",
+      "underlying automated finding"
+    ],
+    "human_override_cannot_hide_serious_temporal_failures": true
+  },
+  "exactly_once_and_cost": {
+    "persistent_claims": true,
+    "one_shot_generation": true,
+    "automatic_retries": 0,
+    "variants_require_explicit_authorization": true,
+    "request_id_persistence": true,
+    "restart_safety": true,
+    "provider_call_accounting": true,
+    "cost_accounting": true
+  },
+  "activation_gate": {
+    "global_activation": "NOT_AUTHORIZED",
+    "production_change": "NONE",
+    "runners": "OFF",
+    "publication": "NOT_AUTHORIZED",
+    "next_action": "AUTHORIZE_SECOND_SHORT_OR_PUBLICATION"
+  }
+}

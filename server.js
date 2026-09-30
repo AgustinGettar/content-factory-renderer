@@ -112,6 +112,7 @@ const LUMI_PRODUCTION_PILOT_TOKEN = process.env.LUMI_PRODUCTION_PILOT_TOKEN || "
 const LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD || "2.00");
 const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD || "3.00");
 const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
+const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -209,6 +210,12 @@ function lumiProductionPilotAuthorized(req) {
   const suppliedToken = req.get("x-pilot-token");
   return LUMI_PRODUCTION_PILOT_ENABLED && Boolean(LUMI_PRODUCTION_PILOT_TOKEN)
     && Boolean(suppliedToken) && suppliedToken === LUMI_PRODUCTION_PILOT_TOKEN;
+}
+
+function lumiMasterTtsAuthorized(req) {
+  const suppliedToken = req.get("x-master-tts-token");
+  return LUMI_RUNTIME_ENV === "staging" && Boolean(LUMI_MASTER_TTS_TOKEN)
+    && Boolean(suppliedToken) && suppliedToken === LUMI_MASTER_TTS_TOKEN;
 }
 
 function htmlEscape(value) {
@@ -1085,7 +1092,7 @@ app.post("/av2/prepare", async (req, res) => {
 // Generate narration in the cloud without Make. The active character profile
 // controls the voice, so Lumi keeps one approved sound across every scene.
 app.post("/voice/generate", async (req, res) => {
-  if (!authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!authorized(req) && !lumiMasterTtsAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   if (!supabase) return res.status(503).json({ ok: false, error: "renderer_not_configured" });
   if (!OPENAI_API_KEY) {
     return res.status(503).json({ ok: false, error: "openai_api_not_configured", missing: ["OPENAI_API_KEY"] });

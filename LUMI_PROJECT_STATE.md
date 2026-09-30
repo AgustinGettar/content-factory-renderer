@@ -7,16 +7,19 @@ Complete the 48-second short `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` for human creative
 ## Authority
 
 - Production HEAD: `main@5fe5556` (intact)
-- Staging HEAD: `0b45836` at handoff; internal-runner checkpoint `78f45a89a104e09000c3ced8e6dc9f169f8b348c` pending CI validation
+- Staging HEAD: `47b53d491cc69b2e7a63dd5f3efb7bf054ebdc5e`
 - Accepted narrative artifact: `ep_lumi_huevos_001` / `lumi_cinco_huevos`
-- Approved reusable video scenes: S11, S12, S17
-- Pending scenes: S13, S14, S15, S16, S18, S19
+- Approved reusable video scenes: S11, S12, S13, S14, S15, S16, S17, S18
+- Pending scene: S19 repair image, Visual QA, Kling and Temporal QA
 
 ## Pilot accounting
 
-- Image calls: 0/6
-- Kling calls: 0/6
-- Budget consumed: USD 0
+- Original image calls: 6
+- S19 repair image calls: 0
+- Kling calls: 5
+- Image cost: USD 0.590649
+- Kling cost: USD 1.155000
+- Total provider cost: USD 1.745649
 - Image hard budget: USD 2.00
 - Video hard budget: USD 3.00
 
@@ -26,39 +29,45 @@ Complete the 48-second short `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` for human creative
 - Image runner: OFF
 - Higgsfield runner: OFF
 - autorun: false
-- Assembly Gate: 3/9
+- Assembly Gate: 8/9
 - Human creative review: pending
-- Focused tests: PENDING_CI (Work installation blocked by environment command approval)
-- Provider calls during this work: 0
-- CHECKPOINT_COMMIT: `78f45a89a104e09000c3ced8e6dc9f169f8b348c`
-- VALIDATION_STATUS: `PENDING_CI`
-- CI_BLOCKER: Work npm install bypassed via CI
+- Focused tests for S19 semantics: 28/28 PASS locally
+- Relevant regression: 54/54 PASS locally
+- Provider calls during S19 repair diagnosis/fix: 0
+- VALIDATION_STATUS: `LOCAL_PASS_REMOTE_CI_PENDING`
+- BASE_VALIDATION_HEAD: `a088bfaaa4bba51a6493d7633d5c6ed43d079b73`
 
-## Continuity after environment block
+## Historical environment recovery — superseded
 
-- LAST_COMPLETED_ACTION: Read `LUMI_PROJECT_STATE.md`; confirmed preserved working tree, branch `av2-pilot-staging`, HEAD `186bb5c68861b05e74b24beae5a5c46d1ce52337`, and provider calls 0/6 + 0/6.
-- FIRST_PENDING_ACTION: Push `lumi-pilot-ci-validation` to origin so GitHub CI can execute `npm ci --ignore-scripts`.
-- Working tree: clean after checkpoint/state/CI commits.
-- Cost consumed: USD 0.
-- BLOCKER_TYPE: ENVIRONMENT_COMMAND_APPROVAL
-- BLOCKED_COMMAND: `npm ci --ignore-scripts`
-- LAST_COMPLETED_ACTION: Read the authoritative state file; attempted the registered first pending action exactly once; the environment rejected it before execution.
-- FIRST_PENDING_ACTION: Execute `npm ci --ignore-scripts` from this project directory in an execution environment that permits the command.
-- branch: `av2-pilot-staging`
-- HEAD: `186bb5c68861b05e74b24beae5a5c46d1ce52337`
-- working_tree: preserved and intentionally dirty
-- image_calls: `0/6`
-- Kling_calls: `0/6`
-- CI_WORKFLOW: `.github/workflows/lumi-pilot-ci-validation.yml`
-- CI_STATUS: `PENDING_PUSH`
-- BLOCKER_TYPE: `ENVIRONMENT_COMMAND_APPROVAL`
-- BLOCKED_COMMAND: `git push -u origin lumi-pilot-ci-validation`
-- CAPABILITY_MISSING: GitHub branch publication from this environment
+- Earlier Work command-approval and branch-publication blockers were resolved in subsequent runtimes.
+- Repair architecture CI run `36646853533` completed GREEN before the real S19 repair preparation failure.
+- The current recovery state below supersedes the earlier 0-call pre-pilot checkpoints.
 
 ## NEXT_ACTION
 
-Publish `lumi-pilot-ci-validation` to origin and wait for GitHub CI; do not deploy until CI passes.
+Commit and publish the S19 semantics fix to `lumi-pilot-ci-validation`; do not deploy until the new CI run passes.
 
 ## DO_NOT_TOUCH
 
 Telegram, Make, queues, publication, approval workflow, Draft→HD production, production Render, `main@5fe5556`, second episode, Compilation Engine, Blender.
+
+## S19 repair semantics recovery — 2026-09-30
+
+- `LAST_COMPLETED_ACTION`: Implemented the minimal repair-lifecycle fix in isolated branch `lumi-s19-repair-semantics`; focused tests 28/28 PASS and relevant regression 54/54 PASS with zero provider calls.
+- `FIRST_PENDING_ACTION`: Commit and publish the validated fix to `lumi-pilot-ci-validation`, then require GitHub CI GREEN before staging deploy.
+- `ROOT_CAUSE`: The repair ledger acquired `repair_attempt=1`, then `runPilotImageRepair` tried to insert a repair scene specification with the original version `scene-asset-manifest/production-pilot-v1`. The existing unique key `(artifact_id, scene_id, version)` rejected it. `saveSceneSpecification` then searched by the new specification hash, found no row, and threw `asset_v2_persistence_scene_specification_failed` before the provider request.
+- `SEMANTIC_BUG`: The old claim stored/announced provider call 1 and every prior repair row blocked another command, so the pre-provider persistence failure was treated as consumed/exhausted.
+- `FIX`: Claim/preparation now records zero provider calls and zero cost. A failed-before-provider row is atomically recoverable and preserves history. Only `PROVIDER_REQUEST_EMITTED`, recorded after the provider fetch is initiated, consumes the one-shot. Provider response ID is persisted immediately on response. Restart after emission is rejected without resubmission.
+- `SPECIFICATION_FIX`: S19 repair uses `scene-asset-manifest/production-pilot-v1-repair-1`, avoiding the original unique version key; repaired asset lookup/QA is hash-specific.
+- `EXISTING_REPAIR_ROW`: id `1eda08fc-03c8-4277-8762-71d65b6f8e98`; status `FAILED`; provider_calls `0`; cost `0`; provider_request_id `null`; artifact/specification/request hashes `null`; preserved for auditable reconciliation.
+- `S19_REPAIR_STATE`: `FAILED_BEFORE_PROVIDER`; creative repair opportunity remains unused.
+- `S19_PROVIDER_REQUEST_ID`: `null`
+- `S19_IMAGE_QA`: `SOURCE_REPAIR_REQUIRED`
+- `S19_KLING_REQUEST_ID`: `null`
+- `S19_VIDEO_QA`: `NOT_STARTED`
+- `ASSEMBLY_GATE`: `8/9`
+- `MASTER_STATUS`: `NOT_STARTED`
+- `CALL_COUNTS`: original images `6`; repair images `0`; Kling `5`
+- `COST`: images `USD 0.590649`; Kling `USD 1.155000`; total `USD 1.745649`
+- `RUNNER_STATE`: pilot boot OFF; image runner OFF; Higgsfield runner OFF; autorun=false
+- `PRODUCTION`: `main@5fe5556` intact

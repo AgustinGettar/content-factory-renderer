@@ -1,88 +1,165 @@
 # Lumi Project State
 
-## Current objective
+## Current authoritative state
 
-Complete the 48-second short `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` for human creative review.
+- `PILOT_APPROVED=true`
+- `PILOT_MASTER_STATUS=HUMAN_APPROVED`
+- `PILOT_MASTER_VERSION=V1.1`
+- `PILOT_MASTER_SHA=51d354c230972478ef784fc29ecfe0ad32d5f441ed2bfff0c00b33bb60eaf18c`
+- `PILOT_DURATION=49.17`
+- `PILOT_RESOLUTION=1080x1920`
+- `PILOT_VIDEO_CODEC=H.264`
+- `PILOT_AUDIO_CODEC=AAC`
+- `FREEZE_QA=PASS`
+- `ACCIDENTAL_FREEZE_SECONDS=0`
+- `ASSEMBLY=9/9`
+- `HUMAN_REVIEW=APPROVED`
+- `PRODUCTION_PRESET_V1=READY`
+- `PRODUCTION_PRESET_V1_ACTIVE=false`
+- `LAST_COMPLETED_ACTION=FREEZE_PRODUCTION_PRESET_V1`
+- `FIRST_PENDING_ACTION=AUTHORIZE_SECOND_SHORT_OR_PUBLICATION`
+- `NEXT_ACTION=AUTHORIZE_SECOND_SHORT_OR_PUBLICATION`
 
-## Authority
+## Approved pilot authority
 
-- Production HEAD: `main@5fe5556` (intact)
-- Staging HEAD: `47b53d491cc69b2e7a63dd5f3efb7bf054ebdc5e`
-- Accepted narrative artifact: `ep_lumi_huevos_001` / `lumi_cinco_huevos`
-- Approved reusable video scenes: S11, S12, S13, S14, S15, S16, S17, S18
-- Pending scene: S19 repair image, Visual QA, Kling and Temporal QA
+- Canonical approved pilot: `LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4`
+- SHA-256: `51d354c230972478ef784fc29ecfe0ad32d5f441ed2bfff0c00b33bb60eaf18c`
+- Duration: `49.166667 s` (`49.17 s` display value)
+- Resolution: `1080x1920`
+- Aspect ratio: `9:16`
+- Video: `H.264 High`, 30 fps, yuv420p
+- Audio: `AAC LC`, 48 kHz, stereo
+- Scenes: `9/9`
+- Human review: `APPROVED`
+- Publication: `NOT_AUTHORIZED`
 
-## Pilot accounting
+The V1.1 master is the canonical accepted first pilot. Human approval does not rewrite or erase any earlier automated finding, warning, blocker, or scene-level override.
 
-- Original image calls: 6
-- S19 repair image calls: 0
-- Kling calls: 5
-- Image cost: USD 0.590649
-- Kling cost: USD 1.155000
-- Total provider cost: USD 1.745649
-- Image hard budget: USD 2.00
-- Video hard budget: USD 3.00
+## Preserved immutable lineage
 
-## Runtime and gates
+### Masters and manifests
 
-- Boot runner: OFF
-- Image runner: OFF
-- Higgsfield runner: OFF
-- autorun: false
-- Assembly Gate: 8/9
-- Human creative review: pending
-- Focused and relevant regression tests: 83/83 PASS locally after durable dispatch correction
-- Provider calls during S19 repair diagnosis/fix: 0
-- VALIDATION_STATUS: `LOCAL_PASS_REMOTE_CI_PENDING`
-- BASE_VALIDATION_HEAD: `a088bfaaa4bba51a6493d7633d5c6ed43d079b73`
+- `LUMI_PILOT_CINCO_HUEVOS_V1.mp4`
+  - SHA-256: `4374bb617713f9ba264fe473409df5e0b73dc382898c50bfd135ef6e6558a380`
+  - State: preserved base master
+- `LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4`
+  - SHA-256: `51d354c230972478ef784fc29ecfe0ad32d5f441ed2bfff0c00b33bb60eaf18c`
+  - State: canonical human-approved pilot
+- `SHORT_MASTER_MANIFEST_V1.json`
+  - SHA-256: `d8aa8fb83a94687e80d9e8e15ab0c36e1b3c5f8d95f38c2a22ebb91e75be9d58`
+  - State: preserved
+- `SHORT_MASTER_MANIFEST_V1_1.json`
+  - State: preserved; V1.1 forensic polish and QA record
 
-## Historical environment recovery — superseded
+### Source and production artifacts
 
-- Earlier Work command-approval and branch-publication blockers were resolved in subsequent runtimes.
-- Repair architecture CI run `36646853533` completed GREEN before the real S19 repair preparation failure.
-- The current recovery state below supersedes the earlier 0-call pre-pilot checkpoints.
+Preserve without regeneration, replacement, cleanup, or provenance loss:
 
-## NEXT_ACTION
+- all source images;
+- all approved Kling clips;
+- all rejected or terminal source/clip records required for audit;
+- all Visual QA and Temporal QA records;
+- all automated warnings and blockers;
+- all human overrides, including S19-R2 `APPROVED_WITH_WARNING`;
+- all nine TTS stems;
+- original music;
+- all selective SFX;
+- deterministic captions;
+- request IDs, hashes, cost accounting, claim rows, repair rows, and provider provenance.
 
-Publish the durable dispatch correction to `lumi-pilot-ci-validation`; do not deploy until the new CI run passes.
+No provider request was made by the approval/preset-freeze step.
 
-## DO_NOT_TOUCH
+## Production preset
 
-Telegram, Make, queues, publication, approval workflow, Draft→HD production, production Render, `main@5fe5556`, second episode, Compilation Engine, Blender.
+- Specification: `LUMI_SHORT_PRODUCTION_PRESET_V1.json`
+- Version: `1.0.0`
+- State: `READY_NOT_ACTIVE`
+- Basis: exclusively the accepted pilot, its manifests, and the explicit human approval.
+- Global activation: not authorized.
+- Production deployment: none.
+- Second episode: not started.
 
-## S19 repair semantics recovery — 2026-09-30
+The preset freezes defaults for AV2 structure, scene timing, 9:16 delivery, 48–50 second duration, Character Lock, world continuity, prompt compilation, Visual QA V1.2, image-to-video motion, Temporal QA, voice/TTS, music, SFX, captions, overlays, pedagogical pauses, mastering, freeze prevention, human-QA traceability, and exactly-once provider safety.
 
-- `LAST_COMPLETED_ACTION`: Implemented the minimal repair-lifecycle fix in isolated branch `lumi-s19-repair-semantics`; focused tests 28/28 PASS and relevant regression 54/54 PASS with zero provider calls.
-- `FIRST_PENDING_ACTION`: Commit and publish the validated fix to `lumi-pilot-ci-validation`, then require GitHub CI GREEN before staging deploy.
-- `ROOT_CAUSE`: The repair ledger acquired `repair_attempt=1`, then `runPilotImageRepair` tried to insert a repair scene specification with the original version `scene-asset-manifest/production-pilot-v1`. The existing unique key `(artifact_id, scene_id, version)` rejected it. `saveSceneSpecification` then searched by the new specification hash, found no row, and threw `asset_v2_persistence_scene_specification_failed` before the provider request.
-- `SEMANTIC_BUG`: The old claim stored/announced provider call 1 and every prior repair row blocked another command, so the pre-provider persistence failure was treated as consumed/exhausted.
-- `FIX`: Claim/preparation now records zero provider calls and zero cost. A failed-before-provider row is atomically recoverable and preserves history. Only `PROVIDER_REQUEST_EMITTED`, recorded after the provider fetch is initiated, consumes the one-shot. Provider response ID is persisted immediately on response. Restart after emission is rejected without resubmission.
-- `SPECIFICATION_FIX`: S19 repair uses `scene-asset-manifest/production-pilot-v1-repair-1`, avoiding the original unique version key; repaired asset lookup/QA is hash-specific.
-- `EXISTING_REPAIR_ROW`: id `1eda08fc-03c8-4277-8762-71d65b6f8e98`; status `FAILED`; provider_calls `0`; cost `0`; provider_request_id `null`; artifact/specification/request hashes `null`; preserved for auditable reconciliation.
-- `S19_REPAIR_STATE`: `FAILED_BEFORE_PROVIDER`; creative repair opportunity remains unused.
-- `S19_PROVIDER_REQUEST_ID`: `null`
-- `S19_IMAGE_QA`: `SOURCE_REPAIR_REQUIRED`
-- `S19_KLING_REQUEST_ID`: `null`
-- `S19_VIDEO_QA`: `NOT_STARTED`
-- `ASSEMBLY_GATE`: `8/9`
-- `MASTER_STATUS`: `NOT_STARTED`
-- `CALL_COUNTS`: original images `6`; repair images `0`; Kling `5`
-- `COST`: images `USD 0.590649`; Kling `USD 1.155000`; total `USD 1.745649`
-- `RUNNER_STATE`: pilot boot OFF; image runner OFF; Higgsfield runner OFF; autorun=false
-- `PRODUCTION`: `main@5fe5556` intact
+## Permanent freeze-prevention rule
 
-## Durable provider boundary correction — 2026-09-30
+`ACCIDENTAL_FREEZE=0` is a required master gate.
 
-- `ROOT_CAUSE`: Confirmed unique conflict as above. The follow-up review found an additional restart window in `1555ce6`: `fetch()` began before `PROVIDER_REQUEST_EMITTED` was persisted.
-- `FIX_STATUS`: Added durable `PROVIDER_DISPATCH_COMMITTED` before invoking image `fetch`. An acknowledged dispatch commit blocks automatic resubmission even when the request ID is absent. A later emitted callback records the physical call. An uncertain dispatch remains blocked with `PROVIDER_DISPATCH_UNCERTAIN`; physical call accounting stays at zero until emission evidence exists.
-- `PROVIDER_ATTEMPT_CONSUMED`: true after durable dispatch commit, before network emission, for crash safety; `provider_call_emitted` becomes true only after `fetch()` begins. Without documented image-edit idempotency support, an ambiguous dispatch cannot be retried automatically.
-- `COMMIT`: pending; base `1555ce6`.
-- `CI_RUN`: pending.
-- `STAGING_SHA`: `47b53d491cc69b2e7a63dd5f3efb7bf054ebdc5e` (prior deployment).
-- `S19_PROVIDER_CALL_EMITTED`: false; `S19_REQUEST_ID`: null.
-- `S19_IMAGE_QA`: SOURCE_REPAIR_REQUIRED; `S19_KLING_REQUEST_ID`: null; `S19_VIDEO_QA`: NOT_STARTED.
-- `ASSEMBLY_GATE`: 8/9; `MASTER_STATUS`: NOT_STARTED.
-- `REAL_CALL_COUNTS`: original images 6, repair images 0, Kling 5.
-- `COST`: images USD 0.590649, Kling USD 1.155000.
-- `LOCAL_TESTS`: 83/83 PASS; provider calls 0.
-- `FIRST_PENDING_ACTION`: publish fix, require CI GREEN, then staging deploy and dry proof before one real S19 image request.
+Never extend a clip with a perceptible static last-frame hold. Resolve a visual gap in this order:
+
+1. subtle retiming;
+2. transition overlap;
+3. editorial micro-motion;
+4. timing redistribution.
+
+A pedagogical pause must retain the intended response time while maintaining minimum visible motion. Freeze QA is mandatory before Human Review.
+
+## Generative-video stability rule
+
+For educational counting scenes, `stability > motion complexity`.
+
+Temporal locks are mandatory for:
+
+- exact object count;
+- no duplication;
+- no disappearance;
+- stable Lumi anatomy;
+- no extra appendages;
+- no morphing;
+- stable prop identity.
+
+Default motion is conservative, simple, readable, and compatible with counting.
+
+## QA governance
+
+Automated QA and Human Creative Review remain separate records.
+
+- An automated `WARNING` or `BLOCKER` is never deleted or rewritten by a human decision.
+- A human override must retain the finding, decision, scope, reason, and traceability.
+- A human override must never conceal a serious temporal defect.
+- Master Freeze QA must pass before Human Review.
+
+## Master defaults
+
+- `1080x1920`
+- `9:16`
+- `H.264`
+- `AAC`
+- voice dominant;
+- music ducked beneath narration;
+- selective SFX;
+- deterministic captions inside vertical safe area;
+- deterministic educational overlays matching visible objects;
+- required pedagogical response pause;
+- required final freeze scan.
+
+Approved reference mix: `-20.4 LUFS` integrated, `-3.9 dBFS` true peak, no clipping.
+
+## Exactly-once and cost controls
+
+Required for every future authorized generation:
+
+- persistent claims;
+- one-shot generation;
+- no automatic retries;
+- no variants without explicit authorization;
+- immediate request-ID persistence;
+- restart safety;
+- ambiguous dispatch blocks automatic resubmission;
+- provider-call and cost accounting.
+
+## Runtime safety
+
+- `RUNNER_STATE=OFF`
+- `autorun=false`
+- Production: `main@5fe5556` intact
+- Production preset activation: OFF
+- Telegram: unchanged
+- Make: unchanged
+- Queues: unchanged
+- Publication: not started
+- Second episode: not started
+
+## Do not touch without explicit authorization
+
+Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, runners, global preset activation, or any second episode generation.

@@ -9,6 +9,7 @@ COPY server.js ./
 COPY lib ./lib
 COPY blender ./blender
 COPY assets ./assets
+COPY episodes ./episodes
 COPY test ./test
 RUN node --check server.js && npm test
 ENV NODE_ENV=production

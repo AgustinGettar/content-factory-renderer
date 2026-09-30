@@ -67,6 +67,12 @@ import {
 } from "./lib/lumi-production-pilot-boot.js";
 import { runPilotCommand } from "./lib/lumi-pilot-internal.js";
 import { runPilotRepairCommand } from "./lib/lumi-pilot-repair.js";
+import {
+  runSecondShortOnBoot,
+  secondShortPreflight,
+  secondShortStatus,
+  shouldRunSecondShortOnBoot,
+} from "./lib/lumi-second-short-v1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -762,6 +768,20 @@ app.get("/pilots/lumi-cinco-huevos-v1/outputs", async (req, res) => {
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.code || error.message || "pilot_outputs_failed" });
   }
+});
+
+// Read-only second-short surfaces. Execution remains staging-only and boot-gated;
+// these endpoints cannot dispatch a provider request.
+app.get("/pilots/lumi-jardin-formas-v1/preflight", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try { return res.json({ ok: true, ...(await secondShortPreflight({ supabase })) }); }
+  catch (error) { return res.status(409).json({ ok: false, error: error.code || error.message }); }
+});
+
+app.get("/pilots/lumi-jardin-formas-v1/status", async (req, res) => {
+  if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try { return res.json({ ok: true, ...(await secondShortStatus({ supabase, includeReviewUrls: true })) }); }
+  catch (error) { return res.status(500).json({ ok: false, error: error.code || error.message }); }
 });
 
 // Staging-only, manually operated control surface. It never submits on load,
@@ -1544,6 +1564,32 @@ app.listen(Number(PORT), "0.0.0.0", () => {
         error_code: error.code || error.message || "lumi_pilot_boot_failed",
       });
       console.error(`Lumi pilot one-shot failed: ${safeError(error)}`);
+    }));
+  }
+
+  if (shouldRunSecondShortOnBoot(process.env)) {
+    setImmediate(() => runSecondShortOnBoot({
+      env: process.env,
+      supabase,
+      openAiApiKey: OPENAI_API_KEY,
+      higgsfieldApiKey: HF_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: assetV2Log,
+    }).then((summary) => {
+      assetV2Log({
+        component: "lumi_second_short",
+        event: "stage_finished",
+        stage: summary.stage,
+        provider_calls: summary.provider_calls,
+      });
+    }).catch((error) => {
+      assetV2Log({
+        component: "lumi_second_short",
+        event: "stage_failed",
+        stage: String(process.env.LUMI_SECOND_SHORT_BOOT_STAGE || ""),
+        error_code: error.code || error.message || "second_short_stage_failed",
+      });
+      console.error(`Lumi second short stage failed: ${safeError(error)}`);
     }));
   }
 });

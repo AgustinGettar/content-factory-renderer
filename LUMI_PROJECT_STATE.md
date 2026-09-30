@@ -132,3 +132,14 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `RESTART_AND_DUPLICATE_POLICY`: acquiring either revision stage consumes that stage's sole authorized opportunity before dispatch; the existing unique ledger key rejects concurrent/duplicate acquisition; image specification claiming and video `planned.json` preserve restart safety; no automatic resubmission after an ambiguous dispatch.
 - `PROVIDER_EXECUTION`: `0`; no S19-R2 image, Kling video or master exists.
 - `NEXT_ACTION`: `AUTHORIZE_S19_R2_EXECUTION`
+
+## S19-R2 authorized execution checkpoint — 2026-09-30
+
+- `AUTHORIZATION`: explicit user authorization received for one new S19-R2 image, then one Kling only after Visual QA; no retries, variants or resubmits; staging only. Master permitted only if Assembly reaches 9/9.
+- `LAST_COMPLETED_ACTION`: recovered Git/Render/ledger; confirmed staging security fix LIVE `bd34e02`, health 200, all runners OFF; production LIVE `5fe5556`, health OK. Original S19 repair SUCCEEDED and video temporal BLOCKER preserved. No R2 storage objects existed. Implemented isolated manual R2 endpoint and existing-ledger exactly-once guard, without provider execution.
+- `FIRST_PENDING_ACTION`: validate and publish/deploy the isolated R2 runtime with runners OFF; persist a new R2 ledger claim and durable dispatch boundary before the sole authorized image call.
+- `S19_R2_DESIGN_STATUS`: `IMPLEMENTED_LOCAL_VALIDATION_PENDING_DEPLOY`
+- `S19_R2_IMAGE_CALLS`: `0`
+- `S19_R2_KLING_CALLS`: `0`
+- `ASSEMBLY_GATE`: `8/9`; master not created.
+- `NEXT_ACTION`: `VALIDATE_DEPLOY_R2_MANUAL_RUNTIME`

@@ -67,6 +67,8 @@ import {
 } from "./lib/lumi-production-pilot-boot.js";
 import { runPilotCommand } from "./lib/lumi-pilot-internal.js";
 import { runPilotRepairCommand } from "./lib/lumi-pilot-repair.js";
+import { R2, readR2Run, validateR2 } from "./lib/lumi-s19-r2-guard.js";
+import { runR2Image, runR2Video, recoverR2Video } from "./lib/lumi-s19-r2-runtime.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -659,6 +661,54 @@ app.get("/health", (_req, res) => {
       lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
     },
   });
+});
+
+// Explicit isolated manual surface. No boot hook, no legacy pilot gate, no retries.
+const r2Jobs = new Set();
+function r2Authorized(req) {
+  const expected = process.env.LUMI_S19_R2_TOKEN || "";
+  const supplied = String(req.headers["x-s19-r2-token"] || "");
+  return LUMI_RUNTIME_ENV === "staging" && expected.length >= 32 && supplied.length === expected.length
+    && crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied));
+}
+app.get("/pilots/s19-r2/status", async (req, res) => {
+  if (!r2Authorized(req)) return res.status(401).json({ error: "unauthorized" });
+  try {
+    const rows = await Promise.all([readR2Run(supabase, "IMAGE"), readR2Run(supabase, "VIDEO")]);
+    const views = [];
+    for (const row of rows.filter(Boolean)) {
+      let url = null;
+      if (row.storage_path) {
+        const signed = await supabase.storage.from(row.storage_bucket).createSignedUrl(row.storage_path, 7200);
+        url = signed.data?.signedUrl || null;
+      }
+      views.push({ ...row, review_url: url });
+    }
+    res.json({ revision: R2.revision, enabled: process.env.LUMI_S19_R2_ENABLED === "true", autorun: false,
+      jobs: [...r2Jobs], rows: views });
+  } catch (error) { res.status(503).json({ error: error.code || error.message }); }
+});
+app.post("/pilots/s19-r2/run", async (req, res) => {
+  if (!r2Authorized(req)) return res.status(401).json({ error: "unauthorized" });
+  try {
+    const { revision, scene_id: sceneId, stage, recover_only: recoverOnly } = req.body || {};
+    validateR2({ env: process.env, revision, sceneId, stage });
+    if (r2Jobs.has(stage)) return res.status(409).json({ error: "r2_job_active" });
+    const prior = await readR2Run(supabase, stage);
+    if (prior && !(recoverOnly === true && stage === "VIDEO" && prior.status === "REQUESTED" && prior.provider_request_id)) {
+      return res.status(409).json({ error: "r2_duplicate_rejected", status: prior.status, request_id: prior.provider_request_id });
+    }
+    if (recoverOnly === true && !prior) return res.status(409).json({ error: "r2_recovery_handle_required" });
+    r2Jobs.add(stage);
+    res.status(202).json({ revision, stage, status: "accepted", recover_only: recoverOnly === true });
+    const work = recoverOnly === true
+      ? recoverR2Video({ supabase, apiKey: HF_API_KEY })
+      : stage === "IMAGE"
+        ? runR2Image({ supabase, store: assetV2Store, env: process.env, apiKey: OPENAI_API_KEY, supabaseUrl: SUPABASE_URL })
+        : runR2Video({ supabase, env: process.env, apiKey: HF_API_KEY, balanceConfirmed: HIGGSFIELD_BENCHMARK_BALANCE_CONFIRMED });
+    work.catch(error => console.error(`S19-R2 ${stage} stopped: ${error.code || error.message}`))
+      .finally(() => r2Jobs.delete(stage));
+  } catch (error) { res.status(409).json({ error: error.code || error.message }); }
 });
 
 app.post("/pilots/lumi-cinco-huevos-v1/images/preflight", async (req, res) => {

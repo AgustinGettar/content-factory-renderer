@@ -1,0 +1,21 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { buildPilotImagePlan } from "../lib/lumi-production-pilot-v1.js";
+import { makeR2Scene } from "../lib/lumi-s19-r2-runtime.js";
+import { R2 } from "../lib/lumi-s19-r2-guard.js";
+const fixture=JSON.parse(readFileSync(new URL("./fixtures/av2-canonical-lumi-cinco-huevos.accepted.json",import.meta.url)));
+test("revision deterministic, distinct from original, lineage and full constraints",async()=>{
+  const db={from:()=>({select(){return this;},eq(){return this;},async single(){return {data:{id:fixture.artifact_id,...fixture},error:null};}})};
+  const plan=await buildPilotImagePlan({supabase:db});
+  const original=plan.scenes.find(s=>s.sceneId==="s19");
+  const r2=makeR2Scene(original); assert.deepEqual(r2,makeR2Scene(original));
+  assert.notEqual(r2.specificationHash,original.specificationHash);
+  assert.notEqual(r2.requestHash,original.requestHash);
+  assert.equal(r2.manifest.lineage.parent_asset_id,R2.parentAssetId);
+  assert.equal(r2.manifest.creative_revision,"s19-r2");
+  assert.equal(r2.manifest.pilot_semantics.exact_egg_count,5);
+  assert.equal(r2.semantics.purpose,"recap_and_close");
+  assert.match(r2.prompt.text,/No basket lifting/);assert.match(r2.prompt.text,/NO added abdomen/);
+  assert.match(r2.prompt.text,/No hidden eggs/);assert.match(r2.prompt.text,/no eggs on the ground/);
+});

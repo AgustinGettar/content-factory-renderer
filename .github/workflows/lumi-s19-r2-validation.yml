@@ -1,0 +1,22 @@
+name: Lumi S19-R2 isolated validation
+on:
+  push:
+    branches: [av2-staging-runtime]
+    paths:
+      - lib/lumi-s19-r2-*.js
+      - test/lumi-s19-r2-*.test.js
+      - .github/workflows/lumi-s19-r2-validation.yml
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check server.js
+      - run: node --test test/lumi-s19-r2-*.test.js test/lumi-pilot-internal.test.js test/lumi-production-pilot-v1.test.js

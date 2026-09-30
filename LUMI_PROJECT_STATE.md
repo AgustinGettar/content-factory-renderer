@@ -154,3 +154,25 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `S19_R2_KLING_CALLS`: 0.
 - `ASSEMBLY_GATE`: 8/9.
 - `NEXT_ACTION`: `VALIDATE_DEPLOY_AND_EXECUTE_S19_R2_KLING_ONCE`
+
+## S19-R2 human-approved Kling execution — 2026-09-30
+
+- `LAST_COMPLETED_ACTION`: persisted the separate human source review without altering automated Visual QA; deployed human-override-aware runtime `11703619b3af53b825c98af66d81cbf41a15972d`; invoked VIDEO once through the scoped cloud-only manual surface; provider request completed and output was hash-persisted. Manual gate then disabled and token cleared.
+- `FIRST_PENDING_ACTION`: `PROVIDE_CLOUD_VIDEO_FRAME_INSPECTION_CAPABILITY_OR_HUMAN_TEMPORAL_REVIEW`; inspect the full existing MP4/request only. Never submit another Kling request.
+- `AUTOMATED_VISUAL_QA`: `BLOCKER`, preserved unchanged with five full-visibility findings.
+- `HUMAN_CREATIVE_REVIEW`: `APPROVED_WITH_WARNING`; exactly five visible/countable eggs; partial base occlusion accepted; different basket retained as continuity warning.
+- `SOURCE_STATUS`: `HUMAN_APPROVED_FOR_VIDEO`; asset status `qa_warning`; review provenance `USER_EXPLICIT_HUMAN_CREATIVE_REVIEW`.
+- `S19_R2_IMAGE_CALLS`: 1 consumed; no regeneration, retry or variant.
+- `S19_R2_KLING_CALLS`: 1 consumed; no retry, variant or resubmit.
+- `S19_R2_KLING_REQUEST_ID`: `18ffad02-f3cf-440f-9108-19669e3cb886`
+- `S19_R2_KLING_MODEL`: `kling-video/v3.0/std/image-to-video`; audio OFF; compiler `generative-video-prompt-compiler/1`; estimated/booked cost USD 0.231; provider actual cost unavailable.
+- `S19_R2_VIDEO_SHA256`: `1cab5f6d85e7714d74d0d7e6081e6b13b1dc80bb96c47cb15241176940b8d218`
+- `S19_R2_VIDEO_BYTES`: 4402213
+- `S19_R2_VIDEO_STORAGE`: `av2-generative-video-benchmarks/lumi-production-pilot-v1/s19-r2/video/e2d6de1afd4b50a7e702c056bac9b1ea900203f16914d29f1cde8eb3bfc395aa/e8a43d6940300496b37a0d88db5ce97912a3d4385749efaaf59771f4a08bea5e/original.mp4`
+- `S19_R2_TEMPORAL_QA`: `PENDING`; no classification fabricated. Available GitHub, Render and Supabase connectors cannot render/stream the stored MP4 or frames for visual inspection, and no separate video-QA provider call was authorized.
+- `CLOUD_CAPABILITY_MISSING`: connector-accessible video/frame rendering or inspection for a Supabase Storage MP4 (or an explicitly authorized cloud video-QA provider).
+- `ASSEMBLY_GATE`: 8/9
+- `MASTER_STATUS`: `NOT_STARTED`; no master or SHORT_MASTER_MANIFEST_V1.
+- `RUNNERS`: all boot/image/Higgsfield/production runners OFF; isolated R2 gate OFF; token cleared; autorun=false.
+- `PRODUCTION`: `main@5fe5556395829e78817771f96d33cce3f692965d` intact; deploy `dep-dako6lvqj5pc73d8qju0` LIVE; no production deploy.
+- `NEXT_ACTION`: `REVIEW_EXISTING_S19_R2_VIDEO_NO_RESUBMIT`

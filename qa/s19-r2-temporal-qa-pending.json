@@ -1,0 +1,23 @@
+{
+  "version": "s19-r2-temporal-qa/1",
+  "status": "PENDING",
+  "provider_request_id": "18ffad02-f3cf-440f-9108-19669e3cb886",
+  "model": "kling-video/v3.0/std/image-to-video",
+  "audio": false,
+  "prompt_compiler": "generative-video-prompt-compiler/1",
+  "output_sha256": "1cab5f6d85e7714d74d0d7e6081e6b13b1dc80bb96c47cb15241176940b8d218",
+  "output_bytes": 4402213,
+  "provider_calls": 1,
+  "retry_allowed": false,
+  "disposition": "NO_MASTER_UNTIL_FULL_CLIP_REVIEW",
+  "tooling_status": "PENDING_CLOUD_MEDIA_INSPECTION_CAPABILITY",
+  "required_checks": [
+    "exactly five eggs throughout",
+    "no extra/disappearing/duplicated/fused eggs",
+    "no tail/abdomen/extra limbs/silhouette mutation",
+    "basket stable",
+    "world stable",
+    "motion natural",
+    "pedagogy clear"
+  ]
+}

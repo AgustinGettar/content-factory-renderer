@@ -1,0 +1,29 @@
+{
+  "version": "s19-r2-human-creative-review/1",
+  "source_request_id": "req_5b1627f296b441178296ef1e87826a8b",
+  "source_sha256": "e2d6de1afd4b50a7e702c056bac9b1ea900203f16914d29f1cde8eb3bfc395aa",
+  "automated_visual_qa": {
+    "status": "BLOCKER",
+    "preserved": true,
+    "reason": "basket occludes base of five eggs"
+  },
+  "human_creative_review": {
+    "status": "APPROVED_WITH_WARNING",
+    "reason": [
+      "exactly 5 eggs visible",
+      "all 5 simultaneously countable",
+      "partial base occlusion does not prevent pedagogical objective",
+      "different basket accepted as continuity warning",
+      "no image regeneration warranted"
+    ],
+    "source_status": "HUMAN_APPROVED_FOR_VIDEO",
+    "provenance": {
+      "decision": "USER_EXPLICIT_HUMAN_CREATIVE_REVIEW",
+      "authorization_scope": "S19-R2 VIDEO ONCE"
+    }
+  },
+  "image_one_shot": {
+    "calls": 1,
+    "closed": true
+  }
+}

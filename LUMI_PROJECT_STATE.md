@@ -17,8 +17,15 @@
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
 - `LAST_COMPLETED_ACTION=FREEZE_PRODUCTION_PRESET_V1`
-- `FIRST_PENDING_ACTION=AUTHORIZE_SECOND_SHORT_OR_PUBLICATION`
-- `NEXT_ACTION=AUTHORIZE_SECOND_SHORT_OR_PUBLICATION`
+- `SECOND_SHORT_STATUS=READY_FOR_EXECUTION`
+- `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
+- `SECOND_SHORT_DURATION=49.0`
+- `SECOND_SHORT_SCENES=9/9_PLANNED`
+- `SECOND_SHORT_DRY_RUN=PASS`
+- `SECOND_SHORT_PROVIDER_CALLS_ACTUAL=0`
+- `SECOND_SHORT_MULTIMEDIA_AUTHORIZED=false`
+- `FIRST_PENDING_ACTION=AUTHORIZE_SECOND_SHORT_EXECUTION`
+- `NEXT_ACTION=AUTHORIZE_SECOND_SHORT_EXECUTION`
 
 ## Approved pilot authority
 
@@ -77,7 +84,7 @@ No provider request was made by the approval/preset-freeze step.
 - Basis: exclusively the accepted pilot, its manifests, and the explicit human approval.
 - Global activation: not authorized.
 - Production deployment: none.
-- Second episode: not started.
+- Second episode: planning and zero-provider dry run complete; multimedia not started.
 
 The preset freezes defaults for AV2 structure, scene timing, 9:16 delivery, 48–50 second duration, Character Lock, world continuity, prompt compilation, Visual QA V1.2, image-to-video motion, Temporal QA, voice/TTS, music, SFX, captions, overlays, pedagogical pauses, mastering, freeze prevention, human-QA traceability, and exactly-once provider safety.
 
@@ -159,6 +166,29 @@ Required for every future authorized generation:
 - Queues: unchanged
 - Publication: not started
 - Second episode: not started
+
+## Second validation short
+
+- Episode: `ep_lumi_formas_002` — “Lumi y el jardín de las formas”
+- Educational objective: recognize circle, triangle and square.
+- Duration: `49.0 s`
+- Scene plan: `9/9` compilation-ready scenes.
+- Real child-response pause: `2.5 s` in `s27`, with minimum visible micro-motion.
+- Final scene: low-complexity portrait close; three locked lantern props remain static.
+- Planned provider calls: images `9`, Kling `9`, TTS `9`.
+- Automatic retries: `0`; automatic variants: `0`.
+- Dry run: `PASS`; provider calls emitted: `0`.
+- Status: `SECOND_SHORT_STATUS=READY_FOR_EXECUTION`.
+- Multimedia execution: not authorized.
+
+Artifacts:
+
+- `episodes/ep_lumi_formas_002/EPISODE_PLAN_V2.json`
+- `episodes/ep_lumi_formas_002/SCENE_PLAN_V2.json`
+- `episodes/ep_lumi_formas_002/PRODUCTION_MANIFEST.json`
+- `episodes/ep_lumi_formas_002/DRY_RUN_REPORT.json`
+
+Production remains `main@5fe5556`, runners OFF, autorun false, global preset activation OFF.
 
 ## Do not touch without explicit authorization
 

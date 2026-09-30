@@ -34,6 +34,8 @@ jobs:
         run: node --test test/lumi-production-pilot-v1.test.js test/lumi-pilot-internal.test.js test/lumi-pilot-repair.test.js test/security.test.js
       - name: Relevant AV2 and renderer regression
         run: node --test test/asset-engine-v2.test.js test/asset-visual-qa-v12.test.js test/av2-hardening.test.js test/render-profiles.test.js
+      - name: Second short zero-provider dry run
+        run: node --test test/lumi-second-short-dry-run.test.js
 # repair-gate
 # boot-shape-fix
 

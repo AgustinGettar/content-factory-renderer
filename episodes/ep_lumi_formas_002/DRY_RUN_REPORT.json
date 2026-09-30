@@ -1,0 +1,92 @@
+{
+  "dry_run_version": "lumi-second-short-dry-run/1.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "executed_at_utc": "2026-09-30T19:18:39Z",
+  "status": "PASS",
+  "provider_calls_actual": {
+    "image": 0,
+    "kling": 0,
+    "tts": 0,
+    "total": 0
+  },
+  "path": [
+    {
+      "step": "idea",
+      "status": "PASS",
+      "output": "Original preschool shape-recognition concept"
+    },
+    {
+      "step": "AV2",
+      "status": "PASS",
+      "checks": [
+        "single_objective",
+        "canonical_lumi",
+        "49_second_target",
+        "originality"
+      ]
+    },
+    {
+      "step": "scene_planning",
+      "status": "PASS",
+      "checks": [
+        "9_scenes",
+        "49.0_seconds",
+        "one_real_child_pause",
+        "simple_final_scene"
+      ]
+    },
+    {
+      "step": "prompt_compilation",
+      "status": "PASS",
+      "compiled_prompts": 9,
+      "manual_intervention_required": false
+    },
+    {
+      "step": "asset_claims",
+      "status": "PASS",
+      "claims": 9,
+      "dispatches": 0,
+      "persistent_on_execution": true
+    },
+    {
+      "step": "video_claims",
+      "status": "PASS",
+      "claims": 9,
+      "dispatches": 0,
+      "persistent_on_execution": true
+    },
+    {
+      "step": "audio_plan",
+      "status": "PASS",
+      "tts_stems": 9,
+      "dispatches": 0,
+      "music": "local_planned",
+      "sfx": "local_planned"
+    },
+    {
+      "step": "assembly_plan",
+      "status": "PASS",
+      "scene_count": 9,
+      "duration_seconds": 49,
+      "freeze_prevention": true
+    }
+  ],
+  "validations": {
+    "episode_plan": "PASS",
+    "scene_plan": "PASS",
+    "semantic": "PASS",
+    "continuity": "PASS",
+    "renderability": "PASS",
+    "character_lock": "PASS",
+    "world_prop_continuity": "PASS",
+    "anatomy_locks": "PASS",
+    "temporal_object_locks": "PASS",
+    "cost_plan": "PASS",
+    "restart_safety": "PASS",
+    "zero_provider_calls": "PASS",
+    "compilation_ready": "PASS"
+  },
+  "blockers": [],
+  "warnings": [],
+  "result": "SECOND_SHORT_STATUS=READY_FOR_EXECUTION"
+}

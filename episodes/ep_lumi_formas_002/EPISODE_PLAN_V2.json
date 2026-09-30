@@ -1,0 +1,323 @@
+{
+  "schema_version": "lumi-episode-plan-v2/1.0.0",
+  "av2_contract": "cf-episode/2.0",
+  "preset_ref": {
+    "id": "LUMI_SHORT_PRODUCTION_PRESET_V1",
+    "version": "1.0.0",
+    "status": "READY_NOT_ACTIVE"
+  },
+  "status": "COMPILED_DRY",
+  "episode": {
+    "id": "ep_lumi_formas_002",
+    "title": "Lumi y el jardín de las formas",
+    "language": "es-419",
+    "category": "preschool_shapes",
+    "age_range": {
+      "min_years": 3,
+      "max_years": 5
+    },
+    "learning": {
+      "objective_id": "recognize_basic_shapes",
+      "objective": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "success_test": "Durante la interacción, el niño puede señalar el farol circular entre tres opciones estables."
+    },
+    "story_premise": "En un jardín mágico al atardecer, Lumi vuelve a encender tres faroles aprendiendo la forma de cada uno.",
+    "world_ref": {
+      "id": "lumi_lantern_garden",
+      "version": "1.0.0"
+    },
+    "style_ref": {
+      "id": "lumi_premium_preschool_3d",
+      "version": "1.0.0"
+    },
+    "character_lock_ref": {
+      "id": "lumi_character_lock",
+      "version": "1.0.0"
+    },
+    "voice_profile_ref": {
+      "id": "lumi_voice_marin",
+      "version": "1.0.0"
+    },
+    "duration_target": {
+      "min_seconds": 45,
+      "target_seconds": 49,
+      "max_seconds": 50
+    },
+    "story_beats": [
+      {
+        "id": "beat_setup",
+        "function": "setup",
+        "summary": "Tres faroles de formas distintas están apagados."
+      },
+      {
+        "id": "beat_circle",
+        "function": "discovery",
+        "summary": "Lumi enseña el círculo."
+      },
+      {
+        "id": "beat_triangle",
+        "function": "discovery",
+        "summary": "Lumi enseña el triángulo."
+      },
+      {
+        "id": "beat_square",
+        "function": "discovery",
+        "summary": "Lumi enseña el cuadrado."
+      },
+      {
+        "id": "beat_development",
+        "function": "development",
+        "summary": "Se comparan formas y ejemplos cotidianos."
+      },
+      {
+        "id": "beat_question",
+        "function": "question",
+        "summary": "El niño identifica cuál farol es redondo."
+      },
+      {
+        "id": "beat_answer",
+        "function": "answer",
+        "summary": "Lumi confirma el círculo y recapitula."
+      },
+      {
+        "id": "beat_close",
+        "function": "close",
+        "summary": "Cierre sencillo con tres faroles estables."
+      }
+    ],
+    "music_direction": {
+      "motif_ref": {
+        "id": "lumi_gentle_twilight",
+        "version": "1.0.0"
+      },
+      "mood": "mágico, cálido y curioso",
+      "rules": [
+        "duck_below_voice",
+        "no_continuous_sfx",
+        "reward_cue_only_after_answer"
+      ]
+    },
+    "continuity_initial": {
+      "time_of_day": "twilight",
+      "lantern_order": [
+        "circle_left",
+        "triangle_center",
+        "square_right"
+      ],
+      "lantern_state": "unlit",
+      "lumi_identity": "canonical",
+      "wand": "lumi_wand_v1"
+    },
+    "requires": [
+      "av2.schema",
+      "av2.semantic",
+      "av2.continuity",
+      "visual_qa.v1_2",
+      "temporal_qa",
+      "freeze_scan",
+      "exactly_once_claims"
+    ],
+    "transitions": [
+      {
+        "id": "edge_s21_s22",
+        "from_scene": "s21",
+        "to_scene": "s22",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s22_s23",
+        "from_scene": "s22",
+        "to_scene": "s23",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s23_s24",
+        "from_scene": "s23",
+        "to_scene": "s24",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s24_s25",
+        "from_scene": "s24",
+        "to_scene": "s25",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s25_s26",
+        "from_scene": "s25",
+        "to_scene": "s26",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s26_s27",
+        "from_scene": "s26",
+        "to_scene": "s27",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s27_s28",
+        "from_scene": "s27",
+        "to_scene": "s28",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      },
+      {
+        "id": "edge_s28_s29",
+        "from_scene": "s28",
+        "to_scene": "s29",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "clear_preschool_scene_change"
+      }
+    ]
+  },
+  "entities": [
+    {
+      "id": "lumi",
+      "kind": "character",
+      "asset_ref": {
+        "id": "lumi_character_lock",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "canonical",
+        "teacher"
+      ]
+    },
+    {
+      "id": "lumi_wand_v1",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "lumi_wand_v1",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "canonical",
+        "magic"
+      ]
+    },
+    {
+      "id": "lantern_circle",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "shape_lantern_circle",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "circle",
+        "blue",
+        "count_locked"
+      ]
+    },
+    {
+      "id": "lantern_triangle",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "shape_lantern_triangle",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "triangle",
+        "yellow",
+        "count_locked"
+      ]
+    },
+    {
+      "id": "lantern_square",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "shape_lantern_square",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "square",
+        "coral",
+        "count_locked"
+      ]
+    },
+    {
+      "id": "moon_disc",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "moon_disc",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "circle",
+        "example"
+      ]
+    },
+    {
+      "id": "pennant_triangle",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "pennant_triangle",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "triangle",
+        "example"
+      ]
+    },
+    {
+      "id": "window_square",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "window_square",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "square",
+        "example"
+      ]
+    },
+    {
+      "id": "lantern_garden_env",
+      "kind": "environment",
+      "asset_ref": {
+        "id": "lumi_lantern_garden",
+        "version": "1.0.0"
+      },
+      "tags": [
+        "twilight",
+        "magical",
+        "original"
+      ]
+    }
+  ],
+  "scene_refs": [
+    "s21",
+    "s22",
+    "s23",
+    "s24",
+    "s25",
+    "s26",
+    "s27",
+    "s28",
+    "s29"
+  ],
+  "originality": {
+    "original_episode": true,
+    "protected_reference_copying": false,
+    "visual_difference_from_pilot": [
+      "twilight_lantern_garden",
+      "shape_lesson",
+      "architectural_alcoves",
+      "blue_yellow_coral_palette"
+    ]
+  },
+  "final_scene_complexity": "LOW"
+}

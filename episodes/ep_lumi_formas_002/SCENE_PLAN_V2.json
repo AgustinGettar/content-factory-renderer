@@ -1,0 +1,971 @@
+{
+  "schema_version": "lumi-scene-plan-v2/1.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "status": "COMPILED_DRY",
+  "global_locks": {
+    "character_lock_ref": {
+      "id": "lumi_character_lock",
+      "version": "1.0.0"
+    },
+    "world_ref": {
+      "id": "lumi_lantern_garden",
+      "version": "1.0.0"
+    },
+    "wand": "lumi_wand_v1",
+    "lantern_order": [
+      "circle_left",
+      "triangle_center",
+      "square_right"
+    ],
+    "anatomy": [
+      "exactly_two_antennae",
+      "exactly_two_wings",
+      "no_extra_appendages",
+      "stable_face",
+      "stable_body_proportions"
+    ],
+    "temporal": [
+      "exact_object_count",
+      "no_duplication",
+      "no_disappearance",
+      "no_morphing",
+      "stable_prop_identity"
+    ],
+    "motion_policy": "conservative",
+    "automatic_retries": 0,
+    "automatic_variants": 0
+  },
+  "scenes": [
+    {
+      "id": "s21",
+      "purpose": "hook_problem",
+      "duration": 6.5,
+      "beat": "beat_setup",
+      "shot": "wide",
+      "move": "push_in",
+      "narration": "¡Mira! Tres faroles de formas distintas se apagaron. ¿Los encendemos juntos?",
+      "overlay": "TRES FORMAS",
+      "props": [
+        "lantern_circle",
+        "lantern_triangle",
+        "lantern_square"
+      ],
+      "lock": "exactly_three_shape_lanterns",
+      "action": "Lumi enters the twilight lantern garden and presents three dark, clearly separated lantern silhouettes.",
+      "motion": "slow push-in; Lumi small wave; lanterns remain fixed and unlit",
+      "ordinal": 1,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 1
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose hook_problem."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Lumi enters the twilight lantern garden and presents three dark, clearly separated lantern silhouettes."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; wide shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "exactly_three_shape_lanterns; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "slow push-in; Lumi small wave; lanterns remain fixed and unlit"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "slow push-in; Lumi small wave; lanterns remain fixed and unlit",
+        "temporal_lock": "exactly_three_shape_lanterns",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s21",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "¡Mira! Tres faroles de formas distintas se apagaron. ¿Los encendemos juntos?",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "¡Mira! Tres faroles de formas distintas se apagaron. ¿Los encendemos juntos?",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "TRES FORMAS",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": null,
+      "transition_out": "edge_s21_s22",
+      "assembly": {
+        "start_seconds": 0,
+        "end_seconds": 6.5
+      }
+    },
+    {
+      "id": "s22",
+      "purpose": "teach_circle",
+      "duration": 4.3,
+      "beat": "beat_circle",
+      "shot": "medium",
+      "move": "static",
+      "narration": "Este farol es un círculo. Es redondo y no tiene puntas.",
+      "overlay": "CÍRCULO",
+      "props": [
+        "lantern_circle"
+      ],
+      "lock": "one_circle_zero_corners",
+      "action": "Lumi points once to a large round blue lantern on its own pedestal.",
+      "motion": "wand point and gentle glow only; circle silhouette remains rigid",
+      "ordinal": 2,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 2
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose teach_circle."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Lumi points once to a large round blue lantern on its own pedestal."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "one_circle_zero_corners; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "wand point and gentle glow only; circle silhouette remains rigid"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "wand point and gentle glow only; circle silhouette remains rigid",
+        "temporal_lock": "one_circle_zero_corners",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s22",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "Este farol es un círculo. Es redondo y no tiene puntas.",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "Este farol es un círculo. Es redondo y no tiene puntas.",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "CÍRCULO",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s21_s22",
+      "transition_out": "edge_s22_s23",
+      "assembly": {
+        "start_seconds": 6.5,
+        "end_seconds": 10.8
+      }
+    },
+    {
+      "id": "s23",
+      "purpose": "teach_triangle",
+      "duration": 4.3,
+      "beat": "beat_triangle",
+      "shot": "medium",
+      "move": "static",
+      "narration": "Este es un triángulo. Tiene tres lados y tres puntas.",
+      "overlay": "TRIÁNGULO",
+      "props": [
+        "lantern_triangle"
+      ],
+      "lock": "one_triangle_three_sides_three_corners",
+      "action": "Lumi traces the air near a large yellow triangular lantern without touching it.",
+      "motion": "short wand trace; triangle remains rigid and fully visible",
+      "ordinal": 3,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 3
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose teach_triangle."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Lumi traces the air near a large yellow triangular lantern without touching it."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "one_triangle_three_sides_three_corners; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "short wand trace; triangle remains rigid and fully visible"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "short wand trace; triangle remains rigid and fully visible",
+        "temporal_lock": "one_triangle_three_sides_three_corners",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s23",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "Este es un triángulo. Tiene tres lados y tres puntas.",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "Este es un triángulo. Tiene tres lados y tres puntas.",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "TRIÁNGULO",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s22_s23",
+      "transition_out": "edge_s23_s24",
+      "assembly": {
+        "start_seconds": 10.8,
+        "end_seconds": 15.1
+      }
+    },
+    {
+      "id": "s24",
+      "purpose": "teach_square",
+      "duration": 4.3,
+      "beat": "beat_square",
+      "shot": "medium",
+      "move": "static",
+      "narration": "Y este es un cuadrado. Tiene cuatro lados iguales.",
+      "overlay": "CUADRADO",
+      "props": [
+        "lantern_square"
+      ],
+      "lock": "one_square_four_equal_sides",
+      "action": "Lumi presents a large coral square lantern on its own pedestal.",
+      "motion": "single presenting gesture; square remains rigid and frontal",
+      "ordinal": 4,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 4
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose teach_square."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Lumi presents a large coral square lantern on its own pedestal."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "one_square_four_equal_sides; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "single presenting gesture; square remains rigid and frontal"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "single presenting gesture; square remains rigid and frontal",
+        "temporal_lock": "one_square_four_equal_sides",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s24",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "Y este es un cuadrado. Tiene cuatro lados iguales.",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "Y este es un cuadrado. Tiene cuatro lados iguales.",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "CUADRADO",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s23_s24",
+      "transition_out": "edge_s24_s25",
+      "assembly": {
+        "start_seconds": 15.1,
+        "end_seconds": 19.4
+      }
+    },
+    {
+      "id": "s25",
+      "purpose": "guided_examples",
+      "duration": 4.3,
+      "beat": "beat_development",
+      "shot": "medium",
+      "move": "pan",
+      "narration": "La luna parece un círculo, la banderita un triángulo y la ventana un cuadrado.",
+      "overlay": "MIRA LAS FORMAS",
+      "props": [
+        "moon_disc",
+        "pennant_triangle",
+        "window_square"
+      ],
+      "lock": "one_example_per_shape",
+      "action": "Three spaced examples appear in separate alcoves; Lumi's gaze moves left to right.",
+      "motion": "very slow pan; no prop transformation or appearance changes",
+      "ordinal": 5,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 5
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose guided_examples."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Three spaced examples appear in separate alcoves; Lumi's gaze moves left to right."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "one_example_per_shape; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "very slow pan; no prop transformation or appearance changes"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "very slow pan; no prop transformation or appearance changes",
+        "temporal_lock": "one_example_per_shape",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s25",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "La luna parece un círculo, la banderita un triángulo y la ventana un cuadrado.",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "La luna parece un círculo, la banderita un triángulo y la ventana un cuadrado.",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "MIRA LAS FORMAS",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s24_s25",
+      "transition_out": "edge_s25_s26",
+      "assembly": {
+        "start_seconds": 19.4,
+        "end_seconds": 23.7
+      }
+    },
+    {
+      "id": "s26",
+      "purpose": "compare_shapes",
+      "duration": 4.3,
+      "beat": "beat_development",
+      "shot": "wide",
+      "move": "static",
+      "narration": "Círculo, triángulo y cuadrado. ¡Cada forma es diferente!",
+      "overlay": "CÍRCULO · TRIÁNGULO · CUADRADO",
+      "props": [
+        "lantern_circle",
+        "lantern_triangle",
+        "lantern_square"
+      ],
+      "lock": "exactly_one_of_each_shape",
+      "action": "All three lanterns stand in a straight row with generous separation; Lumi points from left to right.",
+      "motion": "three small gaze beats; lanterns fixed; no orbit",
+      "ordinal": 6,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 6
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose compare_shapes."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "All three lanterns stand in a straight row with generous separation; Lumi points from left to right."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; wide shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "exactly_one_of_each_shape; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "three small gaze beats; lanterns fixed; no orbit"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "three small gaze beats; lanterns fixed; no orbit",
+        "temporal_lock": "exactly_one_of_each_shape",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s26",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "Círculo, triángulo y cuadrado. ¡Cada forma es diferente!",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "Círculo, triángulo y cuadrado. ¡Cada forma es diferente!",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "CÍRCULO · TRIÁNGULO · CUADRADO",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s25_s26",
+      "transition_out": "edge_s26_s27",
+      "assembly": {
+        "start_seconds": 23.7,
+        "end_seconds": 28
+      }
+    },
+    {
+      "id": "s27",
+      "purpose": "child_question_pause",
+      "duration": 7.5,
+      "beat": "beat_question",
+      "shot": "medium",
+      "move": "push_in",
+      "narration": "Ahora tú. ¿Cuál farol es redondo? ¡Señálalo!",
+      "overlay": "¿CUÁL ES REDONDO?",
+      "props": [
+        "lantern_circle",
+        "lantern_triangle",
+        "lantern_square"
+      ],
+      "lock": "exactly_three_options_circle_left_triangle_center_square_right",
+      "action": "Lumi faces the child beside three locked options and listens during a real response pause.",
+      "motion": "1.5 percent editorial push-in; Lumi blink and breathing; options remain fixed",
+      "pause_seconds": 2.5,
+      "ordinal": 7,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "questioning"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 7
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose child_question_pause."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Lumi faces the child beside three locked options and listens during a real response pause."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "exactly_three_options_circle_left_triangle_center_square_right; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "1.5 percent editorial push-in; Lumi blink and breathing; options remain fixed"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "1.5 percent editorial push-in; Lumi blink and breathing; options remain fixed",
+        "temporal_lock": "exactly_three_options_circle_left_triangle_center_square_right",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s27",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "Ahora tú. ¿Cuál farol es redondo? ¡Señálalo!",
+        "pedagogical_pause_seconds": 2.5
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "Ahora tú. ¿Cuál farol es redondo? ¡Señálalo!",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "¿CUÁL ES REDONDO?",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s26_s27",
+      "transition_out": "edge_s27_s28",
+      "assembly": {
+        "start_seconds": 28,
+        "end_seconds": 35.5
+      }
+    },
+    {
+      "id": "s28",
+      "purpose": "answer_recap",
+      "duration": 6,
+      "beat": "beat_answer",
+      "shot": "medium",
+      "move": "static",
+      "narration": "¡Sí! El círculo es redondo. Triángulo: tres lados. Cuadrado: cuatro.",
+      "overlay": "¡CÍRCULO!",
+      "props": [
+        "lantern_circle",
+        "lantern_triangle",
+        "lantern_square"
+      ],
+      "lock": "circle_highlight_only_counts_unchanged",
+      "action": "The circle lantern receives a soft halo while all three silhouettes remain visible and unchanged.",
+      "motion": "soft circle halo and one wand sparkle; no shape moves or morphs",
+      "ordinal": 8,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "encouraging"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 8
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose answer_recap."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "The circle lantern receives a soft halo while all three silhouettes remain visible and unchanged."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "circle_highlight_only_counts_unchanged; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "soft circle halo and one wand sparkle; no shape moves or morphs"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "soft circle halo and one wand sparkle; no shape moves or morphs",
+        "temporal_lock": "circle_highlight_only_counts_unchanged",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s28",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "¡Sí! El círculo es redondo. Triángulo: tres lados. Cuadrado: cuatro.",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "¡Sí! El círculo es redondo. Triángulo: tres lados. Cuadrado: cuatro.",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "¡CÍRCULO!",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s27_s28",
+      "transition_out": "edge_s28_s29",
+      "assembly": {
+        "start_seconds": 35.5,
+        "end_seconds": 41.5
+      }
+    },
+    {
+      "id": "s29",
+      "purpose": "simple_reward_close",
+      "duration": 7.5,
+      "beat": "beat_close",
+      "shot": "medium",
+      "move": "pull_out",
+      "narration": "¡Lo hiciste genial! Hoy aprendimos círculo, triángulo y cuadrado. ¡Hasta pronto!",
+      "overlay": "¡MUY BIEN!",
+      "props": [
+        "lantern_circle",
+        "lantern_triangle",
+        "lantern_square"
+      ],
+      "lock": "exactly_three_shape_lanterns_final",
+      "action": "Simple closing portrait: Lumi waves in foreground; the three illuminated lanterns stay separated behind her.",
+      "motion": "one wave, wing shimmer and slow pull-out; no prop movement; no group reconfiguration",
+      "ordinal": 9,
+      "educational_goal": "Reconocer visualmente círculo, triángulo y cuadrado.",
+      "character_state": {
+        "character_id": "lumi",
+        "identity": "canonical",
+        "wand": "lumi_wand_v1",
+        "expression": "proud"
+      },
+      "world_state": {
+        "environment": "lumi_lantern_garden",
+        "time_of_day": "twilight",
+        "continuity_index": 9
+      },
+      "visual_prompt_compilation": {
+        "compiler": "LUMI_SHORT_PRODUCTION_PRESET_V1.visual_prompt_compiler",
+        "blocks": [
+          {
+            "name": "EDUCATIONAL_INTENT",
+            "text": "Teach Reconocer visualmente círculo, triángulo y cuadrado.; scene purpose simple_reward_close."
+          },
+          {
+            "name": "SCENE_ACTION",
+            "text": "Simple closing portrait: Lumi waves in foreground; the three illuminated lanterns stay separated behind her."
+          },
+          {
+            "name": "CHARACTER_LOCK",
+            "text": "Canonical Lumi only: warm rounded yellow fairy-firefly teacher, large turquoise eyes, pink cheeks, two violet-tipped antennae, two translucent light-blue wings, light-blue denim overalls, white/light-blue sneakers, lumi_wand_v1. Stable identity and anatomy."
+          },
+          {
+            "name": "WORLD_CONTINUITY",
+            "text": "Original twilight lantern garden; rounded ivy arches, soft violet-blue sky, warm path lights, same three stone pedestals; fixed order circle-left, triangle-center, square-right whenever all are visible."
+          },
+          {
+            "name": "COMPOSITION_9_16",
+            "text": "1080x1920 vertical; medium shot; learning-safe center; caption-safe lower band; every teaching silhouette fully visible."
+          },
+          {
+            "name": "OBJECT_LOCKS",
+            "text": "exactly_three_shape_lanterns_final; no duplication, disappearance, substitution, morphing or ambiguous extra teaching shapes."
+          },
+          {
+            "name": "MOTION",
+            "text": "one wave, wing shimmer and slow pull-out; no prop movement; no group reconfiguration"
+          },
+          {
+            "name": "NEGATIVE_CONSTRAINTS",
+            "text": "No text generated in image, no logos, no watermark, no extra limbs, no extra antennae or wings, no malformed hands, no creepy expression, no clutter behind shape silhouettes."
+          }
+        ],
+        "status": "PASS"
+      },
+      "video_prompt_compilation": {
+        "mode": "image_to_video",
+        "motion": "one wave, wing shimmer and slow pull-out; no prop movement; no group reconfiguration",
+        "temporal_lock": "exactly_three_shape_lanterns_final",
+        "status": "PASS"
+      },
+      "visual_qa_preflight": {
+        "version": "1.2",
+        "status": "PASS",
+        "blockers": [],
+        "warnings": []
+      },
+      "audio": {
+        "tts_stem_id": "tts_s29",
+        "voice": "marin",
+        "model": "gpt-4o-mini-tts",
+        "narration": "¡Lo hiciste genial! Hoy aprendimos círculo, triángulo y cuadrado. ¡Hasta pronto!",
+        "pedagogical_pause_seconds": 0
+      },
+      "caption": {
+        "format": "ASS_burned_in",
+        "text": "¡Lo hiciste genial! Hoy aprendimos círculo, triángulo y cuadrado. ¡Hasta pronto!",
+        "safe_area": "PASS_PLANNED"
+      },
+      "educational_overlay": {
+        "text": "¡MUY BIEN!",
+        "deterministic": true,
+        "visible_object_match": "PASS"
+      },
+      "transition_in": "edge_s28_s29",
+      "transition_out": null,
+      "assembly": {
+        "start_seconds": 41.5,
+        "end_seconds": 49
+      }
+    }
+  ]
+}

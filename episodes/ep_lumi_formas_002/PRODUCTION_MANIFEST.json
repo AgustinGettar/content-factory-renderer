@@ -1,0 +1,271 @@
+{
+  "manifest_version": "lumi-second-short-production/1.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "status": "READY_FOR_EXECUTION",
+  "sources": {
+    "episode_plan": "episodes/ep_lumi_formas_002/EPISODE_PLAN_V2.json",
+    "scene_plan": "episodes/ep_lumi_formas_002/SCENE_PLAN_V2.json",
+    "preset": "LUMI_SHORT_PRODUCTION_PRESET_V1.json"
+  },
+  "format": {
+    "duration_seconds": 49,
+    "resolution": "1080x1920",
+    "aspect_ratio": "9:16",
+    "fps": 30,
+    "video_codec": "H.264",
+    "audio_codec": "AAC"
+  },
+  "generation_policy": {
+    "one_call_per_asset": true,
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "persistent_claims": true,
+    "immediate_request_id_persistence": true,
+    "restart_safe": true,
+    "ambiguous_dispatch": "BLOCK_RESUBMIT"
+  },
+  "planned_calls": {
+    "image_calls": 9,
+    "kling_calls": 9,
+    "tts_calls": 9,
+    "music_provider_calls": 0,
+    "sfx_provider_calls": 0,
+    "total_provider_calls": 27
+  },
+  "cost_estimate_usd": {
+    "image_unit_reference": 0.0985995,
+    "image_total": 0.887396,
+    "kling_unit_reference": 0.231,
+    "kling_total": 2.079,
+    "tts_rate_reference_per_audio_minute": 0.015,
+    "tts_conservative_billable_seconds": 49,
+    "tts_total": 0.01225,
+    "total": 2.978645,
+    "basis": "Visual unit references are the accepted pilot campaign averages; TTS uses a conservative full-master-duration estimate. Actual invoice may differ."
+  },
+  "claims": {
+    "image": [
+      {
+        "claim_id": "ep_lumi_formas_002:s21:image:v1",
+        "scene_id": "s21",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s22:image:v1",
+        "scene_id": "s22",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s23:image:v1",
+        "scene_id": "s23",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s24:image:v1",
+        "scene_id": "s24",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s25:image:v1",
+        "scene_id": "s25",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s26:image:v1",
+        "scene_id": "s26",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s27:image:v1",
+        "scene_id": "s27",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s28:image:v1",
+        "scene_id": "s28",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s29:image:v1",
+        "scene_id": "s29",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      }
+    ],
+    "video": [
+      {
+        "claim_id": "ep_lumi_formas_002:s21:kling:v1",
+        "scene_id": "s21",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s22:kling:v1",
+        "scene_id": "s22",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s23:kling:v1",
+        "scene_id": "s23",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s24:kling:v1",
+        "scene_id": "s24",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s25:kling:v1",
+        "scene_id": "s25",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s26:kling:v1",
+        "scene_id": "s26",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s27:kling:v1",
+        "scene_id": "s27",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s28:kling:v1",
+        "scene_id": "s28",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s29:kling:v1",
+        "scene_id": "s29",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      }
+    ],
+    "tts": [
+      {
+        "claim_id": "ep_lumi_formas_002:s21:tts:v1",
+        "scene_id": "s21",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s22:tts:v1",
+        "scene_id": "s22",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s23:tts:v1",
+        "scene_id": "s23",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s24:tts:v1",
+        "scene_id": "s24",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s25:tts:v1",
+        "scene_id": "s25",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s26:tts:v1",
+        "scene_id": "s26",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s27:tts:v1",
+        "scene_id": "s27",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s28:tts:v1",
+        "scene_id": "s28",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      },
+      {
+        "claim_id": "ep_lumi_formas_002:s29:tts:v1",
+        "scene_id": "s29",
+        "status": "PLANNED_UNDISPATCHED",
+        "max_dispatches": 1
+      }
+    ]
+  },
+  "audio_plan": {
+    "voice": {
+      "model": "gpt-4o-mini-tts",
+      "voice": "marin",
+      "stems": 9
+    },
+    "music": {
+      "origin": "deterministic_local_cloud_synthesis",
+      "policy": "supportive_ducked"
+    },
+    "sfx": {
+      "origin": "deterministic_local_cloud_synthesis",
+      "policy": "selective",
+      "cues": [
+        "wand_sparkle",
+        "shape_light",
+        "reward"
+      ]
+    }
+  },
+  "assembly_plan": {
+    "scene_order": [
+      "s21",
+      "s22",
+      "s23",
+      "s24",
+      "s25",
+      "s26",
+      "s27",
+      "s28",
+      "s29"
+    ],
+    "scene_count": "9/9",
+    "target_seconds": 49,
+    "pedagogical_pause": {
+      "scene_id": "s27",
+      "seconds": 2.5,
+      "min_visible_motion": true
+    },
+    "freeze_prevention": [
+      "subtle_retiming",
+      "transition_overlap",
+      "editorial_micro_motion",
+      "timing_redistribution"
+    ],
+    "forbidden": "perceptible_static_last_frame_hold",
+    "final_freeze_gate": "ACCIDENTAL_FREEZE=0"
+  },
+  "execution_gate": {
+    "multimedia_authorized": false,
+    "runners": "OFF",
+    "autorun": false,
+    "global_preset_activation": false,
+    "production_change": "NONE"
+  }
+}

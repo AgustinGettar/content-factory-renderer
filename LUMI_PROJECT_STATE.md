@@ -71,3 +71,28 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `COST`: images `USD 0.590649`; Kling `USD 1.155000`; total `USD 1.745649`
 - `RUNNER_STATE`: pilot boot OFF; image runner OFF; Higgsfield runner OFF; autorun=false
 - `PRODUCTION`: `main@5fe5556` intact
+
+## S19 repair execution terminal recovery — 2026-09-30
+
+- `LAST_COMPLETED_ACTION`: S19 Kling temporal QA was persisted as `BLOCKER`; all provider one-shots are consumed and no retry or variant is authorized.
+- `FIRST_PENDING_ACTION`: Human decision on a future, separately authorized source/video strategy; do not resubmit the existing S19 repair or Kling request.
+- `REMOTE_HEAD`: `lumi-pilot-ci-validation@1555ce6c9c294352a94979f76a4136f94e2a5a1d`; validated staging code `av2-staging-runtime@853b7e79abc5d497f84bdb277785277a94d96fd2`.
+- `CI_RUN_ID`: `36696076052` — GREEN.
+- `TESTS`: focused `28/28 PASS`; relevant regression `54/54 PASS`; zero providers in tests.
+- `STAGING`: fix deploy live; health 200 before execution; deploy itself emitted zero provider calls.
+- `S19_REPAIR_STATE`: `SUCCEEDED`; previous `FAILED_BEFORE_PROVIDER` history retained in the same repair row.
+- `S19_PROVIDER_REQUEST_ID`: `req_a40559d461ef42b182d219bd813e1b30`
+- `S19_IMAGE_ASSET_ID`: `883f54de-242d-4cd2-a80c-d1fc9999e8c0`
+- `S19_IMAGE_SHA256`: `03c560d00035b31f1efd2c5f5934df93e9f2d1e9bed926483634ef5cc25401d0`
+- `S19_IMAGE_QA`: `PASS`; Visual QA V1.2 `qa_passed`; exactly five complete, separated, countable eggs; basket present without pedagogical occlusion; character/world/prop/safe-frame/anatomy/semantic/motion-readiness pass.
+- `S19_KLING_REQUEST_ID`: `78fcf851-ba90-4206-b5eb-c09c5825d243`
+- `S19_KLING_MODEL`: `kling-video/v3.0/std/image-to-video`; audio OFF; duration 5 s; output bytes `6351855`.
+- `S19_VIDEO_SHA256`: `025d0744fe080fc8413d56bd91f55c0b756557e3fa41e02fba8c9fc802457e2a`
+- `S19_VIDEO_QA`: `BLOCKER`; at approximately 00:02 five eggs remain on the ground while multiple additional egg-like objects appear in the lifted basket, and Lumi develops a non-canonical striped abdomen/tail. Disposition: `NO_RETRY_NO_VARIANT_STOP`.
+- `ASSEMBLY_GATE`: `8/9`
+- `MASTER_STATUS`: `NOT_STARTED`; correctly stopped before assembly/master.
+- `CALL_COUNTS`: original images `6`; S19 repair images `1`; physical image calls total `7`; Kling calls total `6`.
+- `COST`: original images `USD 0.590649`; S19 repair image `USD 0.098905`; images total `USD 0.689554`; Kling total `USD 1.386000`; all providers total `USD 2.075554`.
+- `RUNNER_STATE`: pilot boot OFF; repair gate OFF; image runner OFF; Higgsfield runner OFF; autorun=false; manual pilot surface OFF.
+- `PRODUCTION`: `main@5fe5556` intact; no production deploy.
+- `FINAL_DISPOSITION`: `S19_VIDEO_QA_BLOCKER`; no master; Human Creative Review cannot begin from this S19 video.

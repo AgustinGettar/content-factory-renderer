@@ -31,8 +31,7 @@ Complete the 48-second short `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` for human creative
 - autorun: false
 - Assembly Gate: 8/9
 - Human creative review: pending
-- Focused tests for S19 semantics: 28/28 PASS locally
-- Relevant regression: 54/54 PASS locally
+- Focused and relevant regression tests: 83/83 PASS locally after durable dispatch correction
 - Provider calls during S19 repair diagnosis/fix: 0
 - VALIDATION_STATUS: `LOCAL_PASS_REMOTE_CI_PENDING`
 - BASE_VALIDATION_HEAD: `a088bfaaa4bba51a6493d7633d5c6ed43d079b73`
@@ -45,7 +44,7 @@ Complete the 48-second short `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` for human creative
 
 ## NEXT_ACTION
 
-Commit and publish the S19 semantics fix to `lumi-pilot-ci-validation`; do not deploy until the new CI run passes.
+Publish the durable dispatch correction to `lumi-pilot-ci-validation`; do not deploy until the new CI run passes.
 
 ## DO_NOT_TOUCH
 
@@ -71,3 +70,19 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `COST`: images `USD 0.590649`; Kling `USD 1.155000`; total `USD 1.745649`
 - `RUNNER_STATE`: pilot boot OFF; image runner OFF; Higgsfield runner OFF; autorun=false
 - `PRODUCTION`: `main@5fe5556` intact
+
+## Durable provider boundary correction — 2026-09-30
+
+- `ROOT_CAUSE`: Confirmed unique conflict as above. The follow-up review found an additional restart window in `1555ce6`: `fetch()` began before `PROVIDER_REQUEST_EMITTED` was persisted.
+- `FIX_STATUS`: Added durable `PROVIDER_DISPATCH_COMMITTED` before invoking image `fetch`. An acknowledged dispatch commit blocks automatic resubmission even when the request ID is absent. A later emitted callback records the physical call. An uncertain dispatch remains blocked with `PROVIDER_DISPATCH_UNCERTAIN`; physical call accounting stays at zero until emission evidence exists.
+- `PROVIDER_ATTEMPT_CONSUMED`: true after durable dispatch commit, before network emission, for crash safety; `provider_call_emitted` becomes true only after `fetch()` begins. Without documented image-edit idempotency support, an ambiguous dispatch cannot be retried automatically.
+- `COMMIT`: pending; base `1555ce6`.
+- `CI_RUN`: pending.
+- `STAGING_SHA`: `47b53d491cc69b2e7a63dd5f3efb7bf054ebdc5e` (prior deployment).
+- `S19_PROVIDER_CALL_EMITTED`: false; `S19_REQUEST_ID`: null.
+- `S19_IMAGE_QA`: SOURCE_REPAIR_REQUIRED; `S19_KLING_REQUEST_ID`: null; `S19_VIDEO_QA`: NOT_STARTED.
+- `ASSEMBLY_GATE`: 8/9; `MASTER_STATUS`: NOT_STARTED.
+- `REAL_CALL_COUNTS`: original images 6, repair images 0, Kling 5.
+- `COST`: images USD 0.590649, Kling USD 1.155000.
+- `LOCAL_TESTS`: 83/83 PASS; provider calls 0.
+- `FIRST_PENDING_ACTION`: publish fix, require CI GREEN, then staging deploy and dry proof before one real S19 image request.

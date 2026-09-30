@@ -121,9 +121,10 @@ test("provider request emitted consumes one-shot and persists request id", async
   const repairs = [];
   const supabase = fakeSupabase(source, repairs);
   const result = await runPilotRepairCommand(commandArgs(supabase, fakeStore(), async ({
-    onPrepared, onProviderRequestEmitted, onProviderResponse,
+    onPrepared, onBeforeProviderDispatch, onProviderRequestEmitted, onProviderResponse,
   }) => {
     await onPrepared({ specification_id: "spec-repair-1", specification_hash: "spec-hash", request_hash: "request-hash" });
+    await onBeforeProviderDispatch({ specification_hash: "spec-hash", request_hash: "request-hash" });
     await onProviderRequestEmitted({ specification_hash: "spec-hash", request_hash: "request-hash" });
     await onProviderResponse({ provider_request_id: "req-repair-1" });
     return {
@@ -139,6 +140,25 @@ test("provider request emitted consumes one-shot and persists request id", async
   assert.equal(repairs[0].provider_request_id, "req-repair-1");
   assert.equal(repairs[0].result.lifecycle_state, LUMI_PILOT_REPAIR_LIFECYCLE.SUCCEEDED);
   assert.equal(providerAttemptConsumed(repairs[0]), true);
+});
+
+test("durable dispatch commit blocks restart before request ID exists", async () => {
+  const repairs = [];
+  const supabase = fakeSupabase(source, repairs);
+  await assert.rejects(runPilotRepairCommand(commandArgs(supabase, fakeStore(), async ({
+    onPrepared, onBeforeProviderDispatch,
+  }) => {
+    await onPrepared({ specification_id: "spec-repair-1", specification_hash: "spec-hash", request_hash: "request-hash" });
+    await onBeforeProviderDispatch({ specification_hash: "spec-hash", request_hash: "request-hash" });
+    throw new Error("process_lost_before_response");
+  })), /process_lost_before_response/);
+  assert.equal(repairs[0].provider_calls, 0);
+  assert.equal(repairs[0].result.provider_call_emitted, false);
+  assert.equal(repairs[0].result.lifecycle_state, LUMI_PILOT_REPAIR_LIFECYCLE.DISPATCH_UNCERTAIN);
+  assert.equal(providerAttemptConsumed(repairs[0]), true);
+  let resubmissions = 0;
+  await assert.rejects(runPilotRepairCommand(commandArgs(supabase, fakeStore(), async () => { resubmissions++; })), /provider_attempt_consumed/);
+  assert.equal(resubmissions, 0);
 });
 
 test("second provider attempt is rejected", async () => {

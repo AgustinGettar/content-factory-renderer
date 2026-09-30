@@ -1,0 +1,310 @@
+{
+  "version": "visual-qa/1.2",
+  "accepted": false,
+  "counts": {
+    "BLOCKER": 5,
+    "WARNING": 2,
+    "INFO": 0
+  },
+  "findings": [
+    {
+      "severity": "WARNING",
+      "code": "noncritical_extent_outside_safe",
+      "entity_id": "lumi",
+      "message": "lumi has only non-critical extent outside the pedagogical safe area"
+    },
+    {
+      "severity": "BLOCKER",
+      "code": "full_visibility_contract_failed",
+      "entity_id": "egg_01",
+      "message": "egg_01 must be fully visible, unoccluded and inside the pedagogical safe area"
+    },
+    {
+      "severity": "BLOCKER",
+      "code": "full_visibility_contract_failed",
+      "entity_id": "egg_02",
+      "message": "egg_02 must be fully visible, unoccluded and inside the pedagogical safe area"
+    },
+    {
+      "severity": "BLOCKER",
+      "code": "full_visibility_contract_failed",
+      "entity_id": "egg_03",
+      "message": "egg_03 must be fully visible, unoccluded and inside the pedagogical safe area"
+    },
+    {
+      "severity": "BLOCKER",
+      "code": "full_visibility_contract_failed",
+      "entity_id": "egg_04",
+      "message": "egg_04 must be fully visible, unoccluded and inside the pedagogical safe area"
+    },
+    {
+      "severity": "BLOCKER",
+      "code": "full_visibility_contract_failed",
+      "entity_id": "egg_05",
+      "message": "egg_05 must be fully visible, unoccluded and inside the pedagogical safe area"
+    },
+    {
+      "severity": "WARNING",
+      "code": "recognizable_entity_edge_proximity",
+      "entity_id": "gallina_amable",
+      "message": "gallina_amable remains recognizable but has non-critical extent outside the pedagogical inset"
+    }
+  ],
+  "observation": {
+    "width": 1152,
+    "height": 2048,
+    "environment_id": "garden_world_01",
+    "characters": [
+      {
+        "character_id": "lumi",
+        "identity_match": true,
+        "species_match": true,
+        "apparent_age_match": true,
+        "body_color": "warm_yellow",
+        "eye_color": "turquoise",
+        "antennae_count": 2,
+        "wing_count": 2,
+        "overalls_match": true,
+        "shoes_match": true,
+        "wand_match": true,
+        "extra_limbs": false,
+        "hands_ok": true,
+        "face_ok": true,
+        "uncanny": false,
+        "face_clutter": false
+      }
+    ],
+    "visible_prop_ids": [
+      "egg_01",
+      "egg_02",
+      "egg_03",
+      "egg_04",
+      "egg_05",
+      "lumi_wand_01",
+      "basket_01"
+    ],
+    "visible_entity_ids": [
+      "egg_01",
+      "egg_02",
+      "egg_03",
+      "egg_04",
+      "egg_05",
+      "lumi",
+      "lumi_wand_01",
+      "basket_01",
+      "gallina_amable"
+    ],
+    "entity_observations": {
+      "lumi": {
+        "visible": true,
+        "occluded": false,
+        "bounds": {
+          "x": 0.51,
+          "y": 0.34,
+          "width": 0.48,
+          "height": 0.4
+        },
+        "critical_regions": {
+          "face": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.61,
+              "y": 0.4,
+              "width": 0.27,
+              "height": 0.14
+            }
+          },
+          "eyes": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.66,
+              "y": 0.447,
+              "width": 0.2,
+              "height": 0.07
+            }
+          },
+          "active_hand": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.522,
+              "y": 0.482,
+              "width": 0.053,
+              "height": 0.033
+            }
+          }
+        }
+      },
+      "lumi_wand_01": {
+        "visible": true,
+        "occluded": false,
+        "bounds": {
+          "x": 0.488,
+          "y": 0.424,
+          "width": 0.075,
+          "height": 0.102
+        },
+        "critical_regions": {
+          "wand_star": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.488,
+              "y": 0.424,
+              "width": 0.075,
+              "height": 0.052
+            }
+          }
+        }
+      },
+      "gallina_amable": {
+        "visible": true,
+        "occluded": false,
+        "bounds": {
+          "x": 0.01,
+          "y": 0.36,
+          "width": 0.405,
+          "height": 0.339
+        },
+        "recognizable": true,
+        "critical_regions": {
+          "head": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.12,
+              "y": 0.36,
+              "width": 0.21,
+              "height": 0.18
+            }
+          },
+          "face": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.18,
+              "y": 0.418,
+              "width": 0.15,
+              "height": 0.103
+            }
+          },
+          "torso": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.018,
+              "y": 0.49,
+              "width": 0.3,
+              "height": 0.174
+            }
+          }
+        }
+      },
+      "basket_01": {
+        "visible": true,
+        "occluded": false,
+        "bounds": {
+          "x": 0.15,
+          "y": 0.704,
+          "width": 0.586,
+          "height": 0.11
+        },
+        "recognizable": true,
+        "critical_regions": {
+          "basket_body": {
+            "visible": true,
+            "occluded": false,
+            "bounds": {
+              "x": 0.15,
+              "y": 0.704,
+              "width": 0.586,
+              "height": 0.11
+            }
+          }
+        }
+      },
+      "egg_01": {
+        "visible": true,
+        "occluded": true,
+        "bounds": {
+          "x": 0.2,
+          "y": 0.721,
+          "width": 0.086,
+          "height": 0.063
+        },
+        "occlusion_evidence": "Lower shell/base is hidden behind the front woven basket rim; full egg contour is not visible."
+      },
+      "egg_02": {
+        "visible": true,
+        "occluded": true,
+        "bounds": {
+          "x": 0.29300000000000004,
+          "y": 0.723,
+          "width": 0.086,
+          "height": 0.063
+        },
+        "occlusion_evidence": "Lower shell/base is hidden behind the front woven basket rim; full egg contour is not visible."
+      },
+      "egg_03": {
+        "visible": true,
+        "occluded": true,
+        "bounds": {
+          "x": 0.386,
+          "y": 0.725,
+          "width": 0.086,
+          "height": 0.063
+        },
+        "occlusion_evidence": "Lower shell/base is hidden behind the front woven basket rim; full egg contour is not visible."
+      },
+      "egg_04": {
+        "visible": true,
+        "occluded": true,
+        "bounds": {
+          "x": 0.47900000000000004,
+          "y": 0.727,
+          "width": 0.086,
+          "height": 0.063
+        },
+        "occlusion_evidence": "Lower shell/base is hidden behind the front woven basket rim; full egg contour is not visible."
+      },
+      "egg_05": {
+        "visible": true,
+        "occluded": true,
+        "bounds": {
+          "x": 0.5720000000000001,
+          "y": 0.729,
+          "width": 0.086,
+          "height": 0.063
+        },
+        "occlusion_evidence": "Lower shell/base is hidden behind the front woven basket rim; full egg contour is not visible."
+      }
+    },
+    "unregistered_egg_count": 0,
+    "egg_count_verified": 5,
+    "child_safe": true,
+    "generated_text": false,
+    "logo_or_watermark": false,
+    "critical_crop": false,
+    "motion_ready": true,
+    "semantic_match": true,
+    "world_landmark_match": true,
+    "anatomy_constraints": {
+      "added_abdomen": false,
+      "tail": false,
+      "new_appendages": false,
+      "torso_deformation": false,
+      "silhouette_mutation": false
+    }
+  },
+  "qa_version": "visual-qa/1.2",
+  "status": "BLOCKER",
+  "blocker_count": 5,
+  "image_hash": "e2d6de1afd4b50a7e702c056bac9b1ea900203f16914d29f1cde8eb3bfc395aa",
+  "provider_request_id": "req_5b1627f296b441178296ef1e87826a8b",
+  "review_method": "Full-resolution visual inspection of downloaded hash-verified PNG",
+  "disposition": "NO_KLING_NO_RETRY_NO_VARIANT_NO_MASTER",
+  "reviewed_at": "2026-09-30T12:12:39.047Z",
+  "review_note": "Second observation corrects motion_ready: Lumi pose supports conservative animation; rejection is specifically five egg FULL visibility failures. Earlier QA retained as run_number=1."
+}

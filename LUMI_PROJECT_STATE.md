@@ -143,3 +143,40 @@ Telegram, Make, queues, publication, approval workflow, Draft→HD production, p
 - `S19_R2_KLING_CALLS`: `0`
 - `ASSEMBLY_GATE`: `8/9`; master not created.
 - `NEXT_ACTION`: `VALIDATE_DEPLOY_R2_MANUAL_RUNTIME`
+
+## S19-R2 terminal Visual QA checkpoint — 2026-09-30
+
+This checkpoint supersedes the historical NOT_EXECUTED and validation/deploy-pending entries above. Read the ledger before any action; never reissue R2 IMAGE.
+
+- `LAST_COMPLETED_ACTION`: sole authorized R2 image completed, downloaded/hash-verified and inspected. Visual QA BLOCKER persisted with both observations retained. R2 manual gate disabled and token cleared; restart deploy `dep-daufpe8jo6nc7388hsk0` LIVE, health 200, no subsequent provider execution. Original terminal records and production verified unchanged.
+- `FIRST_PENDING_ACTION`: `HUMAN_CREATIVE_DECISION_AFTER_S19_R2_SOURCE_BLOCKER`; no retries or automatic new revision. No remaining authorization permits Kling on this rejected image.
+- `SECURITY_FIX_DEPLOYED`: `true`; durable dispatch guard from source `6ccab97` remains deployed.
+- `STAGING_SHA`: `45ffec97ca026519a3233fd2afc38b45f326e6e8`
+- `STAGING_HEALTH`: `200`; LIVE; active video null; queue 0; auto-deploy OFF.
+- `VALIDATION`: CI `36712435502 GREEN`; focused tests `20/20 PASS`; zero real providers in tests.
+- `RUNNERS`: `LUMI_RUNTIME_ENV=staging`; pilot boot OFF; repair gate OFF; image runners OFF; Higgsfield runners OFF; AV2 benchmark boot OFF; production pilot OFF; isolated R2 manual gate OFF; manual token cleared; autorun=false.
+- `UNEXPECTED_PROVIDER_CALLS`: image `0`; Kling `0`; the explicitly authorized R2 image is accounted separately.
+- `PRODUCTION`: LIVE `main@5fe5556395829e78817771f96d33cce3f692965d`; health 200; deploy remains `dep-dako6lvqj5pc73d8qju0`; no new deploy or modification.
+- `S19_TERMINAL`: `true`; original repair/video claims, histories, provenance and IDs preserved without mutation or re-emission.
+- `S19_IMAGE_REQUEST_ID`: `req_a40559d461ef42b182d219bd813e1b30`
+- `S19_KLING_REQUEST_ID`: `78fcf851-ba90-4206-b5eb-c09c5825d243`
+- `S19_R2_DESIGN_STATUS`: `IMPLEMENTED_VALIDATED_EXECUTED_IMAGE_QA_BLOCKER_TERMINAL`
+- `S19_R2_TERMINAL`: `true`; creative revision `s19-r2`, pilot `lumi_cinco_huevos_v1_s19_r2`; not a retry of S19.
+- `S19_R2_IMAGE_LEDGER_ID`: `3dc857b5-1425-4527-a237-a3abf42b6a24`; provider status SUCCEEDED; `dispatch_consumed=true`; lifecycle `VISUAL_QA_BLOCKER_TERMINAL`. Provider success is not QA acceptance.
+- `S19_R2_IMAGE_REQUEST_ID`: `req_5b1627f296b441178296ef1e87826a8b`
+- `S19_R2_IMAGE_ASSET_ID`: `dd627c4b-b145-4edc-b5e8-475b7767f235`; status rejected; parent asset `883f54de-242d-4cd2-a80c-d1fc9999e8c0`.
+- `S19_R2_SOURCE_SHA256`: `e2d6de1afd4b50a7e702c056bac9b1ea900203f16914d29f1cde8eb3bfc395aa`; PNG 1152x2048.
+- `S19_R2_STORAGE`: `av2-assets-v2/090490f8-0e75-47ca-8a2c-5f3340c7f413/s19-r2/source/15d548e58fcb992fb9f488867964df9ca020a757f65662c085d4c50d5cdc0baf/source.png`.
+- `S19_R2_VISUAL_QA`: BLOCKER. Five distinct eggs are countable, but the front woven basket rim hides each egg's lower shell/base. All five full-visibility/no-occlusion contracts fail. Lumi anatomy/identity pass; two noncritical safe-inset warnings. Final QA V1.2 counts: 5 BLOCKER, 2 WARNING, 0 INFO. Observation 1 preserved; corrected motion-readiness observation preserved as run 2.
+- `S19_R2_QA_EVIDENCE`: `qa/s19-r2-visual-qa.json`; manual full-resolution observations and deterministic Visual QA evaluator results, also persisted in Supabase.
+- `S19_R2_IMAGE_CALLS`: `1`; sole IMAGE opportunity consumed and closed.
+- `S19_R2_IMAGE_ACTUAL_COST_USD`: `0.099242`, based on returned usage.
+- `S19_R2_KLING_CALLS`: `0`; no VIDEO ledger or request; ineligible because Visual QA failed.
+- `ASSEMBLY_GATE`: `8/9`
+- `MASTER_STATUS`: `NOT_STARTED`; `LUMI_PILOT_CINCO_HUEVOS_V1.mp4` and `SHORT_MASTER_MANIFEST_V1` not created. No audio generation or assembly.
+- `CUMULATIVE_CALL_COUNTS`: physical images 8 (original 6 + S19 repair 1 + R2 1); Kling 6 (unchanged).
+- `CUMULATIVE_COST`: actual images USD 0.788796; historical Kling booked/estimated USD 1.386000 (provider actual unavailable); combined actual-image plus booked-video total USD 2.174796. Do not call the video estimate actual spend.
+- `PROTECTED_SCOPE`: S13-S18 untouched; no Make, Telegram, social publication, production deployment, retry, variant, resubmit or master.
+- `CLOUD_ONLY_CONTINUATION`: latest user cloud-only instruction acknowledged; checkpoint closure uses GitHub, Render and Supabase connectors only, no user computer execution. No missing local-computer capability caused the stop; the creative QA gate caused it.
+- `FINAL_DISPOSITION`: `NO_KLING_NO_RETRY_NO_VARIANT_NO_MASTER`
+- `NEXT_ACTION`: `HUMAN_CREATIVE_DECISION_NO_PROVIDER_AUTHORIZATION`

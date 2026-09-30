@@ -5,6 +5,7 @@ import {
   SECOND_SHORT_SCENES,
   SECOND_SHORT_TTS_MAX_USD,
   SECOND_SHORT_VIDEO_MAX_USD,
+  budgetAllowsClaim,
   shouldRunSecondShortOnBoot,
 } from "../lib/lumi-second-short-v1.js";
 
@@ -20,4 +21,19 @@ test("second short boot runner is staging-only and defaults off", () => {
   assert.equal(shouldRunSecondShortOnBoot({ LUMI_RUNTIME_ENV: "production", LUMI_SECOND_SHORT_BOOT_ENABLED: "true", LUMI_SECOND_SHORT_BOOT_STAGE: "IMAGE" }), false);
   assert.equal(shouldRunSecondShortOnBoot({ LUMI_RUNTIME_ENV: "staging", LUMI_SECOND_SHORT_BOOT_ENABLED: "true", LUMI_SECOND_SHORT_BOOT_STAGE: "IMAGE" }), true);
   assert.equal(shouldRunSecondShortOnBoot({ LUMI_RUNTIME_ENV: "staging", LUMI_SECOND_SHORT_BOOT_ENABLED: "true", LUMI_SECOND_SHORT_BOOT_STAGE: "ASSEMBLY" }), false);
+});
+
+test("image budget permits the ninth claim after numeric(12,6) persistence rounding", () => {
+  assert.equal(budgetAllowsClaim({
+    booked: 8 * 0.098600,
+    priorCount: 8,
+    estimate: 0.0985995,
+    ceiling: SECOND_SHORT_IMAGE_MAX_USD,
+  }), true);
+  assert.equal(budgetAllowsClaim({
+    booked: 9 * 0.098600,
+    priorCount: 9,
+    estimate: 0.0985995,
+    ceiling: SECOND_SHORT_IMAGE_MAX_USD,
+  }), false);
 });

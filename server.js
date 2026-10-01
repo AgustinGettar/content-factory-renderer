@@ -75,6 +75,13 @@ import {
   secondShortStatus,
   shouldRunSecondShortOnBoot,
 } from "./lib/lumi-second-short-v1.js";
+import {
+  phase1RepairStatus,
+  provePhase1DryRepair,
+  recordPhase1SourceQa,
+  runPhase1SourceRepair,
+  validatePhase1RepairCommand,
+} from "./lib/lumi-second-short-repair-v1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -119,6 +126,7 @@ const LUMI_PRODUCTION_PILOT_IMAGE_MAX_USD = Number(process.env.LUMI_PRODUCTION_P
 const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD || "3.00");
 const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
 const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
+const LUMI_SECOND_SHORT_REPAIR_TOKEN = process.env.LUMI_SECOND_SHORT_REPAIR_TOKEN || LUMI_PRODUCTION_PILOT_TOKEN;
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -672,6 +680,8 @@ app.get("/health", (_req, res) => {
       higgsfield_benchmark_v1_1_autorun: false,
       lumi_production_pilot_v1_enabled: LUMI_PRODUCTION_PILOT_ENABLED,
       lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
+      lumi_second_short_repair_phase1_enabled: process.env.LUMI_SECOND_SHORT_REPAIR_PHASE1_ENABLED === "true",
+      lumi_second_short_repair_autorun: false,
     },
   });
 });
@@ -839,6 +849,83 @@ app.get("/pilots/lumi-jardin-formas-v1/status", async (req, res) => {
   if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try { return res.json({ ok: true, ...(await secondShortStatus({ supabase, includeReviewUrls: true })) }); }
   catch (error) { return res.status(500).json({ ok: false, error: error.code || error.message }); }
+});
+
+// Manual Phase 1 source-repair surface. It is staging-only, has no boot hook,
+// accepts only s22-r1 through s25-r1 IMAGE revisions, and never dispatches on GET.
+const secondShortRepairJobs = new Set();
+function secondShortRepairAuthorized(req) {
+  const supplied = String(req.headers["x-second-short-repair-token"] || "");
+  return LUMI_RUNTIME_ENV === "staging"
+    && LUMI_SECOND_SHORT_REPAIR_TOKEN.length >= 32
+    && supplied.length === LUMI_SECOND_SHORT_REPAIR_TOKEN.length
+    && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_REPAIR_TOKEN), Buffer.from(supplied));
+}
+
+app.get("/pilots/lumi-jardin-formas-v1/repairs/phase1/status", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, jobs: [...secondShortRepairJobs], ...(await phase1RepairStatus({ supabase, includeReviewUrls: true })) });
+  } catch (error) {
+    return res.status(503).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/repairs/phase1/dry-run", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const proof = await provePhase1DryRepair({
+      supabase,
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: req.body?.scene_id,
+      revision: req.body?.revision,
+    });
+    return res.json({ ok: true, ...proof });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/repairs/phase1/run", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const command = validatePhase1RepairCommand({
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: req.body?.scene_id,
+      revision: req.body?.revision,
+      stage: req.body?.stage || "IMAGE",
+    });
+    if (secondShortRepairJobs.size > 0) return res.status(409).json({ ok: false, error: "second_short_repair_serial_job_active", jobs: [...secondShortRepairJobs] });
+    secondShortRepairJobs.add(command.revision);
+    res.status(202).json({ ok: true, accepted: true, scene_id: command.sceneId, revision: command.revision, stage: command.stage, autorun: false });
+    runPhase1SourceRepair({
+      supabase,
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: command.sceneId,
+      revision: command.revision,
+      openAiApiKey: OPENAI_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: creativeLog,
+    }).catch((error) => console.error(`Lumi second-short ${command.revision} stopped: ${error.code || error.message}`))
+      .finally(() => secondShortRepairJobs.delete(command.revision));
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/repairs/phase1/source-qa", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordPhase1SourceQa({
+      supabase,
+      sceneId: req.body?.scene_id,
+      revision: req.body?.revision,
+      observation: req.body?.observation,
+    });
+    return res.json({ ok: true, visual_qa: result.visual_qa, video_source_readiness: result.video_source_readiness });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
 });
 
 // Staging-only, manually operated control surface. It never submits on load,

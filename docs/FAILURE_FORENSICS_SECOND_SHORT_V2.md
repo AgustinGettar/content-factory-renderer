@@ -101,3 +101,14 @@ The old Kling compiler appended a general temporal shape lock and a camera instr
 ## Cross-scene conclusion
 
 No evidence supports `QA_FALSE_POSITIVE` or `CHARACTER_ANATOMY_UNLOCKED` as the cause of these six blockers. The dominant failure was contract compilation: symbolic locks and prose intent were not converted into a closed, machine-checkable start state, source-readiness proof, motion allowlist, camera contract, and end state before provider claim.
+
+## Human-review pacing and layout addendum
+
+Human review identified a separate systemic risk outside the six provider blockers: the pilot's perceived pacing was approximately `0.75x`, and editorial text may not obscure Lumi. These findings do not alter the immutable six-scene failure classifications or authorize repairs. They add preventive gates:
+
+- every repaired Kling prompt uses natural real-time movement and forbids slow-motion/dreamy timing;
+- the second-short edit targets 43–47 seconds instead of filling 49 seconds;
+- only the `s27` response pause remains exactly 2.5 seconds;
+- captions and educational overlays require zero overlap with Lumi and critical teaching objects;
+- technical pause labels are suppressed from every visual text layer;
+- final layout and pacing remain `PENDING` until actual edited frames exist, so master creation is fail-closed.

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import {
   REQUIRED_CHARACTER_INVARIANTS,
@@ -13,6 +14,8 @@ import {
 
 const contractsPath = fileURLToPath(new URL("../episodes/ep_lumi_formas_002/VIDEO_GENERATION_CONTRACTS_V2.json", import.meta.url));
 const contracts = JSON.parse(await readFile(contractsPath, "utf8"));
+const dryPlanPath = fileURLToPath(new URL("../episodes/ep_lumi_formas_002/SIX_SCENE_DRY_REPAIR_PLAN_V2.json", import.meta.url));
+const dryPlan = JSON.parse(await readFile(dryPlanPath, "utf8"));
 const base = () => structuredClone(contracts.scenes.s22);
 let providerCalls = 0;
 
@@ -70,6 +73,12 @@ test("missing Lumi anatomy lock is rejected", () => {
   assert.ok(validateVideoGenerationReadiness(contract).errors.includes("MISSING_CHARACTER_ANATOMY_LOCK"));
 });
 
+test("missing natural real-time pacing contract is rejected", () => {
+  const contract = base();
+  delete contract.pacing_contract;
+  assert.ok(validateVideoGenerationReadiness(contract).errors.includes("MISSING_OR_INVALID_NATURAL_PACING_CONTRACT"));
+});
+
 test("PEDAGOGICAL_LOCKED scene with complex motion is rejected", () => {
   const contract = base();
   contract.allowed_motion.secondary_micro_motion = ["blink", "subtle_wings"];
@@ -100,6 +109,26 @@ test("valid simple scene passes and compiles fixed A-H blocks", () => {
   assert.match(prompt.text, /exactly two arms/);
   assert.match(prompt.text, /no object duplication/);
   assert.match(prompt.text, /static camera/);
+  assert.match(prompt.text, /Natural real-time motion/);
+  assert.match(prompt.text, /normal conversational gesture speed/);
+  assert.match(prompt.text, /No slow motion, no dreamy slow movement, and no prolonged pose holds/);
+});
+
+test("pedagogical pause stays natural and is the only explicit hold", () => {
+  const prompt = compileHiggsfieldPromptV2(contracts.scenes.s27);
+  assert.match(prompt.text, /explicit 2.5-second pedagogical response window/);
+  assert.match(prompt.text, /keep it visually alive with the allowed blink/);
+  assert.doesNotMatch(prompt.text, /one slow gaze shift/);
+});
+
+test("six-scene dry repair hashes match natural real-time compiled prompts", () => {
+  for (const repair of dryPlan.scenes) {
+    const prompt = compileHiggsfieldPromptV2(contracts.scenes[repair.scene_id]).text;
+    const hash = createHash("sha256").update(prompt).digest("hex");
+    assert.equal(repair.compiled_prompt_sha256, hash, repair.scene_id);
+    assert.match(prompt, /Natural real-time motion/);
+    assert.doesNotMatch(prompt, /one slow gaze shift/);
+  }
 });
 
 test("insufficient source confidence fails expected-value gate at zero cost", () => {

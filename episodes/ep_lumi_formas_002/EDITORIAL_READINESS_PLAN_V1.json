@@ -1,0 +1,67 @@
+{
+  "version": "lumi-editorial-readiness-plan/1.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "title": "Lumi y el jardín de las formas",
+  "status": "DESIGN_ONLY_MASTER_NOT_CREATED",
+  "provider_calls": {"image": 0, "kling": 0, "tts": 0, "total": 0},
+  "character_text_exclusion": {
+    "policy": "TEXT_OVER_LUMI_FORBIDDEN",
+    "gate": "CHARACTER_TEXT_EXCLUSION_ZONE",
+    "required_frame_inputs": ["Lumi_bbox_or_safe_region", "critical_educational_object_bboxes", "frame_safe_area", "candidate_text_regions"],
+    "priority": ["Lumi_completely_visible", "educational_object_visible", "text_inside_remaining_safe_area"],
+    "no_safe_region": ["reduce_text", "reposition_text", "suppress_optional_text", "fail_required_text_layout"],
+    "forbidden_fallback": "cover_Lumi",
+    "current_gate": "PENDING_FINAL_FRAME_BBOX_ANALYSIS"
+  },
+  "caption_qa_contract": {
+    "TEXT_CHARACTER_OVERLAP": 0,
+    "EDUCATIONAL_OBJECT_OVERLAP_WHEN_CRITICAL": 0,
+    "PEDAGOGICAL_PAUSE_TECHNICAL_LABEL_VISIBLE": false,
+    "SAFE_AREA": "PASS",
+    "READABILITY": "PASS",
+    "current_status": "PENDING_NO_MASTER"
+  },
+  "pedagogical_pause": {
+    "scene_id": "s27",
+    "duration_seconds": 2.5,
+    "technical_label_visible": false,
+    "caption_token_suppression": ["PAUSA", "Pausa", "pause", "wait", "hold", "espera"],
+    "visual_during_pause": ["question", "three_fixed_answer_shapes"],
+    "additional_pause_label": null,
+    "motion": "one_natural_blink_only_static_camera"
+  },
+  "natural_pacing": {
+    "PERCEIVED_PLAYBACK_SPEED": "NATURAL_1X",
+    "duration_target_seconds": {"minimum": 43, "preferred_estimate": 45.5, "maximum": 47},
+    "exact_duration_forced": false,
+    "preserve_only_explicit_duration": "s27_pedagogical_pause_2.5_seconds",
+    "clip_stretched_to_fill": false,
+    "uniform_master_speedup": false,
+    "scene_windows_seconds": {
+      "s21": 5.5,
+      "s22": 4.0,
+      "s23": 4.0,
+      "s24": 4.0,
+      "s25": 5.0,
+      "s26": 4.0,
+      "s27": 6.5,
+      "s28": 5.5,
+      "s29": 7.0
+    },
+    "scene_window_total_seconds": 45.5,
+    "transition_target_seconds": {"average": 0.18, "maximum_average": 0.3},
+    "qa_thresholds": {
+      "max_unjustified_STATIC_HOLD_DURATION": 0.75,
+      "max_UNNECESSARY_SILENCE_DURATION": 0.25,
+      "max_AVERAGE_TRANSITION_DURATION": 0.3,
+      "MOTION_PACING": "NATURAL_REAL_TIME",
+      "PERCEIVED_SPEED": "NATURAL_1X"
+    },
+    "current_status": "PENDING_NO_MASTER"
+  },
+  "master_gate": {
+    "id": "EDITORIAL_MASTER_READINESS_GATE_V1",
+    "status": "FAIL_CLOSED_PENDING_CAPTION_LAYOUT_AND_EDIT",
+    "master_allowed": false
+  }
+}

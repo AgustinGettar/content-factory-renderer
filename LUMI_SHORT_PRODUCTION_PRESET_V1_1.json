@@ -1,6 +1,6 @@
 {
   "preset_id": "LUMI_SHORT_PRODUCTION_PRESET_V1_1",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "derived_from": "LUMI_SHORT_PRODUCTION_PRESET_V1",
   "status": "READY_NOT_GLOBALLY_ACTIVE",
   "global_activation": false,
@@ -15,14 +15,11 @@
     "no_automatic_retries",
     "voice_profile_canonical",
     "music_SFX_policy",
-    "captions",
-    "educational_overlays",
-    "pedagogical_pause",
     "freeze_prevention"
   ],
   "video_generation_readiness_gate": {
     "id": "VIDEO_GENERATION_READINESS_GATE_V2",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "position": "before_provider_claim_and_before_any_Higgsfield_request",
     "required_blocks": [
       "CANONICAL_START_STATE",
@@ -31,7 +28,8 @@
       "ALLOWED_MOTION",
       "FORBIDDEN_TRANSFORMATIONS",
       "CAMERA_CONTRACT",
-      "END_STATE_CONTRACT"
+      "END_STATE_CONTRACT",
+      "NATURAL_REAL_TIME_PACING_CONTRACT"
     ],
     "failure_behavior": {
       "provider_call": false,
@@ -42,7 +40,7 @@
   },
   "higgsfield_prompt_compiler": {
     "id": "HIGGSFIELD_PROMPT_COMPILER_V2",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "free_form_prompt": false,
     "block_order": [
       "A_START_FRAME_AUTHORITY",
@@ -58,7 +56,15 @@
       "max_primary_character_actions": 1,
       "max_camera_moves": 1,
       "max_educational_focus_objects": "scene_plan_explicit_value"
-    }
+    },
+    "required_motion_language": [
+      "natural real-time motion",
+      "normal conversational gesture speed",
+      "natural blink/head/hand timing",
+      "no slow motion",
+      "no dreamy slow movement",
+      "no prolonged pose holds except an explicit pedagogical response window"
+    ]
   },
   "scene_risk_classifier": {
     "classes": ["LOW", "PEDAGOGICAL_LOCKED", "HIGH_COMPLEXITY"],
@@ -127,6 +133,46 @@
     "automatic_variants": 0,
     "silent_resubmits": 0,
     "provider_claim_created_only_after_all_readiness_gates_pass": true
+  },
+  "character_text_exclusion": {
+    "TEXT_OVER_LUMI": "FORBIDDEN",
+    "id": "CHARACTER_TEXT_EXCLUSION_ZONE",
+    "inputs": ["Lumi_bounding_box_or_safe_region", "critical_educational_object_bounding_boxes", "frame_safe_area", "candidate_text_regions"],
+    "layout_priority": ["Lumi_completely_visible", "educational_object_visible", "text_inside_remaining_safe_area"],
+    "no_safe_space_behavior": ["reduce_text", "reposition_text", "suppress_optional_text", "fail_required_text_layout"],
+    "forbidden_fallback": "cover_Lumi",
+    "caption_qa": {
+      "TEXT_CHARACTER_OVERLAP": 0,
+      "EDUCATIONAL_OBJECT_OVERLAP_WHEN_CRITICAL": 0,
+      "SAFE_AREA": "PASS",
+      "READABILITY": "PASS"
+    }
+  },
+  "pedagogical_pause_overlay_policy": {
+    "pause_is_timing_instruction_not_visual_content": true,
+    "technical_labels_visible": false,
+    "suppressed_tokens": ["PAUSA", "Pausa", "pause", "wait", "hold", "espera"],
+    "narration_may_follow_canonical_script": true,
+    "preferred_visual_during_pause": ["question", "answer_options_or_shapes", "no_additional_text"],
+    "required_pause_seconds": 2.5,
+    "qa": {"PEDAGOGICAL_PAUSE_TECHNICAL_LABEL_VISIBLE": false}
+  },
+  "editorial_master_readiness_gate": {
+    "id": "EDITORIAL_MASTER_READINESS_GATE_V1",
+    "version": "1.0.0",
+    "position": "after_caption_and_overlay_layout_before_master",
+    "PERCEIVED_PLAYBACK_SPEED": "NATURAL_1X",
+    "duration_target_seconds": {"minimum": 43, "maximum": 47, "force_exact_duration": false},
+    "do_not_solve_by": "uniform_master_speedup",
+    "correct_at": ["scene_plan_timing", "dialogue_density", "Kling_motion_direction", "clip_selection", "transition_timing", "silence_duration", "editorial_holds", "selective_retiming"],
+    "limits": {
+      "max_unjustified_static_hold_seconds": 0.75,
+      "max_unnecessary_silence_seconds": 0.25,
+      "max_average_transition_seconds": 0.3,
+      "clip_stretched_to_fill": false
+    },
+    "qa_fields": ["STATIC_HOLD_DURATION", "UNNECESSARY_SILENCE_DURATION", "AVERAGE_TRANSITION_DURATION", "MOTION_PACING", "PERCEIVED_SPEED"],
+    "block_if": ["PERCEIVED_SPEED_SLOW_without_pedagogical_justification", "caption_QA_not_PASS", "clip_stretched_to_fill"]
   },
   "recovery_manager": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",

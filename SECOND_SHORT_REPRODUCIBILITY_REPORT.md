@@ -18,6 +18,8 @@
 - `REPAIR_COST_USD=0.000000`
 - `MAX_PLANNED_REPAIR_INCREMENT_USD=1.780398`
 - `EXPECTED_TOTAL_BEFORE_TTS_IF_AUTHORIZED_USD=3.810748`
+- `NATURAL_DURATION_TARGET_SECONDS=43_TO_47_NOT_FORCED`
+- `NEW_COMPLETION_CEILING_REQUEST_USD=3.822498`
 - `PRODUCTION_MANIFEST_CEILING_USD=2.978645`
 - `COST_GATE=BLOCKED_BY_CEILING`
 - `VISUAL_QA_BLOCKERS=4`
@@ -42,13 +44,31 @@ The explicit repair review classified `s22`–`s25` as source-image-plus-video r
 - `CFG_SCALE_TUNING_REQUIRED=true`
 - `END_FRAME_MODE=NONE`
 - `LAST_IMAGE_URL_ENABLED=false`
-- `FOCUSED_TESTS=17/17_PASS`
+- `FOCUSED_TESTS=26/26_PASS`
 - `TEST_PROVIDER_CALLS=0`
-- `CI_RUN=36863860310`
+- `CI_RUN=36866322451`
 - `CI_RESULT=GREEN`
-- `VALIDATION_COMMIT=e65acc8249115cbf29713a9ae9b6572957e79145`
+- `VALIDATION_COMMIT=0e38f1f24ca94004f3adfa4f13b64e420a008111`
 - `REPAIR_AUTHORIZATION_GRANTED=false`
 
 The gate now executes before the persistent video claim. The source-image compiler uses an exact exclusive inventory instead of carrying the old three-pedestal continuity ambiguity. The six repair contracts compile, but the current sources for `s22`–`s25` remain terminal blockers. `s27` and `s29` require only a zero-provider source-readiness reinspection/backfill before their video-only repair can be dispatched.
 
 Minimum provider work is still four image repairs plus six Kling repairs after every gate passes. The implementation improves expected success qualitatively by rejecting bad sources and excessive motion at zero Kling cost; it does not justify a numeric success guarantee or reduce the unavoidable minimum call count. A phased authorization can cap the first step at `USD 0.394398` (four source repairs, total `USD 2.424748`) before any further Kling spend.
+
+## Human-review gates
+
+- `TEXT_OVER_LUMI=FORBIDDEN`
+- `CHARACTER_TEXT_EXCLUSION_ZONE=PASS_IMPLEMENTED_FAIL_CLOSED`
+- `TEXT_CHARACTER_OVERLAP=0_REQUIRED`
+- `EDUCATIONAL_OBJECT_OVERLAP_WHEN_CRITICAL=0_REQUIRED`
+- `PEDAGOGICAL_PAUSE_TECHNICAL_LABEL_VISIBLE=false`
+- `PERCEIVED_PLAYBACK_SPEED=NATURAL_1X`
+- `EDITORIAL_MASTER_READINESS_GATE_V1=PASS_IMPLEMENTED_FAIL_CLOSED_PENDING_EDIT`
+- `HIGGSFIELD_PROMPT_COMPILER_V2=2.1.0_NATURAL_REAL_TIME`
+- `FULL_LOCAL_SUITE=160/161_PASS`
+
+The six repair prompts were recompiled with natural real-time motion, normal conversational gesture speed, and explicit prohibitions on slow motion, dreamy movement, and prolonged holds. `s27` retains only its exact 2.5-second response window, static camera, and one natural blink. The dry plan also requires dynamic frame-level placement around Lumi and critical teaching objects and suppresses technical pause labels.
+
+The content-driven edit target is 43–47 seconds with a 45.5-second working estimate; no clip may be stretched merely to reach the old 49-second plan. At the USD 0.015/minute planning rate, TTS is estimated at USD 0.010750 for 43 seconds, USD 0.011375 for 45.5 seconds, and capped at USD 0.011750 for 47 seconds. This yields a new completion range estimate of USD 3.821498–3.822498 and a preferred estimate of USD 3.822123. No TTS call occurred.
+
+The full suite's only failure remains the unrelated absent external fixture `/workspace/scratch/f10a12ff9859/visual-benchmark-v1/lumi-master.png`. The focused zero-provider workflow passed on GitHub Actions run `36866322451`.

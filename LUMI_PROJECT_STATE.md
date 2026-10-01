@@ -17,10 +17,12 @@
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
 - `PRODUCTION_PRESET_V1_1=READY_NOT_GLOBALLY_ACTIVE`
-- `LAST_COMPLETED_ACTION=SECOND_SHORT_COST_OPTIMIZATION_V2_CI_GREEN`
+- `LAST_COMPLETED_ACTION=SECOND_SHORT_HUMAN_REVIEW_GATES_INTEGRATED_CI_GREEN`
 - `SECOND_SHORT_STATUS=REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
-- `SECOND_SHORT_DURATION=49.0`
+- `SECOND_SHORT_ORIGINAL_PLANNED_DURATION=49.0`
+- `SECOND_SHORT_EDITORIAL_TARGET_SECONDS=43_TO_47_CONTENT_DRIVEN`
+- `SECOND_SHORT_EDITORIAL_WORKING_ESTIMATE_SECONDS=45.5`
 - `SECOND_SHORT_SCENES=9/9_PLANNED`
 - `SECOND_SHORT_DRY_RUN=PASS`
 - `SECOND_SHORT_PROVIDER_CALLS_ACTUAL=14`
@@ -47,9 +49,14 @@
 - `HIGGSFIELD_PROMPT_COMPILER_V2=READY`
 - `VIDEO_SOURCE_READINESS_V1=READY`
 - `CFG_SCALE_TUNING_REQUIRED=true`
+- `TEXT_OVER_LUMI=FORBIDDEN`
+- `CHARACTER_TEXT_EXCLUSION_ZONE=READY_FAIL_CLOSED`
+- `PEDAGOGICAL_PAUSE_TECHNICAL_LABEL_VISIBLE=false`
+- `PERCEIVED_PLAYBACK_SPEED=NATURAL_1X`
+- `EDITORIAL_MASTER_READINESS_GATE_V1=READY_FAIL_CLOSED_PENDING_EDIT`
 - `VALIDATION_BRANCH=lumi-cost-optimization-v2`
-- `VALIDATION_COMMIT=e65acc8249115cbf29713a9ae9b6572957e79145`
-- `CI_RUN=36863860310`
+- `VALIDATION_COMMIT=0e38f1f24ca94004f3adfa4f13b64e420a008111`
+- `CI_RUN=36866322451`
 - `CI_RESULT=GREEN`
 
 ## Approved pilot authority
@@ -196,7 +203,7 @@ Required for every future authorized generation:
 
 - Episode: `ep_lumi_formas_002` — “Lumi y el jardín de las formas”
 - Educational objective: recognize circle, triangle and square.
-- Duration: `49.0 s`
+- Original plan duration: `49.0 s`; current editorial target: content-driven `43–47 s` with a `45.5 s` working estimate and no stretching to fill.
 - Scene plan: `9/9` compilation-ready scenes.
 - Real child-response pause: `2.5 s` in `s27`, with minimum visible micro-motion.
 - Final scene: low-complexity portrait close; three locked lantern props remain static.
@@ -279,7 +286,7 @@ Cost gate:
 - New expected total before TTS: `USD 3.810748`.
 - Production Manifest total ceiling: `USD 2.978645`.
 - Ceiling excess before TTS: `USD 0.832103`.
-- Projected total including the still-unspent TTS allowance: `USD 3.822998`, exceeding the manifest by `USD 0.844353`.
+- Historical projection using the old `49 s` TTS allowance: `USD 3.822998`, exceeding the manifest by `USD 0.844353`. This value is preserved as pre-optimization lineage and is superseded by the content-driven `43–47 s` estimate below.
 
 Result: `COST_GATE=BLOCKED`. Per the Production Manifest ceiling rule, no repair claim was created, no provider request was emitted, no retry/variant/resubmit occurred, and no repair artifact exists. Assembly remains `3/9`; TTS remains `0/9`; master remains `NOT_CREATED`.
 
@@ -307,7 +314,7 @@ Forensic result:
 Implemented on isolated validation branch `lumi-cost-optimization-v2`:
 
 - `VIDEO_GENERATION_READINESS_GATE_V2`: validates canonical start state, educational/character invariants, closed motion allowlist, forbidden transformations, camera contract, and exact end state before video claim.
-- `HIGGSFIELD_PROMPT_COMPILER_V2`: compiles fixed A–H blocks; no free-form provider prompt; one primary character action maximum and one camera move maximum.
+- `HIGGSFIELD_PROMPT_COMPILER_V2` V2.1: compiles fixed A–H blocks; no free-form provider prompt; one primary character action maximum, one camera move maximum, and mandatory natural real-time pacing language.
 - `VIDEO_SOURCE_READINESS_V1`: exact object set/count/geometry/position, visibility, overlap, anatomy, spacing, ambiguity, extraneous-object, and confidence checks.
 - `SCENE_RISK_CLASSIFIER`: `LOW`, `PEDAGOGICAL_LOCKED`, `HIGH_COMPLEXITY`; `s25` is high-complexity with mandatory mitigation, all other shape scenes are pedagogically locked.
 - `EXPECTED_VALUE_GATE`: fails before provider claim at `USD 0` if any invariant/source/complexity/compiler requirement is missing.
@@ -326,9 +333,9 @@ Six-scene zero-provider simulation:
 
 Validation:
 
-- Focused deterministic tests: `17/17 PASS`; provider calls `0`.
-- GitHub Actions: `GREEN`, run `36863860310`, commit `e65acc8249115cbf29713a9ae9b6572957e79145`.
-- Full local suite: `151/152 PASS`; the sole unrelated failure is an existing V1.1 benchmark test whose external local fixture `/workspace/scratch/f10a12ff9859/visual-benchmark-v1/lumi-master.png` is absent. The new CI workflow does not depend on that external fixture and passed.
+- Focused deterministic tests: `26/26 PASS`; provider calls `0`.
+- GitHub Actions: `GREEN`, run `36866322451`, commit `0e38f1f24ca94004f3adfa4f13b64e420a008111`.
+- Full local suite: `160/161 PASS`; the sole unrelated failure is an existing V1.1 benchmark test whose external local fixture `/workspace/scratch/f10a12ff9859/visual-benchmark-v1/lumi-master.png` is absent. The focused CI workflow does not depend on that external fixture and passed.
 
 Recalculated minimum remains structurally unchanged after all zero-cost gates pass:
 
@@ -336,16 +343,35 @@ Recalculated minimum remains structurally unchanged after all zero-cost gates pa
 - `MINIMUM_KLING_REPAIR_CALLS=6`
 - `MINIMUM_INCREMENTAL_COST_USD=1.780398`
 - `PROJECTED_PRE_TTS_USD=3.810748`
-- `PROJECTED_COMPLETION_USD=3.822998`
+- `NATURAL_DURATION_TARGET_SECONDS=43_TO_47_NOT_FORCED`
+- `PROJECTED_TTS_USD_AT_43_SECONDS=0.010750`
+- `PROJECTED_TTS_USD_AT_45_5_SECONDS=0.011375`
+- `PROJECTED_TTS_CEILING_USD_AT_47_SECONDS=0.011750`
+- `PROJECTED_COMPLETION_MINIMUM_NATURAL_RANGE_ESTIMATE_USD=3.821498`
+- `PROJECTED_COMPLETION_PREFERRED_ESTIMATE_USD=3.822123`
+- `NEW_COMPLETION_CEILING_REQUEST_USD=3.822498`
 - `EXPECTED_SUCCESS_RATE_IMPROVEMENT=QUALITATIVELY_HIGH` because invalid sources and over-complex contracts are now stopped before Kling, while repair prompts have closed inventories, motion, camera, and end states. This is not a numeric guarantee.
 
 Recommended authorization sequence, not authorized:
 
 1. Source repairs only: increment ceiling `USD 0.394398`; total ceiling `USD 2.424748`; Kling authorized `0`.
 2. Only after all six source gates pass: Kling increment ceiling `USD 1.386000`; total pre-TTS ceiling `USD 3.810748`.
-3. Only after `9/9` usable clips: TTS increment ceiling `USD 0.012250`; completion ceiling `USD 3.822998`.
+3. Only after `9/9` usable clips: TTS ceiling `USD 0.011750` based on the upper natural target of `47 s`; completion ceiling request `USD 3.822498`. This is a ceiling, never a reason to stretch the episode.
 
 Current result: `LUMI COST OPTIMIZATION — REPAIR AUTHORIZATION PENDING`.
+
+## Human-review layout and pacing optimization — 2026-10-01
+
+The permanent future preset and the current second-short dry repair plan now include:
+
+- `TEXT_OVER_LUMI=FORBIDDEN` and a deterministic `CHARACTER_TEXT_EXCLUSION_ZONE`; layout uses Lumi and critical-object bounding boxes, selects another readable safe region, suppresses optional text or fails required text if necessary, and never covers Lumi.
+- Caption QA requires `TEXT_CHARACTER_OVERLAP=0`, critical educational-object overlap `0`, `SAFE_AREA=PASS`, and `READABILITY=PASS` before master.
+- Technical timing labels (`PAUSA`, `pause`, `wait`, `hold`, `espera`) are suppressed from captions and overlays. During `s27`, the question and fixed answer shapes remain visible without an added pause label.
+- Every V2.1 Kling contract compiles natural real-time motion, normal conversational gesture speed, natural blink/head/hand timing, no slow motion, no dreamy movement, and no prolonged pose holds. The sole exception is the exact `2.5 s` child-response window in `s27`, kept alive with one natural blink and static camera.
+- The edit is content-driven with a `43–47 s` target and `45.5 s` working estimate. The old `49 s` plan is preserved as lineage but is no longer a fill target. Uniform master speedup and clip stretching are forbidden.
+- `EDITORIAL_MASTER_READINESS_GATE_V1` measures static holds, unnecessary silence, average transition duration, motion pacing, perceived speed, caption overlap, safe area, and readability. No master exists, so frame-level layout/pacing evidence remains fail-closed and pending.
+
+No image, Kling, TTS, repair claim, provider request, assembly, master, staging deploy, production deploy, or global preset activation occurred. `LUMI_RECOVERY_INCIDENT_MANAGER_V1` remains backlog-only.
 
 ## Backlog priority
 

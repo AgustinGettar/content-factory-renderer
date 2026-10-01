@@ -1,5 +1,5 @@
 {
-  "manifest_version": "lumi-second-short-recovery/1.0.0",
+  "manifest_version": "lumi-second-short-recovery/1.1.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
   "status": "REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2",
@@ -16,8 +16,8 @@
   },
   "validation": {
     "branch": "lumi-cost-optimization-v2",
-    "commit": "e65acc8249115cbf29713a9ae9b6572957e79145",
-    "ci_run": 36863860310,
+    "commit": "0e38f1f24ca94004f3adfa4f13b64e420a008111",
+    "ci_run": 36866322451,
     "ci_result": "GREEN",
     "deployed_to_staging": false,
     "global_activation": false
@@ -39,10 +39,12 @@
     "repair_actual": 0,
     "repair_max_planned_increment": 1.780398,
     "expected_total_before_tts_if_authorized": 3.810748,
-    "expected_total_with_tts_if_authorized": 3.822998,
+    "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47,"force_exact_duration":false},
+    "tts_estimate_natural_range": {"minimum_at_43_seconds":0.01075,"preferred_at_45_5_seconds":0.011375,"ceiling_at_47_seconds":0.01175},
+    "completion_estimate_natural_range": {"minimum":3.821498,"preferred":3.822123,"new_ceiling_request":3.822498},
     "production_manifest_ceiling": 2.978645,
     "ceiling_excess_before_tts": 0.832103,
-    "ceiling_excess_with_tts": 0.844353
+    "ceiling_excess_with_tts_at_47_seconds": 0.843853
   },
   "repair_authorization": {
     "type": "USER_EXPLICIT_CONTROLLED_REPAIR_REVISIONS",
@@ -67,10 +69,10 @@
     "s29": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three final props frontal, fixed, separated and unchanged."}
   },
   "cost_optimization_v2": {
-    "status": "DESIGN_IMPLEMENTED_TESTED_CI_GREEN",
+    "status": "DESIGN_IMPLEMENTED_HUMAN_REVIEW_GATES_ADDED_TESTED_CI_GREEN",
     "provider_calls": 0,
-    "video_generation_readiness_gate": "2.0.0",
-    "higgsfield_prompt_compiler": "2.0.0",
+    "video_generation_readiness_gate": "2.1.0",
+    "higgsfield_prompt_compiler": "2.1.0",
     "video_source_readiness": "1.0.0",
     "production_preset": "LUMI_SHORT_PRODUCTION_PRESET_V1_1",
     "production_preset_active": false,
@@ -100,8 +102,33 @@
     "phased_authorization_not_granted": [
       {"phase":"SOURCE_REPAIR_ONLY","increment_ceiling_usd":0.394398,"total_ceiling_usd":2.424748},
       {"phase":"KLING_AFTER_SOURCE_GATES_PASS","increment_ceiling_usd":1.386,"total_pre_tts_ceiling_usd":3.810748},
-      {"phase":"TTS_AFTER_9_OF_9_VIDEO_GATE","increment_ceiling_usd":0.01225,"completion_ceiling_usd":3.822998}
+      {"phase":"TTS_AFTER_9_OF_9_VIDEO_GATE","increment_ceiling_usd":0.01175,"completion_ceiling_usd":3.822498,"duration_basis_seconds":47,"do_not_stretch_to_ceiling":true}
     ]
+  },
+  "human_review_optimization": {
+    "provider_calls": 0,
+    "TEXT_OVER_LUMI": "FORBIDDEN",
+    "character_text_exclusion_zone": "READY_FAIL_CLOSED",
+    "caption_qa": {
+      "TEXT_CHARACTER_OVERLAP": 0,
+      "EDUCATIONAL_OBJECT_OVERLAP_WHEN_CRITICAL": 0,
+      "PEDAGOGICAL_PAUSE_TECHNICAL_LABEL_VISIBLE": false,
+      "SAFE_AREA": "PASS_REQUIRED",
+      "READABILITY": "PASS_REQUIRED",
+      "current_status": "PENDING_NO_MASTER"
+    },
+    "PERCEIVED_PLAYBACK_SPEED": "NATURAL_1X",
+    "editorial_master_readiness_gate": "1.0.0",
+    "editorial_gate_status": "FAIL_CLOSED_PENDING_FINAL_EDIT_AND_FRAME_BBOX_EVIDENCE",
+    "technical_pause_label_suppression": true,
+    "pedagogical_pause_seconds": 2.5,
+    "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47},
+    "clip_stretch_to_fill": false,
+    "uniform_master_speedup": false,
+    "focused_tests": {"passed":26,"total":26,"provider_calls":0},
+    "full_local_suite": {"passed":160,"total":161,"unrelated_missing_external_fixture":true},
+    "ci_run": 36866322451,
+    "ci_result": "GREEN"
   },
   "images": [
     {"scene_id":"s21","request_id":"req_c3e279a78db04ad2b755b241e022ce7d","sha256":"ad4bf863aa54b3f0690de0c3517948ff880502fec47ff15440141f9a7a1b767a","visual_qa":"PASS"},

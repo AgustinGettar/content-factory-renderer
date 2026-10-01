@@ -1,0 +1,39 @@
+{
+  "id": "EDUCATIONAL_GRAPHICS_LAYER_V1",
+  "version": "1.0.0",
+  "status": "DESIGN_READY_NOT_RUNTIME_ACTIVE",
+  "purpose": "Render exact pedagogical graphics locally instead of delegating deterministic geometry, color or placement to an image provider.",
+  "pipeline": [
+    "GENERATIVE_BACKGROUND_AND_LUMI",
+    "SOURCE_READINESS",
+    "EDUCATIONAL_GRAPHICS_LAYER_V1",
+    "DETERMINISTIC_COMPOSITE",
+    "FINAL_SOURCE_READINESS",
+    "KLING"
+  ],
+  "renderers": ["SVG", "local_vector_rasterizer", "deterministic_compositor"],
+  "supported_primitives": [
+    "circle",
+    "triangle",
+    "square",
+    "basic_geometric_shapes",
+    "numbers",
+    "letters",
+    "simple_educational_symbols"
+  ],
+  "contracts": {
+    "exact_geometry": true,
+    "exact_rgb_or_hex_color": true,
+    "deterministic_dimensions": true,
+    "deterministic_positioning": true,
+    "frame_safe_area": true,
+    "character_exclusion_zone": true,
+    "educational_object_exclusion_zones": true,
+    "TEXT_OVER_LUMI": "FORBIDDEN",
+    "TEXT_CHARACTER_OVERLAP": 0,
+    "technical_pause_labels_visible": false,
+    "natural_pacing": "NATURAL_1X"
+  },
+  "prohibited_tokens": ["PAUSA", "Pausa", "pause", "wait", "hold", "espera"],
+  "provider_policy": "Do not send deterministic shape, color, label or placement work to an image provider when the local renderer can solve it exactly."
+}

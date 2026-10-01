@@ -17,8 +17,8 @@
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
 - `PRODUCTION_PRESET_V1_1=READY_NOT_GLOBALLY_ACTIVE`
-- `LAST_COMPLETED_ACTION=PHASE1_SOURCE_REPAIRS_REVIEWED_AND_STOPPED`
-- `SECOND_SHORT_STATUS=PHASE1_SOURCE_REVIEW_PENDING`
+- `LAST_COMPLETED_ACTION=PARTIAL_EXACT_ARTIFACT_RECOVERY_AND_OFFLINE_S24_SALVAGE_PREVIEW`
+- `SECOND_SHORT_STATUS=SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_FAIL_CLOSED`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
 - `SECOND_SHORT_ORIGINAL_PLANNED_DURATION=49.0`
 - `SECOND_SHORT_EDITORIAL_TARGET_SECONDS=43_TO_47_CONTENT_DRIVEN`
@@ -37,8 +37,8 @@
 - `SECOND_SHORT_TTS_COMPLETE_COUNT=0`
 - `SECOND_SHORT_ASSEMBLY_GATE=BLOCKED_3_OF_9`
 - `SECOND_SHORT_MASTER_STATUS=NOT_CREATED`
-- `FIRST_PENDING_ACTION=HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED`
-- `NEXT_ACTION=HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED`
+- `FIRST_PENDING_ACTION=RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES`
+- `NEXT_ACTION=RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES`
 - `SECOND_SHORT_REPAIR_IMAGE_CALLS=4`
 - `SECOND_SHORT_REPAIR_VIDEO_CALLS=0`
 - `SECOND_SHORT_REPAIR_INCREMENTAL_COST_USD=0.391837`
@@ -438,3 +438,17 @@ Final Phase 1 gate:
 ## Do not touch without explicit authorization
 
 Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, runners, global preset activation, or any second episode generation.
+
+## Source salvage recovery checkpoint — 2026-10-02
+
+- Providers emitted by this checkpoint: image `0`, Kling `0`, TTS `0`.
+- Current accounted total remains `USD 2.422187`.
+- `s24-R1`: exact PNG recovered; SHA-256 `5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046` verified `PASS`.
+- `s25-R1`: exact PNG recovered; SHA-256 `991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1` verified `PASS`.
+- `s22-R1` and `s23-R1`: exact-byte recovery remains pending after expired persisted review URLs and an incomplete authenticated download flow. No unverified bytes were processed.
+- `s24-R1-S1`: zero-provider deterministic coral recolor preview created from the verified s24 artifact; original remains immutable; canonical promotion false; human review pending.
+- `s25`: deterministic alcove reconstruction rejected before execution because it would require background reconstruction plus new enclosure geometry, perspective and shadows. Original is a semantic `ACCEPT_WITH_HUMAN_WARNING` candidate only; no automatic override.
+- Semantic review: s22–s24 exact colors are not spoken and are not the educational objective; s25 alcoves are not spoken and the required moon/pennant/window examples are present and separated. All original automated blockers remain preserved.
+- `SOURCE_ASSET_SALVAGE_GATE_V1` and `EDUCATIONAL_GRAPHICS_LAYER_V1`: design added to the future preset, not runtime-active.
+- `SIX_SOURCE_GATES=FAIL_CLOSED` because s22/s23 recovery is incomplete and s25 has no explicit human warning decision.
+- Kling `0`; TTS `0`; assembly `3/9`; master `NOT_CREATED`; runners OFF; autorun false; production unchanged.

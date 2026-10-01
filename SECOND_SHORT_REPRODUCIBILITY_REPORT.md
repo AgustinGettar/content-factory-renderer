@@ -134,3 +134,14 @@ Offline reevaluation used the immutable original sources and their manifest hash
 - `s29`: hash `f4be008318fdc8123a8b526329b2c60b203d8806bc46f4e1f566412e2644ead7`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`; expected-value gate `PASS`; one natural wave plus blink, static camera, natural 1x.
 
 Because only two of six sources are ready, `SIX_SOURCE_GATES` is terminally `FAIL` for Phase 1. The manual Phase 1 execution flag was turned OFF after the fourth request. `LUMI_RECOVERY_INCIDENT_MANAGER_V1` remains backlog-only and unimplemented.
+
+## Zero-provider source salvage checkpoint — 2026-10-02
+
+- Exact recovery: s24-R1 `PASS`, s25-R1 `PASS`; both SHA-256 values match their authoritative ledger records.
+- Recovery pending: s22-R1 and s23-R1; expired review links were not rewritten and no unverified bytes were processed.
+- Semantic necessity: s22–s24 colors are `COSMETIC_ONLY` relative to the objective and narration; s25 alcove enclosure is `COSMETIC_ONLY_LAYOUT_DETAIL`, while the example identities/counts/separation are pedagogically required and present.
+- Derived preview: `s24-R1-S1`, deterministic masked coral recolor, provider cost `USD 0`, original immutable, human review pending.
+- s25 deterministic alcove composite: `FAIL_NOT_ATTEMPTED`; professional enclosure reconstruction is not feasible without background rebuilding. Original is an `ACCEPT_WITH_HUMAN_WARNING` candidate, not automatically accepted.
+- `SOURCE_ASSET_SALVAGE_GATE_V1` and `EDUCATIONAL_GRAPHICS_LAYER_V1` were added as design-only, non-active preset contracts.
+- Provider calls in checkpoint: image `0`, Kling `0`, TTS `0`.
+- `SIX_SOURCE_GATES=FAIL_CLOSED`; assembly `3/9`; master `NOT_CREATED`; total remains `USD 2.422187`.

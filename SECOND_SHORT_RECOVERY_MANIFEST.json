@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.1.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "PHASE1_SOURCE_REVIEW_PENDING",
+  "status": "SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_FAIL_CLOSED",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -211,7 +211,33 @@
     "status": "NOT_CREATED",
     "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
   },
-  "first_pending_action": "HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED",
+  "source_salvage_checkpoint": {
+    "recorded_at": "2026-10-02",
+    "provider_calls": {"image":0,"kling":0,"tts":0},
+    "artifact_recovery": {
+      "s22-r1": {"status":"RECOVERY_PENDING","hash_verification":"NOT_RUN_NO_BYTES"},
+      "s23-r1": {"status":"RECOVERY_PENDING","hash_verification":"NOT_RUN_NO_BYTES"},
+      "s24-r1": {"status":"RECOVERED","hash_verification":"PASS","sha256":"5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046"},
+      "s25-r1": {"status":"RECOVERED","hash_verification":"PASS","sha256":"991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1"}
+    },
+    "semantic_review": {
+      "s22-r1":"COSMETIC_ONLY_COLOR_HUMAN_REVIEW_CANDIDATE",
+      "s23-r1":"COSMETIC_ONLY_COLOR_HUMAN_REVIEW_CANDIDATE",
+      "s24-r1":"COSMETIC_ONLY_COLOR_LOCAL_SALVAGE_AVAILABLE",
+      "s25-r1":"COSMETIC_ONLY_LAYOUT_DETAIL_ACCEPT_WITH_HUMAN_WARNING_CANDIDATE"
+    },
+    "derived": {
+      "s24-r1-s1": {"status":"PREVIEW_HUMAN_REVIEW_PENDING","provider_cost_usd":0,"canonical_promotion":false}
+    },
+    "s25_local_salvage":"FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE",
+    "six_source_gates":"FAIL_CLOSED",
+    "assembly":"3/9",
+    "master_status":"NOT_CREATED",
+    "total_cost_usd":2.422187,
+    "runners":"OFF",
+    "autorun":false
+  },
+  "first_pending_action": "RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

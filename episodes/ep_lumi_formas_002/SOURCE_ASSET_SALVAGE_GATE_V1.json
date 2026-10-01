@@ -1,0 +1,41 @@
+{
+  "id": "SOURCE_ASSET_SALVAGE_GATE_V1",
+  "version": "1.0.0",
+  "status": "DESIGN_READY_NOT_RUNTIME_ACTIVE",
+  "position": "after_automated_source_QA_before_any_new_image_provider_claim",
+  "principle": "Not every prompt deviation is an educational blocker; preserve automated QA and add a separate traced salvage decision.",
+  "classifications": [
+    "ACCEPT_WITH_HUMAN_WARNING",
+    "DETERMINISTIC_COLOR_FIX",
+    "DETERMINISTIC_OVERLAY_FIX",
+    "DETERMINISTIC_COMPOSITE_FIX",
+    "GENERATIVE_REPAIR_REQUIRED"
+  ],
+  "last_resort": "GENERATIVE_REPAIR_REQUIRED",
+  "semantic_necessity": [
+    "PEDAGOGICALLY_REQUIRED",
+    "NARRATION_REQUIRED",
+    "CONTINUITY_REQUIRED",
+    "COSMETIC_ONLY"
+  ],
+  "rules": {
+    "preserve_original_automated_QA": true,
+    "human_override_automatic": false,
+    "derived_identity_required": true,
+    "provider_cost_for_local_salvage_usd": 0,
+    "block_provider_when_exact_bytes_unverified": true,
+    "block_provider_when_local_salvage_QA_fails": true,
+    "accept_with_human_warning_requires_explicit_human_decision": true
+  },
+  "blocker_definition": [
+    "educational_semantic_failure",
+    "narration_contradiction",
+    "major_continuity_failure",
+    "character_or_anatomy_failure",
+    "video_readiness_failure"
+  ],
+  "warning_definition": [
+    "visual_preference_deviation_without_teaching_impact",
+    "prompt_detail_deviation_without_narration_or_continuity_impact"
+  ]
+}

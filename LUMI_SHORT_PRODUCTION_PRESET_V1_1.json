@@ -174,6 +174,29 @@
     "qa_fields": ["STATIC_HOLD_DURATION", "UNNECESSARY_SILENCE_DURATION", "AVERAGE_TRANSITION_DURATION", "MOTION_PACING", "PERCEIVED_SPEED"],
     "block_if": ["PERCEIVED_SPEED_SLOW_without_pedagogical_justification", "caption_QA_not_PASS", "clip_stretched_to_fill"]
   },
+  "source_asset_salvage_gate": {
+    "id": "SOURCE_ASSET_SALVAGE_GATE_V1",
+    "version": "1.0.0",
+    "status": "DESIGN_READY_NOT_RUNTIME_ACTIVE",
+    "position": "after_automated_source_QA_before_any_new_image_provider_claim",
+    "preserve_original_automated_QA": true,
+    "human_override_automatic": false,
+    "classifications": ["ACCEPT_WITH_HUMAN_WARNING", "DETERMINISTIC_COLOR_FIX", "DETERMINISTIC_OVERLAY_FIX", "DETERMINISTIC_COMPOSITE_FIX", "GENERATIVE_REPAIR_REQUIRED"],
+    "last_resort": "GENERATIVE_REPAIR_REQUIRED",
+    "blocker_scope": ["educational_semantic_failure", "narration_contradiction", "major_continuity_failure", "character_or_anatomy_failure", "video_readiness_failure"],
+    "warning_scope": ["visual_preference_deviation_without_teaching_impact"]
+  },
+  "educational_graphics_layer": {
+    "id": "EDUCATIONAL_GRAPHICS_LAYER_V1",
+    "version": "1.0.0",
+    "status": "DESIGN_READY_NOT_RUNTIME_ACTIVE",
+    "pipeline": ["GENERATIVE_BACKGROUND_AND_LUMI", "SOURCE_READINESS", "EDUCATIONAL_GRAPHICS_LAYER_V1", "DETERMINISTIC_COMPOSITE", "FINAL_SOURCE_READINESS", "KLING"],
+    "renderers": ["SVG", "local_vector_rasterizer", "deterministic_compositor"],
+    "exact": ["geometry", "RGB_or_hex_color", "dimensions", "positioning"],
+    "exclusion_zones": ["frame_safe_area", "character", "critical_educational_objects"],
+    "TEXT_OVER_LUMI": "FORBIDDEN",
+    "TEXT_CHARACTER_OVERLAP": 0
+  },
   "recovery_manager": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

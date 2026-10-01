@@ -1,0 +1,174 @@
+{
+  "version": "lumi-video-generation-contracts/2.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "active_globally": false,
+  "cfg_scale_tuning_required": true,
+  "last_image_url_enabled": false,
+  "scenes": {
+    "s21": {
+      "version": "2.0.0",
+      "scene_id": "s21",
+      "educational_domain": "shapes",
+      "complexity_flags": [],
+      "max_educational_focus_objects": 3,
+      "canonical_start_state": {
+        "lumi": {"id":"lumi","count":1,"position":"left_foreground"},
+        "props": [{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],
+        "educational_objects": [
+          {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+          {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+          {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+        ]
+      },
+      "educational_invariants": [
+        {"object_id":"lantern_circle","rule":"circle_remains_circle_rigid_no_oval_no_morph"},
+        {"object_id":"lantern_triangle","rule":"triangle_remains_exactly_3_sided_rigid_no_morph"},
+        {"object_id":"lantern_square","rule":"square_remains_4_equal_sided_no_rectangle_or_trapezoid"}
+      ],
+      "character_invariants": ["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion": {"primary_character_actions":["wave_once"],"secondary_micro_motion":[]},
+      "forbidden_transformations": ["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract": {"single_continuous_shot":true,"multi_shots":false,"moves":["subtle_push_in"]},
+      "end_state_contract": {"lumi_visible":true,"visible_intact_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE",
+      "risk_mitigation":[],
+      "source_image_requirements":{"minimum_confidence":0.95}
+    },
+    "s22": {
+      "version":"2.0.0","scene_id":"s22","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":1,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"left_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[{"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"center_pedestal","fully_visible":true}]},
+      "educational_invariants":[{"object_id":"lantern_circle","rule":"circle_remains_circle_rigid_no_oval_no_disappearance_no_duplicate_no_morph"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["point_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[{"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"center_pedestal","fully_visible":true}]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.98}
+    },
+    "s23": {
+      "version":"2.0.0","scene_id":"s23","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":1,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"left_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[{"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true}]},
+      "educational_invariants":[{"object_id":"lantern_triangle","rule":"triangle_remains_exactly_3_sided_rigid_no_fourth_side_no_disappearance_no_duplicate_no_morph"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["small_wand_trace_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[{"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true}]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.98}
+    },
+    "s24": {
+      "version":"2.0.0","scene_id":"s24","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":1,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"left_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[{"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"center_pedestal","fully_visible":true}]},
+      "educational_invariants":[{"object_id":"lantern_square","rule":"square_remains_4_equal_sided_rigid_no_rectangle_no_trapezoid_no_disappearance_no_duplicate_no_morph"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["present_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[{"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"center_pedestal","fully_visible":true}]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.98}
+    },
+    "s25": {
+      "version":"2.0.0","scene_id":"s25","educational_domain":"object_identity","complexity_flags":["multiple_distinct_examples","multi_object_identity_mapping"],"max_educational_focus_objects":3,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"lower_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[
+        {"id":"moon_disc","count":1,"geometry":"moon_disc_circular","position":"left_alcove","fully_visible":true},
+        {"id":"pennant_triangle","count":1,"geometry":"pennant_triangle_exactly_3_visible_sides","position":"center_alcove","fully_visible":true},
+        {"id":"window_square","count":1,"geometry":"window_square_4_equal_visible_sides","position":"right_alcove","fully_visible":true}
+      ]},
+      "educational_invariants":[
+        {"object_id":"moon_disc","rule":"moon_disc_identity_and_circular_geometry_remain_constant"},
+        {"object_id":"pennant_triangle","rule":"pennant_identity_and_exactly_3_sided_geometry_remain_constant"},
+        {"object_id":"window_square","rule":"window_identity_and_square_geometry_remain_constant"}
+      ],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["gaze_shift_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[
+        {"id":"moon_disc","count":1,"geometry":"moon_disc_circular","position":"left_alcove","fully_visible":true},
+        {"id":"pennant_triangle","count":1,"geometry":"pennant_triangle_exactly_3_visible_sides","position":"center_alcove","fully_visible":true},
+        {"id":"window_square","count":1,"geometry":"window_square_4_equal_visible_sides","position":"right_alcove","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE","risk_mitigation":["static_camera","objects_spatially_separated","no_educational_object_motion","single_character_action"],"source_image_requirements":{"minimum_confidence":0.99}
+    },
+    "s26": {
+      "version":"2.0.0","scene_id":"s26","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":3,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"lower_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "educational_invariants":[{"object_id":"lantern_circle","rule":"circle_remains_circle_rigid"},{"object_id":"lantern_triangle","rule":"triangle_remains_exactly_3_sided_rigid"},{"object_id":"lantern_square","rule":"square_remains_4_equal_sided_rigid"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["gaze_shift_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.98}
+    },
+    "s27": {
+      "version":"2.0.0","scene_id":"s27","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":3,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"lower_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "educational_invariants":[{"object_id":"lantern_circle","rule":"circle_remains_frontal_fixed_and_readable"},{"object_id":"lantern_triangle","rule":"triangle_remains_frontal_fixed_exactly_3_sided_and_readable"},{"object_id":"lantern_square","rule":"square_remains_frontal_fixed_4_equal_sided_and_readable"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":[],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.99}
+    },
+    "s28": {
+      "version":"2.0.0","scene_id":"s28","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":3,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"lower_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "educational_invariants":[{"object_id":"lantern_circle","rule":"circle_remains_circle_and_is_the_only_highlighted_object"},{"object_id":"lantern_triangle","rule":"triangle_remains_exactly_3_sided_fixed_and_unhighlighted"},{"object_id":"lantern_square","rule":"square_remains_4_equal_sided_fixed_and_unhighlighted"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["point_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_pedestal","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.99}
+    },
+    "s29": {
+      "version":"2.0.0","scene_id":"s29","educational_domain":"shapes","complexity_flags":[],"max_educational_focus_objects":3,
+      "canonical_start_state":{"lumi":{"id":"lumi","count":1,"position":"center_foreground"},"props":[{"id":"lumi_star_wand","count":1,"position":"lumi_right_hand"}],"educational_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_background_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_background_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_background_pedestal","fully_visible":true}
+      ]},
+      "educational_invariants":[{"object_id":"lantern_circle","rule":"circle_remains_frontal_fixed_separated_and_readable"},{"object_id":"lantern_triangle","rule":"triangle_remains_frontal_fixed_separated_exactly_3_sided_and_readable"},{"object_id":"lantern_square","rule":"square_remains_frontal_fixed_separated_4_equal_sided_and_readable"}],
+      "character_invariants":["canonical_face","canonical_silhouette","exactly_two_arms","exactly_two_legs","exactly_two_wings","exactly_two_antennae","no_tail","no_additional_abdomen","no_extra_appendages","no_clothing_mutation"],
+      "allowed_motion":{"primary_character_actions":["wave_once"],"secondary_micro_motion":["blink"]},
+      "forbidden_transformations":["no_object_duplication","no_object_disappearance","no_object_fusion","no_object_morphing","no_additional_shapes","no_additional_limbs","no_body_transformation","no_geometry_change"],
+      "camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "end_state_contract":{"lumi_visible":true,"visible_intact_objects":[
+        {"id":"lantern_circle","count":1,"geometry":"circle_rigid_zero_corners","position":"left_background_pedestal","fully_visible":true},
+        {"id":"lantern_triangle","count":1,"geometry":"triangle_rigid_exactly_3_visible_sides","position":"center_background_pedestal","fully_visible":true},
+        {"id":"lantern_square","count":1,"geometry":"square_rigid_4_equal_visible_sides","position":"right_background_pedestal","fully_visible":true}
+      ]},
+      "end_frame_mode":"NONE","risk_mitigation":[],"source_image_requirements":{"minimum_confidence":0.99}
+    }
+  }
+}

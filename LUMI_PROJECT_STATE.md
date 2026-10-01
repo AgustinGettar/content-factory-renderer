@@ -16,16 +16,31 @@
 - `HUMAN_REVIEW=APPROVED`
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
-- `LAST_COMPLETED_ACTION=FREEZE_PRODUCTION_PRESET_V1`
-- `SECOND_SHORT_STATUS=READY_FOR_EXECUTION`
+- `LAST_COMPLETED_ACTION=SECOND_SHORT_REPAIR_FORENSICS_AND_COST_GATE`
+- `SECOND_SHORT_STATUS=REPAIR_BLOCKED_BY_APPROVED_BUDGET_CEILING`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
 - `SECOND_SHORT_DURATION=49.0`
 - `SECOND_SHORT_SCENES=9/9_PLANNED`
 - `SECOND_SHORT_DRY_RUN=PASS`
-- `SECOND_SHORT_PROVIDER_CALLS_ACTUAL=0`
-- `SECOND_SHORT_MULTIMEDIA_AUTHORIZED=false`
-- `FIRST_PENDING_ACTION=AUTHORIZE_SECOND_SHORT_EXECUTION`
-- `NEXT_ACTION=AUTHORIZE_SECOND_SHORT_EXECUTION`
+- `SECOND_SHORT_PROVIDER_CALLS_ACTUAL=14`
+- `SECOND_SHORT_MULTIMEDIA_AUTHORIZED=true`
+- `SECOND_SHORT_IMAGE_CALLS=9`
+- `SECOND_SHORT_KLING_CALLS=5`
+- `SECOND_SHORT_TTS_CALLS=0`
+- `SECOND_SHORT_TOTAL_COST_USD=2.030350`
+- `SECOND_SHORT_IMAGE_COMPLETE_COUNT=9`
+- `SECOND_SHORT_VIDEO_COMPLETE_COUNT=5`
+- `SECOND_SHORT_VIDEO_USABLE_COUNT=3`
+- `SECOND_SHORT_TTS_COMPLETE_COUNT=0`
+- `SECOND_SHORT_ASSEMBLY_GATE=BLOCKED_3_OF_9`
+- `SECOND_SHORT_MASTER_STATUS=NOT_CREATED`
+- `FIRST_PENDING_ACTION=EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE`
+- `NEXT_ACTION=EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE`
+- `SECOND_SHORT_REPAIR_IMAGE_CALLS=0`
+- `SECOND_SHORT_REPAIR_VIDEO_CALLS=0`
+- `SECOND_SHORT_REPAIR_INCREMENTAL_COST_USD=0.000000`
+- `SECOND_SHORT_REPAIR_MAX_PLANNED_INCREMENT_USD=1.780398`
+- `SECOND_SHORT_REPAIR_MAX_PLANNED_TOTAL_PRE_TTS_USD=3.810748`
 
 ## Approved pilot authority
 
@@ -165,7 +180,7 @@ Required for every future authorized generation:
 - Make: unchanged
 - Queues: unchanged
 - Publication: not started
-- Second episode: not started
+- Second episode: repair package blocked by the approved budget ceiling; no repair provider calls emitted
 
 ## Second validation short
 
@@ -189,6 +204,89 @@ Artifacts:
 - `episodes/ep_lumi_formas_002/DRY_RUN_REPORT.json`
 
 Production remains `main@5fe5556`, runners OFF, autorun false, global preset activation OFF.
+
+## Second-short execution recovery — 2026-09-30
+
+- Staging service: `content-factory-av2-staging`
+- Staging status: `LIVE`
+- Staging commit: `a896c0bf3da2448aa5876c9ac34f176ddc1d638a`
+- Runner: `OFF`
+- autorun: `false`
+- Images: `9/9` generated, one call per scene, no retries, no variants.
+- Visual QA PASS: `s21`, `s26`, `s27`, `s28`, `s29`.
+- Visual QA BLOCKER: `s22`, `s23`, `s24`, `s25`.
+- Kling: `5` calls only for Visual-QA-approved images.
+- Temporal QA PASS/usable: `s21`, `s26`, `s28`.
+- Temporal QA BLOCKER: `s27`, `s29`.
+- TTS: `0`; not started because assembly gate failed.
+- Assembly gate: `BLOCKED`, usable clips `3/9`.
+- Master: not created; no false or partial master.
+- Actual image cost: `USD 0.875350`.
+- Accounted Kling cost: `USD 1.155000`.
+- Total accounted cost: `USD 2.030350`.
+- Automatic retries: `0`.
+- Automatic variants: `0`.
+- Resubmits: `0`.
+- Final master freeze QA: not applicable; master does not exist.
+- Generated clips freeze scan: no freeze or black-frame segments detected.
+- Production remains `main@5fe5556`, unchanged and LIVE.
+
+Visual blockers are immutable:
+
+- `s22`: triangle and square remained present in the single-circle teaching scene.
+- `s23`: circle and square remained present in the single-triangle teaching scene.
+- `s24`: circle and triangle remained present in the single-square teaching scene.
+- `s25`: required moon, pennant and square-window examples were missing; shape lanterns were substituted.
+
+Temporal blockers are immutable:
+
+- `s27`: triangle and square rotate edge-on, lose readable side counts and do not remain fixed answer options.
+- `s29`: triangle and square rotate edge-on and the final prop group reconfigures despite the lock.
+
+No blocked scene may be regenerated or resubmitted without a new explicit repair authorization.
+
+## Second-short explicit repair review and cost gate — 2026-10-01
+
+The user explicitly authorized one controlled repair revision for each of `s22`, `s23`, `s24`, `s25`, `s27`, and `s29`. The original artifacts, provider request IDs, hashes, QA records, and terminal classifications remain immutable.
+
+Forensic classification from persisted QA records:
+
+- `s22`: `SOURCE_IMAGE_REPAIR`; original image is terminal `BLOCKER` because triangle and square are present in a single-circle teaching scene. Minimal repair: retain Lumi and the twilight garden while showing only one unmistakable blue circle lantern; then generate one video revision.
+- `s23`: `SOURCE_IMAGE_REPAIR`; original image is terminal `BLOCKER` because circle and square are present in a single-triangle teaching scene. Minimal repair: retain Lumi and the twilight garden while showing only one unmistakable yellow triangle with exactly three visible sides; then generate one video revision.
+- `s24`: `SOURCE_IMAGE_REPAIR`; original image is terminal `BLOCKER` because circle and triangle are present in a single-square teaching scene. Minimal repair: retain Lumi and the twilight garden while showing only one unmistakable coral square with four equal readable sides; then generate one video revision.
+- `s25`: `SOURCE_IMAGE_REPAIR`; original image is terminal `BLOCKER` because the required moon, triangular pennant, and square window are absent and shape lanterns were substituted. Minimal repair: use the three planned real-world examples in separate alcoves, without lantern substitution; then generate one video revision.
+- `s27`: `VIDEO_REPAIR_ONLY`; the original source image remains Visual QA `PASS`. The original video is terminal `BLOCKER` because triangle and square rotate edge-on and the three answer options do not remain fixed. Minimal repair: reuse the approved source image and generate one conservative video revision with all three options frontal, fixed, separated, and readable.
+- `s29`: `VIDEO_REPAIR_ONLY`; the original source image remains Visual QA `PASS`. The original video is terminal `BLOCKER` because triangle and square rotate edge-on and the final prop group reconfigures. Minimal repair: reuse the approved source image and generate one conservative video revision with all three final props frontal, fixed, separated, and unchanged.
+
+Cost gate:
+
+- Required image repairs: `4`.
+- Required Kling repairs: `6`.
+- Image repair maximum: `4 × USD 0.0985995 = USD 0.394398`.
+- Kling repair maximum: `6 × USD 0.231000 = USD 1.386000`.
+- Maximum repair increment: `USD 1.780398`.
+- Current accounted cost: `USD 2.030350`.
+- New expected total before TTS: `USD 3.810748`.
+- Production Manifest total ceiling: `USD 2.978645`.
+- Ceiling excess before TTS: `USD 0.832103`.
+- Projected total including the still-unspent TTS allowance: `USD 3.822998`, exceeding the manifest by `USD 0.844353`.
+
+Result: `COST_GATE=BLOCKED`. Per the Production Manifest ceiling rule, no repair claim was created, no provider request was emitted, no retry/variant/resubmit occurred, and no repair artifact exists. Assembly remains `3/9`; TTS remains `0/9`; master remains `NOT_CREATED`.
+
+Repair status by scene:
+
+- `s22=AWAITING_BUDGET_CEILING_EXTENSION_SOURCE_IMAGE_THEN_VIDEO`
+- `s23=AWAITING_BUDGET_CEILING_EXTENSION_SOURCE_IMAGE_THEN_VIDEO`
+- `s24=AWAITING_BUDGET_CEILING_EXTENSION_SOURCE_IMAGE_THEN_VIDEO`
+- `s25=AWAITING_BUDGET_CEILING_EXTENSION_SOURCE_IMAGE_THEN_VIDEO`
+- `s27=AWAITING_BUDGET_CEILING_EXTENSION_VIDEO_ONLY`
+- `s29=AWAITING_BUDGET_CEILING_EXTENSION_VIDEO_ONLY`
+
+## Backlog priority
+
+- `BACKLOG_PRIORITY=LUMI_RECOVERY_INCIDENT_MANAGER_V1`
+- Future purpose: safely detect provider balance/quota/auth/outage failures, Render/Supabase/storage failures, exhausted budgets, invalid artifacts, stuck processing, and external timeouts; persist an exact checkpoint; prevent duplicate provider calls; notify Telegram with episode, scene, stage, cause, and required action; expose `RESUME`, `/status`, `/resume`, and `/cancel` or equivalent callbacks; resume strictly from `FIRST_PENDING_ACTION` without restarting the episode.
+- Implementation status: `BACKLOG_ONLY_NOT_IMPLEMENTED`.
 
 ## Do not touch without explicit authorization
 

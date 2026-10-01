@@ -1,0 +1,131 @@
+{
+  "version": "lumi-six-scene-dry-repair/2.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "generated_without_providers": true,
+  "provider_calls": {"image":0,"kling":0,"tts":0,"total":0},
+  "policy": {
+    "readiness_gate": "VIDEO_GENERATION_READINESS_GATE_V2",
+    "prompt_compiler": "HIGGSFIELD_PROMPT_COMPILER_V2",
+    "source_gate": "VIDEO_SOURCE_READINESS_V1",
+    "end_frame_mode": "NONE",
+    "last_image_url": false,
+    "cfg_scale_changed": false
+  },
+  "common_forbidden_changes": [
+    "no_object_duplication",
+    "no_object_disappearance",
+    "no_object_fusion",
+    "no_object_morphing",
+    "no_additional_shapes",
+    "no_additional_limbs",
+    "no_body_transformation",
+    "no_geometry_change"
+  ],
+  "scenes": [
+    {
+      "scene_id":"s22",
+      "old_failure":"Extra triangle and square remained in the single-circle source image.",
+      "new_source_requirements":"Exactly one fully visible blue rigid circle lantern at center_pedestal; no triangle, no square, no other educational object; clean canonical Lumi anatomy; sufficient separation.",
+      "new_allowed_motion":{"primary":["point_once"],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no oval transformation and no unlisted object",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"Lumi and the same one circle remain visible, intact, centered, and unchanged.",
+      "compiled_prompt_sha256":"2508d5eacddbc8c38a36ecc72679288fa239f283d06234aece1dc507335a5124",
+      "contract_gate":"PASS",
+      "source_gate":"FAIL_CURRENT_SOURCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"SOURCE_HAS_EXTRANEOUS_EDUCATIONAL_OBJECTS",
+      "next_zero_cost_action":"None; source repair must exist and pass VIDEO_SOURCE_READINESS_V1 before Kling."
+    },
+    {
+      "scene_id":"s23",
+      "old_failure":"Extra circle and square remained in the single-triangle source image.",
+      "new_source_requirements":"Exactly one fully visible yellow rigid triangle at center_pedestal with exactly three visible sides; no circle, no square, no other educational object.",
+      "new_allowed_motion":{"primary":["small_wand_trace_once"],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no fourth side and no unlisted object",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"Lumi and the same one exactly-three-sided triangle remain visible, frontal, intact, and unchanged.",
+      "compiled_prompt_sha256":"a27164e5052778d2e7b214824c13057517846dd622d8d8d59063e615eb17da32",
+      "contract_gate":"PASS",
+      "source_gate":"FAIL_CURRENT_SOURCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"SOURCE_HAS_EXTRANEOUS_EDUCATIONAL_OBJECTS",
+      "next_zero_cost_action":"None; source repair must exist and pass VIDEO_SOURCE_READINESS_V1 before Kling."
+    },
+    {
+      "scene_id":"s24",
+      "old_failure":"Extra circle and triangle remained in the single-square source image.",
+      "new_source_requirements":"Exactly one fully visible coral rigid square at center_pedestal with four equal readable sides; no circle, no triangle, no other educational object.",
+      "new_allowed_motion":{"primary":["present_once"],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no rectangle/trapezoid transformation and no unlisted object",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"Lumi and the same one four-equal-sided square remain visible, frontal, intact, and unchanged.",
+      "compiled_prompt_sha256":"b8b0d88756a50c0371b4ea9a67dfdce384e085e1421f5fe75685f25c9c4c2107",
+      "contract_gate":"PASS",
+      "source_gate":"FAIL_CURRENT_SOURCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"SOURCE_HAS_EXTRANEOUS_EDUCATIONAL_OBJECTS",
+      "next_zero_cost_action":"None; source repair must exist and pass VIDEO_SOURCE_READINESS_V1 before Kling."
+    },
+    {
+      "scene_id":"s25",
+      "old_failure":"Moon, triangular pennant, and square window were absent; shape lanterns were substituted.",
+      "new_source_requirements":"Exactly one circular moon disc in left_alcove, one exactly-three-sided pennant in center_alcove, and one square window in right_alcove; all fully visible and spatially separated; zero lantern substitutes.",
+      "new_allowed_motion":{"primary":["gaze_shift_once"],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no identity substitution and no educational-object motion",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"Lumi plus the same moon, pennant, and window remain visible in their named alcoves with identities and geometry unchanged.",
+      "compiled_prompt_sha256":"19dbbdfb0bdb59d399c1c69a523fd99b21199c5f1cdf0c49b9f41c53774f63f4",
+      "contract_gate":"PASS_HIGH_COMPLEXITY_MITIGATED",
+      "source_gate":"FAIL_CURRENT_SOURCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"SOURCE_REQUIRED_ELEMENTS_MISSING_AND_IDENTITY_SUBSTITUTED",
+      "next_zero_cost_action":"None; a corrected source is required before any Kling claim."
+    },
+    {
+      "scene_id":"s27",
+      "old_failure":"Triangle and square rotated edge-on, lost readable side counts, and answer options reconfigured.",
+      "new_source_requirements":"Reuse the immutable Visual-QA-PASS source only after a VIDEO_SOURCE_READINESS_V1 record verifies the exact three frontal, fixed, separated options and clean Lumi anatomy.",
+      "new_allowed_motion":{"primary":[],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no rotation, no orientation change, and no option reconfiguration",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"The circle-left, triangle-center, and square-right remain frontal, fixed, separated, fully readable, and identical to the first frame.",
+      "compiled_prompt_sha256":"e7fb418625bf934ba8619b65f221aa39a12be7aaba3f9dd6255e27d67d08b266",
+      "contract_gate":"PASS",
+      "source_gate":"FAIL_MISSING_PERSISTED_VIDEO_SOURCE_READINESS_V1_EVIDENCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"FAIL_CLOSED_MISSING_NEW_SOURCE_GATE_RECORD",
+      "next_zero_cost_action":"Offline reinspection/backfill of the existing source; no new image call."
+    },
+    {
+      "scene_id":"s29",
+      "old_failure":"Triangle and square rotated edge-on and the final prop group reconfigured.",
+      "new_source_requirements":"Reuse the immutable Visual-QA-PASS source only after VIDEO_SOURCE_READINESS_V1 verifies the same three frontal, fixed, separated final lanterns and clean Lumi anatomy.",
+      "new_allowed_motion":{"primary":["wave_once"],"secondary":["blink"]},
+      "new_forbidden_changes":"common_forbidden_changes plus no rotation, no depth/order change, and no group reconfiguration",
+      "new_camera_contract":{"single_continuous_shot":true,"multi_shots":false,"moves":[]},
+      "new_end_state":"Lumi remains canonical; the three final lanterns remain frontal, fixed, separated, fully readable, and unchanged.",
+      "compiled_prompt_sha256":"3d526d6960c2723758b2854f9b98e731a63c37865bcd86e1b3bc5eec1d157a31",
+      "contract_gate":"PASS",
+      "source_gate":"FAIL_MISSING_PERSISTED_VIDEO_SOURCE_READINESS_V1_EVIDENCE",
+      "readiness_gate":"FAIL",
+      "failure_reason":"FAIL_CLOSED_MISSING_NEW_SOURCE_GATE_RECORD",
+      "next_zero_cost_action":"Offline reinspection/backfill of the existing source; no new image call."
+    }
+  ],
+  "cost_recalculation": {
+    "current_accounted_usd":2.03035,
+    "minimum_image_repair_calls":4,
+    "minimum_kling_repair_calls_after_all_gates_pass":6,
+    "minimum_incremental_cost_usd":1.780398,
+    "projected_pre_tts_usd":3.810748,
+    "projected_tts_usd":0.01225,
+    "projected_completion_usd":3.822998,
+    "recommended_authorization_sequence":[
+      {"phase":"SOURCE_REPAIR_ONLY","increment_ceiling_usd":0.394398,"total_ceiling_usd":2.424748,"kling_calls_authorized":0},
+      {"phase":"KLING_ONLY_AFTER_6_SOURCE_GATES_PASS","increment_ceiling_usd":1.386,"total_pre_tts_ceiling_usd":3.810748},
+      {"phase":"TTS_ONLY_AFTER_9_OF_9_VIDEO_GATE","increment_ceiling_usd":0.01225,"completion_ceiling_usd":3.822998}
+    ],
+    "authorization_status":"PENDING"
+  }
+}

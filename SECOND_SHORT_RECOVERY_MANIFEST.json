@@ -1,0 +1,104 @@
+{
+  "manifest_version": "lumi-second-short-recovery/1.0.0",
+  "episode_id": "ep_lumi_formas_002",
+  "title": "Lumi y el jardín de las formas",
+  "status": "REPAIR_BLOCKED_BY_APPROVED_BUDGET_CEILING",
+  "staging": {
+    "service": "content-factory-av2-staging",
+    "status": "LIVE",
+    "commit": "a896c0bf3da2448aa5876c9ac34f176ddc1d638a",
+    "runner": "OFF",
+    "autorun": false
+  },
+  "production": {
+    "commit": "5fe5556395829e78817771f96d33cce3f692965d",
+    "status": "LIVE_UNCHANGED"
+  },
+  "provider_calls": {
+    "image": 9,
+    "kling": 5,
+    "tts": 0,
+    "total": 14,
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "resubmits": 0
+  },
+  "cost_usd": {
+    "image_actual": 0.87535,
+    "kling_accounted": 1.155,
+    "tts": 0,
+    "total_accounted": 2.03035,
+    "repair_actual": 0,
+    "repair_max_planned_increment": 1.780398,
+    "expected_total_before_tts_if_authorized": 3.810748,
+    "expected_total_with_tts_if_authorized": 3.822998,
+    "production_manifest_ceiling": 2.978645,
+    "ceiling_excess_before_tts": 0.832103,
+    "ceiling_excess_with_tts": 0.844353
+  },
+  "repair_authorization": {
+    "type": "USER_EXPLICIT_CONTROLLED_REPAIR_REVISIONS",
+    "scenes": ["s22", "s23", "s24", "s25", "s27", "s29"],
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "silent_resubmits": 0,
+    "maximum_one_revision_per_scene": true,
+    "cost_gate": "BLOCKED",
+    "provider_calls_emitted": 0,
+    "image_repairs_required": 4,
+    "video_repairs_required": 6,
+    "first_pending_action": "EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE"
+  },
+  "repair_status_by_scene": {
+    "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
+    "s23": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable yellow triangle with exactly three visible sides; remove circle and square teaching props."},
+    "s24": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable coral square with four equal readable sides; remove circle and triangle teaching props."},
+    "s25": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Show the moon disc, triangular pennant and square window in separate alcoves; no lantern substitution."},
+    "s27": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three options frontal, fixed, separated and readable."},
+    "s29": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three final props frontal, fixed, separated and unchanged."}
+  },
+  "images": [
+    {"scene_id":"s21","request_id":"req_c3e279a78db04ad2b755b241e022ce7d","sha256":"ad4bf863aa54b3f0690de0c3517948ff880502fec47ff15440141f9a7a1b767a","visual_qa":"PASS"},
+    {"scene_id":"s22","request_id":"req_1a91707277814ba0b8d292c19b7604d6","sha256":"3d00182932b057e191c387edde6f2019e5fd836cd192ebcc437da8d7850351ba","visual_qa":"BLOCKER"},
+    {"scene_id":"s23","request_id":"req_939674025b7b46f2971e0b3c729eb34f","sha256":"aca1efadba16a038b30ede4e7de91bbe8348780a2e1504f312e94b9b9fc8ba85","visual_qa":"BLOCKER"},
+    {"scene_id":"s24","request_id":"req_87c7fe0f68f847e2ada6b10566008c4b","sha256":"32c43cdf758c76cac8a8abd1f1cd0abc7dc33feccb7531e19bebe25965c8e8c6","visual_qa":"BLOCKER"},
+    {"scene_id":"s25","request_id":"req_d87d7f5b22ed49a98758dc05ea581a35","sha256":"5b5be310774b8ca5ec4fd1e7d1e4491eaca53fac6fedd0c7e84d2a9fdcc686ab","visual_qa":"BLOCKER"},
+    {"scene_id":"s26","request_id":"req_54e0f9d7d7a144948ddb5708ed218c68","sha256":"9bceff5895dbd28fe80e181b6762b00f604e94da81aa69f3c063bbdbf40db3d1","visual_qa":"PASS"},
+    {"scene_id":"s27","request_id":"req_b3022ec32e5946f494eb8a88cc20605d","sha256":"9877f0e813d0ec191f9088793f58e8258e61084e19315d0ad34b430e4510e598","visual_qa":"PASS"},
+    {"scene_id":"s28","request_id":"req_0c0b573505704a3585c933f18ab631a9","sha256":"830455c1237287b98670a1db207badbdc8eca958bc938161b55710fa124d4773","visual_qa":"PASS"},
+    {"scene_id":"s29","request_id":"req_0b70e7537f384f12a724cea89bbf2081","sha256":"f4be008318fdc8123a8b526329b2c60b203d8806bc46f4e1f566412e2644ead7","visual_qa":"PASS"}
+  ],
+  "videos": [
+    {"scene_id":"s21","request_id":"287c3238-d318-492a-8287-6147e03048e8","sha256":"efae61714036605bb7e835b906228cbeed65acdc55113a6ba2c75863508ba490","temporal_qa":"PASS","usable":true},
+    {"scene_id":"s26","request_id":"6a597e18-217d-4151-849d-3bb67e979990","sha256":"33ef0385552f9276a72e6e26589c248967468ba62133551841bf7345e1a5aaca","temporal_qa":"PASS","usable":true},
+    {"scene_id":"s27","request_id":"9c08bff4-f98b-4303-b9ce-fdb5cc6f0976","sha256":"484f03c30c8f3f39e6a37bad92295d2a7cf765b21cdc510c5089815bd7eba718","temporal_qa":"BLOCKER","usable":false},
+    {"scene_id":"s28","request_id":"5a531b48-a760-4273-9d10-7e1ee168312e","sha256":"d7e8f4bd633288bd0cfe3469c9288093f25033f3e89c7558787d0148c3d76905","temporal_qa":"PASS","usable":true},
+    {"scene_id":"s29","request_id":"2d531208-99ad-405e-8d6c-d7873fac5986","sha256":"370795c2c6c7f996c45fc41a982ab2a748d61ba7d58036584d384acc43317168","temporal_qa":"BLOCKER","usable":false}
+  ],
+  "freeze_scan": {
+    "generated_clips_checked": 5,
+    "freeze_segments": 0,
+    "black_frame_segments": 0
+  },
+  "assembly_gate": {
+    "required": "9/9",
+    "usable": "3/9",
+    "status": "BLOCKED"
+  },
+  "audio": {
+    "tts_complete": 0,
+    "music_status": "NOT_STARTED",
+    "sfx_status": "NOT_STARTED",
+    "captions_status": "NOT_STARTED"
+  },
+  "master": {
+    "filename": "LUMI_SHORT_JARDIN_FORMAS_V1.mp4",
+    "status": "NOT_CREATED",
+    "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
+  },
+  "first_pending_action": "EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE",
+  "backlog_priority": {
+    "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
+    "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"
+  }
+}

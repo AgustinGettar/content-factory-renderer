@@ -1,0 +1,135 @@
+{
+  "preset_id": "LUMI_SHORT_PRODUCTION_PRESET_V1_1",
+  "version": "1.1.0",
+  "derived_from": "LUMI_SHORT_PRODUCTION_PRESET_V1",
+  "status": "READY_NOT_GLOBALLY_ACTIVE",
+  "global_activation": false,
+  "scope": "staging_validation_only",
+  "unchanged_layers": [
+    "AV2_canonical_planning",
+    "Lumi_character_lock",
+    "world_prop_continuity",
+    "Visual_QA_V1_2",
+    "persistent_provider_claims",
+    "restart_safety",
+    "no_automatic_retries",
+    "voice_profile_canonical",
+    "music_SFX_policy",
+    "captions",
+    "educational_overlays",
+    "pedagogical_pause",
+    "freeze_prevention"
+  ],
+  "video_generation_readiness_gate": {
+    "id": "VIDEO_GENERATION_READINESS_GATE_V2",
+    "version": "2.0.0",
+    "position": "before_provider_claim_and_before_any_Higgsfield_request",
+    "required_blocks": [
+      "CANONICAL_START_STATE",
+      "EDUCATIONAL_INVARIANTS",
+      "CHARACTER_INVARIANTS",
+      "ALLOWED_MOTION",
+      "FORBIDDEN_TRANSFORMATIONS",
+      "CAMERA_CONTRACT",
+      "END_STATE_CONTRACT"
+    ],
+    "failure_behavior": {
+      "provider_call": false,
+      "cost_usd": 0,
+      "automatic_retry": false,
+      "automatic_variant": false
+    }
+  },
+  "higgsfield_prompt_compiler": {
+    "id": "HIGGSFIELD_PROMPT_COMPILER_V2",
+    "version": "2.0.0",
+    "free_form_prompt": false,
+    "block_order": [
+      "A_START_FRAME_AUTHORITY",
+      "B_CHARACTER_LOCK",
+      "C_EDUCATIONAL_OBJECT_LOCK",
+      "D_ALLOWED_ACTION",
+      "E_SECONDARY_MICRO_MOTION",
+      "F_FORBIDDEN_CHANGES",
+      "G_CAMERA",
+      "H_END_STATE"
+    ],
+    "limits": {
+      "max_primary_character_actions": 1,
+      "max_camera_moves": 1,
+      "max_educational_focus_objects": "scene_plan_explicit_value"
+    }
+  },
+  "scene_risk_classifier": {
+    "classes": ["LOW", "PEDAGOGICAL_LOCKED", "HIGH_COMPLEXITY"],
+    "pedagogical_locked_domains": ["counting", "shapes", "letters", "numbers", "object_identity"],
+    "pedagogical_locked_defaults": {
+      "stability_over_motion_complexity": true,
+      "multi_shots": false,
+      "audio": "off",
+      "single_continuous_shot": true,
+      "camera": "static_or_subtle_push_in_only",
+      "motion": "conservative"
+    },
+    "high_complexity_requires_mitigation": true
+  },
+  "source_image_readiness": {
+    "id": "VIDEO_SOURCE_READINESS_V1",
+    "version": "1.0.0",
+    "visual_beauty_alone_is_sufficient": false,
+    "required": [
+      "all_required_elements_present",
+      "correct_object_counts",
+      "clear_geometry",
+      "no_ambiguous_overlaps",
+      "Lumi_anatomy_clean",
+      "pedagogical_objects_fully_visible",
+      "sufficient_motion_spacing",
+      "no_visual_ambiguity",
+      "no_extraneous_educational_objects"
+    ],
+    "failure_behavior": "NO_KLING_CALL"
+  },
+  "shape_locks": {
+    "circle": ["one_canonical_circle", "rigid_geometry", "no_duplicate", "no_oval_transformation", "no_disappearance", "no_morph"],
+    "triangle": ["one_canonical_triangle", "exactly_3_visible_sides", "rigid_geometry", "no_fourth_side", "no_duplicate", "no_morph"],
+    "square": ["one_canonical_square", "4_equal_visible_sides", "stable_proportions", "no_rectangle_or_trapezoid", "no_duplicate", "no_morph"]
+  },
+  "expected_value_gate": {
+    "reject_before_provider_if": [
+      "source_QA_confidence_insufficient",
+      "HIGH_COMPLEXITY_without_mitigation",
+      "required_invariant_missing",
+      "prompt_compiler_field_missing",
+      "educational_object_ambiguous"
+    ],
+    "rejection_cost_usd": 0
+  },
+  "end_frame_policy": {
+    "modes": ["NONE", "SAME_STATE_LOCK", "EXPLICIT_END_FRAME"],
+    "global_last_image_url_enabled": false,
+    "default": "NONE",
+    "activation_rule": "risk_high_and_measured_expected_value_positive",
+    "new_end_frame_generation_authorized": false
+  },
+  "cfg_scale_policy": {
+    "CFG_SCALE_TUNING_REQUIRED": true,
+    "current_production_value_unchanged": true,
+    "future_benchmark": {
+      "provider_execution_authorized": false,
+      "representative_scenes": 2,
+      "measure": ["prompt_adherence", "natural_motion", "identity_stability"]
+    }
+  },
+  "cost_aware_generation_policy": {
+    "exactly_once_dispatch": true,
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "silent_resubmits": 0,
+    "provider_claim_created_only_after_all_readiness_gates_pass": true
+  },
+  "recovery_manager": {
+    "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
+    "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"
+  }
+}

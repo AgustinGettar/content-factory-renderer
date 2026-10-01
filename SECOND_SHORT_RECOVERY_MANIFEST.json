@@ -2,11 +2,11 @@
   "manifest_version": "lumi-second-short-recovery/1.1.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "PHASE1_REPAIR_EXECUTOR_COMMITTED_LOCALLY_PUSH_APPROVAL_BLOCKED",
+  "status": "PHASE1_SOURCE_REVIEW_PENDING",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
-    "commit": "a896c0bf3da2448aa5876c9ac34f176ddc1d638a",
+    "commit": "d094575b4e0e781725060b0220179c38177a506f",
     "runner": "OFF",
     "autorun": false
   },
@@ -16,29 +16,31 @@
   },
   "validation": {
     "branch": "lumi-cost-optimization-v2",
-    "commit": "0e38f1f24ca94004f3adfa4f13b64e420a008111",
-    "ci_run": 36866322451,
+    "commit": "d094575b4e0e781725060b0220179c38177a506f",
+    "tree": "49227ac4e8728c4ec19964611dbdd715408d3d90",
+    "preserved_local_checkpoint": "bf858a8f32348d79e9f42765f91ff9b4ea467145",
+    "ci_run": 36910887975,
     "ci_result": "GREEN",
-    "deployed_to_staging": false,
+    "deployed_to_staging": true,
     "global_activation": false
   },
   "phase1_repair_executor": {
-    "status": "IMPLEMENTED_LOCAL_COMMIT_UNPUSHED",
+    "status": "PUBLISHED_CI_GREEN_DEPLOYED_PHASE1_STOPPED",
     "commit": "8cb7e2e",
     "branch": "lumi-cost-optimization-v2",
     "focused_regression": {"passed":103,"total":103,"real_provider_calls":0},
     "migration": "NOT_REQUIRED_EXISTING_LUMI_PILOT_RUNS_LEDGER_REUSED",
-    "ci": "NOT_STARTED_PUSH_BLOCKED",
-    "staging_deploy": "NOT_STARTED",
-    "dry_repair_proof": "NOT_STARTED",
-    "push_blocker": "EXPLICIT_EXTERNAL_DESTINATION_APPROVAL_REQUIRED_FOR_GITHUB_COM_AGUSTINGETTAR_CONTENT_FACTORY_RENDERER",
-    "revision_status": {"s22-r1":"NOT_CLAIMED","s23-r1":"NOT_CLAIMED","s24-r1":"NOT_CLAIMED","s25-r1":"NOT_CLAIMED"}
+    "ci": "GREEN_RUN_36910887975",
+    "staging_deploy": "LIVE_D094575B4E0E781725060B0220179C38177A506F",
+    "dry_repair_proof": "PASS_DRY_NO_PROVIDER_NO_WRITE",
+    "push_blocker": null,
+    "revision_status": {"s22-r1":"SUCCEEDED_SOURCE_BLOCKER","s23-r1":"SUCCEEDED_SOURCE_BLOCKER","s24-r1":"SUCCEEDED_SOURCE_BLOCKER","s25-r1":"SUCCEEDED_SOURCE_BLOCKER"}
   },
   "provider_calls": {
-    "image": 9,
+    "image": 13,
     "kling": 5,
     "tts": 0,
-    "total": 14,
+    "total": 18,
     "automatic_retries": 0,
     "automatic_variants": 0,
     "resubmits": 0
@@ -47,8 +49,8 @@
     "image_actual": 0.87535,
     "kling_accounted": 1.155,
     "tts": 0,
-    "total_accounted": 2.03035,
-    "repair_actual": 0,
+    "total_accounted": 2.422187,
+    "repair_actual": 0.391837,
     "repair_max_planned_increment": 1.780398,
     "expected_total_before_tts_if_authorized": 3.810748,
     "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47,"force_exact_duration":false},
@@ -67,18 +69,18 @@
     "maximum_one_revision_per_scene": true,
     "cost_gate": "PHASE1_SOURCE_ONLY_AUTHORIZED",
     "cost_ceiling_extension_authorized": true,
-    "provider_calls_emitted": 0,
+    "provider_calls_emitted": 4,
     "image_repairs_required": 4,
     "video_repairs_required": 6,
-    "first_pending_action": "EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD"
+    "first_pending_action": "HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED"
   },
   "repair_status_by_scene": {
-    "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
-    "s23": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable yellow triangle with exactly three visible sides; remove circle and square teaching props."},
-    "s24": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable coral square with four equal readable sides; remove circle and triangle teaching props."},
-    "s25": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Show the moon disc, triangular pennant and square window in separate alcoves; no lantern substitution."},
-    "s27": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three options frontal, fixed, separated and readable."},
-    "s29": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three final props frontal, fixed, separated and unchanged."}
+    "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
+    "s23": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Only one unmistakable yellow triangle with exactly three visible sides; remove circle and square teaching props."},
+    "s24": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Only one unmistakable coral square with four equal readable sides; remove circle and triangle teaching props."},
+    "s25": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Show the moon disc, triangular pennant and square window in separate alcoves; no lantern substitution."},
+    "s27": {"repair_type":"VIDEO_REPAIR_ONLY","status":"SOURCE_READY_FOR_VIDEO_NOT_AUTHORIZED","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three options frontal, fixed, separated and readable."},
+    "s29": {"repair_type":"VIDEO_REPAIR_ONLY","status":"SOURCE_READY_FOR_VIDEO_NOT_AUTHORIZED","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three final props frontal, fixed, separated and unchanged."}
   },
   "cost_optimization_v2": {
     "status": "DESIGN_IMPLEMENTED_HUMAN_REVIEW_GATES_ADDED_TESTED_CI_GREEN",
@@ -101,12 +103,12 @@
       "s29": "PEDAGOGICAL_LOCKED"
     },
     "dry_repair_readiness": {
-      "s22": "FAIL_CURRENT_SOURCE",
-      "s23": "FAIL_CURRENT_SOURCE",
-      "s24": "FAIL_CURRENT_SOURCE",
-      "s25": "FAIL_CURRENT_SOURCE",
-      "s27": "FAIL_CLOSED_PENDING_ZERO_PROVIDER_SOURCE_READINESS_BACKFILL",
-      "s29": "FAIL_CLOSED_PENDING_ZERO_PROVIDER_SOURCE_READINESS_BACKFILL"
+      "s22": "R1_FAIL_COLOR_IDENTITY",
+      "s23": "R1_FAIL_COLOR_IDENTITY",
+      "s24": "R1_FAIL_COLOR_IDENTITY",
+      "s25": "R1_FAIL_CANONICAL_ALCOVE_POSITIONS",
+      "s27": "PASS_OFFLINE_SOURCE_AND_VIDEO_GATES",
+      "s29": "PASS_OFFLINE_SOURCE_AND_VIDEO_GATES"
     },
     "minimum_calls_after_all_gates_pass": {"image":4,"kling":6},
     "minimum_incremental_cost_usd": 1.780398,
@@ -141,6 +143,34 @@
     "full_local_suite": {"passed":160,"total":161,"unrelated_missing_external_fixture":true},
     "ci_run": 36866322451,
     "ci_result": "GREEN"
+  },
+  "phase1_execution": {
+    "completed_at": "2026-10-01T19:22:27.793Z",
+    "remote_head": "d094575b4e0e781725060b0220179c38177a506f",
+    "ci_run": 36910887975,
+    "staging_sha": "d094575b4e0e781725060b0220179c38177a506f",
+    "health": 200,
+    "unexpected_executions": 0,
+    "dry_repair": {"scene_id":"s22","revision":"s22-r1","status":"PASS","mode":"DRY_NO_PROVIDER_NO_WRITE","provider_calls":0,"fake_rows_created":0,"cleanup_required":false,"duplicate_rejected":true,"restart_safe":true},
+    "source_repairs": [
+      {"scene_id":"s22","revision":"s22-r1","request_id":"req_1673fa114e92430aa537e1510a9ba595","sha256":"f3d28d58cdeb9130375f446119fd34d7dcbf94369136a4e55422f326168e56bf","actual_cost_usd":0.0979,"visual_qa":"BLOCKER","video_source_readiness":"FAIL","blocker":"circle_face_black_not_blue"},
+      {"scene_id":"s23","revision":"s23-r1","request_id":"req_d38ffceda7b5490da58f485428982fc7","sha256":"600a027994a0594b994ac79a0a729e033d8031e32f636f460b316679c7b0fb19","actual_cost_usd":0.097925,"visual_qa":"BLOCKER","video_source_readiness":"FAIL","blocker":"triangle_face_black_not_yellow"},
+      {"scene_id":"s24","revision":"s24-r1","request_id":"req_da02bd8b469f40509d14c6e13d962304","sha256":"5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046","actual_cost_usd":0.097927,"visual_qa":"BLOCKER","video_source_readiness":"FAIL","blocker":"square_face_black_not_coral"},
+      {"scene_id":"s25","revision":"s25-r1","request_id":"req_4a7cea4092fc4d26b4abca181f26e54f","sha256":"991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1","actual_cost_usd":0.098085,"visual_qa":"BLOCKER","video_source_readiness":"FAIL","blocker":"required_separate_alcoves_replaced_by_open_pedestals"}
+    ],
+    "offline_source_reevaluation": {
+      "s27": {"sha256":"9877f0e813d0ec191f9088793f58e8258e61084e19315d0ad34b430e4510e598","video_source_readiness":"PASS","video_generation_readiness":"PASS","expected_value_gate":"PASS","motion":"blink_only","camera":"static","pedagogical_pause_seconds":2.5,"perceived_speed":"NATURAL_1X"},
+      "s29": {"sha256":"f4be008318fdc8123a8b526329b2c60b203d8806bc46f4e1f566412e2644ead7","video_source_readiness":"PASS","video_generation_readiness":"PASS","expected_value_gate":"PASS","motion":"wave_once_plus_blink","camera":"static","perceived_speed":"NATURAL_1X"}
+    },
+    "image_repair_calls": 4,
+    "image_repair_cost_usd": 0.391837,
+    "total_cost_usd": 2.422187,
+    "six_source_gates": "FAIL_4_OF_6_SOURCE_BLOCKERS",
+    "kling_repair_calls": 0,
+    "tts_calls": 0,
+    "assembly": "3/9",
+    "runners": "OFF",
+    "phase1_execution_enabled": false
   },
   "images": [
     {"scene_id":"s21","request_id":"req_c3e279a78db04ad2b755b241e022ce7d","sha256":"ad4bf863aa54b3f0690de0c3517948ff880502fec47ff15440141f9a7a1b767a","visual_qa":"PASS"},
@@ -181,7 +211,7 @@
     "status": "NOT_CREATED",
     "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
   },
-  "first_pending_action": "EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD",
+  "first_pending_action": "HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

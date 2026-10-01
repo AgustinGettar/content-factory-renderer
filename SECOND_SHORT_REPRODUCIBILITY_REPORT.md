@@ -1,7 +1,7 @@
 # Lumi Second Short — Reproducibility Report
 
 - `ORIGINAL_IMAGE_CALLS=9`
-- `REPAIR_IMAGE_CALLS=0`
+- `REPAIR_IMAGE_CALLS=4`
 - `ORIGINAL_KLING_CALLS=5`
 - `REPAIR_KLING_CALLS=0`
 - `TTS_CALLS=0`
@@ -13,9 +13,9 @@
 - `IMAGE_CALLS=9`
 - `KLING_CALLS=5`
 - `TTS_CALLS=0`
-- `TOTAL_PROVIDER_CALLS=14`
-- `TOTAL_COST_USD=2.030350`
-- `REPAIR_COST_USD=0.000000`
+- `TOTAL_PROVIDER_CALLS=18`
+- `TOTAL_COST_USD=2.422187`
+- `REPAIR_COST_USD=0.391837`
 - `MAX_PLANNED_REPAIR_INCREMENT_USD=1.780398`
 - `EXPECTED_TOTAL_BEFORE_TTS_IF_AUTHORIZED_USD=3.810748`
 - `NATURAL_DURATION_TARGET_SECONDS=43_TO_47_NOT_FORCED`
@@ -92,3 +92,45 @@ The full suite's only failure remains the unrelated absent external fixture `/wo
 The existing `lumi_pilot_runs` uniqueness contract is reused with four distinct revision ledger identities, preserving the original terminal rows unchanged. The new manual executor is fail-closed to staging, `IMAGE`, `s22`–`s25`, and `R1`; it has no boot hook or autorun and consumes dispatch durably before the network request. No schema or RLS change was needed.
 
 The attempted push was rejected by the external-destination safety gate pending explicit confirmation of `github.com/AgustinGettar/content-factory-renderer`. The confirmation request timed out, so CI, staging deploy, dry proof, real source repairs and six-source review did not begin.
+
+## Phase 1 source execution result
+
+- `REMOTE_HEAD=d094575b4e0e781725060b0220179c38177a506f`
+- `REMOTE_TREE=49227ac4e8728c4ec19964611dbdd715408d3d90`
+- `PRESERVED_LOCAL_CHECKPOINT=bf858a8f32348d79e9f42765f91ff9b4ea467145`
+- `CI_RUN=36910887975`
+- `CI_RESULT=GREEN`
+- `FOCUSED_REPAIR_AND_REGRESSION_TESTS=103/103_PASS`
+- `STAGING_SHA=d094575b4e0e781725060b0220179c38177a506f`
+- `STAGING_HEALTH=200`
+- `UNEXPECTED_EXECUTIONS=0`
+- `DRY_REPAIR=PASS_DRY_NO_PROVIDER_NO_WRITE`
+- `IMAGE_REPAIR_CALLS=4`
+- `IMAGE_REPAIR_COST_USD=0.391837`
+- `TOTAL_COST_USD=2.422187`
+- `SIX_SOURCE_GATES=FAIL_4_OF_6_SOURCE_BLOCKERS`
+- `KLING_REPAIR_CALLS=0`
+- `TTS_CALLS=0`
+- `ASSEMBLY=3/9`
+- `RUNNERS=OFF`
+- `PRODUCTION=main@5fe5556395829e78817771f96d33cce3f692965d_LIVE_UNCHANGED`
+
+The GitHub connector reproduced the two preserved commits from their exact Git trees because the shell clone had no GitHub credentials. Commit IDs therefore changed, but both tree IDs match the local preserved commits byte-for-byte. The isolated validation branch and the fixed staging branch were advanced only by non-forced fast-forward. `main` was not modified.
+
+CI run `36910887975` passed syntax/JSON validation and the zero-provider readiness/second-short regression job. Staging reached LIVE on the validated SHA with health 200, empty queue, no active video, all boot benchmark flags false, no pilot or second-short autorun, and no unexpected execution in startup logs.
+
+The `s22-r1` dry proof preserved the original terminal row, used a distinct revision identity, accepted the simulated first claim, rejected the duplicate, proved restart-before-provider resumability, respected the exact Phase 1 budget, emitted zero provider calls, and created zero fake rows.
+
+Exactly four serialized provider requests were then emitted. No retry, variant, resubmit, Kling, TTS, assembly, or master action occurred:
+
+- `s22-r1`: `req_1673fa114e92430aa537e1510a9ba595`; hash `f3d28d58cdeb9130375f446119fd34d7dcbf94369136a4e55422f326168e56bf`; actual cost `USD 0.097900`; Visual QA V1.2 `BLOCKER`; `VIDEO_SOURCE_READINESS_V1=FAIL`. The single rigid circle has a black/dark face instead of the required unmistakable blue.
+- `s23-r1`: `req_d38ffceda7b5490da58f485428982fc7`; hash `600a027994a0594b994ac79a0a729e033d8031e32f636f460b316679c7b0fb19`; actual cost `USD 0.097925`; Visual QA V1.2 `BLOCKER`; `VIDEO_SOURCE_READINESS_V1=FAIL`. The single three-sided triangle has a black/dark face instead of the required unmistakable yellow.
+- `s24-r1`: `req_da02bd8b469f40509d14c6e13d962304`; hash `5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046`; actual cost `USD 0.097927`; Visual QA V1.2 `BLOCKER`; `VIDEO_SOURCE_READINESS_V1=FAIL`. The single equal-sided square has a black/dark face instead of the required unmistakable coral.
+- `s25-r1`: `req_4a7cea4092fc4d26b4abca181f26e54f`; hash `991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1`; actual cost `USD 0.098085`; Visual QA V1.2 `BLOCKER`; `VIDEO_SOURCE_READINESS_V1=FAIL`. The correct moon disc, triangular pennant, and square window are present without lantern substitution, but on open pedestals rather than in the three required separate alcoves.
+
+Offline reevaluation used the immutable original sources and their manifest hashes:
+
+- `s27`: hash `9877f0e813d0ec191f9088793f58e8258e61084e19315d0ad34b430e4510e598`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`; expected-value gate `PASS`; blink only, static camera, natural 1x, exact `2.5 s` pedagogical pause.
+- `s29`: hash `f4be008318fdc8123a8b526329b2c60b203d8806bc46f4e1f566412e2644ead7`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`; expected-value gate `PASS`; one natural wave plus blink, static camera, natural 1x.
+
+Because only two of six sources are ready, `SIX_SOURCE_GATES` is terminally `FAIL` for Phase 1. The manual Phase 1 execution flag was turned OFF after the fourth request. `LUMI_RECOVERY_INCIDENT_MANAGER_V1` remains backlog-only and unimplemented.

@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.0.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "REPAIR_BLOCKED_BY_APPROVED_BUDGET_CEILING",
+  "status": "REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -13,6 +13,14 @@
   "production": {
     "commit": "5fe5556395829e78817771f96d33cce3f692965d",
     "status": "LIVE_UNCHANGED"
+  },
+  "validation": {
+    "branch": "lumi-cost-optimization-v2",
+    "commit": "e65acc8249115cbf29713a9ae9b6572957e79145",
+    "ci_run": 36863860310,
+    "ci_result": "GREEN",
+    "deployed_to_staging": false,
+    "global_activation": false
   },
   "provider_calls": {
     "image": 9,
@@ -43,11 +51,12 @@
     "automatic_variants": 0,
     "silent_resubmits": 0,
     "maximum_one_revision_per_scene": true,
-    "cost_gate": "BLOCKED",
+    "cost_gate": "PENDING_NEW_EXPLICIT_AUTHORIZATION",
+    "cost_ceiling_extension_authorized": false,
     "provider_calls_emitted": 0,
     "image_repairs_required": 4,
     "video_repairs_required": 6,
-    "first_pending_action": "EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE"
+    "first_pending_action": "EXPLICIT_PHASED_REPAIR_AUTHORIZATION"
   },
   "repair_status_by_scene": {
     "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
@@ -56,6 +65,43 @@
     "s25": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Show the moon disc, triangular pennant and square window in separate alcoves; no lantern substitution."},
     "s27": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three options frontal, fixed, separated and readable."},
     "s29": {"repair_type":"VIDEO_REPAIR_ONLY","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Reuse the Visual-QA-PASS source; keep all three final props frontal, fixed, separated and unchanged."}
+  },
+  "cost_optimization_v2": {
+    "status": "DESIGN_IMPLEMENTED_TESTED_CI_GREEN",
+    "provider_calls": 0,
+    "video_generation_readiness_gate": "2.0.0",
+    "higgsfield_prompt_compiler": "2.0.0",
+    "video_source_readiness": "1.0.0",
+    "production_preset": "LUMI_SHORT_PRODUCTION_PRESET_V1_1",
+    "production_preset_active": false,
+    "cfg_scale_tuning_required": true,
+    "cfg_scale_changed": false,
+    "end_frame_mode": "NONE",
+    "last_image_url_enabled": false,
+    "scene_risk": {
+      "s22": "PEDAGOGICAL_LOCKED",
+      "s23": "PEDAGOGICAL_LOCKED",
+      "s24": "PEDAGOGICAL_LOCKED",
+      "s25": "HIGH_COMPLEXITY",
+      "s27": "PEDAGOGICAL_LOCKED",
+      "s29": "PEDAGOGICAL_LOCKED"
+    },
+    "dry_repair_readiness": {
+      "s22": "FAIL_CURRENT_SOURCE",
+      "s23": "FAIL_CURRENT_SOURCE",
+      "s24": "FAIL_CURRENT_SOURCE",
+      "s25": "FAIL_CURRENT_SOURCE",
+      "s27": "FAIL_CLOSED_PENDING_ZERO_PROVIDER_SOURCE_READINESS_BACKFILL",
+      "s29": "FAIL_CLOSED_PENDING_ZERO_PROVIDER_SOURCE_READINESS_BACKFILL"
+    },
+    "minimum_calls_after_all_gates_pass": {"image":4,"kling":6},
+    "minimum_incremental_cost_usd": 1.780398,
+    "expected_success_rate_improvement": "QUALITATIVELY_HIGH_NOT_NUMERICALLY_GUARANTEED",
+    "phased_authorization_not_granted": [
+      {"phase":"SOURCE_REPAIR_ONLY","increment_ceiling_usd":0.394398,"total_ceiling_usd":2.424748},
+      {"phase":"KLING_AFTER_SOURCE_GATES_PASS","increment_ceiling_usd":1.386,"total_pre_tts_ceiling_usd":3.810748},
+      {"phase":"TTS_AFTER_9_OF_9_VIDEO_GATE","increment_ceiling_usd":0.01225,"completion_ceiling_usd":3.822998}
+    ]
   },
   "images": [
     {"scene_id":"s21","request_id":"req_c3e279a78db04ad2b755b241e022ce7d","sha256":"ad4bf863aa54b3f0690de0c3517948ff880502fec47ff15440141f9a7a1b767a","visual_qa":"PASS"},
@@ -96,7 +142,7 @@
     "status": "NOT_CREATED",
     "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
   },
-  "first_pending_action": "EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE",
+  "first_pending_action": "EXPLICIT_PHASED_REPAIR_AUTHORIZATION",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

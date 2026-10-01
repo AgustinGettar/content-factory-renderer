@@ -16,8 +16,9 @@
 - `HUMAN_REVIEW=APPROVED`
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
-- `LAST_COMPLETED_ACTION=SECOND_SHORT_REPAIR_FORENSICS_AND_COST_GATE`
-- `SECOND_SHORT_STATUS=REPAIR_BLOCKED_BY_APPROVED_BUDGET_CEILING`
+- `PRODUCTION_PRESET_V1_1=READY_NOT_GLOBALLY_ACTIVE`
+- `LAST_COMPLETED_ACTION=SECOND_SHORT_COST_OPTIMIZATION_V2_CI_GREEN`
+- `SECOND_SHORT_STATUS=REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
 - `SECOND_SHORT_DURATION=49.0`
 - `SECOND_SHORT_SCENES=9/9_PLANNED`
@@ -34,13 +35,22 @@
 - `SECOND_SHORT_TTS_COMPLETE_COUNT=0`
 - `SECOND_SHORT_ASSEMBLY_GATE=BLOCKED_3_OF_9`
 - `SECOND_SHORT_MASTER_STATUS=NOT_CREATED`
-- `FIRST_PENDING_ACTION=EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE`
-- `NEXT_ACTION=EXPLICIT_BUDGET_CEILING_EXTENSION_FOR_REPAIR_PACKAGE`
+- `FIRST_PENDING_ACTION=EXPLICIT_PHASED_REPAIR_AUTHORIZATION`
+- `NEXT_ACTION=EXPLICIT_PHASED_REPAIR_AUTHORIZATION`
 - `SECOND_SHORT_REPAIR_IMAGE_CALLS=0`
 - `SECOND_SHORT_REPAIR_VIDEO_CALLS=0`
 - `SECOND_SHORT_REPAIR_INCREMENTAL_COST_USD=0.000000`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_INCREMENT_USD=1.780398`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_TOTAL_PRE_TTS_USD=3.810748`
+- `SECOND_SHORT_REPAIR_AUTHORIZATION_GRANTED=false`
+- `VIDEO_GENERATION_READINESS_GATE_V2=READY_FAIL_CLOSED`
+- `HIGGSFIELD_PROMPT_COMPILER_V2=READY`
+- `VIDEO_SOURCE_READINESS_V1=READY`
+- `CFG_SCALE_TUNING_REQUIRED=true`
+- `VALIDATION_BRANCH=lumi-cost-optimization-v2`
+- `VALIDATION_COMMIT=e65acc8249115cbf29713a9ae9b6572957e79145`
+- `CI_RUN=36863860310`
+- `CI_RESULT=GREEN`
 
 ## Approved pilot authority
 
@@ -281,6 +291,61 @@ Repair status by scene:
 - `s25=AWAITING_BUDGET_CEILING_EXTENSION_SOURCE_IMAGE_THEN_VIDEO`
 - `s27=AWAITING_BUDGET_CEILING_EXTENSION_VIDEO_ONLY`
 - `s29=AWAITING_BUDGET_CEILING_EXTENSION_VIDEO_ONLY`
+
+## Second-short cost optimization V2 — 2026-10-01
+
+No provider call, repair claim, image, Kling, TTS, variant, retry, resubmit, assembly, master, deploy, or global activation occurred during this phase. Staging remains LIVE at `a896c0bf3da2448aa5876c9ac34f176ddc1d638a`; production remains LIVE and unchanged at `main@5fe5556395829e78817771f96d33cce3f692965d`.
+
+Forensic result:
+
+- `s22`–`s24`: the old source compiler combined a symbolic one-shape lock with a contradictory continuity instruction preserving three pedestals and the circle/triangle/square order. Root causes: `SOURCE_IMAGE_AMBIGUOUS`, `PROMPT_UNDERSPECIFIED`, `OBJECT_COUNT_UNLOCKED`.
+- `s25`: the real-world example identities were not immutable and the lantern-world prior dominated. Root causes: `SOURCE_IMAGE_INCOMPLETE`, `SOURCE_IMAGE_AMBIGUOUS`, `PROMPT_UNDERSPECIFIED`, `OBJECT_COUNT_UNLOCKED`, `SCENE_TOO_COMPLEX`, `OBJECT_IDENTITY_UNLOCKED`.
+- `s27`: “fixed” did not lock orientation/end state, while push-in + blink + breathing increased freedom. Root causes: `PROMPT_UNDERSPECIFIED`, `TOO_MUCH_MOTION`, `GEOMETRY_UNLOCKED`, `CAMERA_TOO_COMPLEX`.
+- `s29`: wave + wing shimmer + pull-out combined three moving systems without an exact final arrangement. Root causes: `PROMPT_UNDERSPECIFIED`, `TOO_MUCH_MOTION`, `GEOMETRY_UNLOCKED`, `CAMERA_TOO_COMPLEX`.
+- No evidence supports `QA_FALSE_POSITIVE` or character anatomy as the root cause.
+
+Implemented on isolated validation branch `lumi-cost-optimization-v2`:
+
+- `VIDEO_GENERATION_READINESS_GATE_V2`: validates canonical start state, educational/character invariants, closed motion allowlist, forbidden transformations, camera contract, and exact end state before video claim.
+- `HIGGSFIELD_PROMPT_COMPILER_V2`: compiles fixed A–H blocks; no free-form provider prompt; one primary character action maximum and one camera move maximum.
+- `VIDEO_SOURCE_READINESS_V1`: exact object set/count/geometry/position, visibility, overlap, anatomy, spacing, ambiguity, extraneous-object, and confidence checks.
+- `SCENE_RISK_CLASSIFIER`: `LOW`, `PEDAGOGICAL_LOCKED`, `HIGH_COMPLEXITY`; `s25` is high-complexity with mandatory mitigation, all other shape scenes are pedagogically locked.
+- `EXPECTED_VALUE_GATE`: fails before provider claim at `USD 0` if any invariant/source/complexity/compiler requirement is missing.
+- Source-image compiler V1.1: canonical exclusive inventory replaces the old three-pedestal ambiguity.
+- `END_FRAME_MODE`: policy designed for `NONE`, `SAME_STATE_LOCK`, `EXPLICIT_END_FRAME`; current episode remains `NONE`, `last_image_url` disabled, no end frames generated.
+- `CFG_SCALE_TUNING_REQUIRED=true`; `cfg_scale=0.5` unchanged; no provider benchmark executed.
+- Preset `LUMI_SHORT_PRODUCTION_PRESET_V1_1` created as `READY_NOT_GLOBALLY_ACTIVE`.
+- `LUMI_RECOVERY_INCIDENT_MANAGER_V1` remains backlog-only and unimplemented.
+
+Six-scene zero-provider simulation:
+
+- All six structured video contracts and V2 prompts compile `PASS`.
+- `s22`–`s25`: overall readiness `FAIL` on their immutable current source images; no Kling can be claimed until a corrected source passes V1.
+- `s27`/`s29`: no new image call is needed, but the fail-closed runtime requires an offline `VIDEO_SOURCE_READINESS_V1` reinspection/backfill of each existing Visual-QA-PASS source before a repair Kling claim.
+- New motion is conservative: `s27` blink only with static camera; `s29` one wave + blink with static camera. All educational objects remain frontal, fixed, separated, and exact through end state.
+
+Validation:
+
+- Focused deterministic tests: `17/17 PASS`; provider calls `0`.
+- GitHub Actions: `GREEN`, run `36863860310`, commit `e65acc8249115cbf29713a9ae9b6572957e79145`.
+- Full local suite: `151/152 PASS`; the sole unrelated failure is an existing V1.1 benchmark test whose external local fixture `/workspace/scratch/f10a12ff9859/visual-benchmark-v1/lumi-master.png` is absent. The new CI workflow does not depend on that external fixture and passed.
+
+Recalculated minimum remains structurally unchanged after all zero-cost gates pass:
+
+- `MINIMUM_IMAGE_REPAIR_CALLS=4`
+- `MINIMUM_KLING_REPAIR_CALLS=6`
+- `MINIMUM_INCREMENTAL_COST_USD=1.780398`
+- `PROJECTED_PRE_TTS_USD=3.810748`
+- `PROJECTED_COMPLETION_USD=3.822998`
+- `EXPECTED_SUCCESS_RATE_IMPROVEMENT=QUALITATIVELY_HIGH` because invalid sources and over-complex contracts are now stopped before Kling, while repair prompts have closed inventories, motion, camera, and end states. This is not a numeric guarantee.
+
+Recommended authorization sequence, not authorized:
+
+1. Source repairs only: increment ceiling `USD 0.394398`; total ceiling `USD 2.424748`; Kling authorized `0`.
+2. Only after all six source gates pass: Kling increment ceiling `USD 1.386000`; total pre-TTS ceiling `USD 3.810748`.
+3. Only after `9/9` usable clips: TTS increment ceiling `USD 0.012250`; completion ceiling `USD 3.822998`.
+
+Current result: `LUMI COST OPTIMIZATION — REPAIR AUTHORIZATION PENDING`.
 
 ## Backlog priority
 

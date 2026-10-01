@@ -17,8 +17,8 @@
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
 - `PRODUCTION_PRESET_V1_1=READY_NOT_GLOBALLY_ACTIVE`
-- `LAST_COMPLETED_ACTION=SECOND_SHORT_HUMAN_REVIEW_GATES_INTEGRATED_CI_GREEN`
-- `SECOND_SHORT_STATUS=REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2`
+- `LAST_COMPLETED_ACTION=PHASE1_REPAIR_EXECUTOR_IMPLEMENTED_LOCAL_TESTS_PASS`
+- `SECOND_SHORT_STATUS=PHASE1_REPAIR_EXECUTOR_COMMITTED_LOCALLY_PUSH_APPROVAL_BLOCKED`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
 - `SECOND_SHORT_ORIGINAL_PLANNED_DURATION=49.0`
 - `SECOND_SHORT_EDITORIAL_TARGET_SECONDS=43_TO_47_CONTENT_DRIVEN`
@@ -37,14 +37,20 @@
 - `SECOND_SHORT_TTS_COMPLETE_COUNT=0`
 - `SECOND_SHORT_ASSEMBLY_GATE=BLOCKED_3_OF_9`
 - `SECOND_SHORT_MASTER_STATUS=NOT_CREATED`
-- `FIRST_PENDING_ACTION=EXPLICIT_PHASED_REPAIR_AUTHORIZATION`
-- `NEXT_ACTION=EXPLICIT_PHASED_REPAIR_AUTHORIZATION`
+- `FIRST_PENDING_ACTION=EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD`
+- `NEXT_ACTION=EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD`
 - `SECOND_SHORT_REPAIR_IMAGE_CALLS=0`
 - `SECOND_SHORT_REPAIR_VIDEO_CALLS=0`
 - `SECOND_SHORT_REPAIR_INCREMENTAL_COST_USD=0.000000`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_INCREMENT_USD=1.780398`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_TOTAL_PRE_TTS_USD=3.810748`
-- `SECOND_SHORT_REPAIR_AUTHORIZATION_GRANTED=false`
+- `SECOND_SHORT_REPAIR_AUTHORIZATION_GRANTED=PHASE1_SOURCE_ONLY`
+- `REPAIR_EXECUTOR_STATUS=IMPLEMENTED_LOCAL_COMMIT_UNPUSHED`
+- `REPAIR_EXECUTOR_COMMIT=8cb7e2e`
+- `REPAIR_EXECUTOR_FOCUSED_TESTS=103/103_PASS`
+- `REPAIR_EXECUTOR_MIGRATION_STATUS=NOT_REQUIRED_EXISTING_LEDGER_REUSED`
+- `REPAIR_EXECUTOR_CI_STATUS=NOT_STARTED_PUSH_BLOCKED`
+- `REPAIR_EXECUTOR_STAGING_STATUS=NOT_DEPLOYED`
 - `VIDEO_GENERATION_READINESS_GATE_V2=READY_FAIL_CLOSED`
 - `HIGGSFIELD_PROMPT_COMPILER_V2=READY`
 - `VIDEO_SOURCE_READINESS_V1=READY`
@@ -378,6 +384,28 @@ No image, Kling, TTS, repair claim, provider request, assembly, master, staging 
 - `BACKLOG_PRIORITY=LUMI_RECOVERY_INCIDENT_MANAGER_V1`
 - Future purpose: safely detect provider balance/quota/auth/outage failures, Render/Supabase/storage failures, exhausted budgets, invalid artifacts, stuck processing, and external timeouts; persist an exact checkpoint; prevent duplicate provider calls; notify Telegram with episode, scene, stage, cause, and required action; expose `RESUME`, `/status`, `/resume`, and `/cancel` or equivalent callbacks; resume strictly from `FIRST_PENDING_ACTION` without restarting the episode.
 - Implementation status: `BACKLOG_ONLY_NOT_IMPLEMENTED`.
+
+## Phase 1 source-repair executor recovery checkpoint — 2026-10-01
+
+- Recovery found the authoritative branch clean at `a5927884e0b3c018ca992728e53cbb2cacedd6fb`; the preceding interrupted session had not created code, tests, migrations, commits, pushes, CI runs, database changes, or deploys.
+- A minimal manual executor was implemented locally and committed as `8cb7e2e` on `lumi-cost-optimization-v2`.
+- Repair identities use the existing `lumi_pilot_runs` unique ledger without relaxing the original records: `lumi_jardin_formas_v1_s22_r1` through `lumi_jardin_formas_v1_s25_r1`. No Supabase migration is required.
+- The executor is staging-only, endpoint-triggered, has no boot hook, has autorun disabled, rejects `VIDEO`, rejects production, rejects all scenes outside `s22`–`s25`, rejects any revision except `R1`, and enforces four image requests and `USD 0.394398` maximum incremental authorization.
+- Dispatch is durably marked consumed before the provider network call. A pre-dispatch claimed/prepared row is distinguishable and resumable; any emitted or ambiguous dispatch is terminal and cannot resubmit.
+- Focused repair, pilot, claim/idempotency, asset/Visual-QA, source-readiness, editorial and AV2 regression: `103/103 PASS`; real provider calls during tests: `0`.
+- Migration: `NOT_REQUIRED`; therefore no database change, fake row, RLS change, or rollback was performed.
+- Git push was blocked by the external-destination safety gate pending explicit confirmation of `github.com/AgustinGettar/content-factory-renderer`. The confirmation request timed out without approval.
+- CI, staging deploy, staging dry proof, Phase 1 provider execution and six-source review have not started.
+- `s22_R1_STATUS=NOT_CLAIMED`
+- `s23_R1_STATUS=NOT_CLAIMED`
+- `s24_R1_STATUS=NOT_CLAIMED`
+- `s25_R1_STATUS=NOT_CLAIMED`
+- `IMAGE_REPAIR_CALLS=0`
+- `IMAGE_REPAIR_COST=0.000000`
+- `TOTAL_COST=2.030350`
+- `SIX_SOURCE_GATES=NOT_RUN`
+- `RUNNERS=OFF`
+- `PRODUCTION=main@5fe5556_LIVE_UNCHANGED`
 
 ## Do not touch without explicit authorization
 

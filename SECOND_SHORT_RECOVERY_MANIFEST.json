@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.1.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "REPAIR_AUTHORIZATION_PENDING_AFTER_COST_OPTIMIZATION_V2",
+  "status": "PHASE1_REPAIR_EXECUTOR_COMMITTED_LOCALLY_PUSH_APPROVAL_BLOCKED",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -21,6 +21,18 @@
     "ci_result": "GREEN",
     "deployed_to_staging": false,
     "global_activation": false
+  },
+  "phase1_repair_executor": {
+    "status": "IMPLEMENTED_LOCAL_COMMIT_UNPUSHED",
+    "commit": "8cb7e2e",
+    "branch": "lumi-cost-optimization-v2",
+    "focused_regression": {"passed":103,"total":103,"real_provider_calls":0},
+    "migration": "NOT_REQUIRED_EXISTING_LUMI_PILOT_RUNS_LEDGER_REUSED",
+    "ci": "NOT_STARTED_PUSH_BLOCKED",
+    "staging_deploy": "NOT_STARTED",
+    "dry_repair_proof": "NOT_STARTED",
+    "push_blocker": "EXPLICIT_EXTERNAL_DESTINATION_APPROVAL_REQUIRED_FOR_GITHUB_COM_AGUSTINGETTAR_CONTENT_FACTORY_RENDERER",
+    "revision_status": {"s22-r1":"NOT_CLAIMED","s23-r1":"NOT_CLAIMED","s24-r1":"NOT_CLAIMED","s25-r1":"NOT_CLAIMED"}
   },
   "provider_calls": {
     "image": 9,
@@ -53,12 +65,12 @@
     "automatic_variants": 0,
     "silent_resubmits": 0,
     "maximum_one_revision_per_scene": true,
-    "cost_gate": "PENDING_NEW_EXPLICIT_AUTHORIZATION",
-    "cost_ceiling_extension_authorized": false,
+    "cost_gate": "PHASE1_SOURCE_ONLY_AUTHORIZED",
+    "cost_ceiling_extension_authorized": true,
     "provider_calls_emitted": 0,
     "image_repairs_required": 4,
     "video_repairs_required": 6,
-    "first_pending_action": "EXPLICIT_PHASED_REPAIR_AUTHORIZATION"
+    "first_pending_action": "EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD"
   },
   "repair_status_by_scene": {
     "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"AWAITING_BUDGET_CEILING_EXTENSION","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
@@ -169,7 +181,7 @@
     "status": "NOT_CREATED",
     "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
   },
-  "first_pending_action": "EXPLICIT_PHASED_REPAIR_AUTHORIZATION",
+  "first_pending_action": "EXPLICIT_GITHUB_DESTINATION_APPROVAL_THEN_PUSH_LOCAL_HEAD",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

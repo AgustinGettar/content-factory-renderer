@@ -72,3 +72,23 @@ The six repair prompts were recompiled with natural real-time motion, normal con
 The content-driven edit target is 43–47 seconds with a 45.5-second working estimate; no clip may be stretched merely to reach the old 49-second plan. At the USD 0.015/minute planning rate, TTS is estimated at USD 0.010750 for 43 seconds, USD 0.011375 for 45.5 seconds, and capped at USD 0.011750 for 47 seconds. This yields a new completion range estimate of USD 3.821498–3.822498 and a preferred estimate of USD 3.822123. No TTS call occurred.
 
 The full suite's only failure remains the unrelated absent external fixture `/workspace/scratch/f10a12ff9859/visual-benchmark-v1/lumi-master.png`. The focused zero-provider workflow passed on GitHub Actions run `36866322451`.
+
+## Phase 1 repair executor checkpoint
+
+- `RECOVERY_HEAD=a5927884e0b3c018ca992728e53cbb2cacedd6fb`
+- `REPAIR_EXECUTOR_LOCAL_COMMIT=8cb7e2e`
+- `REPAIR_EXECUTOR_STATUS=IMPLEMENTED_LOCAL_COMMIT_UNPUSHED`
+- `FOCUSED_REPAIR_AND_REGRESSION_TESTS=103/103_PASS`
+- `REAL_PROVIDER_CALLS_DURING_TESTS=0`
+- `MIGRATION_STATUS=NOT_REQUIRED_EXISTING_LEDGER_REUSED`
+- `CI_STATUS=NOT_STARTED_PUSH_BLOCKED`
+- `STAGING_STATUS=NOT_DEPLOYED`
+- `DRY_REPAIR_PROOF=NOT_RUN`
+- `REPAIR_IMAGE_CALLS=0`
+- `REPAIR_COST_USD=0.000000`
+- `TOTAL_COST_USD=2.030350`
+- `SIX_SOURCE_GATES=NOT_RUN`
+
+The existing `lumi_pilot_runs` uniqueness contract is reused with four distinct revision ledger identities, preserving the original terminal rows unchanged. The new manual executor is fail-closed to staging, `IMAGE`, `s22`–`s25`, and `R1`; it has no boot hook or autorun and consumes dispatch durably before the network request. No schema or RLS change was needed.
+
+The attempted push was rejected by the external-destination safety gate pending explicit confirmation of `github.com/AgustinGettar/content-factory-renderer`. The confirmation request timed out, so CI, staging deploy, dry proof, real source repairs and six-source review did not begin.

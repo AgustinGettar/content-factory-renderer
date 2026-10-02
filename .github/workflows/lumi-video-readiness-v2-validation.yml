@@ -8,6 +8,7 @@ on:
       - lib/lumi-editorial-readiness-v1.js
       - lib/lumi-second-short-v1.js
       - lib/lumi-second-short-repair-v1.js
+      - server.js
       - test/video-generation-readiness-v2.test.js
       - test/lumi-editorial-readiness-v1.test.js
       - test/lumi-second-short-runtime.test.js

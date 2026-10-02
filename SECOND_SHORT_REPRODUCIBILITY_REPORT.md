@@ -19,15 +19,19 @@
 - `MAX_PLANNED_REPAIR_INCREMENT_USD=1.780398`
 - `EXPECTED_TOTAL_BEFORE_TTS_IF_AUTHORIZED_USD=3.810748`
 - `NATURAL_DURATION_TARGET_SECONDS=43_TO_47_NOT_FORCED`
-- `NEW_COMPLETION_CEILING_REQUEST_USD=3.822498`
+- `TOTAL_COMPLETION_CEILING_USD=3.918537`
 - `PRODUCTION_MANIFEST_CEILING_USD=2.978645`
-- `COST_GATE=BLOCKED_BY_CEILING`
+- `CURRENT_GATE=BLOCKED_BY_SIX_SOURCE_GATE_S25`
 - `VISUAL_QA_BLOCKERS=4`
 - `TEMPORAL_QA_BLOCKERS=2`
 - `GENERATED_CLIP_FREEZE_DEFECTS=0`
 - `GENERATED_CLIP_BLACK_FRAME_SEGMENTS=0`
 - `ASSEMBLY_GATE=BLOCKED_3_OF_9`
 - `MASTER_STATUS=NOT_CREATED`
+- `RECOVERED_SOURCE_ARTIFACTS=4/4_HASH_VERIFIED`
+- `LOCAL_SALVAGE_PASS=s22,s23,s24`
+- `LOCAL_SALVAGE_FAIL=s25`
+- `SIX_SOURCE_GATES=FAIL_1_OF_6_S25`
 
 The run proved exactly-once provider dispatch and restart safety, but did not prove unattended end-to-end master production. The image prompt compiler over-applied world continuity to single-shape and guided-example scenes. The video motion contract also failed to keep option/final props front-facing in two clips. Per policy, no blocked scene was retried or resubmitted and no partial master was created.
 
@@ -145,3 +149,49 @@ Because only two of six sources are ready, `SIX_SOURCE_GATES` is terminally `FAI
 - `SOURCE_ASSET_SALVAGE_GATE_V1` and `EDUCATIONAL_GRAPHICS_LAYER_V1` were added as design-only, non-active preset contracts.
 - Provider calls in checkpoint: image `0`, Kling `0`, TTS `0`.
 - `SIX_SOURCE_GATES=FAIL_CLOSED`; assembly `3/9`; master `NOT_CREATED`; total remains `USD 2.422187`.
+
+## Final exact recovery and source-salvage result — 2026-10-02
+
+- `SUPABASE_AUTH_STATE=AUTHENTICATED_EXISTING_MCP_PLUS_SINGLE_INTERACTIVE_OAUTH_SUCCESS`
+- `SUPABASE_CONNECTION_STATE=CONNECTED_READ_ONLY_VERIFIED`
+- `SUPABASE_PROJECT_ACCESS=CONTENT_FACTORY_ACTIVE_HEALTHY`
+- `ARTIFACT_RECOVERY=PASS_4_OF_4`
+- `HASH_VERIFICATION=PASS_4_OF_4`
+- `PROVIDER_CALLS_THIS_RECOVERY=image:0,kling:0,tts:0`
+- `TOTAL_COST_USD=2.422187`
+
+Exact recovered parents:
+
+- `s22-R1`: `3242448` bytes; SHA-256 `f3d28d58cdeb9130375f446119fd34d7dcbf94369136a4e55422f326168e56bf`; `PASS`.
+- `s23-R1`: `3200658` bytes; SHA-256 `600a027994a0594b994ac79a0a729e033d8031e32f636f460b316679c7b0fb19`; `PASS`.
+- `s24-R1`: `3229018` bytes; SHA-256 `5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046`; `PASS`.
+- `s25-R1`: `3400323` bytes; SHA-256 `991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1`; `PASS`.
+
+Deterministic derivatives and QA:
+
+- `s22-R1-S1`: existing circle face recolored canonical blue; output SHA-256 `fbe26a35e19c927d4d2df14f851c51c6d3773b06aa832073214de41374b8f498`; one connected changed region `[567,1065,810,1317]`; Lumi and all pixels outside that region preserved; Visual QA, source readiness, and video-generation readiness `PASS`.
+- `s23-R1-S1`: existing three-sided triangle face recolored canonical yellow; output SHA-256 `e24d710017d124efd6170ac2cb7e49a0d4bebaa062cca3e9ca3c84d616a4419d`; one connected changed region `[568,1065,816,1285]`; Lumi and all pixels outside that region preserved; Visual QA, source readiness, and video-generation readiness `PASS`.
+- `s24-R1-S1`: previously completed square-face coral derivative reused without regeneration; output SHA-256 `d74d64592bc34a9b7309f256b7b8dee0a3d87c95c4dc489d4ddc0dac789a41e3`; one connected changed region `[620,1130,790,1297]`; Visual QA, source readiness, and video-generation readiness `PASS`.
+- `s25-R1`: `FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE`. Converting pedestals to alcoves would require reconstruction of occluded garden pixels, perspective, enclosure geometry, shadows, and lighting. The prohibited visible-cut/paste outcome was not forced.
+
+`s27` and `s29` retain their previously recorded source `PASS` results. Therefore five of six sources pass and `SIX_SOURCE_GATES=FAIL_1_OF_6_S25`. No Kling claim, request, retry, variant, resubmit, TTS, assembly, master, schema change, deploy, or publication followed. Assembly remains `3/9`; master is `NOT_CREATED_SOURCE_GATE_FAILED`; runners remain OFF and autorun false.
+
+The current conditional maximums are one explicit s25-C1 image `USD 0.0985995`, Kling `USD 1.386000`, TTS `USD 0.011750`, and total completion `USD 3.918537`. All remain unconsumed at this checkpoint.
+
+## s25 explicit creative revision authorization — 2026-10-02
+
+- `AUTHORIZATION=EXPLICIT_CREATIVE_REVISION`
+- `IDENTITY=s25-C1`
+- `LEDGER_ID=lumi_jardin_formas_v1_s25_c1`
+- `MAX_PROVIDER_CALLS=1`
+- `MAX_ADDITIONAL_IMAGE_COST_USD=0.0985995`
+- `STATUS=NOT_CLAIMED`
+- `REQUEST_ID=NONE`
+- `CONTENT_HASH=NONE`
+- `CURRENT_TOTAL_COST_USD=2.422187`
+
+The ledger was rechecked before implementation: 18 provider calls total, consisting of 13 image and 5 Kling calls; latest mutation `2026-10-01T19:22:27.793Z`; rows after that checkpoint `0`; s25-C1 rows `0`. The new runtime is staging-only, manually invoked, has no boot hook, and keeps the R1 second-repair rejection unchanged. It requires both immutable s25 original and s25-R1 as lineage parents and performs source-contract validation before claim.
+
+The compiled creative contract starts from the current source compiler and adds exactly three recessed architectural alcoves, explicit inside-alcove placement, and absolute prohibition of pedestals, podiums, stands, tables, projecting shelves, bases, plinths, and replacement furniture. Only the canonical Lumi reference is allowed; the pedestal-bearing world image is deliberately excluded. Focused local validation: `38/38 PASS`, provider calls `0`.
+
+`FIRST_PENDING_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`.

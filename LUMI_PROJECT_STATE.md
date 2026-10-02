@@ -17,8 +17,22 @@
 - `PRODUCTION_PRESET_V1=READY`
 - `PRODUCTION_PRESET_V1_ACTIVE=false`
 - `PRODUCTION_PRESET_V1_1=READY_NOT_GLOBALLY_ACTIVE`
-- `LAST_COMPLETED_ACTION=PARTIAL_EXACT_ARTIFACT_RECOVERY_AND_OFFLINE_S24_SALVAGE_PREVIEW`
-- `SECOND_SHORT_STATUS=SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_FAIL_CLOSED`
+- `LAST_COMPLETED_ACTION=S25_C1_RUNTIME_IMPLEMENTED_AND_38_OF_38_FOCUSED_TESTS_PASS_LOCAL`
+- `SECOND_SHORT_STATUS=SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_S25_FAIL_CLOSED`
+- `SUPABASE_AUTH_STATE=AUTHENTICATED_EXISTING_MCP_PLUS_SINGLE_INTERACTIVE_OAUTH_SUCCESS`
+- `SUPABASE_CONNECTION_STATE=CONNECTED_READ_ONLY_VERIFIED`
+- `SUPABASE_PROJECT_ACCESS=CONTENT_FACTORY_ACTIVE_HEALTHY`
+- `ARTIFACT_RECOVERY_STATUS=RECOVERED_AND_HASH_VERIFIED_4_OF_4`
+- `s22_BYTES_RECOVERED=3242448`
+- `s23_BYTES_RECOVERED=3200658`
+- `s24_BYTES_RECOVERED=3229018`
+- `s25_BYTES_RECOVERED=3400323`
+- `s22_HASH_VERIFIED=PASS`
+- `s23_HASH_VERIFIED=PASS`
+- `s24_HASH_VERIFIED=PASS`
+- `s25_HASH_VERIFIED=PASS`
+- `LOCAL_SALVAGE_STATUS=s22_PASS_s23_PASS_s24_PASS_s25_FAIL_PROFESSIONAL_COMPOSITE_NOT_FEASIBLE`
+- `SIX_SOURCE_GATES=FAIL_1_OF_6_S25`
 - `SECOND_SHORT_EPISODE_ID=ep_lumi_formas_002`
 - `SECOND_SHORT_ORIGINAL_PLANNED_DURATION=49.0`
 - `SECOND_SHORT_EDITORIAL_TARGET_SECONDS=43_TO_47_CONTENT_DRIVEN`
@@ -37,14 +51,24 @@
 - `SECOND_SHORT_TTS_COMPLETE_COUNT=0`
 - `SECOND_SHORT_ASSEMBLY_GATE=BLOCKED_3_OF_9`
 - `SECOND_SHORT_MASTER_STATUS=NOT_CREATED`
-- `FIRST_PENDING_ACTION=RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES`
-- `NEXT_ACTION=RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES`
+- `FIRST_PENDING_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`
+- `NEXT_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`
 - `SECOND_SHORT_REPAIR_IMAGE_CALLS=4`
 - `SECOND_SHORT_REPAIR_VIDEO_CALLS=0`
 - `SECOND_SHORT_REPAIR_INCREMENTAL_COST_USD=0.391837`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_INCREMENT_USD=1.780398`
 - `SECOND_SHORT_REPAIR_MAX_PLANNED_TOTAL_PRE_TTS_USD=3.810748`
 - `SECOND_SHORT_REPAIR_AUTHORIZATION_GRANTED=PHASE1_SOURCE_ONLY`
+- `KLING_CALLS_THIS_RECOVERY=0`
+- `TTS_CALLS_THIS_RECOVERY=0`
+- `MASTER_STATUS=NOT_CREATED_SOURCE_GATE_FAILED`
+- `S25_C1_STATUS=NOT_CLAIMED`
+- `S25_C1_AUTHORIZATION=EXPLICIT_CREATIVE_REVISION`
+- `S25_C1_MAX_PROVIDER_CALLS=1`
+- `S25_C1_MAX_COST_USD=0.0985995`
+- `S25_C1_REQUEST_ID=NONE`
+- `S25_C1_HASH=NONE`
+- `TOTAL_COMPLETION_CEILING_USD=3.918537`
 - `REPAIR_EXECUTOR_STATUS=PUBLISHED_CI_GREEN_DEPLOYED_PHASE1_STOPPED`
 - `REPAIR_EXECUTOR_COMMIT=8cb7e2e`
 - `REPAIR_EXECUTOR_FOCUSED_TESTS=103/103_PASS`
@@ -441,14 +465,18 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 
 ## Source salvage recovery checkpoint — 2026-10-02
 
-- Providers emitted by this checkpoint: image `0`, Kling `0`, TTS `0`.
-- Current accounted total remains `USD 2.422187`.
-- `s24-R1`: exact PNG recovered; SHA-256 `5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046` verified `PASS`.
-- `s25-R1`: exact PNG recovered; SHA-256 `991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1` verified `PASS`.
-- `s22-R1` and `s23-R1`: exact-byte recovery remains pending after expired persisted review URLs and an incomplete authenticated download flow. No unverified bytes were processed.
-- `s24-R1-S1`: zero-provider deterministic coral recolor preview created from the verified s24 artifact; original remains immutable; canonical promotion false; human review pending.
-- `s25`: deterministic alcove reconstruction rejected before execution because it would require background reconstruction plus new enclosure geometry, perspective and shadows. Original is a semantic `ACCEPT_WITH_HUMAN_WARNING` candidate only; no automatic override.
-- Semantic review: s22–s24 exact colors are not spoken and are not the educational objective; s25 alcoves are not spoken and the required moon/pennant/window examples are present and separated. All original automated blockers remain preserved.
-- `SOURCE_ASSET_SALVAGE_GATE_V1` and `EDUCATIONAL_GRAPHICS_LAYER_V1`: design added to the future preset, not runtime-active.
-- `SIX_SOURCE_GATES=FAIL_CLOSED` because s22/s23 recovery is incomplete and s25 has no explicit human warning decision.
-- Kling `0`; TTS `0`; assembly `3/9`; master `NOT_CREATED`; runners OFF; autorun false; production unchanged.
+- Existing official Supabase MCP access was authenticated and the `Content Factory` project was `ACTIVE_HEALTHY`. One interactive ChatGPT OAuth flow was used only after dashboard access was required and completed successfully; it was not repeated. No secret, service-role key, access token, refresh token, or signed URL was persisted in chat, logs, commits, or artifacts.
+- Exact recovery and SHA-256 verification: `s22-R1` `PASS` (`3242448` bytes), `s23-R1` `PASS` (`3200658` bytes), `s24-R1` `PASS` (`3229018` bytes), `s25-R1` `PASS` (`3400323` bytes). The four originals remain immutable.
+- `s22-R1-S1`: deterministic local mask recolor of the existing circle face to canonical blue only; SHA-256 `fbe26a35e19c927d4d2df14f851c51c6d3773b06aa832073214de41374b8f498`; Visual QA `PASS`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`.
+- `s23-R1-S1`: deterministic local mask recolor of the existing triangle face to canonical yellow only; SHA-256 `e24d710017d124efd6170ac2cb7e49a0d4bebaa062cca3e9ca3c84d616a4419d`; Visual QA `PASS`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`.
+- `s24-R1-S1`: the previously completed deterministic coral square derivative was reused without regeneration; SHA-256 `d74d64592bc34a9b7309f256b7b8dee0a3d87c95c4dc489d4ddc0dac789a41e3`; Visual QA `PASS`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`.
+- All three color corrections are confined to one connected shape-face region; pixels outside their recorded change bounding boxes are bit-exact to the verified parents. Lumi is unchanged, geometry remains readable, and enlarged edge QA passes.
+- `s25`: `FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE`. A clean pedestal-to-alcove conversion requires rebuilding occluded background, enclosure geometry, perspective, shadows, and lighting. A forced local composite would create visible cut/paste or mismatch artifacts and is prohibited.
+- `s27` and `s29` retain their previously recorded source readiness `PASS` results.
+- `SIX_SOURCE_GATES=FAIL_1_OF_6_S25`; passed sources: `s22-R1-S1`, `s23-R1-S1`, `s24-R1-S1`, `s27`, `s29`; failed source: `s25-R1`.
+- Because the six-source gate failed, Kling is not authorized. Recovery provider calls: image `0`, Kling `0`, TTS `0`. Assembly remains `3/9`; master `LUMI_SHORT_JARDIN_FORMAS_V1.mp4` was not created.
+- Current total remains `USD 2.422187`. The user authorized exactly one `EXPLICIT_CREATIVE_REVISION` for `s25-C1` with image ceiling `USD 0.0985995`; conditional ceilings remain Kling `USD 1.386000` and TTS `USD 0.011750`; total completion ceiling is `USD 3.918537`.
+- A staging-only, no-boot-hook runtime for the distinct identity `lumi_jardin_formas_v1_s25_c1` was implemented locally. It preserves both the original s25 and s25-R1 as immutable lineage parents, validates the recessed-alcove contract before claim, uses only the canonical Lumi reference, and allows exactly one provider dispatch. Focused tests: `38/38 PASS`; provider calls during tests: `0`.
+- `S25_C1_STATUS=NOT_CLAIMED`; `S25_C1_REQUEST_ID=NONE`; `S25_C1_HASH=NONE`.
+- `FIRST_PENDING_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`.
+- Runners OFF; autorun false; no schema/RLS/policy/auth-config change; no staging or production deploy; production remains `main@5fe5556` intact; no publication.

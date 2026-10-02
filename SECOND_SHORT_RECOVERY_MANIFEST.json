@@ -1,8 +1,8 @@
 {
-  "manifest_version": "lumi-second-short-recovery/1.1.0",
+  "manifest_version": "lumi-second-short-recovery/1.2.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_FAIL_CLOSED",
+  "status": "SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_S25_FAIL_CLOSED",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -52,13 +52,15 @@
     "total_accounted": 2.422187,
     "repair_actual": 0.391837,
     "repair_max_planned_increment": 1.780398,
-    "expected_total_before_tts_if_authorized": 3.810748,
+    "expected_total_before_tts_if_authorized": 3.9067865,
     "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47,"force_exact_duration":false},
     "tts_estimate_natural_range": {"minimum_at_43_seconds":0.01075,"preferred_at_45_5_seconds":0.011375,"ceiling_at_47_seconds":0.01175},
-    "completion_estimate_natural_range": {"minimum":3.821498,"preferred":3.822123,"new_ceiling_request":3.822498},
+    "completion_estimate_natural_range": {"minimum":3.9175365,"preferred":3.9181615,"total_completion_ceiling":3.918537},
     "production_manifest_ceiling": 2.978645,
-    "ceiling_excess_before_tts": 0.832103,
-    "ceiling_excess_with_tts_at_47_seconds": 0.843853
+    "kling_incremental_ceiling": 1.386,
+    "tts_ceiling": 0.01175,
+    "s25_c1_image_ceiling": 0.0985995,
+    "total_completion_ceiling": 3.918537
   },
   "repair_authorization": {
     "type": "USER_EXPLICIT_CONTROLLED_REPAIR_REVISIONS",
@@ -72,7 +74,24 @@
     "provider_calls_emitted": 4,
     "image_repairs_required": 4,
     "video_repairs_required": 6,
-    "first_pending_action": "HUMAN_REVIEW_PHASE1_SOURCES_AND_AUTHORIZE_NEW_SOURCE_REVISIONS_IF_DESIRED"
+    "first_pending_action": "PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE"
+  },
+  "s25_explicit_creative_revision": {
+    "identity": "s25-C1",
+    "ledger_pilot_id": "lumi_jardin_formas_v1_s25_c1",
+    "authorization": "EXPLICIT_CREATIVE_REVISION",
+    "status": "NOT_CLAIMED",
+    "max_provider_calls": 1,
+    "max_additional_image_cost_usd": 0.0985995,
+    "automatic_retry": false,
+    "automatic_variant": false,
+    "silent_resubmit": false,
+    "lineage_required": ["lumi_jardin_formas_v1:s25:IMAGE", "lumi_jardin_formas_v1_s25_r1:s25:IMAGE"],
+    "pre_provider_source_contract_validation": "PASS_LOCAL",
+    "reference_policy": "CANONICAL_LUMI_ONLY_NO_PEDESTAL_WORLD_REFERENCE",
+    "focused_tests": {"passed":38,"total":38,"provider_calls":0},
+    "request_id": null,
+    "content_hash": null
   },
   "repair_status_by_scene": {
     "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
@@ -209,35 +228,50 @@
   "master": {
     "filename": "LUMI_SHORT_JARDIN_FORMAS_V1.mp4",
     "status": "NOT_CREATED",
-    "reason": "ASSEMBLY_GATE_BLOCKED_3_OF_9"
+    "reason": "SIX_SOURCE_GATES_FAIL_1_OF_6_S25"
   },
   "source_salvage_checkpoint": {
     "recorded_at": "2026-10-02",
+    "last_completed_action": "EXACT_ARTIFACT_RECOVERY_AND_ZERO_COST_S22_S23_S24_SALVAGE_QA",
     "provider_calls": {"image":0,"kling":0,"tts":0},
-    "artifact_recovery": {
-      "s22-r1": {"status":"RECOVERY_PENDING","hash_verification":"NOT_RUN_NO_BYTES"},
-      "s23-r1": {"status":"RECOVERY_PENDING","hash_verification":"NOT_RUN_NO_BYTES"},
-      "s24-r1": {"status":"RECOVERED","hash_verification":"PASS","sha256":"5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046"},
-      "s25-r1": {"status":"RECOVERED","hash_verification":"PASS","sha256":"991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1"}
+    "supabase": {
+      "auth_state": "AUTHENTICATED_EXISTING_MCP_PLUS_SINGLE_INTERACTIVE_OAUTH_SUCCESS",
+      "connection_state": "CONNECTED_READ_ONLY_VERIFIED",
+      "project_access": "CONTENT_FACTORY_ACTIVE_HEALTHY",
+      "schema_modified": false,
+      "secrets_exposed": false
     },
-    "semantic_review": {
-      "s22-r1":"COSMETIC_ONLY_COLOR_HUMAN_REVIEW_CANDIDATE",
-      "s23-r1":"COSMETIC_ONLY_COLOR_HUMAN_REVIEW_CANDIDATE",
-      "s24-r1":"COSMETIC_ONLY_COLOR_LOCAL_SALVAGE_AVAILABLE",
-      "s25-r1":"COSMETIC_ONLY_LAYOUT_DETAIL_ACCEPT_WITH_HUMAN_WARNING_CANDIDATE"
+    "artifact_recovery": {
+      "s22-r1": {"status":"RECOVERED","bytes":3242448,"hash_verification":"PASS","sha256":"f3d28d58cdeb9130375f446119fd34d7dcbf94369136a4e55422f326168e56bf"},
+      "s23-r1": {"status":"RECOVERED","bytes":3200658,"hash_verification":"PASS","sha256":"600a027994a0594b994ac79a0a729e033d8031e32f636f460b316679c7b0fb19"},
+      "s24-r1": {"status":"RECOVERED","bytes":3229018,"hash_verification":"PASS","sha256":"5944817b26393fcf736206dbc0a5423b33a43486f558bfcdc93b9807d4af6046"},
+      "s25-r1": {"status":"RECOVERED","bytes":3400323,"hash_verification":"PASS","sha256":"991179f876db84bc01ac105a353dce1f5a6bc21abb136b0a18fb74de440250a1"}
     },
     "derived": {
-      "s24-r1-s1": {"status":"PREVIEW_HUMAN_REVIEW_PENDING","provider_cost_usd":0,"canonical_promotion":false}
+      "s22-r1-s1": {"status":"PASS_HUMAN_REVIEW_PENDING","operation":"DETERMINISTIC_MASKED_BLUE_RECOLOR_EXISTING_CIRCLE_FACE_ONLY","sha256":"fbe26a35e19c927d4d2df14f851c51c6d3773b06aa832073214de41374b8f498","visual_qa":"PASS","video_source_readiness":"PASS","video_generation_readiness":"PASS","provider_cost_usd":0,"canonical_promotion":false},
+      "s23-r1-s1": {"status":"PASS_HUMAN_REVIEW_PENDING","operation":"DETERMINISTIC_MASKED_YELLOW_RECOLOR_EXISTING_TRIANGLE_FACE_ONLY","sha256":"e24d710017d124efd6170ac2cb7e49a0d4bebaa062cca3e9ca3c84d616a4419d","visual_qa":"PASS","video_source_readiness":"PASS","video_generation_readiness":"PASS","provider_cost_usd":0,"canonical_promotion":false},
+      "s24-r1-s1": {"status":"PASS_HUMAN_REVIEW_PENDING","operation":"DETERMINISTIC_MASKED_CORAL_RECOLOR_EXISTING_SQUARE_FACE_ONLY","sha256":"d74d64592bc34a9b7309f256b7b8dee0a3d87c95c4dc489d4ddc0dac789a41e3","visual_qa":"PASS","video_source_readiness":"PASS","video_generation_readiness":"PASS","provider_cost_usd":0,"canonical_promotion":false,"reused_completed_action":true}
     },
-    "s25_local_salvage":"FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE",
-    "six_source_gates":"FAIL_CLOSED",
+    "s25_local_salvage": {"status":"FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE","forced_composite":false,"visual_qa":"FAIL_CANONICAL_ALCOVE_PLACEMENT","video_source_readiness":"FAIL","video_generation_readiness":"FAIL","human_review_required":true},
+    "six_source_gates":"FAIL_1_OF_6_S25",
+    "passed_sources":["s22-r1-s1","s23-r1-s1","s24-r1-s1","s27-existing","s29-existing"],
+    "failed_sources":["s25-r1"],
+    "kling_authorized":false,
     "assembly":"3/9",
-    "master_status":"NOT_CREATED",
+    "tts":"NOT_STARTED",
+    "master_status":"NOT_CREATED_SOURCE_GATE_FAILED",
     "total_cost_usd":2.422187,
+    "s25_c1_status":"NOT_CLAIMED",
+    "s25_c1_authorization":"EXPLICIT_CREATIVE_REVISION",
+    "s25_c1_max_provider_calls":1,
+    "s25_c1_image_ceiling_usd":0.0985995,
+    "total_completion_ceiling_usd":3.918537,
     "runners":"OFF",
-    "autorun":false
+    "autorun":false,
+    "production":"main@5fe5556_INTACT",
+    "first_pending_action":"PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE"
   },
-  "first_pending_action": "RECOVER_AND_HASH_VERIFY_S22_R1_AND_S23_R1_EXACT_BYTES",
+  "first_pending_action": "PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

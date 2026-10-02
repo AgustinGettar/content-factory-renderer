@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  SECOND_SHORT_S25_CREATIVE_REVISION,
   SECOND_SHORT_REPAIR_PHASE1,
   REPAIR_LIFECYCLE,
+  buildS25CreativeSourceContract,
+  claimS25CreativeRevision,
+  creativeRevisionIdentity,
   claimPhase1Repair,
   dispatchPhase1Repair,
   patchPhase1Repair,
@@ -11,6 +15,7 @@ import {
   recordPhase1SourceQa,
   repairIdentity,
   resumableBeforeProvider,
+  validateS25CreativeRevisionCommand,
   validatePhase1RepairCommand,
 } from "../lib/lumi-second-short-repair-v1.js";
 
@@ -29,6 +34,29 @@ function original(sceneId, index = 1) {
     storage_path: `original/${sceneId}.png`,
     content_hash: sceneId.padEnd(64, "a"),
     result: { visual_qa: { version: "1.2", classification: "BLOCKER", findings: [`${sceneId}_immutable_blocker`] } },
+  };
+}
+
+function s25R1() {
+  return {
+    id: "s25-r1-row",
+    pilot_id: "lumi_jardin_formas_v1_s25_r1",
+    scene_id: "s25",
+    stage: "IMAGE",
+    status: "SUCCEEDED",
+    provider: "openai",
+    provider_calls: 1,
+    estimated_cost_usd: 0.0986,
+    provider_request_id: "req_s25_r1",
+    artifact_reference: "repairs/s25-r1/source.png",
+    storage_bucket: "generative-video-benchmarks",
+    storage_path: "repairs/s25-r1/source.png",
+    content_hash: "c".repeat(64),
+    result: {
+      revision: "s25-r1",
+      source_gate: "FAIL",
+      visual_qa: { version: "visual-qa/1.2", classification: "BLOCKER" },
+    },
   };
 }
 
@@ -66,6 +94,7 @@ function fakeSupabase(seed = SECOND_SHORT_REPAIR_PHASE1.scenes.map(original)) {
 }
 
 const env = { LUMI_RUNTIME_ENV: "staging", LUMI_SECOND_SHORT_REPAIR_PHASE1_ENABLED: "true" };
+const creativeEnv = { LUMI_RUNTIME_ENV: "staging", LUMI_SECOND_SHORT_S25_C1_ENABLED: "true" };
 
 test("terminal original stays immutable and R1 has distinct identity with full lineage", async () => {
   const supabase = fakeSupabase();
@@ -203,4 +232,76 @@ test("Visual QA V1.2 and VIDEO_SOURCE_READINESS_V1 persist PASS only for exact s
   assert.equal(result.visual_qa.classification, "PASS");
   assert.equal(result.video_source_readiness.status, "PASS");
   assert.equal(result.row.result.lifecycle, REPAIR_LIFECYCLE.SUCCEEDED_READY);
+});
+
+test("s25-C1 is a distinct explicit creative revision with original and R1 lineage", async () => {
+  const supabase = fakeSupabase([...SECOND_SHORT_REPAIR_PHASE1.scenes.map(original), s25R1()]);
+  const beforeOriginal = structuredClone(supabase.rows.find((row) => row.pilot_id === "lumi_jardin_formas_v1" && row.scene_id === "s25"));
+  const beforeR1 = structuredClone(supabase.rows.find((row) => row.pilot_id === "lumi_jardin_formas_v1_s25_r1"));
+  const claim = await claimS25CreativeRevision({
+    supabase,
+    env: creativeEnv,
+    sceneId: "s25",
+    revision: "s25-c1",
+  });
+  assert.equal(claim.claimed, true);
+  assert.equal(claim.row.pilot_id, creativeRevisionIdentity().ledgerPilotId);
+  assert.equal(claim.row.provider_calls, 0);
+  assert.equal(claim.row.result.authorization, "EXPLICIT_CREATIVE_REVISION");
+  assert.equal(claim.row.result.lineage.original.request_id, beforeOriginal.provider_request_id);
+  assert.equal(claim.row.result.lineage.r1.request_id, beforeR1.provider_request_id);
+  assert.deepEqual(supabase.rows.find((row) => row.id === beforeOriginal.id), beforeOriginal);
+  assert.deepEqual(supabase.rows.find((row) => row.id === beforeR1.id), beforeR1);
+});
+
+test("s25-C1 accepts exactly one claim and leaves the R1 revision policy unchanged", async () => {
+  const supabase = fakeSupabase([...SECOND_SHORT_REPAIR_PHASE1.scenes.map(original), s25R1()]);
+  const first = await claimS25CreativeRevision({ supabase, env: creativeEnv, sceneId: "s25", revision: "s25-c1" });
+  assert.equal(first.claimed, true);
+  const restart = await claimS25CreativeRevision({ supabase, env: creativeEnv, sceneId: "s25", revision: "s25-c1" });
+  assert.equal(restart.claimed, true);
+  assert.equal(restart.resumed, true);
+  await first.row;
+  assert.throws(
+    () => validateS25CreativeRevisionCommand({ env: creativeEnv, sceneId: "s25", revision: "s25-c2", stage: "IMAGE" }),
+    /revision_not_authorized/,
+  );
+  assert.throws(
+    () => validatePhase1RepairCommand({ env, sceneId: "s25", revision: "s25-r2", stage: "IMAGE" }),
+    /revision_not_authorized/,
+  );
+});
+
+test("s25-C1 fails closed outside staging, when disabled, and above exact budget", async () => {
+  const base = { env: creativeEnv, sceneId: "s25", revision: "s25-c1", stage: "IMAGE" };
+  assert.throws(() => validateS25CreativeRevisionCommand({ ...base, env: { ...creativeEnv, LUMI_RUNTIME_ENV: "production" } }), /production_rejected/);
+  assert.throws(() => validateS25CreativeRevisionCommand({ ...base, env: { ...creativeEnv, LUMI_SECOND_SHORT_S25_C1_ENABLED: "false" } }), /disabled/);
+  assert.throws(() => validateS25CreativeRevisionCommand({ ...base, sceneId: "s24" }), /scene_not_authorized/);
+  assert.throws(() => validateS25CreativeRevisionCommand({ ...base, stage: "VIDEO" }), /stage_not_authorized/);
+  const supabase = fakeSupabase([...SECOND_SHORT_REPAIR_PHASE1.scenes.map(original), s25R1()]);
+  await assert.rejects(
+    () => claimS25CreativeRevision({ ...base, supabase, estimatedUsd: 0.0986 }),
+    /unit_budget_rejected/,
+  );
+  assert.equal(SECOND_SHORT_S25_CREATIVE_REVISION.maxProviderCalls, 1);
+});
+
+test("s25-C1 pre-provider contract requires recessed alcoves and forbids every pedestal substitute", async () => {
+  const contract = await buildS25CreativeSourceContract();
+  assert.equal(contract.status, "PASS");
+  assert.equal(contract.readiness.status, "PASS");
+  assert.equal(contract.reference_policy, "CANONICAL_LUMI_ONLY_NO_PEDESTAL_WORLD_REFERENCE");
+  for (const required of [
+    "exactly three large, separate recessed wall alcoves",
+    "Inside the left alcove",
+    "Inside the center alcove",
+    "Inside the right alcove",
+    "Zero pedestals",
+    "zero podiums",
+    "zero stands",
+    "zero tables",
+    "zero projecting shelves",
+    "zero bases beneath the educational objects",
+    "zero plinths",
+  ]) assert.match(contract.text, new RegExp(required, "i"));
 });

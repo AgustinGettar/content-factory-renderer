@@ -76,11 +76,16 @@ import {
   shouldRunSecondShortOnBoot,
 } from "./lib/lumi-second-short-v1.js";
 import {
+  buildS25CreativeSourceContract,
   phase1RepairStatus,
   provePhase1DryRepair,
   recordPhase1SourceQa,
+  recordS25CreativeSourceQa,
   runPhase1SourceRepair,
+  runS25CreativeRevision,
+  s25CreativeRevisionStatus,
   validatePhase1RepairCommand,
+  validateS25CreativeRevisionCommand,
 } from "./lib/lumi-second-short-repair-v1.js";
 
 const execFileAsync = promisify(execFile);
@@ -681,6 +686,7 @@ app.get("/health", (_req, res) => {
       lumi_production_pilot_v1_enabled: LUMI_PRODUCTION_PILOT_ENABLED,
       lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
       lumi_second_short_repair_phase1_enabled: process.env.LUMI_SECOND_SHORT_REPAIR_PHASE1_ENABLED === "true",
+      lumi_second_short_s25_c1_enabled: process.env.LUMI_SECOND_SHORT_S25_C1_ENABLED === "true",
       lumi_second_short_repair_autorun: false,
     },
   });
@@ -917,6 +923,89 @@ app.post("/pilots/lumi-jardin-formas-v1/repairs/phase1/source-qa", async (req, r
   if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const result = await recordPhase1SourceQa({
+      supabase,
+      sceneId: req.body?.scene_id,
+      revision: req.body?.revision,
+      observation: req.body?.observation,
+    });
+    return res.json({ ok: true, visual_qa: result.visual_qa, video_source_readiness: result.video_source_readiness });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+// One explicit s25 creative revision. This is a separate canonical identity,
+// not an R1 retry. It has no boot hook and dispatches at most once.
+app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/status", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, jobs: [...secondShortRepairJobs], ...(await s25CreativeRevisionStatus({ supabase, includeReviewUrl: true })) });
+  } catch (error) {
+    return res.status(503).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/contract", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const contract = await buildS25CreativeSourceContract();
+    return res.json({
+      ok: true,
+      status: contract.status,
+      scene_id: contract.scene_id,
+      revision: contract.revision,
+      authorization: contract.authorization,
+      source_prompt_version: contract.source_prompt_version,
+      prompt_hash: contract.prompt_hash,
+      reference_policy: contract.reference_policy,
+      readiness: contract.readiness,
+      provider_calls: 0,
+    });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message, reasons: error.readiness?.errors || error.missing_tokens || [] });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/run", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const command = validateS25CreativeRevisionCommand({
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: req.body?.scene_id,
+      revision: req.body?.revision,
+      stage: req.body?.stage || "IMAGE",
+    });
+    if (secondShortRepairJobs.size > 0) return res.status(409).json({ ok: false, error: "second_short_repair_serial_job_active", jobs: [...secondShortRepairJobs] });
+    secondShortRepairJobs.add(command.revision);
+    res.status(202).json({
+      ok: true,
+      accepted: true,
+      authorization: "EXPLICIT_CREATIVE_REVISION",
+      scene_id: command.sceneId,
+      revision: command.revision,
+      stage: command.stage,
+      max_provider_calls: 1,
+      autorun: false,
+    });
+    runS25CreativeRevision({
+      supabase,
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: command.sceneId,
+      revision: command.revision,
+      openAiApiKey: OPENAI_API_KEY,
+      supabaseUrl: SUPABASE_URL,
+      logger: creativeLog,
+    }).catch((error) => console.error(`Lumi second-short ${command.revision} stopped: ${error.code || error.message}`))
+      .finally(() => secondShortRepairJobs.delete(command.revision));
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/source-qa", async (req, res) => {
+  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordS25CreativeSourceQa({
       supabase,
       sceneId: req.body?.scene_id,
       revision: req.body?.revision,

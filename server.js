@@ -132,6 +132,7 @@ const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_P
 const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
 const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
 const LUMI_SECOND_SHORT_REPAIR_TOKEN = process.env.LUMI_SECOND_SHORT_REPAIR_TOKEN || LUMI_PRODUCTION_PILOT_TOKEN;
+const LUMI_SECOND_SHORT_S25_C1_TOKEN = process.env.LUMI_SECOND_SHORT_S25_C1_TOKEN || "";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -687,6 +688,7 @@ app.get("/health", (_req, res) => {
       lumi_production_pilot_v1_autorun: shouldRunLumiPilotOnBoot(process.env),
       lumi_second_short_repair_phase1_enabled: process.env.LUMI_SECOND_SHORT_REPAIR_PHASE1_ENABLED === "true",
       lumi_second_short_s25_c1_enabled: process.env.LUMI_SECOND_SHORT_S25_C1_ENABLED === "true",
+      lumi_second_short_s25_c1_token_configured: LUMI_SECOND_SHORT_S25_C1_TOKEN.length >= 32,
       lumi_second_short_repair_autorun: false,
     },
   });
@@ -868,6 +870,14 @@ function secondShortRepairAuthorized(req) {
     && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_REPAIR_TOKEN), Buffer.from(supplied));
 }
 
+function s25CreativeRevisionAuthorized(req) {
+  const supplied = String(req.headers["x-s25-c1-token"] || "");
+  return LUMI_RUNTIME_ENV === "staging"
+    && LUMI_SECOND_SHORT_S25_C1_TOKEN.length >= 32
+    && supplied.length === LUMI_SECOND_SHORT_S25_C1_TOKEN.length
+    && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_S25_C1_TOKEN), Buffer.from(supplied));
+}
+
 app.get("/pilots/lumi-jardin-formas-v1/repairs/phase1/status", async (req, res) => {
   if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
@@ -937,7 +947,7 @@ app.post("/pilots/lumi-jardin-formas-v1/repairs/phase1/source-qa", async (req, r
 // One explicit s25 creative revision. This is a separate canonical identity,
 // not an R1 retry. It has no boot hook and dispatches at most once.
 app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/status", async (req, res) => {
-  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!s25CreativeRevisionAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     return res.json({ ok: true, jobs: [...secondShortRepairJobs], ...(await s25CreativeRevisionStatus({ supabase, includeReviewUrl: true })) });
   } catch (error) {
@@ -946,7 +956,7 @@ app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/status", async (req, res) 
 });
 
 app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/contract", async (req, res) => {
-  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!s25CreativeRevisionAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const contract = await buildS25CreativeSourceContract();
     return res.json({
@@ -967,7 +977,7 @@ app.get("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/contract", async (req, res
 });
 
 app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/run", async (req, res) => {
-  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!s25CreativeRevisionAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const command = validateS25CreativeRevisionCommand({
       env: { ...process.env, LUMI_RUNTIME_ENV },
@@ -1003,7 +1013,7 @@ app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/run", async (req, res) =>
 });
 
 app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/source-qa", async (req, res) => {
-  if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!s25CreativeRevisionAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const result = await recordS25CreativeSourceQa({
       supabase,

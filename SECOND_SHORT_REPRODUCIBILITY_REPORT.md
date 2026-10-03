@@ -207,3 +207,13 @@ The local Phase 2 runtime uses a new `lumi_jardin_formas_v1_phase2` video identi
 Production Preset V1.1.2 now permanently requires the final deliverable to be a `FULL_HD_HIGH_QUALITY_MASTER`: one `1080x1920` H.264 High/yuv420p encode at preferred CRF `17` and preset `slow`, canonical frame rate, highest-quality persisted source assets only, native-resolution vector/deterministic overlays, and AAC `48 kHz` at preferred `192k`. Preview/proxy/thumbnail sources, unnecessary encode chains, aggressive sharpening, and unauthorized AI upscaling are forbidden. Final manifest evidence must include `MASTER_FILE_SIZE`, `VIDEO_BITRATE`, `AUDIO_BITRATE`, `FRAME_RATE`, and `ENCODE_SETTINGS`.
 
 `FIRST_PENDING_ACTION=PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED`.
+
+## Phase 2 terminal temporal blocker — 2026-10-03
+
+Commit `6267c189514ae98cec25d516c6837bc31d5b00be` (tree `a36e8648cce0a50a98919007b22ab53b4d5a3665`) passed CI run `37143098094` and was deployed only to staging. The real staging preflight passed all six exact source hashes.
+
+Two and only two authorized Phase 2 calls were emitted. `s22` request `fa38a575-965f-49b7-9345-31f1b5cb8ad8`, output `ecf831dd949e7beb703b16cc241516bba3e1164af813795964a0f8b532a5ca97`, passed temporal QA. `s23` request `a05b628a-9f5a-4b2d-9250-6d58b84fa73b`, output `44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154`, is a terminal blocker: during the allowed wand trace, the source's flat rigid yellow triangle folds into two planes and gains a central vertical/pyramidal ridge. That visible geometry mutation violates the explicit rigid/no-morph contract.
+
+No retry, variant, or resubmit followed. The remaining four Phase 2 scenes were not called, Phase 2 was disabled, TTS was not started, and no partial master was created. Assembly is `4/9`; provider calls are image `14`, Kling `7`, TTS `0`; accounted total is `USD 2.977122`. Production remains `main@5fe5556` unchanged.
+
+`FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED`.

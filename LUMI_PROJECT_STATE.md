@@ -492,3 +492,16 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - `FINAL_MASTER_QUALITY=HIGH` is permanent in Production Preset V1.1.2: `1080x1920`, `9:16`, H.264 High, `yuv420p`, quality-based CRF `16–18` with preferred `17`, preset `slow`, canonical frame rate, one final master encode, original persisted sources only, native-resolution deterministic/vector overlays, AAC `48 kHz` at preferred `192k`, and mandatory final manifest metrics.
 - `FIRST_PENDING_ACTION=PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED`
 - `ASSEMBLY=3/9`; `TTS=NOT_STARTED`; `MASTER_STATUS=NOT_CREATED_PHASE2_PENDING`; runners OFF; autorun false; no schema/RLS/policy/auth change; no production deploy or publication; production remains `main@5fe5556` intact.
+
+## Phase 2 temporal execution stopped — 2026-10-03
+
+- `LAST_COMPLETED_ACTION=S23_TEMPORAL_QA_BLOCKER_RECORDED_PHASE2_STOPPED`
+- Remote validation/staging commit `6267c189514ae98cec25d516c6837bc31d5b00be`, tree `a36e8648cce0a50a98919007b22ab53b4d5a3665`; CI run `37143098094` `GREEN`; no main change.
+- Staging preflight passed all six exact source hashes with zero prior Phase 2 video claims. The three approved local derivatives were persisted without provider calls; s25-C1, s27, and s29 retained their highest-quality persisted source paths.
+- `s22` Kling was emitted exactly once: request `fa38a575-965f-49b7-9345-31f1b5cb8ad8`; output SHA-256 `ecf831dd949e7beb703b16cc241516bba3e1164af813795964a0f8b532a5ca97`; `5.041667 s`; `720x1280`; H.264; 24 fps; no audio; Temporal QA `PASS`; no black or freeze segments.
+- `s23` Kling was emitted exactly once: request `a05b628a-9f5a-4b2d-9250-6d58b84fa73b`; output SHA-256 `44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154`; `5.041667 s`; `720x1280`; H.264; 24 fps; no audio. Temporal QA is `BLOCKER`: the initially flat rigid yellow three-sided triangle visibly folds into two planes and gains a central vertical/pyramidal ridge during the wand trace, violating rigid geometry and no-morph contracts. No black or freeze segments.
+- No retry, variant, or resubmit was made. `s24`, `s25`, `s27`, and `s29` Phase 2 Kling calls were not made. Phase 2 was disabled immediately after recording the blocker.
+- Provider totals: image `14`, Kling `7`, TTS `0`, total `21`. Phase 2 incremental accounted cost `USD 0.462000`; authoritative total `USD 2.977122`.
+- `ASSEMBLY=4/9`; TTS not started; no partial master; `MASTER_STATUS=NOT_CREATED_TEMPORAL_BLOCKER_S23`; Full HD master quality rule remains permanently recorded in Preset V1.1.2 for any future authorized completion.
+- `FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED`
+- Runners OFF; autorun false; no schema/RLS/policy/auth change; no production deploy, global activation, publication, or social upload; production remains `main@5fe5556` intact.

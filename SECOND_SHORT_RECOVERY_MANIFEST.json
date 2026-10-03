@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.2.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "SIX_SOURCE_GATES_PASS_PHASE2_RUNTIME_LOCAL_VALIDATION",
+  "status": "TEMPORAL_BLOCKER_PRESERVED_S23_NO_RETRY",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -38,18 +38,18 @@
   },
   "provider_calls": {
     "image": 14,
-    "kling": 5,
+    "kling": 7,
     "tts": 0,
-    "total": 19,
+    "total": 21,
     "automatic_retries": 0,
     "automatic_variants": 0,
     "resubmits": 0
   },
   "cost_usd": {
     "image_actual": 0.968285,
-    "kling_accounted": 1.155,
+    "kling_accounted": 1.617,
     "tts": 0,
-    "total_accounted": 2.515122,
+    "total_accounted": 2.977122,
     "repair_actual": 0.484772,
     "repair_max_planned_increment": 1.780398,
     "expected_total_before_tts_if_authorized": 3.901122,
@@ -221,8 +221,8 @@
   },
   "assembly_gate": {
     "required": "9/9",
-    "usable": "3/9",
-    "status": "BLOCKED"
+    "usable": "4/9",
+    "status": "BLOCKED_TEMPORAL_S23"
   },
   "audio": {
     "tts_complete": 0,
@@ -233,11 +233,11 @@
   "master": {
     "filename": "LUMI_SHORT_JARDIN_FORMAS_V1.mp4",
     "status": "NOT_CREATED",
-    "reason": "PHASE2_KLING_NOT_STARTED"
+    "reason": "TEMPORAL_BLOCKER_S23_ASSEMBLY_4_OF_9"
   },
   "source_salvage_checkpoint": {
     "recorded_at": "2026-10-02",
-    "last_completed_action": "S25_C1_SOURCE_QA_PASS_AND_PHASE2_RUNTIME_LOCAL_TESTS_PASS",
+    "last_completed_action": "S23_TEMPORAL_QA_BLOCKER_RECORDED_PHASE2_STOPPED",
     "provider_calls": {"image":0,"kling":0,"tts":0},
     "supabase": {
       "auth_state": "AUTHENTICATED_EXISTING_MCP_PLUS_SINGLE_INTERACTIVE_OAUTH_SUCCESS",
@@ -262,10 +262,10 @@
     "passed_sources":["s22-r1-s1","s23-r1-s1","s24-r1-s1","s25-c1","s27-existing","s29-existing"],
     "failed_sources":[],
     "kling_authorized":true,
-    "assembly":"3/9",
+    "assembly":"4/9",
     "tts":"NOT_STARTED",
-    "master_status":"NOT_CREATED_PHASE2_PENDING",
-    "total_cost_usd":2.515122,
+    "master_status":"NOT_CREATED_TEMPORAL_BLOCKER_S23",
+    "total_cost_usd":2.977122,
     "s25_c1_status":"SUCCEEDED_SOURCE_READY",
     "s25_c1_authorization":"EXPLICIT_CREATIVE_REVISION",
     "s25_c1_max_provider_calls":1,
@@ -274,19 +274,37 @@
     "runners":"OFF",
     "autorun":false,
     "production":"main@5fe5556_INTACT",
-    "first_pending_action":"PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED"
+    "first_pending_action":"HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED"
   },
   "phase2_execution": {
     "authorization": "USER_EXPLICIT_PHASE2_SIX_KLING_CALLS",
-    "status": "RUNTIME_IMPLEMENTED_LOCAL_VALIDATION_PASS_NOT_DEPLOYED",
+    "status": "TERMINAL_BLOCKER_S23_NO_RETRY",
     "scenes": ["s22", "s23", "s24", "s25", "s27", "s29"],
     "six_source_gates": "PASS_6_OF_6",
     "maximum_provider_calls": 6,
     "unit_cost_usd": 0.231,
     "incremental_ceiling_usd": 1.386,
-    "provider_calls_emitted": 0,
-    "request_ids": {},
-    "temporal_qa_by_scene": {},
+    "provider_calls_emitted": 2,
+    "request_ids": {
+      "s22": "fa38a575-965f-49b7-9345-31f1b5cb8ad8",
+      "s23": "a05b628a-9f5a-4b2d-9250-6d58b84fa73b"
+    },
+    "output_hashes": {
+      "s22": "ecf831dd949e7beb703b16cc241516bba3e1164af813795964a0f8b532a5ca97",
+      "s23": "44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154"
+    },
+    "temporal_qa_by_scene": {
+      "s22": "PASS",
+      "s23": "BLOCKER_EDUCATIONAL_GEOMETRY_MUTATION_FLAT_TRIANGLE_FOLDS_TO_PYRAMIDAL_RIDGE",
+      "s24": "NOT_CALLED",
+      "s25": "NOT_CALLED",
+      "s27": "NOT_CALLED",
+      "s29": "NOT_CALLED"
+    },
+    "assembly": "4/9",
+    "tts": "NOT_STARTED",
+    "master": "NOT_CREATED",
+    "accounted_cost_usd": 2.977122,
     "automatic_retries": 0,
     "automatic_variants": 0,
     "resubmits": 0,
@@ -307,7 +325,7 @@
     "highest_quality_persisted_sources_only": true,
     "manifest_metrics_required": ["MASTER_FILE_SIZE", "VIDEO_BITRATE", "AUDIO_BITRATE", "FRAME_RATE", "ENCODE_SETTINGS"]
   },
-  "first_pending_action": "PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED",
+  "first_pending_action": "HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

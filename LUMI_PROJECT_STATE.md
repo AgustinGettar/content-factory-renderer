@@ -527,3 +527,15 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - Maximum authorized completion from this checkpoint is `USD 4.143872` = current `2.977122` + at most five Kling calls `1.155000` + TTS ceiling `0.011750`; no image calls.
 - `s23_V2_STATUS=NOT_CLAIMED`; `s23_V2_REQUEST_ID=NONE`.
 - `FIRST_PENDING_ACTION=PUBLISH_S23_V2_RUNTIME_RUN_CI_DEPLOY_STAGING_PREFLIGHT_THEN_EXECUTE_EXACTLY_ONE_KLING`
+
+## s23-V2 terminal temporal blocker — 2026-10-03
+
+- `LAST_COMPLETED_ACTION=S23_V2_TEMPORAL_QA_BLOCKER_RECORDED_AND_ALL_FURTHER_PROVIDERS_STOPPED`
+- Validation/staging commit `ce67eaa9f8478f9760e19e9301bd16710963dfbd`, tree `1269302c8dccc78444ff20f8889af1a3f73cd89a`; CI run `37146715852` `GREEN`; production unchanged.
+- The single authorized creative revision was emitted exactly once: `s23_V2_REQUEST_ID=2abfe54f-3c51-45a0-9218-9d67257656e5`; output SHA-256 `e21c0c501d195095191c229ccea68e9ced80a873e9ac8cfd4181b8a9e6548bb0`; `3752264` bytes; `5.041667 s`; `720x1280`; H.264 Main; 24 fps; no audio; local hash verification `PASS`.
+- `s23_V2_STATUS=BLOCKER_TERMINAL`. The triangle rotates around its vertical axis, begins losing its three-sided frontal silhouette at `0.875 s`, is nearly edge-on at `1.417–1.708 s`, recovers by `2.208 s`, repeats the rotation from `3.333 s`, is nearly edge-on at `3.583–3.750 s`, and recovers by `4.292 s`. This violates the rigid, no-rotation, exactly-three-visible-sides-throughout, no-object-motion, no-disappearance, and no-morphing contracts.
+- Lumi remains canonical; anatomy, natural 1x motion, static camera, single shot, audio off, no duplication, no internal ridge/fourth edge, freeze scan, and black-frame scan pass. These passes do not override the educational-geometry blocker.
+- Provider totals are image `14`, Kling `8`, TTS `0`, total `22`; accounted total `USD 3.208122`. Retries `0`; variants `0`; resubmits `0`; no remaining scene calls were emitted.
+- `s24_STATUS=NOT_EXECUTED`; `s25_STATUS=NOT_EXECUTED`; `s27_STATUS=NOT_EXECUTED`; `s29_STATUS=NOT_EXECUTED`; assembly remains `4/9`; TTS not started; master not created.
+- `FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION`
+- Staging manual generation flags OFF; runners OFF; autorun false; no main change, production deploy, publication, or global activation; production remains `main@5fe5556` intact.

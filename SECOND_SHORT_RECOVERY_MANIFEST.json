@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.2.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "TEMPORAL_BLOCKER_PRESERVED_S23_NO_RETRY",
+  "status": "S23_V2_TEMPORAL_BLOCKER_PRESERVED_NO_FURTHER_PROVIDER",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -38,19 +38,19 @@
   },
   "provider_calls": {
     "image": 14,
-    "kling": 7,
+    "kling": 8,
     "tts": 0,
-    "total": 21,
+    "total": 22,
     "automatic_retries": 0,
     "automatic_variants": 0,
     "resubmits": 0
   },
   "cost_usd": {
     "image_actual": 0.968285,
-    "kling_accounted": 1.617,
+    "kling_accounted": 1.848,
     "tts": 0,
-    "total_accounted": 2.977122,
-    "repair_actual": 0.484772,
+    "total_accounted": 3.208122,
+    "repair_actual": 0.715772,
     "repair_max_planned_increment": 1.780398,
     "expected_total_before_tts_if_authorized": 3.901122,
     "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47,"force_exact_duration":false},
@@ -313,6 +313,42 @@
     "runners": "OFF",
     "autorun": false
   },
+  "s23_v2_execution": {
+    "authorization": "EXPLICIT_TEMPORAL_CREATIVE_REVISION",
+    "identity": "s23-V2",
+    "ledger_pilot_id": "lumi_jardin_formas_v1_phase2_s23_v2",
+    "status": "BLOCKER_TERMINAL",
+    "provider_calls": 1,
+    "request_id": "2abfe54f-3c51-45a0-9218-9d67257656e5",
+    "output_hash": "e21c0c501d195095191c229ccea68e9ced80a873e9ac8cfd4181b8a9e6548bb0",
+    "output_bytes": 3752264,
+    "duration_seconds": 5.041667,
+    "frame_rate": "24/1",
+    "resolution": "720x1280",
+    "temporal_qa": "BLOCKER_TRIANGLE_ROTATES_EDGE_ON_TWICE",
+    "blocker_intervals_seconds": [
+      {"start":0.875,"near_edge_on_start":1.417,"near_edge_on_end":1.708,"recovered":2.208},
+      {"start":3.333,"near_edge_on_start":3.583,"near_edge_on_end":3.750,"recovered":4.292}
+    ],
+    "actual_cost_usd": 0.231,
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "resubmits": 0,
+    "remaining_scene_calls_emitted": 0,
+    "staging_manual_generation_flags": "OFF"
+  },
+  "latest_recovery_checkpoint": {
+    "last_completed_action": "S23_V2_TEMPORAL_QA_BLOCKER_RECORDED_AND_ALL_FURTHER_PROVIDERS_STOPPED",
+    "first_pending_action": "HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION",
+    "usable_clips": 4,
+    "assembly": "4/9",
+    "tts_count": 0,
+    "master_status": "NOT_CREATED_TEMPORAL_BLOCKER_S23_V2",
+    "total_cost_usd": 3.208122,
+    "runners": "OFF",
+    "autorun": false,
+    "production": "main@5fe5556_INTACT"
+  },
   "final_master_quality": {
     "preset_version": "1.1.2",
     "FINAL_MASTER_QUALITY": "HIGH",
@@ -342,8 +378,14 @@
     "lumi_motion": "NATURAL_CONTINUOUS_WAND_OVERLAP_1_583_TO_3_458_SECONDS",
     "zero_cost_salvage_status": "FAIL_TERMINAL_LOCAL_SALVAGE_NOT_PROFESSIONALLY_FEASIBLE",
     "s23_v2_authorization": "EXPLICIT_TEMPORAL_CREATIVE_REVISION",
-    "s23_v2_status": "RUNTIME_IMPLEMENTED_TESTED_NOT_CLAIMED",
-    "s23_v2_request_id": null,
+    "s23_v2_status": "BLOCKER_TERMINAL_ROTATES_EDGE_ON_TWICE",
+    "s23_v2_request_id": "2abfe54f-3c51-45a0-9218-9d67257656e5",
+    "s23_v2_sha256": "e21c0c501d195095191c229ccea68e9ced80a873e9ac8cfd4181b8a9e6548bb0",
+    "s23_v2_bytes": 3752264,
+    "s23_v2_duration_seconds": 5.041667,
+    "s23_v2_frame_rate": "24/1",
+    "s23_v2_resolution": "720x1280",
+    "s23_v2_temporal_qa": "BLOCKER_TRIANGLE_ROTATES_EDGE_ON_0_875_TO_2_208_AND_3_333_TO_4_292",
     "maximum_additional_kling_calls": 1,
     "maximum_additional_kling_calls_from_checkpoint": 5,
     "recovery_completion_ceiling_usd": 4.143872,
@@ -353,7 +395,7 @@
     "automatic_variants": 0,
     "resubmits": 0
   },
-  "first_pending_action": "PUBLISH_S23_V2_RUNTIME_RUN_CI_DEPLOY_STAGING_PREFLIGHT_THEN_EXECUTE_EXACTLY_ONE_KLING",
+  "first_pending_action": "HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

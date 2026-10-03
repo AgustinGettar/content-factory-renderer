@@ -235,3 +235,13 @@ The isolated `s23-V2` runtime is now implemented locally under ledger identity `
 The explicit five-additional-Kling authorization raises the maximum completion total from this checkpoint to `USD 4.143872`; no image calls are authorized.
 
 `FIRST_PENDING_ACTION=PUBLISH_S23_V2_RUNTIME_RUN_CI_DEPLOY_STAGING_PREFLIGHT_THEN_EXECUTE_EXACTLY_ONE_KLING`.
+
+## s23-V2 terminal temporal QA — 2026-10-03
+
+The one authorized `EXPLICIT_TEMPORAL_CREATIVE_REVISION` was dispatched exactly once after a clean staging preflight. Request `2abfe54f-3c51-45a0-9218-9d67257656e5` produced SHA-256 `e21c0c501d195095191c229ccea68e9ced80a873e9ac8cfd4181b8a9e6548bb0`, `3752264` bytes, `5.041667 s`, `720x1280`, H.264 Main, 24 fps, audio off. Local bytes match the persisted hash.
+
+Temporal QA is `BLOCKER`. The triangle rotates around its vertical axis, starts losing its required frontal geometry at `0.875 s`, is nearly edge-on at `1.417–1.708 s`, and recovers by `2.208 s`; the same failure repeats from `3.333 s`, with an edge-on interval at `3.583–3.750 s`, recovering by `4.292 s`. This violates rigid geometry, no rotation causing ambiguity, exactly three visible straight sides throughout, no object motion, no disappearance, and no morphing. Lumi identity/anatomy, natural 1x character motion, static camera, single shot, no duplication, no freeze, no black frames, and audio-off all pass but cannot override the educational blocker.
+
+No retry, variant, resubmit, s24/s25/s27/s29 call, TTS, assembly continuation, or master followed. Provider totals are image `14`, Kling `8`, TTS `0`, total `22`; accounted total is `USD 3.208122`; assembly remains `4/9`. Manual staging generation flags were turned OFF.
+
+`FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION`.

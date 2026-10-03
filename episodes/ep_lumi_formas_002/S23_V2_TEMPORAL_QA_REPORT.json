@@ -1,0 +1,59 @@
+{
+  "report": "LUMI_SECOND_SHORT_S23_V2_TEMPORAL_QA",
+  "evaluated_at": "2026-10-03T19:16:49.958Z",
+  "authorization": "EXPLICIT_TEMPORAL_CREATIVE_REVISION",
+  "identity": "s23-V2",
+  "classification": "BLOCKER",
+  "accepted": false,
+  "request_id": "2abfe54f-3c51-45a0-9218-9d67257656e5",
+  "sha256": "e21c0c501d195095191c229ccea68e9ced80a873e9ac8cfd4181b8a9e6548bb0",
+  "bytes": 3752264,
+  "duration_seconds": 5.041667,
+  "frame_rate": "24/1",
+  "frame_count": 121,
+  "resolution": "720x1280",
+  "codec": "h264",
+  "audio": "off",
+  "local_hash_verification": "PASS",
+  "findings": [
+    "TEMPORAL_QA_FAILED_TRIANGLE_EXACTLY_THREE_STRAIGHT_SIDES_THROUGHOUT",
+    "TEMPORAL_QA_FAILED_TRIANGLE_RIGID",
+    "TEMPORAL_QA_FAILED_NO_OBJECT_MOTION",
+    "TEMPORAL_QA_FAILED_NO_DISAPPEARANCE",
+    "TEMPORAL_QA_FAILED_NO_MORPHING"
+  ],
+  "temporal_evidence": [
+    {
+      "start_seconds": 0.875,
+      "near_edge_on_start_seconds": 1.417,
+      "near_edge_on_end_seconds": 1.708,
+      "recovered_frontal_seconds": 2.208,
+      "finding": "Triangle rotates around its vertical axis and loses an unambiguous three-sided frontal silhouette."
+    },
+    {
+      "start_seconds": 3.333,
+      "near_edge_on_start_seconds": 3.583,
+      "near_edge_on_end_seconds": 3.750,
+      "recovered_frontal_seconds": 4.292,
+      "finding": "A second vertical-axis rotation repeats the same educational-geometry failure."
+    }
+  ],
+  "passes": {
+    "lumi_canonical": true,
+    "anatomy_clean": true,
+    "motion_natural_1x": true,
+    "static_camera": true,
+    "single_continuous_shot": true,
+    "audio_off": true,
+    "no_duplication": true,
+    "no_internal_ridge_or_fourth_edge": true,
+    "no_accidental_freeze": true,
+    "no_black_frames": true
+  },
+  "provider_calls": 1,
+  "retries": 0,
+  "variants": 0,
+  "resubmits": 0,
+  "terminal": true,
+  "remaining_kling_authorized": false
+}

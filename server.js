@@ -96,6 +96,14 @@ import {
   runPhase2Video,
   validatePhase2Command,
 } from "./lib/lumi-second-short-phase2-v1.js";
+import {
+  SECOND_SHORT_S23_V2,
+  recordS23V2TemporalQa,
+  runS23V2,
+  s23V2Preflight,
+  s23V2Status,
+  validateS23V2Command,
+} from "./lib/lumi-second-short-s23-v2.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -701,6 +709,7 @@ app.get("/health", (_req, res) => {
       lumi_second_short_s25_c1_token_configured: LUMI_SECOND_SHORT_S25_C1_TOKEN.length >= 32,
       lumi_second_short_phase2_enabled: process.env.LUMI_SECOND_SHORT_PHASE2_ENABLED === "true",
       lumi_second_short_phase2_token_configured: LUMI_SECOND_SHORT_PHASE2_TOKEN.length >= 32,
+      lumi_second_short_s23_v2_enabled: process.env.LUMI_SECOND_SHORT_S23_V2_ENABLED === "true",
       lumi_second_short_repair_autorun: false,
     },
   });
@@ -1048,6 +1057,72 @@ app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/source-qa", async (req, r
 });
 
 const secondShortPhase2Jobs = new Set();
+const secondShortS23V2Jobs = new Set();
+
+app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/preflight", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await s23V2Preflight({ supabase });
+    return res.status(result.status === "PASS" ? 200 : 409).json({ ok: result.status === "PASS", ...result });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/status", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, jobs: [...secondShortS23V2Jobs], ...(await s23V2Status({ supabase, includeReviewUrl: true })) });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/run", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const command = validateS23V2Command({
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: req.body?.scene_id,
+      stage: req.body?.stage || "VIDEO",
+    });
+    if (secondShortS23V2Jobs.size > 0 || secondShortPhase2Jobs.size > 0) {
+      return res.status(409).json({ ok: false, error: "second_short_video_serial_job_active" });
+    }
+    secondShortS23V2Jobs.add(command.sceneId);
+    res.status(202).json({
+      ok: true,
+      accepted: true,
+      authorization: SECOND_SHORT_S23_V2.authorization,
+      revision: SECOND_SHORT_S23_V2.identity,
+      scene_id: command.sceneId,
+      max_provider_calls: 1,
+      retries: 0,
+      variants: 0,
+      resubmits: 0,
+    });
+    runS23V2({
+      supabase,
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: command.sceneId,
+      higgsfieldApiKey: HF_API_KEY,
+      logger: creativeLog,
+    }).catch((error) => console.error(`Lumi second-short s23-V2 stopped: ${error.code || error.message}`))
+      .finally(() => secondShortS23V2Jobs.delete(command.sceneId));
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/temporal-qa", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordS23V2TemporalQa({ supabase, observation: req.body?.observation });
+    return res.json({ ok: true, temporal_qa: result });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
 
 app.get("/pilots/lumi-jardin-formas-v1/phase2/preflight", async (req, res) => {
   if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });

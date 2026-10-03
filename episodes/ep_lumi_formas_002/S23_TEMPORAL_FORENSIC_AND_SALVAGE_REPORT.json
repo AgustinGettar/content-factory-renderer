@@ -1,0 +1,109 @@
+{
+  "report": "LUMI_S23_TEMPORAL_FORENSIC_AND_ZERO_COST_SALVAGE",
+  "version": "1.0.0",
+  "evaluated_at": "2026-10-03",
+  "source_clip": {
+    "identity": "s23_PHASE2_ORIGINAL_BLOCKER",
+    "request_id": "a05b628a-9f5a-4b2d-9250-6d58b84fa73b",
+    "artifact_path": "/workspace/scratch/75d38fed8454/deliverables/lumi-source-salvage/s23-phase2-kling.mp4",
+    "sha256": "44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154",
+    "bytes": 3903309,
+    "duration_seconds": 5.041667,
+    "frame_rate": "24/1",
+    "frame_count": 121,
+    "resolution": "720x1280",
+    "codec": "h264",
+    "audio": "off",
+    "local_hash_verification": "PASS",
+    "redownloaded": false
+  },
+  "forensic_temporal_analysis": {
+    "mutation_start_timestamp_seconds": 1.833,
+    "mutation_start_frame_zero_based": 44,
+    "mutation_end_timestamp_seconds": 4.958,
+    "mutation_end_frame_zero_based": 119,
+    "disappearance_timestamp_seconds": 5.000,
+    "disappearance_frame_zero_based": 120,
+    "stable_frame_ranges": [
+      {
+        "start_seconds": 0.000,
+        "end_seconds": 1.792,
+        "start_frame_zero_based": 0,
+        "end_frame_zero_based": 43,
+        "status": "GEOMETRY_READABLE_AND_FLAT"
+      }
+    ],
+    "later_stable_correct_ranges": [],
+    "triangle_position_stability": {
+      "status": "NOT_STATIC_IN_SCREEN_SPACE",
+      "camera_compensated": true,
+      "yellow_region_centroid_x_pixels_before_fade": {
+        "start": 434.9,
+        "at_4_500_seconds": 441.0,
+        "drift": 6.1
+      },
+      "tracked_right_boundary_x_at_y_760_pixels": {
+        "start": 497,
+        "near_4_000_seconds": 519,
+        "drift": 22
+      },
+      "finding": "The pedestal and background remain fixed, but the triangle silhouette, internal edge and opacity change continuously."
+    },
+    "camera_motion": {
+      "status": "STATIC",
+      "method": "frame_to_frame_and_frame0_background_crop_translation_search",
+      "frames_evaluated": 121,
+      "search_window_pixels": 5,
+      "best_translation_all_frames": {"x": 0, "y": 0}
+    },
+    "lumi_motion": {
+      "status": "NATURAL_CONTINUOUS",
+      "observed_actions": [
+        "front-facing blink and head turn",
+        "lean toward the triangle",
+        "single wand trace crossing the triangle region",
+        "return toward an upright resting pose"
+      ],
+      "wand_triangle_overlap_seconds": {"start": 1.583, "end": 3.458},
+      "frame_difference_motion_present_throughout": true
+    },
+    "triangle_static_in_screen_space": false,
+    "black_frames": 0,
+    "freeze_segments_over_0_75_seconds": 0
+  },
+  "zero_cost_salvage": {
+    "status": "FAIL_TERMINAL_LOCAL_SALVAGE_NOT_PROFESSIONALLY_FEASIBLE",
+    "provider_calls": 0,
+    "trim_select_stable_range": {
+      "status": "FAIL",
+      "usable_continuous_seconds": 1.792,
+      "required_scene_seconds": 4.3,
+      "reason": "Insufficient continuous material for narration and natural pacing."
+    },
+    "light_retiming": {
+      "status": "FAIL",
+      "allowed_speed_range": "0.90x-1.10x",
+      "maximum_extended_seconds_at_0_90x": 1.991,
+      "reason": "Still shorter than the scene and narration requirement."
+    },
+    "editorial_recomposition": {
+      "status": "FAIL",
+      "reason": "A 4.3-second result would need obvious repeated or reversed gestures and would violate no-loop/no-jump/natural-motion rules."
+    },
+    "deterministic_triangle_overlay": {
+      "status": "INELIGIBLE",
+      "reason": "Triangle position and lighting are not stable, and Lumi's hand/wand/glow crosses the object; a clean overlay would occlude Lumi or require visible per-frame reconstruction."
+    },
+    "derived_clip_created": false,
+    "original_blocker_preserved": true
+  },
+  "next_authorized_action": {
+    "authorization": "EXPLICIT_TEMPORAL_CREATIVE_REVISION",
+    "identity": "s23-V2",
+    "maximum_provider_calls": 1,
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "resubmits": 0,
+    "status": "NOT_CLAIMED"
+  }
+}

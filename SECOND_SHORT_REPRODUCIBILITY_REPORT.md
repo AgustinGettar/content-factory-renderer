@@ -217,3 +217,21 @@ Two and only two authorized Phase 2 calls were emitted. `s22` request `fa38a575-
 No retry, variant, or resubmit followed. The remaining four Phase 2 scenes were not called, Phase 2 was disabled, TTS was not started, and no partial master was created. Assembly is `4/9`; provider calls are image `14`, Kling `7`, TTS `0`; accounted total is `USD 2.977122`. Production remains `main@5fe5556` unchanged.
 
 `FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED`.
+
+## s23 zero-cost temporal salvage result — 2026-10-03
+
+The exact existing s23 clip was verified locally and was not downloaded again: request `a05b628a-9f5a-4b2d-9250-6d58b84fa73b`, SHA-256 `44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154`, `3903309` bytes, `5.041667 s`, `24 fps`, `121` frames. The only correct stable range is `0.000–1.792 s` (frames `0–43`). The persistent internal ridge starts at `1.833 s` (frame `44`), remains through `4.958 s` (frame `119`), and is followed by full triangle disappearance at `5.000 s` (frame `120`).
+
+Background registration proves a static camera (`0,0 px` best translation for all 121 frames within a ±5 px search), while the triangle itself is not screen-static: centroid drift is `6.1 px` before fade and tracked right-boundary drift is `22 px`. Lumi's motion remains natural, but the wand/glow crosses the triangle from approximately `1.583–3.458 s`.
+
+All zero-cost paths fail closed. Trim supplies only `1.792 s`; the longest allowed 0.90x retime supplies `1.991 s`, below the `4.3 s` scene and narration requirement. Recomposition would require an obvious repeated or reversed gesture. Deterministic overlay is ineligible because the triangle's geometry, position, opacity and lighting evolve while Lumi's hand/wand overlaps it; a patch would either cover Lumi or require visible per-frame reconstruction. No derived video was created and no provider was called.
+
+`s23_SALVAGE_STATUS=FAIL_TERMINAL_LOCAL_SALVAGE_NOT_PROFESSIONALLY_FEASIBLE`. The user's explicit one-call `s23-V2` creative-revision authorization is now the only pending route: retries `0`, variants `0`, resubmits `0`.
+
+`FIRST_PENDING_ACTION=IMPLEMENT_DEPLOY_AND_EXECUTE_EXACTLY_ONCE_S23_V2_KLING_CREATIVE_REVISION`.
+
+The isolated `s23-V2` runtime is now implemented locally under ledger identity `lumi_jardin_formas_v1_phase2_s23_v2`. It requires the immutable original blocker request/hash and the exact verified s23 source, removes the wand trace, uses a static camera, and permits only one small head tilt plus one blink. It claims once, records dispatch before network, records the provider request ID immediately, and never retries or resubmits. Focused tests are `12/12 PASS`; the complete repository suite is `184/185 PASS`, with the one unchanged missing-external-fixture failure.
+
+The explicit five-additional-Kling authorization raises the maximum completion total from this checkpoint to `USD 4.143872`; no image calls are authorized.
+
+`FIRST_PENDING_ACTION=PUBLISH_S23_V2_RUNTIME_RUN_CI_DEPLOY_STAGING_PREFLIGHT_THEN_EXECUTE_EXACTLY_ONE_KLING`.

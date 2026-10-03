@@ -505,3 +505,25 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - `ASSEMBLY=4/9`; TTS not started; no partial master; `MASTER_STATUS=NOT_CREATED_TEMPORAL_BLOCKER_S23`; Full HD master quality rule remains permanently recorded in Preset V1.1.2 for any future authorized completion.
 - `FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_TEMPORAL_BLOCKER_NO_RETRY_AUTHORIZED`
 - Runners OFF; autorun false; no schema/RLS/policy/auth change; no production deploy, global activation, publication, or social upload; production remains `main@5fe5556` intact.
+
+## s23 forensic recovery and zero-cost salvage gate — 2026-10-03
+
+- `LAST_COMPLETED_ACTION=S23_ZERO_COST_TEMPORAL_SALVAGE_FAILED_FORENSICALLY_VERIFIED`
+- Existing s23 Phase 2 bytes were reused locally without download or provider call: request `a05b628a-9f5a-4b2d-9250-6d58b84fa73b`; SHA-256 `44bb9225fa288d96a5987c110dd4e0c386a5b6ef4af7f0c4598112483bbc9154`; `3903309` bytes; `5.041667 s`; `24 fps`; `121` frames; `720x1280`; H.264; audio off.
+- Frame-exact analysis: the only correct stable range is `0.000–1.792 s` (frames `0–43`). The first persistent internal ridge/fold appears at `1.833 s` (frame `44`) and the corrupted geometry continues through `4.958 s` (frame `119`); the triangle is absent at `5.000 s` (frame `120`).
+- The camera is static: all 121 background-crop comparisons resolve to `0,0 px` translation in a ±5 px search. The triangle is not static in screen space: its tracked yellow-region centroid drifts `6.1 px` before fade and the right boundary at `y=760` drifts `22 px`; Lumi remains naturally moving and the wand/glow overlaps the triangle region from approximately `1.583–3.458 s`.
+- `s23_SALVAGE_STATUS=FAIL_TERMINAL_LOCAL_SALVAGE_NOT_PROFESSIONALLY_FEASIBLE`. Trim yields only `1.792 s`; maximum permitted 0.90x retime yields `1.991 s`; recomposition would require an obvious loop/reversal; overlay is ineligible because object position/lighting are not stable and clean compositing would occlude Lumi or require visible per-frame reconstruction. No derived clip was created.
+- `s23_V2_AUTHORIZATION=EXPLICIT_TEMPORAL_CREATIVE_REVISION`; `s23_V2_STATUS=NOT_CLAIMED`; `s23_V2_REQUEST_ID=NONE`; maximum exactly one Kling call; retries `0`; variants `0`; resubmits `0`.
+- `FIRST_PENDING_ACTION=IMPLEMENT_DEPLOY_AND_EXECUTE_EXACTLY_ONCE_S23_V2_KLING_CREATIVE_REVISION`
+- Accounted cost remains `USD 2.977122`; provider totals remain image `14`, Kling `7`, TTS `0`; assembly `4/9`; master not created; runners OFF; autorun false; production remains `main@5fe5556` intact.
+
+## s23-V2 exactly-once runtime ready — 2026-10-03
+
+- `LAST_COMPLETED_ACTION=S23_V2_EXACTLY_ONCE_RUNTIME_IMPLEMENTED_AND_TESTED_LOCAL`
+- Distinct ledger identity: `lumi_jardin_formas_v1_phase2_s23_v2`; authorization `EXPLICIT_TEMPORAL_CREATIVE_REVISION`; original Phase 2 s23 row remains immutable.
+- Pre-provider contract removes the wand trace, fixes the camera, permits only one small natural head tilt plus one blink, and gives absolute priority to a rigid three-straight-sided triangle for the full shot.
+- Separate staging-only enable flag; one claim and one provider dispatch maximum; request-ID persistence immediately after acceptance; retries `0`; variants `0`; resubmits `0`; no boot hook or autorun.
+- Focused tests `12/12 PASS`; full repository suite `184/185 PASS`; the sole failure remains the pre-existing missing external fixture `/workspace/scratch/75d38fed8454/visual-benchmark-v1/lumi-master.png`.
+- Maximum authorized completion from this checkpoint is `USD 4.143872` = current `2.977122` + at most five Kling calls `1.155000` + TTS ceiling `0.011750`; no image calls.
+- `s23_V2_STATUS=NOT_CLAIMED`; `s23_V2_REQUEST_ID=NONE`.
+- `FIRST_PENDING_ACTION=PUBLISH_S23_V2_RUNTIME_RUN_CI_DEPLOY_STAGING_PREFLIGHT_THEN_EXECUTE_EXACTLY_ONE_KLING`

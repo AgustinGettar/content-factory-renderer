@@ -151,6 +151,7 @@ const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
 const LUMI_SECOND_SHORT_REPAIR_TOKEN = process.env.LUMI_SECOND_SHORT_REPAIR_TOKEN || LUMI_PRODUCTION_PILOT_TOKEN;
 const LUMI_SECOND_SHORT_S25_C1_TOKEN = process.env.LUMI_SECOND_SHORT_S25_C1_TOKEN || "";
 const LUMI_SECOND_SHORT_PHASE2_TOKEN = process.env.LUMI_SECOND_SHORT_PHASE2_TOKEN || "";
+const LUMI_SECOND_SHORT_S23_V2_TOKEN = process.env.LUMI_SECOND_SHORT_S23_V2_TOKEN || "";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -710,6 +711,7 @@ app.get("/health", (_req, res) => {
       lumi_second_short_phase2_enabled: process.env.LUMI_SECOND_SHORT_PHASE2_ENABLED === "true",
       lumi_second_short_phase2_token_configured: LUMI_SECOND_SHORT_PHASE2_TOKEN.length >= 32,
       lumi_second_short_s23_v2_enabled: process.env.LUMI_SECOND_SHORT_S23_V2_ENABLED === "true",
+      lumi_second_short_s23_v2_token_configured: LUMI_SECOND_SHORT_S23_V2_TOKEN.length >= 32,
       lumi_second_short_repair_autorun: false,
     },
   });
@@ -907,6 +909,14 @@ function secondShortPhase2Authorized(req) {
     && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_PHASE2_TOKEN), Buffer.from(supplied));
 }
 
+function secondShortS23V2Authorized(req) {
+  const supplied = String(req.headers["x-s23-v2-token"] || "");
+  return LUMI_RUNTIME_ENV === "staging"
+    && LUMI_SECOND_SHORT_S23_V2_TOKEN.length >= 32
+    && supplied.length === LUMI_SECOND_SHORT_S23_V2_TOKEN.length
+    && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_S23_V2_TOKEN), Buffer.from(supplied));
+}
+
 app.get("/pilots/lumi-jardin-formas-v1/repairs/phase1/status", async (req, res) => {
   if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
@@ -1060,7 +1070,7 @@ const secondShortPhase2Jobs = new Set();
 const secondShortS23V2Jobs = new Set();
 
 app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/preflight", async (req, res) => {
-  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!secondShortS23V2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const result = await s23V2Preflight({ supabase });
     return res.status(result.status === "PASS" ? 200 : 409).json({ ok: result.status === "PASS", ...result });
@@ -1070,7 +1080,7 @@ app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/preflight", async (req, res
 });
 
 app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/status", async (req, res) => {
-  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!secondShortS23V2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     return res.json({ ok: true, jobs: [...secondShortS23V2Jobs], ...(await s23V2Status({ supabase, includeReviewUrl: true })) });
   } catch (error) {
@@ -1079,7 +1089,7 @@ app.get("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/status", async (req, res) =
 });
 
 app.post("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/run", async (req, res) => {
-  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!secondShortS23V2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const command = validateS23V2Command({
       env: { ...process.env, LUMI_RUNTIME_ENV },
@@ -1115,7 +1125,7 @@ app.post("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/run", async (req, res) => 
 });
 
 app.post("/pilots/lumi-jardin-formas-v1/phase2/s23-v2/temporal-qa", async (req, res) => {
-  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!secondShortS23V2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
     const result = await recordS23V2TemporalQa({ supabase, observation: req.body?.observation });
     return res.json({ ok: true, temporal_qa: result });

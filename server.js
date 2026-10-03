@@ -149,6 +149,7 @@ const LUMI_PRODUCTION_PILOT_VIDEO_MAX_USD = Number(process.env.LUMI_PRODUCTION_P
 const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLowerCase();
 const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
 const LUMI_SECOND_SHORT_REPAIR_TOKEN = process.env.LUMI_SECOND_SHORT_REPAIR_TOKEN || LUMI_PRODUCTION_PILOT_TOKEN;
+const LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN = process.env.LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN || "";
 const LUMI_SECOND_SHORT_S25_C1_TOKEN = process.env.LUMI_SECOND_SHORT_S25_C1_TOKEN || "";
 const LUMI_SECOND_SHORT_PHASE2_TOKEN = process.env.LUMI_SECOND_SHORT_PHASE2_TOKEN || "";
 const LUMI_SECOND_SHORT_S23_V2_TOKEN = process.env.LUMI_SECOND_SHORT_S23_V2_TOKEN || "";
@@ -880,6 +881,42 @@ app.get("/pilots/lumi-jardin-formas-v1/status", async (req, res) => {
   if (!lumiProductionPilotAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try { return res.json({ ok: true, ...(await secondShortStatus({ supabase, includeReviewUrls: true })) }); }
   catch (error) { return res.status(500).json({ ok: false, error: error.code || error.message }); }
+});
+
+function secondShortRecoveryDownloadAuthorized(req) {
+  const supplied = String(req.query?.token || "");
+  return LUMI_RUNTIME_ENV === "staging"
+    && LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN.length >= 32
+    && supplied.length === LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN.length
+    && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN), Buffer.from(supplied));
+}
+
+app.get("/pilots/lumi-jardin-formas-v1/recovery/audio/:sceneId", async (req, res) => {
+  if (!secondShortRecoveryDownloadAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  const sceneId = String(req.params.sceneId || "").toLowerCase();
+  if (!/^s2[1-9]$/.test(sceneId)) return res.status(400).json({ ok: false, error: "invalid_scene_id" });
+  try {
+    const { data: row, error: rowError } = await supabase.from("lumi_pilot_runs")
+      .select("storage_bucket,storage_path,content_hash,status")
+      .eq("pilot_id", "lumi_jardin_formas_v1_tts_recovery")
+      .eq("stage", "TTS").eq("scene_id", sceneId).maybeSingle();
+    if (rowError) throw rowError;
+    if (!row || row.status !== "SUCCEEDED" || !row.storage_path) {
+      return res.status(404).json({ ok: false, error: "recovered_audio_not_found" });
+    }
+    const { data, error } = await supabase.storage.from(row.storage_bucket || "generated-audio").download(row.storage_path);
+    if (error) throw error;
+    const buffer = Buffer.from(await data.arrayBuffer());
+    const digest = crypto.createHash("sha256").update(buffer).digest("hex");
+    if (digest !== row.content_hash) return res.status(409).json({ ok: false, error: "recovered_audio_sha_mismatch" });
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Length", String(buffer.length));
+    res.setHeader("Content-Disposition", `attachment; filename="${sceneId}-narration.mp3"`);
+    res.setHeader("Cache-Control", "no-store");
+    return res.send(buffer);
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message || "recovered_audio_download_failed" });
+  }
 });
 
 // Manual Phase 1 source-repair surface. It is staging-only, has no boot hook,

@@ -8,11 +8,13 @@ on:
       - lib/lumi-editorial-readiness-v1.js
       - lib/lumi-second-short-v1.js
       - lib/lumi-second-short-repair-v1.js
+      - lib/lumi-second-short-phase2-v1.js
       - server.js
       - test/video-generation-readiness-v2.test.js
       - test/lumi-editorial-readiness-v1.test.js
       - test/lumi-second-short-runtime.test.js
       - test/lumi-second-short-repair-v1.test.js
+      - test/lumi-second-short-phase2-v1.test.js
       - test/lumi-second-short-dry-run.test.js
       - episodes/ep_lumi_formas_002/**
       - LUMI_SHORT_PRODUCTION_PRESET_V1_1.json
@@ -39,8 +41,9 @@ jobs:
           node --check lib/lumi-editorial-readiness-v1.js
           node --check lib/lumi-second-short-v1.js
           node --check lib/lumi-second-short-repair-v1.js
+          node --check lib/lumi-second-short-phase2-v1.js
           node --check test/video-generation-readiness-v2.test.js
           node --check test/lumi-editorial-readiness-v1.test.js
           node -e 'for (const path of ["LUMI_SHORT_PRODUCTION_PRESET_V1_1.json","episodes/ep_lumi_formas_002/VIDEO_GENERATION_CONTRACTS_V2.json","episodes/ep_lumi_formas_002/SIX_SCENE_DRY_REPAIR_PLAN_V2.json","episodes/ep_lumi_formas_002/EDITORIAL_READINESS_PLAN_V1.json"]) JSON.parse(require("node:fs").readFileSync(path,"utf8"))'
       - name: Zero-provider readiness and second-short regression
-        run: node --test test/video-generation-readiness-v2.test.js test/lumi-editorial-readiness-v1.test.js test/lumi-second-short-runtime.test.js test/lumi-second-short-repair-v1.test.js test/lumi-second-short-dry-run.test.js
+        run: node --test test/video-generation-readiness-v2.test.js test/lumi-editorial-readiness-v1.test.js test/lumi-second-short-runtime.test.js test/lumi-second-short-repair-v1.test.js test/lumi-second-short-phase2-v1.test.js test/lumi-second-short-dry-run.test.js

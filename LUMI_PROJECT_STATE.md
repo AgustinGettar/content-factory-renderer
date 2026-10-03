@@ -480,3 +480,15 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - `S25_C1_STATUS=NOT_CLAIMED`; `S25_C1_REQUEST_ID=NONE`; `S25_C1_HASH=NONE`.
 - `FIRST_PENDING_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`.
 - Runners OFF; autorun false; no schema/RLS/policy/auth-config change; no staging or production deploy; production remains `main@5fe5556` intact; no publication.
+
+## s25-C1 completion and Phase 2 checkpoint — 2026-10-02
+
+- `LAST_COMPLETED_ACTION=S25_C1_SOURCE_QA_PASS_AND_PHASE2_RUNTIME_LOCAL_TESTS_PASS`
+- The single explicitly authorized creative image revision was emitted exactly once and completed: `S25_C1_STATUS=SUCCEEDED_SOURCE_READY`; request `req_0dd1a0d56af24848ac897ba31f59f6c4`; SHA-256 `3f17d7fe099aa0077b19a9a9d3dfa0281dc0c18f8a270de2067eb311853e0d59`; dimensions `1152x2048`; actual cost `USD 0.092935`.
+- Strict review passed simultaneously: exactly three separate recessed masonry alcoves; moon disc, three-sided pennant and square window inside the left/center/right alcoves; zero pedestal, podium, stand, table, projecting shelf, base, plinth, or replacement furniture; canonical Lumi anatomy and unobstructed educational objects. `Visual_QA=PASS`; `VIDEO_SOURCE_READINESS_V1=PASS`; `VIDEO_GENERATION_READINESS_GATE_V2=PASS`.
+- `SIX_SOURCE_GATES=PASS_6_OF_6`: `s22-R1-S1`, `s23-R1-S1`, `s24-R1-S1`, `s25-C1`, `s27`, and `s29` all pass. Phase 2 is therefore authorized.
+- Actual provider ledger is now image `14`, Kling `5`, TTS `0`, total `19`. No new Kling call has yet been emitted. Current accounted cost is `USD 2.515122`; Kling ceiling remains `USD 1.386000`; TTS ceiling `USD 0.011750`; total completion ceiling `USD 3.918537`.
+- A minimal staging-only Phase 2 runtime is implemented locally with distinct video identity `lumi_jardin_formas_v1_phase2`, six allowlisted scenes, hash-verified highest-quality source selection, current readiness/prompt/risk gates, durable exactly-once dispatch, and zero retries/variants/resubmits. The original terminal video rows remain immutable. Focused validation: `46/46 PASS`; provider calls during tests: `0`. The full repository suite is `180/181 PASS`; the sole unrelated failure is the pre-existing absent external fixture `/workspace/scratch/75d38fed8454/visual-benchmark-v1/lumi-master.png`.
+- `FINAL_MASTER_QUALITY=HIGH` is permanent in Production Preset V1.1.2: `1080x1920`, `9:16`, H.264 High, `yuv420p`, quality-based CRF `16–18` with preferred `17`, preset `slow`, canonical frame rate, one final master encode, original persisted sources only, native-resolution deterministic/vector overlays, AAC `48 kHz` at preferred `192k`, and mandatory final manifest metrics.
+- `FIRST_PENDING_ACTION=PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED`
+- `ASSEMBLY=3/9`; `TTS=NOT_STARTED`; `MASTER_STATUS=NOT_CREATED_PHASE2_PENDING`; runners OFF; autorun false; no schema/RLS/policy/auth change; no production deploy or publication; production remains `main@5fe5556` intact.

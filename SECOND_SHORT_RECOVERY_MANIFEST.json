@@ -2,11 +2,11 @@
   "manifest_version": "lumi-second-short-recovery/1.2.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "SOURCE_SALVAGE_HUMAN_REVIEW_REQUIRED_S25_FAIL_CLOSED",
+  "status": "SIX_SOURCE_GATES_PASS_PHASE2_RUNTIME_LOCAL_VALIDATION",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
-    "commit": "d094575b4e0e781725060b0220179c38177a506f",
+    "commit": "3b20bf45cc4878cfa7e8ca63bbbabfbf2db3b4e8",
     "runner": "OFF",
     "autorun": false
   },
@@ -16,10 +16,10 @@
   },
   "validation": {
     "branch": "lumi-cost-optimization-v2",
-    "commit": "d094575b4e0e781725060b0220179c38177a506f",
-    "tree": "49227ac4e8728c4ec19964611dbdd715408d3d90",
+    "commit": "3b20bf45cc4878cfa7e8ca63bbbabfbf2db3b4e8",
+    "tree": "10233947a511ee96f08f837bfc5f8462a897795e",
     "preserved_local_checkpoint": "bf858a8f32348d79e9f42765f91ff9b4ea467145",
-    "ci_run": 36910887975,
+    "ci_run": 36978693980,
     "ci_result": "GREEN",
     "deployed_to_staging": true,
     "global_activation": false
@@ -37,22 +37,22 @@
     "revision_status": {"s22-r1":"SUCCEEDED_SOURCE_BLOCKER","s23-r1":"SUCCEEDED_SOURCE_BLOCKER","s24-r1":"SUCCEEDED_SOURCE_BLOCKER","s25-r1":"SUCCEEDED_SOURCE_BLOCKER"}
   },
   "provider_calls": {
-    "image": 13,
+    "image": 14,
     "kling": 5,
     "tts": 0,
-    "total": 18,
+    "total": 19,
     "automatic_retries": 0,
     "automatic_variants": 0,
     "resubmits": 0
   },
   "cost_usd": {
-    "image_actual": 0.87535,
+    "image_actual": 0.968285,
     "kling_accounted": 1.155,
     "tts": 0,
-    "total_accounted": 2.422187,
-    "repair_actual": 0.391837,
+    "total_accounted": 2.515122,
+    "repair_actual": 0.484772,
     "repair_max_planned_increment": 1.780398,
-    "expected_total_before_tts_if_authorized": 3.9067865,
+    "expected_total_before_tts_if_authorized": 3.901122,
     "natural_duration_target_seconds": {"minimum":43,"preferred_estimate":45.5,"maximum":47,"force_exact_duration":false},
     "tts_estimate_natural_range": {"minimum_at_43_seconds":0.01075,"preferred_at_45_5_seconds":0.011375,"ceiling_at_47_seconds":0.01175},
     "completion_estimate_natural_range": {"minimum":3.9175365,"preferred":3.9181615,"total_completion_ceiling":3.918537},
@@ -74,24 +74,29 @@
     "provider_calls_emitted": 4,
     "image_repairs_required": 4,
     "video_repairs_required": 6,
-    "first_pending_action": "PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE"
+    "first_pending_action": "PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED"
   },
   "s25_explicit_creative_revision": {
     "identity": "s25-C1",
     "ledger_pilot_id": "lumi_jardin_formas_v1_s25_c1",
     "authorization": "EXPLICIT_CREATIVE_REVISION",
-    "status": "NOT_CLAIMED",
+    "status": "SUCCEEDED_SOURCE_READY",
     "max_provider_calls": 1,
     "max_additional_image_cost_usd": 0.0985995,
     "automatic_retry": false,
     "automatic_variant": false,
     "silent_resubmit": false,
     "lineage_required": ["lumi_jardin_formas_v1:s25:IMAGE", "lumi_jardin_formas_v1_s25_r1:s25:IMAGE"],
-    "pre_provider_source_contract_validation": "PASS_LOCAL",
+    "pre_provider_source_contract_validation": "PASS_STAGING",
     "reference_policy": "CANONICAL_LUMI_ONLY_NO_PEDESTAL_WORLD_REFERENCE",
     "focused_tests": {"passed":38,"total":38,"provider_calls":0},
-    "request_id": null,
-    "content_hash": null
+    "request_id": "req_0dd1a0d56af24848ac897ba31f59f6c4",
+    "content_hash": "3f17d7fe099aa0077b19a9a9d3dfa0281dc0c18f8a270de2067eb311853e0d59",
+    "actual_cost_usd": 0.092935,
+    "visual_qa": "PASS",
+    "video_source_readiness": "PASS",
+    "video_generation_readiness": "PASS",
+    "source_gate": "PASS"
   },
   "repair_status_by_scene": {
     "s22": {"repair_type":"SOURCE_IMAGE_REPAIR_THEN_VIDEO","status":"R1_TERMINAL_SOURCE_BLOCKER","minimal_repair":"Only one unmistakable blue circle lantern; remove triangle and square teaching props."},
@@ -228,11 +233,11 @@
   "master": {
     "filename": "LUMI_SHORT_JARDIN_FORMAS_V1.mp4",
     "status": "NOT_CREATED",
-    "reason": "SIX_SOURCE_GATES_FAIL_1_OF_6_S25"
+    "reason": "PHASE2_KLING_NOT_STARTED"
   },
   "source_salvage_checkpoint": {
     "recorded_at": "2026-10-02",
-    "last_completed_action": "EXACT_ARTIFACT_RECOVERY_AND_ZERO_COST_S22_S23_S24_SALVAGE_QA",
+    "last_completed_action": "S25_C1_SOURCE_QA_PASS_AND_PHASE2_RUNTIME_LOCAL_TESTS_PASS",
     "provider_calls": {"image":0,"kling":0,"tts":0},
     "supabase": {
       "auth_state": "AUTHENTICATED_EXISTING_MCP_PLUS_SINGLE_INTERACTIVE_OAUTH_SUCCESS",
@@ -253,15 +258,15 @@
       "s24-r1-s1": {"status":"PASS_HUMAN_REVIEW_PENDING","operation":"DETERMINISTIC_MASKED_CORAL_RECOLOR_EXISTING_SQUARE_FACE_ONLY","sha256":"d74d64592bc34a9b7309f256b7b8dee0a3d87c95c4dc489d4ddc0dac789a41e3","visual_qa":"PASS","video_source_readiness":"PASS","video_generation_readiness":"PASS","provider_cost_usd":0,"canonical_promotion":false,"reused_completed_action":true}
     },
     "s25_local_salvage": {"status":"FAIL_NOT_ATTEMPTED_PROFESSIONAL_RESULT_NOT_FEASIBLE","forced_composite":false,"visual_qa":"FAIL_CANONICAL_ALCOVE_PLACEMENT","video_source_readiness":"FAIL","video_generation_readiness":"FAIL","human_review_required":true},
-    "six_source_gates":"FAIL_1_OF_6_S25",
-    "passed_sources":["s22-r1-s1","s23-r1-s1","s24-r1-s1","s27-existing","s29-existing"],
-    "failed_sources":["s25-r1"],
-    "kling_authorized":false,
+    "six_source_gates":"PASS_6_OF_6",
+    "passed_sources":["s22-r1-s1","s23-r1-s1","s24-r1-s1","s25-c1","s27-existing","s29-existing"],
+    "failed_sources":[],
+    "kling_authorized":true,
     "assembly":"3/9",
     "tts":"NOT_STARTED",
-    "master_status":"NOT_CREATED_SOURCE_GATE_FAILED",
-    "total_cost_usd":2.422187,
-    "s25_c1_status":"NOT_CLAIMED",
+    "master_status":"NOT_CREATED_PHASE2_PENDING",
+    "total_cost_usd":2.515122,
+    "s25_c1_status":"SUCCEEDED_SOURCE_READY",
     "s25_c1_authorization":"EXPLICIT_CREATIVE_REVISION",
     "s25_c1_max_provider_calls":1,
     "s25_c1_image_ceiling_usd":0.0985995,
@@ -269,9 +274,40 @@
     "runners":"OFF",
     "autorun":false,
     "production":"main@5fe5556_INTACT",
-    "first_pending_action":"PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE"
+    "first_pending_action":"PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED"
   },
-  "first_pending_action": "PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE",
+  "phase2_execution": {
+    "authorization": "USER_EXPLICIT_PHASE2_SIX_KLING_CALLS",
+    "status": "RUNTIME_IMPLEMENTED_LOCAL_VALIDATION_PASS_NOT_DEPLOYED",
+    "scenes": ["s22", "s23", "s24", "s25", "s27", "s29"],
+    "six_source_gates": "PASS_6_OF_6",
+    "maximum_provider_calls": 6,
+    "unit_cost_usd": 0.231,
+    "incremental_ceiling_usd": 1.386,
+    "provider_calls_emitted": 0,
+    "request_ids": {},
+    "temporal_qa_by_scene": {},
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "resubmits": 0,
+    "focused_tests": "46_OF_46_PASS",
+    "full_suite": "180_OF_181_PASS_ONE_UNRELATED_MISSING_EXTERNAL_FIXTURE",
+    "runners": "OFF",
+    "autorun": false
+  },
+  "final_master_quality": {
+    "preset_version": "1.1.2",
+    "FINAL_MASTER_QUALITY": "HIGH",
+    "delivery_class": "FULL_HD_HIGH_QUALITY_MASTER",
+    "resolution": "1080x1920",
+    "aspect_ratio": "9:16",
+    "video": "H264_HIGH_YUV420P_CRF17_PRESET_SLOW",
+    "audio": "AAC_48000HZ_192K",
+    "maximum_final_master_encodes": 1,
+    "highest_quality_persisted_sources_only": true,
+    "manifest_metrics_required": ["MASTER_FILE_SIZE", "VIDEO_BITRATE", "AUDIO_BITRATE", "FRAME_RATE", "ENCODE_SETTINGS"]
+  },
+  "first_pending_action": "PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"

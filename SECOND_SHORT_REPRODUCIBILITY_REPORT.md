@@ -195,3 +195,15 @@ The ledger was rechecked before implementation: 18 provider calls total, consist
 The compiled creative contract starts from the current source compiler and adds exactly three recessed architectural alcoves, explicit inside-alcove placement, and absolute prohibition of pedestals, podiums, stands, tables, projecting shelves, bases, plinths, and replacement furniture. Only the canonical Lumi reference is allowed; the pedestal-bearing world image is deliberately excluded. Focused local validation: `38/38 PASS`, provider calls `0`.
 
 `FIRST_PENDING_ACTION=PUSH_C1_RUNTIME_RUN_CI_DEPLOY_STAGING_THEN_EXECUTE_ONE_S25_C1_IMAGE`.
+
+## s25-C1 source success and Phase 2 handoff — 2026-10-02
+
+The exactly-one explicit creative revision completed with request `req_0dd1a0d56af24848ac897ba31f59f6c4`, SHA-256 `3f17d7fe099aa0077b19a9a9d3dfa0281dc0c18f8a270de2067eb311853e0d59`, `1152x2048`, and actual cost `USD 0.092935`. It contains exactly three recessed architectural alcoves, the required moon disc/pennant/square-window objects inside their canonical alcoves, no pedestal substitute, and canonical Lumi. Visual QA, source readiness, and video-generation readiness all passed.
+
+`SIX_SOURCE_GATES=PASS_6_OF_6`. The authoritative accounted total is now `USD 2.515122`; actual calls are image `14`, Kling `5`, TTS `0`. No Phase 2 Kling call has been made yet.
+
+The local Phase 2 runtime uses a new `lumi_jardin_formas_v1_phase2` video identity and preserves every original terminal record. It accepts only `s22`, `s23`, `s24`, `s25`, `s27`, and `s29`; validates the six-source gate before each claim; persists the provider dispatch as consumed before network; persists the returned request ID immediately; and prohibits retries, variants, and resubmits. The approved local derivatives for s22–s24 must be uploaded from exact SHA-verified bytes; s25-C1, s27, and s29 use their highest-quality persisted originals. Focused validation is `46/46 PASS` with zero provider calls.
+
+Production Preset V1.1.2 now permanently requires the final deliverable to be a `FULL_HD_HIGH_QUALITY_MASTER`: one `1080x1920` H.264 High/yuv420p encode at preferred CRF `17` and preset `slow`, canonical frame rate, highest-quality persisted source assets only, native-resolution vector/deterministic overlays, and AAC `48 kHz` at preferred `192k`. Preview/proxy/thumbnail sources, unnecessary encode chains, aggressive sharpening, and unauthorized AI upscaling are forbidden. Final manifest evidence must include `MASTER_FILE_SIZE`, `VIDEO_BITRATE`, `AUDIO_BITRATE`, `FRAME_RATE`, and `ENCODE_SETTINGS`.
+
+`FIRST_PENDING_ACTION=PUBLISH_PHASE2_RUNTIME_RUN_CI_DEPLOY_STAGING_UPLOAD_VERIFIED_DERIVED_SOURCES_THEN_EXECUTE_SIX_KLING_SERIALIZED`.

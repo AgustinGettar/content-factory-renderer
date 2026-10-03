@@ -87,6 +87,15 @@ import {
   validatePhase1RepairCommand,
   validateS25CreativeRevisionCommand,
 } from "./lib/lumi-second-short-repair-v1.js";
+import {
+  SECOND_SHORT_PHASE2,
+  persistPhase2DerivedSource,
+  phase2Preflight,
+  phase2Status,
+  recordPhase2TemporalQa,
+  runPhase2Video,
+  validatePhase2Command,
+} from "./lib/lumi-second-short-phase2-v1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -133,6 +142,7 @@ const LUMI_RUNTIME_ENV = String(process.env.LUMI_RUNTIME_ENV || "").trim().toLow
 const LUMI_MASTER_TTS_TOKEN = process.env.LUMI_MASTER_TTS_TOKEN || "";
 const LUMI_SECOND_SHORT_REPAIR_TOKEN = process.env.LUMI_SECOND_SHORT_REPAIR_TOKEN || LUMI_PRODUCTION_PILOT_TOKEN;
 const LUMI_SECOND_SHORT_S25_C1_TOKEN = process.env.LUMI_SECOND_SHORT_S25_C1_TOKEN || "";
+const LUMI_SECOND_SHORT_PHASE2_TOKEN = process.env.LUMI_SECOND_SHORT_PHASE2_TOKEN || "";
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -689,6 +699,8 @@ app.get("/health", (_req, res) => {
       lumi_second_short_repair_phase1_enabled: process.env.LUMI_SECOND_SHORT_REPAIR_PHASE1_ENABLED === "true",
       lumi_second_short_s25_c1_enabled: process.env.LUMI_SECOND_SHORT_S25_C1_ENABLED === "true",
       lumi_second_short_s25_c1_token_configured: LUMI_SECOND_SHORT_S25_C1_TOKEN.length >= 32,
+      lumi_second_short_phase2_enabled: process.env.LUMI_SECOND_SHORT_PHASE2_ENABLED === "true",
+      lumi_second_short_phase2_token_configured: LUMI_SECOND_SHORT_PHASE2_TOKEN.length >= 32,
       lumi_second_short_repair_autorun: false,
     },
   });
@@ -878,6 +890,14 @@ function s25CreativeRevisionAuthorized(req) {
     && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_S25_C1_TOKEN), Buffer.from(supplied));
 }
 
+function secondShortPhase2Authorized(req) {
+  const supplied = String(req.headers["x-second-short-phase2-token"] || "");
+  return LUMI_RUNTIME_ENV === "staging"
+    && LUMI_SECOND_SHORT_PHASE2_TOKEN.length >= 32
+    && supplied.length === LUMI_SECOND_SHORT_PHASE2_TOKEN.length
+    && crypto.timingSafeEqual(Buffer.from(LUMI_SECOND_SHORT_PHASE2_TOKEN), Buffer.from(supplied));
+}
+
 app.get("/pilots/lumi-jardin-formas-v1/repairs/phase1/status", async (req, res) => {
   if (!secondShortRepairAuthorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
@@ -1022,6 +1042,95 @@ app.post("/pilots/lumi-jardin-formas-v1/repairs/s25-c1/source-qa", async (req, r
       observation: req.body?.observation,
     });
     return res.json({ ok: true, visual_qa: result.visual_qa, video_source_readiness: result.video_source_readiness });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+const secondShortPhase2Jobs = new Set();
+
+app.get("/pilots/lumi-jardin-formas-v1/phase2/preflight", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await phase2Preflight({ supabase });
+    return res.status(result.status === "PASS" ? 200 : 409).json({ ok: result.status === "PASS", ...result });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.get("/pilots/lumi-jardin-formas-v1/phase2/status", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, jobs: [...secondShortPhase2Jobs], ...(await phase2Status({ supabase, includeReviewUrls: true })) });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.put(
+  "/pilots/lumi-jardin-formas-v1/phase2/sources/:sceneId",
+  express.raw({ type: "application/octet-stream", limit: "5mb" }),
+  async (req, res) => {
+    if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+    try {
+      const result = await persistPhase2DerivedSource({
+        supabase,
+        env: { ...process.env, LUMI_RUNTIME_ENV },
+        sceneId: req.params.sceneId,
+        buffer: req.body,
+      });
+      return res.json({ ok: true, ...result });
+    } catch (error) {
+      return res.status(409).json({ ok: false, error: error.code || error.message });
+    }
+  },
+);
+
+app.post("/pilots/lumi-jardin-formas-v1/phase2/videos/run", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const command = validatePhase2Command({
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: req.body?.scene_id,
+      stage: req.body?.stage || "VIDEO",
+    });
+    if (secondShortPhase2Jobs.size > 0) return res.status(409).json({ ok: false, error: "second_short_phase2_serial_job_active", jobs: [...secondShortPhase2Jobs] });
+    secondShortPhase2Jobs.add(command.sceneId);
+    res.status(202).json({
+      ok: true,
+      accepted: true,
+      authorization: SECOND_SHORT_PHASE2.authorization,
+      scene_id: command.sceneId,
+      stage: command.stage,
+      max_provider_calls: SECOND_SHORT_PHASE2.maxProviderCalls,
+      retries: 0,
+      variants: 0,
+      resubmits: 0,
+      autorun: false,
+    });
+    runPhase2Video({
+      supabase,
+      env: { ...process.env, LUMI_RUNTIME_ENV },
+      sceneId: command.sceneId,
+      higgsfieldApiKey: HF_API_KEY,
+      logger: creativeLog,
+    }).catch((error) => console.error(`Lumi second-short Phase 2 ${command.sceneId} stopped: ${error.code || error.message}`))
+      .finally(() => secondShortPhase2Jobs.delete(command.sceneId));
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/pilots/lumi-jardin-formas-v1/phase2/videos/temporal-qa", async (req, res) => {
+  if (!secondShortPhase2Authorized(req)) return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordPhase2TemporalQa({
+      supabase,
+      sceneId: req.body?.scene_id,
+      observation: req.body?.observation,
+    });
+    return res.json({ ok: true, temporal_qa: result });
   } catch (error) {
     return res.status(409).json({ ok: false, error: error.code || error.message });
   }

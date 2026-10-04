@@ -843,8 +843,11 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/resume", async (req, res) => {
     const manager = new LumiRecoveryIncidentManager({ store: new SupabaseLumiRecoveryStore(supabase) });
     let repair = null;
     const resumed = await manager.resume(THIRD_SHORT.episodeId, {
+      humanOverride: req.body?.human_override,
       continueAction: async (action, proof) => {
         if (!proof?.recoveryInspectionComplete) throw new Error("recovery_inspection_required");
+        if (proof.humanOverride) return runThirdShortImages({ supabase, openAiApiKey: OPENAI_API_KEY,
+          supabaseUrl: SUPABASE_URL, logger: creativeLog, humanOverride: proof.humanOverride });
         if (action.key !== "episode_plan_v2") throw new Error(`third_short_resume_action_unsupported:${action.key}`);
         repair = await repairThirdShortEpisodePlanDeterministically({ supabase, logger: creativeLog });
         await manager.recordRequest(THIRD_SHORT.episodeId, action.key, repair.provider_response_id);
@@ -870,7 +873,7 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/resume", async (req, res) => {
       },
     });
     const { error: requestError } = await supabase.from("lumi_controlled_episode_requests")
-      .update({ status: "RUNNING", updated_at: new Date().toISOString() })
+      .update({ status: resumed.status === "RUNNING" ? "RUNNING" : "PAUSED_INCIDENT", updated_at: new Date().toISOString() })
       .eq("episode_id", THIRD_SHORT.episodeId);
     if (requestError) throw new Error("third_short_request_resume_write_failed");
     return res.json({
@@ -2197,6 +2200,11 @@ process.on("SIGINT", async () => {
 });
 
 app.listen(Number(PORT), "0.0.0.0", () => {
+  if (LUMI_RUNTIME_ENV === "staging" && SUPABASE_URL) console.info(JSON.stringify({
+    event: "lumi_emission_journal_target", runtime: LUMI_RUNTIME_ENV,
+    database_host: new URL(SUPABASE_URL).hostname, global_default: LUMI_PIPELINE_VERSION,
+    emission_journal_version: "PROVIDER_EMISSION_JOURNAL_V1",
+  }));
   console.log(`Renderer listening on ${PORT}`);
   console.log(`Config: supabase_key=${hasSupabaseKey ? "ok" : "missing"}, render_token=${hasRenderToken ? "ok" : "optional/missing"}, ffmpeg_threads=1, single_flight=on, duplicate_protection=on, atomic_ready_claim=on`);
 

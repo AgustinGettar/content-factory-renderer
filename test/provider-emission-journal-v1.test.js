@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { journaledFetch, emissionBoundary, S37_OVERRIDE, validateS37Override } from "../lib/provider-emission-journal-v1.js";
 import { LumiRecoveryIncidentManager, MemoryLumiRecoveryStore } from "../lib/lumi-recovery-incident-manager-v1.js";
+import { generateBenchmarkComposite } from "../lib/asset-v2/image-provider.js";
 
 class Store {
   constructor() { this.rows = new Map(); this.events = []; }
@@ -52,6 +53,22 @@ test("scope and risk acknowledgement must exactly match explicit authorization",
     assert.throws(() => validateS37Override(Object.keys(patch).length ? { ...S37_OVERRIDE, ...patch } : null));
   }
 });
+test("real image adapter persists 429 credit rejection, request id and one consumed emission without retry", async () => {
+  const store = new Store(); let calls = 0;
+  const fetchImpl = journaledFetch({ store, context, fetchImpl: async () => {
+    calls++;
+    return new Response(JSON.stringify({error:{code:"credit_balance_exhausted",message:"No credits"}}),
+      { status:429,headers:{"x-request-id":"req_credit_denial","content-type":"application/json"} });
+  } });
+  await assert.rejects(generateBenchmarkComposite({ apiKey:"test-key", prompt:"test", referenceBuffer:Buffer.from("test"), fetchImpl }),
+    error => error.diagnostic.http_status === 429 && error.diagnostic.provider_request_id === "req_credit_denial");
+  const row=store.rows.get("s37-AMB1");
+  assert.equal(row.state,"ACKNOWLEDGED");
+  assert.equal(row.response_metadata.error_code,"credit_balance_exhausted");
+  assert.equal(row.provider_request_id,"req_credit_denial");
+  await assert.rejects(generateBenchmarkComposite({ apiKey:"test-key", prompt:"test", referenceBuffer:Buffer.from("test"), fetchImpl }),/already_consumed/);
+  assert.equal(calls,1);
+});
 test("ambiguous emission requires explicit override in real Recovery Manager", async () => {
   const store = new MemoryLumiRecoveryStore(); const manager = new LumiRecoveryIncidentManager({ store });
   await manager.startEpisode({ episodeId: context.episode_id, actions: [{ key: "image:s37", scene_id: "s37", stage: "IMAGE" }], authorizedCeilingUsd: 3.05 });
@@ -66,3 +83,4 @@ test("ambiguous emission requires explicit override in real Recovery Manager", a
   assert.equal((await store.getEpisode(context.episode_id)).status, "PAUSED_INCIDENT");
   assert.equal((await store.getEpisode(context.episode_id)).metadata.resume_count, undefined);
 });
+

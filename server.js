@@ -128,6 +128,7 @@ import {
   recordThirdShortMasterQa,
   thirdShortMasterReviewUrl,
 } from "./lib/lumi-third-short-master-v1.js";
+import { runThirdShortBootAction, thirdShortBootAction } from "./lib/lumi-third-short-boot-v1.js";
 import {
   runAuthenticatedStagingDryRunOnBoot,
   shouldRunAuthenticatedStagingDryRunOnBoot,
@@ -2173,6 +2174,16 @@ app.listen(Number(PORT), "0.0.0.0", () => {
       provider_calls: 0,
       autorun: false,
     }));
+  }
+
+  try {
+    if (thirdShortBootAction(process.env)) {
+      setImmediate(() => runThirdShortBootAction({ env: process.env, port: PORT }).catch((error) => console.error(JSON.stringify({
+        event: "lumi_third_short_boot_action", status: "FAIL", error: safeError(error),
+      }))));
+    }
+  } catch (error) {
+    console.error(JSON.stringify({ event: "lumi_third_short_boot_action", status: "REJECTED", error: safeError(error) }));
   }
 
   if (shouldRunBootBenchmark({

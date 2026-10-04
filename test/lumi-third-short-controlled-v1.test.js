@@ -12,6 +12,7 @@ import {
   thirdShortVideoContract,
 } from "../lib/lumi-third-short-media-v1.js";
 import { validateVideoGenerationReadiness } from "../lib/video-generation-readiness-v2.js";
+import { resetThirdShortBootActionForTest, runThirdShortBootAction, thirdShortBootAction } from "../lib/lumi-third-short-boot-v1.js";
 
 test("third short clean-path budget and provider counts are hard-limited", () => {
   const preflight = thirdShortPreflight();
@@ -63,4 +64,21 @@ test("nine simple flower scenes compile through readiness v2 with exact color an
     const readiness = validateVideoGenerationReadiness(thirdShortVideoContract(scene));
     assert.equal(readiness.status, "PASS", `${scene.id}: ${readiness.errors.join(",")}`);
   }
+});
+
+test("third-short boot trigger is staging-only and calls the canonical start endpoint", async () => {
+  assert.equal(thirdShortBootAction({}), null);
+  assert.throws(() => thirdShortBootAction({ LUMI_THIRD_SHORT_BOOT_ACTION: "START", LUMI_RUNTIME_ENV: "production" }), /production_rejected/);
+  resetThirdShortBootActionForTest();
+  let observed;
+  const result = await runThirdShortBootAction({
+    env: { LUMI_THIRD_SHORT_BOOT_ACTION: "START", LUMI_RUNTIME_ENV: "staging", RENDER_API_TOKEN: "secret", LUMI_THIRD_SHORT_COMMAND_KEY: "controlled-command" },
+    port: 3000,
+    fetchImpl: async (url, options) => { observed = { url, options }; return { ok: true, json: async () => ({ status: "PLANNED", episode_id: THIRD_SHORT.episodeId, provider_calls: 1 }) }; },
+    logger: { info() {} },
+  });
+  assert.match(observed.url, /\/episodes\/third\/start$/);
+  assert.equal(observed.options.headers["x-render-token"], "secret");
+  assert.equal(JSON.parse(observed.options.body).pipeline_version, "v1_1_2");
+  assert.equal(result.status, "PLANNED");
 });

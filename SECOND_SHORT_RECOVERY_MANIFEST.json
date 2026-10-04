@@ -415,12 +415,12 @@
     "runners": "OFF",
     "autorun": false,
     "pipeline_default": "legacy",
-    "ci": "NOT_STARTED_REMOTE_PUSH_BLOCKED",
+    "ci": "NOT_STARTED_GITHUB_AUTH_UNAVAILABLE",
     "staging": "NOT_DEPLOYED",
     "production": "main@5fe5556_INTACT",
     "status": "PRODUCTION_READINESS_BLOCKER_PRESERVED"
   },
-  "first_pending_action": "AUTHORIZE_OR_VERIFY_REMOTE_PUSH_THEN_RUN_CI_AND_DEPLOY_STAGING_ONLY",
+  "first_pending_action": "CONFIGURE_GITHUB_AUTH_PUSH_BRANCH_RUN_CI_THEN_DEPLOY_STAGING_ONLY",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
     "status": "IMPLEMENTED_LOCAL_AWAITING_CI_STAGING"

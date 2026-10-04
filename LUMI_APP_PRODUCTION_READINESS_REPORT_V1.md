@@ -6,7 +6,7 @@ Generated: 2026-10-04
 
 `LUMI APP — PRODUCTION READINESS BLOCKER PRESERVED`
 
-The operational recovery implementation is complete and locally validated. Controlled production readiness is blocked only at the publication boundary: the isolated branch could not be pushed because the execution security control did not verify the GitHub destination. CI and staging deployment therefore remain pending. No provider call, production change, global activation, or master mutation occurred.
+The operational recovery implementation is complete and locally validated. Controlled production readiness is blocked only at the publication boundary: after explicit authorization, the isolated branch could not be pushed because this runtime has no GitHub credentials. CI and staging deployment therefore remain pending. No provider call, production change, global activation, or master mutation occurred.
 
 | Field | Status |
 |---|---|
@@ -22,7 +22,7 @@ The operational recovery implementation is complete and locally validated. Contr
 | CI | NOT_STARTED_REMOTE_PUSH_BLOCKED |
 | STAGING | NOT_DEPLOYED |
 | PRODUCTION_IMPACT | NONE; `main@5fe5556` unchanged; default `legacy`; runners OFF |
-| OPEN_BLOCKERS | Verify/authorize remote push, obtain GREEN CI, deploy staging, execute authenticated 0-provider dry endpoint |
+| OPEN_BLOCKERS | Configure GitHub authentication, push isolated branch, obtain GREEN CI, deploy staging, execute authenticated 0-provider dry endpoint |
 
 ## Approved second master
 
@@ -52,5 +52,4 @@ A provider-backed action becomes complete only after provider success, artifact 
 
 ## Required next controlled step
 
-Verify the authorized repository destination for this runtime, push the isolated branch, require GREEN CI, deploy only staging with runners OFF and autorun false, then invoke the authenticated zero-provider dry-run endpoint. Production and the global default must remain unchanged.
-
+Configure GitHub authentication for the already-authorized repository, push the isolated branch, require GREEN CI, deploy only staging with runners OFF and autorun false, then invoke the authenticated zero-provider dry-run endpoint. Production and the global default must remain unchanged.

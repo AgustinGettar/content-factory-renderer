@@ -553,6 +553,6 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - Zero-provider dry validation covers idea, planning, claims, source readiness, video readiness, persistence, QA, budget, incident pause/resume, assembly, master readiness, existing request recovery after restart, provider balance, storage MIME, decode and budget incidents.
 - Focused recovery/Telegram/integration tests: `16/16 PASS`. Full local suite: `200/201 PASS`; the sole failure is the preserved external-fixture absence `visual-benchmark-v1/lumi-master.png`, unchanged from prior checkpoints.
 - Provider calls in this phase: `0`. Runners: `OFF`. Autorun: `false`. Production remains `main@5fe5556` intact.
-- Push to the authorized isolated remote branch was attempted and blocked by the execution security control because the remote destination was not verified in this runtime. No bypass was attempted. Therefore CI did not start and staging was not deployed.
+- After explicit authorization for the exact repository and isolated branch, push was attempted again and failed because this runtime has no GitHub credentials (`could not read Username`). Therefore CI did not start and staging was not deployed.
 - `LUMI_APP_STATUS=PRODUCTION_READINESS_BLOCKER_PRESERVED`.
-- `FIRST_PENDING_ACTION=AUTHORIZE_OR_VERIFY_REMOTE_PUSH_THEN_RUN_CI_AND_DEPLOY_STAGING_ONLY`.
+- `FIRST_PENDING_ACTION=CONFIGURE_GITHUB_AUTH_PUSH_BRANCH_RUN_CI_THEN_DEPLOY_STAGING_ONLY`.

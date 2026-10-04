@@ -104,6 +104,10 @@ import {
   s23V2Status,
   validateS23V2Command,
 } from "./lib/lumi-second-short-s23-v2.js";
+import {
+  pipelineVersion,
+  runZeroProviderRecoveryDryRun,
+} from "./lib/lumi-recovery-incident-manager-v1.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -153,6 +157,8 @@ const LUMI_SECOND_SHORT_RECOVERY_DOWNLOAD_TOKEN = process.env.LUMI_SECOND_SHORT_
 const LUMI_SECOND_SHORT_S25_C1_TOKEN = process.env.LUMI_SECOND_SHORT_S25_C1_TOKEN || "";
 const LUMI_SECOND_SHORT_PHASE2_TOKEN = process.env.LUMI_SECOND_SHORT_PHASE2_TOKEN || "";
 const LUMI_SECOND_SHORT_S23_V2_TOKEN = process.env.LUMI_SECOND_SHORT_S23_V2_TOKEN || "";
+const LUMI_PIPELINE_VERSION = pipelineVersion(process.env);
+const LUMI_PIPELINE_AUTORUN = false;
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -714,8 +720,25 @@ app.get("/health", (_req, res) => {
       lumi_second_short_s23_v2_enabled: process.env.LUMI_SECOND_SHORT_S23_V2_ENABLED === "true",
       lumi_second_short_s23_v2_token_configured: LUMI_SECOND_SHORT_S23_V2_TOKEN.length >= 32,
       lumi_second_short_repair_autorun: false,
+      lumi_pipeline_version: LUMI_PIPELINE_VERSION,
+      lumi_pipeline_candidate_available: true,
+      lumi_pipeline_preset_baseline: "1.1.2",
+      lumi_pipeline_autorun: LUMI_PIPELINE_AUTORUN,
+      lumi_recovery_runners: "OFF",
     },
   });
+});
+
+// Read-only staging proof. It uses an in-memory ledger and cannot dispatch a
+// provider request, write production rows, or enable a runner.
+app.post("/lumi-pipeline/v1_1_2/dry-run", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await runZeroProviderRecoveryDryRun();
+    return res.status(result.status === "PASS" ? 200 : 409).json({ ok: result.status === "PASS", ...result });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message, provider_calls: 0, autorun: false });
+  }
 });
 
 // Explicit isolated manual surface. No boot hook, no legacy pilot gate, no retries.

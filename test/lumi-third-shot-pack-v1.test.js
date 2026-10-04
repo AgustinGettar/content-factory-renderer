@@ -71,3 +71,11 @@ test('no automatic five-second fallback, extra images or ceiling changes',()=>{
 test('fresh over-budget quotes block even with all source quality checks passing',()=>{
  const expensive=quotes.map(q=>({...q,estimated_cost_usd:0.4}));const p=buildThirdShotPack(plan,{sources,quotes:expensive});assert.ok(shotPackResumeGate(p,plan,{freshQuotes:true}).reasons.includes('VISUAL_BUDGET_CEILING'));
 });
+
+test("JSONB object key ordering preserves the same Full HD contract without lowering quality",()=>{
+ const sort=value=>Array.isArray(value)?value.map(sort):value&&typeof value==="object"?Object.fromEntries(Object.keys(value).sort().map(k=>[k,sort(value[k])])):value;
+ const restored=sort(fresh());
+ assert.equal(validateThirdShotPack(restored,plan,{requireSourceQa:true}).status,"PASS");
+ restored.master.height=1280;
+ assert.ok(validateThirdShotPack(restored,plan,{requireSourceQa:true}).errors.includes("FULL_HD_MASTER_LOCK"));
+});

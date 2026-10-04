@@ -8,96 +8,115 @@
       "source_scene": "s31",
       "performance": "greeting",
       "motion": "A natural curious greeting: one small gaze shift, a gentle blink, relaxed breathing. No walking out of frame.",
-      "duration_seconds": 5,
+      "duration_seconds": 4,
       "model": "kling-video/v3.0/std/image-to-video",
       "input": {
-        "duration": 5,
+        "duration": 4,
         "sound": "off",
         "multi_shots": false,
         "cfg_scale": 0.5
       },
       "source_sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903",
       "source_qa": "PASS_WITH_WARNING",
-      "estimated_cost_usd": 0.357,
+      "estimated_cost_usd": 0.286,
       "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
       "natural_speed": 1,
       "camera": "static",
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s31"
+      ]
     },
     {
       "id": "q32",
       "source_scene": "s32",
       "performance": "red",
       "motion": "Lumi gives one gentle teaching point toward the red flower, then settles naturally. Keep the flower fully visible.",
-      "duration_seconds": 5,
+      "duration_seconds": 4,
       "model": "kling-video/v3.0/std/image-to-video",
       "input": {
-        "duration": 5,
+        "duration": 4,
         "sound": "off",
         "multi_shots": false,
         "cfg_scale": 0.5
       },
       "source_sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
       "source_qa": "PASS_WITH_WARNING",
-      "estimated_cost_usd": 0.357,
+      "estimated_cost_usd": 0.286,
       "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
       "natural_speed": 1,
       "camera": "static",
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s32",
+        "s35",
+        "s36"
+      ]
     },
     {
       "id": "q33",
       "source_scene": "s33",
       "performance": "yellow",
       "motion": "Lumi gives one gentle teaching point toward the yellow flower, then settles naturally. Keep the flower fully visible.",
-      "duration_seconds": 5,
+      "duration_seconds": 4,
       "model": "kling-video/v3.0/std/image-to-video",
       "input": {
-        "duration": 5,
+        "duration": 4,
         "sound": "off",
         "multi_shots": false,
         "cfg_scale": 0.5
       },
       "source_sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
       "source_qa": "PASS_WITH_WARNING",
-      "estimated_cost_usd": 0.357,
+      "estimated_cost_usd": 0.286,
       "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
       "natural_speed": 1,
       "camera": "static",
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s33",
+        "s35",
+        "s36"
+      ]
     },
     {
       "id": "q34",
       "source_scene": "s34",
       "performance": "blue",
       "motion": "Lumi gives one gentle teaching point toward the blue flower, then settles naturally. Keep the flower fully visible.",
-      "duration_seconds": 5,
+      "duration_seconds": 4,
       "model": "kling-video/v3.0/std/image-to-video",
       "input": {
-        "duration": 5,
+        "duration": 4,
         "sound": "off",
         "multi_shots": false,
         "cfg_scale": 0.5
       },
       "source_sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
       "source_qa": "PASS_WITH_WARNING",
-      "estimated_cost_usd": 0.357,
+      "estimated_cost_usd": 0.286,
       "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
       "natural_speed": 1,
       "camera": "static",
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s34",
+        "s35",
+        "s36",
+        "s38"
+      ]
     },
     {
       "id": "q37",
@@ -121,7 +140,13 @@
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s35",
+        "s37",
+        "s38",
+        "s39"
+      ]
     },
     {
       "id": "q39",
@@ -145,7 +170,10 @@
       "generated_character_motion": true,
       "max_calls": 1,
       "retry": false,
-      "variant": false
+      "variant": false,
+      "covered_beats": [
+        "s39"
+      ]
     }
   ],
   "beats": [
@@ -183,7 +211,7 @@
         {
           "shot_id": "q32",
           "start_seconds": 0,
-          "duration_seconds": 5,
+          "duration_seconds": 4,
           "speed": 1
         }
       ],
@@ -205,7 +233,7 @@
         {
           "shot_id": "q33",
           "start_seconds": 0,
-          "duration_seconds": 5,
+          "duration_seconds": 4,
           "speed": 1
         }
       ],
@@ -227,7 +255,7 @@
         {
           "shot_id": "q34",
           "start_seconds": 0,
-          "duration_seconds": 5,
+          "duration_seconds": 4,
           "speed": 1
         }
       ],
@@ -392,19 +420,21 @@
   ],
   "image_calls": 0,
   "video_calls": 6,
-  "generated_video_seconds": 30,
+  "generated_video_seconds": 26,
   "unique_images": 6,
   "local_only_beats": [
     "s35",
     "s36",
     "s38"
   ],
-  "timeline_seconds": 47,
+  "timeline_seconds": 44,
   "currency": "USD",
   "confirmed_visual_spend_usd": 0.591597,
-  "incremental_visual_cost_usd": 2.142,
-  "projected_visual_cost_usd": 2.733597,
-  "visual_ceiling_usd": 2.85,
+  "incremental_visual_cost_usd": 1.858,
+  "projected_visual_cost_usd": 2.449597,
+  "visual_target_usd": 2.45,
+  "visual_ceiling_usd": 2.55,
+  "episode_ceiling_usd": 3.05,
   "safety_reserve_usd": 1,
   "reported_balance_usd": 9,
   "provider_balance_verified": false,
@@ -448,5 +478,5 @@
     "measured_audio_timing_required_before_master": true,
     "recap_word_alignment_required": true
   },
-  "pack_sha256": "42884b5d11ecbf0ce7113669fc734cc69721e7c2e82e0a8dcc454e493f452083"
+  "pack_sha256": "7cdbf15f8ae5d7c25ddb26fbbd85878dfea9e4256c9a618caa08e83da36f2d12"
 }

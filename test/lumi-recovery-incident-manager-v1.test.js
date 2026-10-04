@@ -84,6 +84,31 @@ test("ambiguous dispatch fails closed before any call", async () => {
   assert.equal(result.status, "AMBIGUITY_PRESERVED"); assert.equal(calls, 0);
 });
 
+test("provider failure before request-id persistence remains inspect-first when emission cannot be proven", async () => {
+  const store = new MemoryLumiRecoveryStore(); const manager = new LumiRecoveryIncidentManager({ store });
+  await manager.startEpisode({ episodeId: "ep-ambiguous", actions: [actions[0]], authorizedCeilingUsd: 1 });
+  const incident = await manager.pause({ episodeId: "ep-ambiguous", sceneId: "s1", stage: "IMAGE",
+    errorClass: "PROVIDER_API_FAILURE", reason: "asset_image_provider_failed",
+    firstPendingAction: "image_s1", retryability: "INSPECT_FIRST", safeResumeAvailable: false });
+  const reconciled = await manager.reconcileProviderEmission("ep-ambiguous", {
+    classification: "REQUEST_STATE_REMAINS_AMBIGUOUS",
+    evidence: { provider: "openai", request_fingerprint: "fingerprint", missing: ["provider_request_id", "request_level_billing_event"] },
+  });
+  let calls = 0;
+  const resumed = await manager.resume("ep-ambiguous", { continueAction: async () => { calls += 1; } });
+  const persistedIncident = await store.getIncident(incident.incident_id);
+  const persistedEpisode = await store.getEpisode("ep-ambiguous");
+  assert.equal(reconciled.status, "PAUSED_INCIDENT");
+  assert.equal(reconciled.provider_calls, 0);
+  assert.equal(reconciled.safe_resume_available, false);
+  assert.equal(persistedIncident.retryability, "PROVIDER_EMISSION_AMBIGUOUS");
+  assert.equal(persistedIncident.status, "OPEN");
+  assert.equal(persistedEpisode.actions[0].dispatch_state, "EMISSION_AMBIGUOUS");
+  assert.equal(persistedEpisode.metadata.provider_reconciliation.classification, "REQUEST_STATE_REMAINS_AMBIGUOUS");
+  assert.equal(resumed.status, "AMBIGUITY_PRESERVED");
+  assert.equal(calls, 0);
+});
+
 test("provider balance and budget failures pause before call", async () => {
   const store = new MemoryLumiRecoveryStore(); const manager = new LumiRecoveryIncidentManager({ store });
   await manager.startEpisode({ episodeId: "ep4", actions, authorizedCeilingUsd: 0.15 });

@@ -1,0 +1,87 @@
+{
+  "episode_id": "ep_lumi_flores_003",
+  "reviewed_at": "2026-10-04T13:15:00Z",
+  "reviewer": "assistant_visual_inspection",
+  "scope": "six_shot_replan_source_stills_only",
+  "temporal_qa": "NOT_GENERATED",
+  "sources": [
+    {
+      "scene_id": "s31",
+      "sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "Setup has no flowers.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    },
+    {
+      "scene_id": "s32",
+      "sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "One distinct educational flower, unmistakable intended petal color.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    },
+    {
+      "scene_id": "s33",
+      "sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "One distinct educational flower, unmistakable intended petal color.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    },
+    {
+      "scene_id": "s34",
+      "sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "One distinct educational flower, unmistakable intended petal color.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    },
+    {
+      "scene_id": "s35",
+      "sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "Exactly three separated flowers: red left, yellow center, blue right; all petals readable.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    },
+    {
+      "scene_id": "s36",
+      "sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+      "classification": "PASS_WITH_WARNING",
+      "findings": [
+        "Downloaded bytes SHA256 verified.",
+        "Character consistent across all six sources; face, wings, limbs and clothing readable.",
+        "No embedded text, logos or PAUSA label.",
+        "Exactly three separated flowers: red left, yellow center, blue right; all petals readable.",
+        "Natural animation remains unverified until Kling temporal QA.",
+        "Wand absent: candidate requests hand gestures, not wand insertion."
+      ]
+    }
+  ]
+}

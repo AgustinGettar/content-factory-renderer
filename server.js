@@ -105,9 +105,29 @@ import {
   validateS23V2Command,
 } from "./lib/lumi-second-short-s23-v2.js";
 import {
+  LumiRecoveryIncidentManager,
+  SupabaseLumiRecoveryStore,
   pipelineVersion,
   runZeroProviderRecoveryDryRun,
 } from "./lib/lumi-recovery-incident-manager-v1.js";
+import {
+  THIRD_SHORT,
+  startThirdShortControlled,
+  thirdShortPreflight,
+} from "./lib/lumi-third-short-controlled-v1.js";
+import {
+  recordThirdShortSourceQa,
+  recordThirdShortTemporalQa,
+  runThirdShortImages,
+  runThirdShortTts,
+  runThirdShortVideos,
+  thirdShortMediaStatus,
+} from "./lib/lumi-third-short-media-v1.js";
+import {
+  assembleThirdShortMaster,
+  recordThirdShortMasterQa,
+  thirdShortMasterReviewUrl,
+} from "./lib/lumi-third-short-master-v1.js";
 import {
   runAuthenticatedStagingDryRunOnBoot,
   shouldRunAuthenticatedStagingDryRunOnBoot,
@@ -209,6 +229,8 @@ let activeGenerativeVideoBenchmarkV11 = null;
 let generativeVideoBenchmarkV11State = { status: "idle", provider_calls: 0 };
 let activeLumiProductionPilot = null;
 let lumiProductionPilotState = { status: "idle", phase: null, provider_calls: 0 };
+const thirdShortJobs = new Map();
+const thirdShortJobState = new Map();
 
 function safeError(err) {
   return (err instanceof Error ? err.message : String(err)).slice(0, 1800);
@@ -752,6 +774,147 @@ app.post("/lumi-pipeline/v1_1_2/dry-run", async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.code || error.message, provider_calls: 0, autorun: false });
+  }
+});
+
+// Canonical, episode-scoped controlled-production surface. The global default
+// must remain legacy; v1_1_2 is selected only by the persisted episode command.
+app.get("/lumi-pipeline/v1_1_2/episodes/third/preflight", (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  return res.json({ ok: true, ...thirdShortPreflight() });
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/start", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (LUMI_PIPELINE_VERSION !== "legacy") return res.status(409).json({ ok: false, error: "global_default_must_remain_legacy" });
+  if (req.body?.pipeline_version !== THIRD_SHORT.pipelineVersion) return res.status(400).json({ ok: false, error: "episode_pipeline_override_required" });
+  if (!supabase || !OPENAI_API_KEY) return res.status(503).json({ ok: false, error: "controlled_production_dependencies_missing" });
+  try {
+    const result = await startThirdShortControlled({
+      supabase,
+      openAiApiKey: OPENAI_API_KEY,
+      creativeModel: OPENAI_CREATIVE_MODEL,
+      userId: req.body?.user_id,
+      chatId: req.body?.chat_id,
+      commandKey: String(req.body?.command_key || ""),
+      startTimestamp: req.body?.start_timestamp || new Date().toISOString(),
+      logger: creativeLog,
+    });
+    return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error.code || error.message, preflight: error.preflight || null });
+  }
+});
+
+app.get("/lumi-pipeline/v1_1_2/episodes/third/status", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (!supabase) return res.status(503).json({ ok: false, error: "supabase_not_configured" });
+  try {
+    const store = new SupabaseLumiRecoveryStore(supabase);
+    const manager = new LumiRecoveryIncidentManager({ store });
+    const [checkpoint, incidents, requestResult] = await Promise.all([
+      manager.status(THIRD_SHORT.episodeId),
+      store.listIncidents(THIRD_SHORT.episodeId),
+      supabase.from("lumi_controlled_episode_requests").select("*").eq("episode_id", THIRD_SHORT.episodeId).maybeSingle(),
+    ]);
+    if (requestResult.error) throw Object.assign(new Error("controlled_request_read_failed"), { cause: requestResult.error });
+    return res.json({
+      ok: true,
+      episode_id: THIRD_SHORT.episodeId,
+      pipeline_version: THIRD_SHORT.pipelineVersion,
+      global_default: LUMI_PIPELINE_VERSION,
+      request: requestResult.data,
+      checkpoint,
+      incidents,
+      callbacks: ["REANUDAR", "VER ESTADO", "CANCELAR"],
+    });
+  } catch (error) {
+    return res.status(503).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+function runThirdShortStage(stage, operation) {
+  if (thirdShortJobs.has(stage)) return false;
+  thirdShortJobState.set(stage, { status: "starting", started_at: new Date().toISOString() });
+  const job = operation().then((result) => {
+    thirdShortJobState.set(stage, { status: result.status, result, completed_at: new Date().toISOString() });
+  }).catch((error) => {
+    thirdShortJobState.set(stage, { status: "failed", error: error.code || error.message, completed_at: new Date().toISOString() });
+  }).finally(() => thirdShortJobs.delete(stage));
+  thirdShortJobs.set(stage, job);
+  return true;
+}
+
+app.get("/lumi-pipeline/v1_1_2/episodes/third/media", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const media = await thirdShortMediaStatus({ supabase, includeReviewUrls: req.query.review === "1" });
+    return res.json({ ok: true, jobs: Object.fromEntries(thirdShortJobState), ...media });
+  } catch (error) {
+    return res.status(503).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/images", (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  const started = runThirdShortStage("IMAGE", () => runThirdShortImages({ supabase, openAiApiKey: OPENAI_API_KEY, supabaseUrl: SUPABASE_URL, logger: creativeLog }));
+  return res.status(202).json({ ok: true, started, state: thirdShortJobState.get("IMAGE") });
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/source-qa", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordThirdShortSourceQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [] });
+    return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
+  } catch (error) {
+    return res.status(400).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/videos", (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  const started = runThirdShortStage("VIDEO", () => runThirdShortVideos({ supabase, higgsfieldApiKey: HF_API_KEY, logger: creativeLog }));
+  return res.status(202).json({ ok: true, started, state: thirdShortJobState.get("VIDEO") });
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/temporal-qa", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordThirdShortTemporalQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [] });
+    return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
+  } catch (error) {
+    return res.status(400).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/tts", (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  const started = runThirdShortStage("TTS", () => runThirdShortTts({ supabase, openAiApiKey: OPENAI_API_KEY, logger: creativeLog }));
+  return res.status(202).json({ ok: true, started, state: thirdShortJobState.get("TTS") });
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/assemble", (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  const started = runThirdShortStage("ASSEMBLY", () => assembleThirdShortMaster({ supabase, logger: creativeLog }));
+  return res.status(202).json({ ok: true, started, state: thirdShortJobState.get("ASSEMBLY") });
+});
+
+app.get("/lumi-pipeline/v1_1_2/episodes/third/master", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    return res.json({ ok: true, review_url: await thirdShortMasterReviewUrl({ supabase }) });
+  } catch (error) {
+    return res.status(404).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/master-qa", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  try {
+    const result = await recordThirdShortMasterQa({ supabase, classification: req.body?.classification, checks: req.body?.checks, findings: req.body?.findings || [] });
+    return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
+  } catch (error) {
+    return res.status(400).json({ ok: false, error: error.code || error.message });
   }
 });
 

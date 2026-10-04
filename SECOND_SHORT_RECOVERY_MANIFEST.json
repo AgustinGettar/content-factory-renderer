@@ -2,7 +2,7 @@
   "manifest_version": "lumi-second-short-recovery/1.2.0",
   "episode_id": "ep_lumi_formas_002",
   "title": "Lumi y el jardín de las formas",
-  "status": "S23_V2_TEMPORAL_BLOCKER_PRESERVED_NO_FURTHER_PROVIDER",
+  "status": "MASTER_HUMAN_APPROVED_RECOVERY_MANAGER_LOCAL_BLOCKER",
   "staging": {
     "service": "content-factory-av2-staging",
     "status": "LIVE",
@@ -395,9 +395,34 @@
     "automatic_variants": 0,
     "resubmits": 0
   },
-  "first_pending_action": "HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION",
+  "human_approval": {
+    "second_short_master_status": "HUMAN_APPROVED",
+    "second_short_human_review": "APPROVED",
+    "master_file": "LUMI_SHORT_JARDIN_FORMAS_V1.mp4",
+    "master_sha256": "d112b2de82bd6741aeaa71182176d664649406ee0b5b7904fc2f95e10ece5183",
+    "final_accounted_cost_usd": 4.156622,
+    "master_immutable": true
+  },
+  "lumi_app_readiness": {
+    "preset_baseline": "V1.1.2",
+    "preset_status": "HUMAN_VALIDATED",
+    "recovery_manager_status": "IMPLEMENTED_LOCAL",
+    "branch": "lumi-app-recovery-manager-v1",
+    "local_commit": "346717a151c2cb9373e39d8da006036dd57523ed",
+    "focused_tests": "16_OF_16_PASS",
+    "full_suite": "200_OF_201_PASS_ONE_PREEXISTING_MISSING_EXTERNAL_FIXTURE",
+    "provider_calls": 0,
+    "runners": "OFF",
+    "autorun": false,
+    "pipeline_default": "legacy",
+    "ci": "NOT_STARTED_REMOTE_PUSH_BLOCKED",
+    "staging": "NOT_DEPLOYED",
+    "production": "main@5fe5556_INTACT",
+    "status": "PRODUCTION_READINESS_BLOCKER_PRESERVED"
+  },
+  "first_pending_action": "AUTHORIZE_OR_VERIFY_REMOTE_PUSH_THEN_RUN_CI_AND_DEPLOY_STAGING_ONLY",
   "backlog_priority": {
     "id": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
-    "status": "BACKLOG_ONLY_NOT_IMPLEMENTED"
+    "status": "IMPLEMENTED_LOCAL_AWAITING_CI_STAGING"
   }
 }

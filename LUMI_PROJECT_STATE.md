@@ -539,3 +539,20 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - `s24_STATUS=NOT_EXECUTED`; `s25_STATUS=NOT_EXECUTED`; `s27_STATUS=NOT_EXECUTED`; `s29_STATUS=NOT_EXECUTED`; assembly remains `4/9`; TTS not started; master not created.
 - `FIRST_PENDING_ACTION=HUMAN_REVIEW_S23_V2_TERMINAL_BLOCKER_NO_FURTHER_PROVIDER_AUTHORIZATION`
 - Staging manual generation flags OFF; runners OFF; autorun false; no main change, production deploy, publication, or global activation; production remains `main@5fe5556` intact.
+
+
+## Human approval and Lumi App recovery implementation — 2026-10-04
+
+- Episode `Lumi y el jardín de las formas`: `SECOND_SHORT_MASTER_STATUS=HUMAN_APPROVED`; `SECOND_SHORT_HUMAN_REVIEW=APPROVED`.
+- Approved immutable master: `LUMI_SHORT_JARDIN_FORMAS_V1.mp4`; SHA-256 `d112b2de82bd6741aeaa71182176d664649406ee0b5b7904fc2f95e10ece5183`; 1080x1920; H.264 High; CRF 17; preset slow; yuv420p; AAC stereo 48 kHz; 50.178 s; decode errors 0; black frames 0; accidental freezes 0; visible clips 9/9. The master was not modified or regenerated.
+- Final accounted second-short cost remains `USD 4.156622`; complete provider and artifact provenance remains preserved.
+- `PRODUCTION_PRESET_BASELINE=V1.1.2`; `STATUS=HUMAN_VALIDATED`. The preset file was not silently modified.
+- `LUMI_RECOVERY_INCIDENT_MANAGER_V1=IMPLEMENTED_LOCAL` on isolated branch `lumi-app-recovery-manager-v1`, local commit `346717a151c2cb9373e39d8da006036dd57523ed`.
+- Implemented: 20 incident classes; durable checkpoint/incident stores; runner stop and pause semantics; exactly-once resume inspection; immutable request IDs; no blind retry; budget pre-call gate; deterministic-vs-generative salvage policy; image/video/audio/master verification; black/freeze checks; TTS storage dry probe; cancellation with ledger/artifact preservation; concise status; Telegram single-message edit callbacks for START/STATUS/INCIDENT/RESUME/CANCEL.
+- Feature selection is `LUMI_PIPELINE_VERSION=legacy|v1_1_2`; default remains `legacy`. Candidate autorun is hard OFF; no provider boot hook exists.
+- Zero-provider dry validation covers idea, planning, claims, source readiness, video readiness, persistence, QA, budget, incident pause/resume, assembly, master readiness, existing request recovery after restart, provider balance, storage MIME, decode and budget incidents.
+- Focused recovery/Telegram/integration tests: `16/16 PASS`. Full local suite: `200/201 PASS`; the sole failure is the preserved external-fixture absence `visual-benchmark-v1/lumi-master.png`, unchanged from prior checkpoints.
+- Provider calls in this phase: `0`. Runners: `OFF`. Autorun: `false`. Production remains `main@5fe5556` intact.
+- Push to the authorized isolated remote branch was attempted and blocked by the execution security control because the remote destination was not verified in this runtime. No bypass was attempted. Therefore CI did not start and staging was not deployed.
+- `LUMI_APP_STATUS=PRODUCTION_READINESS_BLOCKER_PRESERVED`.
+- `FIRST_PENDING_ACTION=AUTHORIZE_OR_VERIFY_REMOTE_PUSH_THEN_RUN_CI_AND_DEPLOY_STAGING_ONLY`.

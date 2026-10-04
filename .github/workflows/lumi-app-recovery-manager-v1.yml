@@ -23,11 +23,14 @@ jobs:
         run: |
           node --check server.js
           node --check lib/lumi-recovery-incident-manager-v1.js
+          node --check lib/lumi-staging-dry-run-on-boot.js
           node --check test/lumi-recovery-incident-manager-v1.test.js
+          node --check test/lumi-staging-dry-run-on-boot.test.js
           node --check test/lumi-recovery-server-integration.test.js
       - name: Recovery, Telegram and pipeline regression
-        run: node --test test/lumi-recovery-incident-manager-v1.test.js test/lumi-recovery-server-integration.test.js test/lumi-second-short-runtime.test.js test/lumi-editorial-readiness-v1.test.js test/render-profiles.test.js
+        run: node --test test/lumi-recovery-incident-manager-v1.test.js test/lumi-staging-dry-run-on-boot.test.js test/lumi-recovery-server-integration.test.js test/lumi-second-short-runtime.test.js test/lumi-editorial-readiness-v1.test.js test/render-profiles.test.js
       - name: Confirm provider-free implementation
         run: |
           test "$(grep -R "provider_calls: 0" -c lib/lumi-recovery-incident-manager-v1.js)" -ge 1
-          ! grep -R "setImmediate.*runZeroProviderRecoveryDryRun" server.js
+          grep -q 'PROVIDER_CALLS_ALLOWED !== "0"' server.js
+          grep -q '127.0.0.1' lib/lumi-staging-dry-run-on-boot.js

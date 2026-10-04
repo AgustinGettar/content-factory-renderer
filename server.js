@@ -108,6 +108,10 @@ import {
   pipelineVersion,
   runZeroProviderRecoveryDryRun,
 } from "./lib/lumi-recovery-incident-manager-v1.js";
+import {
+  runAuthenticatedStagingDryRunOnBoot,
+  shouldRunAuthenticatedStagingDryRunOnBoot,
+} from "./lib/lumi-staging-dry-run-on-boot.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -159,6 +163,7 @@ const LUMI_SECOND_SHORT_PHASE2_TOKEN = process.env.LUMI_SECOND_SHORT_PHASE2_TOKE
 const LUMI_SECOND_SHORT_S23_V2_TOKEN = process.env.LUMI_SECOND_SHORT_S23_V2_TOKEN || "";
 const LUMI_PIPELINE_VERSION = pipelineVersion(process.env);
 const LUMI_PIPELINE_AUTORUN = false;
+const PROVIDER_CALLS_ALLOWED = String(process.env.PROVIDER_CALLS_ALLOWED || "").trim();
 
 const SUPPORTED_TTS_VOICES = new Set([
   "alloy", "ash", "ballad", "cedar", "coral", "echo", "fable",
@@ -733,9 +738,18 @@ app.get("/health", (_req, res) => {
 // provider request, write production rows, or enable a runner.
 app.post("/lumi-pipeline/v1_1_2/dry-run", async (req, res) => {
   if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (PROVIDER_CALLS_ALLOWED !== "0") return res.status(409).json({ ok: false, error: "zero_provider_lock_required", provider_calls: 0 });
   try {
-    const result = await runZeroProviderRecoveryDryRun();
-    return res.status(result.status === "PASS" ? 200 : 409).json({ ok: result.status === "PASS", ...result });
+    const executionId = String(req.body?.execution_id || "").trim();
+    if (executionId && !/^[a-zA-Z0-9._:-]{1,128}$/.test(executionId)) {
+      return res.status(400).json({ ok: false, error: "invalid_execution_id", provider_calls: 0 });
+    }
+    const result = await runZeroProviderRecoveryDryRun({ providerCallsAllowed: 0 });
+    return res.status(result.status === "PASS" ? 200 : 409).json({
+      ok: result.status === "PASS",
+      dry_run_execution_id: executionId || null,
+      ...result,
+    });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.code || error.message, provider_calls: 0, autorun: false });
   }
@@ -1976,6 +1990,27 @@ app.listen(Number(PORT), "0.0.0.0", () => {
   // Recover queued work after a deploy/restart without another Make call.
   setTimeout(() => recoverQueuedVideos(), 5000).unref?.();
   setInterval(() => recoverQueuedVideos(), 30_000).unref?.();
+
+  try {
+    if (shouldRunAuthenticatedStagingDryRunOnBoot(process.env)) {
+      setImmediate(() => runAuthenticatedStagingDryRunOnBoot({ env: process.env, port: PORT })
+        .catch((error) => console.error(JSON.stringify({
+          event: "lumi_authenticated_staging_dry_run",
+          status: "FAIL",
+          error: safeError(error),
+          provider_calls: 0,
+          autorun: false,
+        }))));
+    }
+  } catch (error) {
+    console.error(JSON.stringify({
+      event: "lumi_authenticated_staging_dry_run",
+      status: "REJECTED",
+      error: safeError(error),
+      provider_calls: 0,
+      autorun: false,
+    }));
+  }
 
   if (shouldRunBootBenchmark({
     engineVersion: CREATIVE_ENGINE_VERSION,

@@ -124,9 +124,15 @@ test("Telegram incident UX edits one existing menu and never sends a new message
 });
 
 test("zero-provider end-to-end dry run covers pause, resume, persistence and restart", async () => {
-  const result = await runZeroProviderRecoveryDryRun();
+  await assert.rejects(runZeroProviderRecoveryDryRun({ providerCallsAllowed: 1 }), /zero_provider_lock_required/);
+  const result = await runZeroProviderRecoveryDryRun({ providerCallsAllowed: 0 });
   assert.equal(result.status, "PASS"); assert.equal(result.provider_calls, 0); assert.equal(result.autorun, false);
   assert.equal(result.existing_request_recovered_without_duplicate, true); assert.equal(result.runners_off, true);
+  assert.equal(result.simulations_pass_count, 5); assert.equal(result.duplicate_provider_calls, 0);
+  assert.equal(result.exactly_once_resume, "PASS"); assert.equal(result.telegram_single_message, "PASS");
+  assert.deepEqual(result.artifact_validation, { IMAGE: "PASS", VIDEO: "PASS", AUDIO: "PASS", MASTER: "PASS" });
+  assert.equal(result.tts_storage_gate, "PASS"); assert.equal(result.budget_gate, "PASS");
+  assert.equal(result.production_mutations, 0);
   assert.deepEqual(result.full_pipeline_stages, ["IDEA", "PLANNING", "CLAIMS", "SOURCE_READINESS", "VIDEO_READINESS", "PERSISTENCE", "QA", "BUDGET", "ASSEMBLY", "MASTER_READINESS"]);
   assert.equal(result.master_readiness, "READY_FOR_HUMAN_REVIEW");
 });

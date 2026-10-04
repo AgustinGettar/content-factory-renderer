@@ -1,0 +1,452 @@
+{
+  "version": "lumi-third-shot-pack/1",
+  "episode_id": "ep_lumi_flores_003",
+  "source_plan_sha256": "209cdd290657d9896735aa7cd73e5741cd54b369c25029d947b1c5e1264b7867",
+  "shots": [
+    {
+      "id": "q31",
+      "source_scene": "s31",
+      "performance": "greeting",
+      "motion": "A natural curious greeting: one small gaze shift, a gentle blink, relaxed breathing. No walking out of frame.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    },
+    {
+      "id": "q32",
+      "source_scene": "s32",
+      "performance": "red",
+      "motion": "Lumi gives one gentle teaching point toward the red flower, then settles naturally. Keep the flower fully visible.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    },
+    {
+      "id": "q33",
+      "source_scene": "s33",
+      "performance": "yellow",
+      "motion": "Lumi gives one gentle teaching point toward the yellow flower, then settles naturally. Keep the flower fully visible.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    },
+    {
+      "id": "q34",
+      "source_scene": "s34",
+      "performance": "blue",
+      "motion": "Lumi gives one gentle teaching point toward the blue flower, then settles naturally. Keep the flower fully visible.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    },
+    {
+      "id": "q37",
+      "source_scene": "s35",
+      "performance": "question",
+      "motion": "Lumi looks warmly toward the viewer with a curious listening expression. During the final 2.5 seconds she waits naturally with one blink and subtle breathing. No pointing, gaze, glow or cue identifies the answer.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    },
+    {
+      "id": "q39",
+      "source_scene": "s36",
+      "performance": "closing",
+      "motion": "Lumi gives one small warm farewell wave toward the viewer, smiles, then settles. Keep all three flowers visible and unchanged.",
+      "duration_seconds": 5,
+      "model": "kling-video/v3.0/std/image-to-video",
+      "input": {
+        "duration": 5,
+        "sound": "off",
+        "multi_shots": false,
+        "cfg_scale": 0.5
+      },
+      "source_sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+      "source_qa": "PASS_WITH_WARNING",
+      "estimated_cost_usd": 0.357,
+      "quote_basis": "PERSISTED_API_CONFIGURATION_QUOTE_REQUOTE_BEFORE_EMISSION",
+      "natural_speed": 1,
+      "camera": "static",
+      "generated_character_motion": true,
+      "max_calls": 1,
+      "retry": false,
+      "variant": false
+    }
+  ],
+  "beats": [
+    {
+      "id": "s31",
+      "beat_ref": "beat_setup",
+      "educational_goal": "Introducción al jardín; preparar atención visual.",
+      "narration": "¡Hola! Estoy en un jardín. ¿Ves algo interesante?",
+      "narration_ids": [
+        "s10_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q31",
+          "start_seconds": 0,
+          "duration_seconds": 4,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s32",
+      "beat_ref": "beat_discover_red",
+      "educational_goal": "Mostrar la flor roja claramente.",
+      "narration": "¡Mira! Una flor roja.",
+      "narration_ids": [
+        "s20_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q32",
+          "start_seconds": 0,
+          "duration_seconds": 5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s33",
+      "beat_ref": "beat_discover_yellow",
+      "educational_goal": "Mostrar la flor amarilla claramente.",
+      "narration": "¡Aquí hay una flor amarilla!",
+      "narration_ids": [
+        "s30_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q33",
+          "start_seconds": 0,
+          "duration_seconds": 5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s34",
+      "beat_ref": "beat_discover_blue",
+      "educational_goal": "Mostrar la flor azul claramente.",
+      "narration": "Y aquí está la flor azul.",
+      "narration_ids": [
+        "s40_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q34",
+          "start_seconds": 0,
+          "duration_seconds": 5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s35",
+      "beat_ref": "beat_development",
+      "educational_goal": "Nombrar los tres colores mientras la varita guía la atención.",
+      "narration": "Rojo... Amarillo... Azul. Tres flores, tres colores.",
+      "narration_ids": [
+        "s50_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q32",
+          "start_seconds": 1,
+          "duration_seconds": 1.2,
+          "speed": 1
+        },
+        {
+          "shot_id": "q33",
+          "start_seconds": 1,
+          "duration_seconds": 1.2,
+          "speed": 1
+        },
+        {
+          "shot_id": "q34",
+          "start_seconds": 1,
+          "duration_seconds": 1.2,
+          "speed": 1
+        },
+        {
+          "shot_id": "q37",
+          "start_seconds": 2.5,
+          "duration_seconds": 1.4,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": true,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s36",
+      "beat_ref": "beat_practice",
+      "educational_goal": "Breve práctica guiada: mirar cada flor según la dirección de Lumi.",
+      "narration": "Muy bien. Ahora mira aquí... y aquí... y aquí.",
+      "narration_ids": [
+        "s60_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q32",
+          "start_seconds": 2,
+          "duration_seconds": 2,
+          "speed": 1
+        },
+        {
+          "shot_id": "q33",
+          "start_seconds": 2,
+          "duration_seconds": 2,
+          "speed": 1
+        },
+        {
+          "shot_id": "q34",
+          "start_seconds": 2,
+          "duration_seconds": 2,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": true,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s37",
+      "beat_ref": "beat_question",
+      "educational_goal": "Hacer la pregunta clara: identificar la flor azul y permitir la respuesta del niño.",
+      "narration": "¿Dónde está la flor azul?",
+      "narration_ids": [
+        "s70_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q37",
+          "start_seconds": 0,
+          "duration_seconds": 5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 2.5,
+      "breath_seconds": 0,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s38",
+      "beat_ref": "beat_answer",
+      "educational_goal": "Confirmar la respuesta y celebrar la selección correcta.",
+      "narration": "¡Sí, muy bien! Esa es la flor azul.",
+      "narration_ids": [
+        "s80_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q34",
+          "start_seconds": 0.5,
+          "duration_seconds": 3.5,
+          "speed": 1
+        },
+        {
+          "shot_id": "q37",
+          "start_seconds": 2.5,
+          "duration_seconds": 2.5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "local_only": true,
+      "text_overlay": [],
+      "technical_pause_label": false
+    },
+    {
+      "id": "s39",
+      "beat_ref": "beat_recap",
+      "educational_goal": "Recapitular los tres colores y cerrar con celebración.",
+      "narration": "Muy bien. Rojo, amarillo y azul. ¡Excelente trabajo!",
+      "narration_ids": [
+        "s90_u1"
+      ],
+      "segments": [
+        {
+          "shot_id": "q37",
+          "start_seconds": 4,
+          "duration_seconds": 1,
+          "speed": 1
+        },
+        {
+          "shot_id": "q39",
+          "start_seconds": 0,
+          "duration_seconds": 5,
+          "speed": 1
+        }
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 1,
+      "local_only": false,
+      "text_overlay": [],
+      "technical_pause_label": false
+    }
+  ],
+  "image_calls": 0,
+  "video_calls": 6,
+  "generated_video_seconds": 30,
+  "unique_images": 6,
+  "local_only_beats": [
+    "s35",
+    "s36",
+    "s38"
+  ],
+  "timeline_seconds": 47,
+  "currency": "USD",
+  "confirmed_visual_spend_usd": 0.591597,
+  "incremental_visual_cost_usd": 2.142,
+  "projected_visual_cost_usd": 2.733597,
+  "visual_ceiling_usd": 2.85,
+  "safety_reserve_usd": 1,
+  "reported_balance_usd": 9,
+  "provider_balance_verified": false,
+  "master": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "codec": "h264",
+    "profile": "High",
+    "crf": 17,
+    "preset": "slow",
+    "pixel_format": "yuv420p",
+    "audio_codec": "aac",
+    "audio_sample_rate": 48000,
+    "audio_bitrate_kbps": 192,
+    "final_encodes": 1
+  },
+  "text_policy": {
+    "text_character_overlap": 0,
+    "overlays_enabled": false,
+    "pause_labels_enabled": false
+  },
+  "execution_policy": {
+    "same_episode": true,
+    "recovery_manager": true,
+    "immediate_request_id_persistence": true,
+    "retries": 0,
+    "variants": 0,
+    "allowed_provider": "higgsfield_api",
+    "allowed_video_model": "kling-video/v3.0/std/image-to-video",
+    "grok_allowed": false,
+    "image_s37_needed": false,
+    "original_attempts_immutable": true,
+    "full_tts_requires_voice_approval": true
+  },
+  "narration_policy": {
+    "original_words_unchanged": true,
+    "each_utterance_once": true,
+    "audio_speed": 1,
+    "question_max_speech_seconds": 2.5,
+    "measured_audio_timing_required_before_master": true,
+    "recap_word_alignment_required": true
+  },
+  "pack_sha256": "42884b5d11ecbf0ce7113669fc734cc69721e7c2e82e0a8dcc454e493f452083"
+}

@@ -8,7 +8,7 @@ import {
   thirdShortPreflight,
 } from "../lib/lumi-third-short-controlled-v1.js";
 import {
-  THIRD_SHORT_SCENES,
+  compileThirdShortScenesFromPlan,
   thirdShortImagePrompt,
   thirdShortVideoContract,
 } from "../lib/lumi-third-short-media-v1.js";
@@ -78,10 +78,19 @@ test("server exposes only an explicit episode override while retaining legacy gl
   assert.match(source, /callbacks: \["REANUDAR", "VER ESTADO", "CANCELAR"\]/);
 });
 
-test("nine simple flower scenes compile through readiness v2 with exact color and pacing locks", () => {
-  assert.equal(THIRD_SHORT_SCENES.length, 9);
-  assert.equal(THIRD_SHORT_SCENES.filter((scene) => scene.pause === 2.5).length, 1);
-  for (const scene of THIRD_SHORT_SCENES) {
+test("the repaired Episode Plan compiles nine production scenes without a parallel hardcoded script", async () => {
+  const raw = JSON.parse(await readFile(new URL(
+    "./fixtures/ep-lumi-flores-003.invalid-self-scene-anchors.transport.json", import.meta.url,
+  ), "utf8"));
+  const repaired = normalizeThirdShortEpisodePlan(raw);
+  const scenes = compileThirdShortScenesFromPlan(repaired.plan);
+  assert.equal(scenes.length, 9);
+  assert.equal(scenes.filter((scene) => scene.pause === 2.5).length, 1);
+  assert.equal(scenes.find((scene) => scene.pause === 2.5).id, "s37");
+  assert.deepEqual(scenes.map((scene) => scene.narration), repaired.plan.scenes.map((scene) =>
+    scene.audio.utterances.map((utterance) => utterance.text).join(" ")));
+  assert.ok(scenes.every((scene) => scene.overlay === ""));
+  for (const scene of scenes) {
     const prompt = thirdShortImagePrompt(scene);
     assert.match(prompt, /Red is pure clear red/i);
     assert.match(prompt, /Yellow is pure clear yellow/i);
@@ -90,6 +99,14 @@ test("nine simple flower scenes compile through readiness v2 with exact color an
     const readiness = validateVideoGenerationReadiness(thirdShortVideoContract(scene));
     assert.equal(readiness.status, "PASS", `${scene.id}: ${readiness.errors.join(",")}`);
   }
+});
+
+test("master assembly consumes the repaired Episode Plan and never burns text overlays", async () => {
+  const source = await readFile(new URL("../lib/lumi-third-short-master-v1.js", import.meta.url), "utf8");
+  assert.match(source, /loadThirdShortProductionScenes/);
+  assert.doesNotMatch(source, /drawtext=/);
+  assert.match(source, /audioDuration \+ scene\.pause/);
+  assert.match(source, /plannedMasterDuration < 43 \|\| plannedMasterDuration > 47/);
 });
 
 test("third-short boot trigger is staging-only and calls the canonical start endpoint", async () => {

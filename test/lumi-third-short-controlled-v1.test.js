@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   THIRD_SHORT,
+  normalizeThirdShortEpisodePlan,
   thirdShortActions,
   thirdShortPreflight,
 } from "../lib/lumi-third-short-controlled-v1.js";
@@ -34,6 +35,28 @@ test("third short recovery ledger has one ordered action per controlled stage", 
   assert.equal(THIRD_SHORT.pipelineVersion, "v1_1_2");
 });
 
+test("the exact persisted third-short failure normalizes deterministically with zero provider calls", async () => {
+  const raw = JSON.parse(await readFile(new URL(
+    "./fixtures/ep-lumi-flores-003.invalid-self-scene-anchors.transport.json", import.meta.url,
+  ), "utf8"));
+  const original = structuredClone(raw.episode_plan);
+  const repaired = normalizeThirdShortEpisodePlan(raw);
+  assert.equal(repaired.validation.ok, true);
+  assert.equal(repaired.contract.invalid_temporal_references, 0);
+  assert.equal(repaired.contract.scene_count, true);
+  assert.equal(repaired.contract.canonical_episode_id, true);
+  assert.equal(repaired.contract.canonical_scene_ids, true);
+  assert.equal(repaired.contract.duration_43_to_47, true);
+  assert.equal(repaired.contract.pedagogical_pause_exactly_2_5, true);
+  assert.equal(repaired.timeline.planned_duration_seconds, 47);
+  assert.deepEqual(repaired.plan.scenes.map((scene) => scene.educational_goal),
+    original.scenes.map((scene) => scene.educational_goal));
+  assert.deepEqual(repaired.plan.scenes.map((scene) => scene.audio.utterances),
+    original.scenes.map((scene) => scene.audio.utterances));
+  assert.equal(repaired.original_validation_errors.length, 28);
+  assert.equal(repaired.changes.filter((change) => change.to === "scene.start").length, 28);
+});
+
 test("controlled start migration is isolated, idempotent and does not enqueue legacy Make", async () => {
   const sql = await readFile(new URL("../supabase/migrations/20261004030000_lumi_controlled_episode_start.sql", import.meta.url), "utf8");
   assert.match(sql, /pipeline_version text not null check \(pipeline_version = 'v1_1_2'\)/);
@@ -49,6 +72,9 @@ test("server exposes only an explicit episode override while retaining legacy gl
   assert.match(source, /LUMI_PIPELINE_VERSION !== "legacy"/);
   assert.match(source, /episode_pipeline_override_required/);
   assert.match(source, /startThirdShortControlled/);
+  assert.match(source, /repairThirdShortEpisodePlanDeterministically/);
+  assert.match(source, /episodes\/third\/resume/);
+  assert.match(source, /RESOLVED_DETERMINISTICALLY/);
   assert.match(source, /callbacks: \["REANUDAR", "VER ESTADO", "CANCELAR"\]/);
 });
 
@@ -81,4 +107,22 @@ test("third-short boot trigger is staging-only and calls the canonical start end
   assert.equal(observed.options.headers["x-render-token"], "secret");
   assert.equal(JSON.parse(observed.options.body).pipeline_version, "v1_1_2");
   assert.equal(result.status, "PLANNED");
+});
+
+test("third-short boot trigger can invoke the canonical Recovery Manager resume endpoint", async () => {
+  resetThirdShortBootActionForTest();
+  let observed;
+  const result = await runThirdShortBootAction({
+    env: { LUMI_THIRD_SHORT_BOOT_ACTION: "RESUME", LUMI_RUNTIME_ENV: "staging", ADMIN_API_TOKEN: "secret" },
+    port: 3000,
+    fetchImpl: async (url, options) => {
+      observed = { url, options };
+      return { ok: true, json: async () => ({ status: "RUNNING", episode_id: THIRD_SHORT.episodeId, provider_calls: 0, resumes: 1 }) };
+    },
+    logger: { info() {} },
+  });
+  assert.match(observed.url, /\/episodes\/third\/resume$/);
+  assert.equal(observed.options.headers["x-render-token"], "secret");
+  assert.equal(result.status, "RUNNING");
+  assert.equal(result.provider_calls, 0);
 });

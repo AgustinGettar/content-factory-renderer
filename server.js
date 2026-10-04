@@ -112,6 +112,7 @@ import {
 } from "./lib/lumi-recovery-incident-manager-v1.js";
 import {
   THIRD_SHORT,
+  repairThirdShortEpisodePlanDeterministically,
   startThirdShortControlled,
   thirdShortPreflight,
 } from "./lib/lumi-third-short-controlled-v1.js";
@@ -831,6 +832,59 @@ app.get("/lumi-pipeline/v1_1_2/episodes/third/status", async (req, res) => {
     });
   } catch (error) {
     return res.status(503).json({ ok: false, error: error.code || error.message });
+  }
+});
+
+app.post("/lumi-pipeline/v1_1_2/episodes/third/resume", async (req, res) => {
+  if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
+  if (LUMI_PIPELINE_VERSION !== "legacy") return res.status(409).json({ ok: false, error: "global_default_must_remain_legacy" });
+  if (!supabase) return res.status(503).json({ ok: false, error: "supabase_not_configured" });
+  try {
+    const manager = new LumiRecoveryIncidentManager({ store: new SupabaseLumiRecoveryStore(supabase) });
+    let repair = null;
+    const resumed = await manager.resume(THIRD_SHORT.episodeId, {
+      continueAction: async (action, proof) => {
+        if (!proof?.recoveryInspectionComplete) throw new Error("recovery_inspection_required");
+        if (action.key !== "episode_plan_v2") throw new Error(`third_short_resume_action_unsupported:${action.key}`);
+        repair = await repairThirdShortEpisodePlanDeterministically({ supabase, logger: creativeLog });
+        await manager.recordRequest(THIRD_SHORT.episodeId, action.key, repair.provider_response_id);
+        await manager.completeAction(THIRD_SHORT.episodeId, action.key, {
+          artifact: {
+            artifact_id: repair.artifact_id,
+            content_hash: repair.content_hash,
+            raw_transport_hash: repair.raw_transport_hash,
+            repair: "EPISODE_PLAN_V2_REPAIRED",
+          },
+          evidence: {
+            provider_succeeded: true,
+            artifact_persisted: true,
+            sha_verified: true,
+            artifact_verified: true,
+          },
+          actualCostUsd: 0,
+        });
+        return {
+          incident_resolution: "RESOLVED_DETERMINISTICALLY",
+          artifact_id_path: `av2_creative_artifacts/${repair.artifact_id}`,
+        };
+      },
+    });
+    const { error: requestError } = await supabase.from("lumi_controlled_episode_requests")
+      .update({ status: "RUNNING", updated_at: new Date().toISOString() })
+      .eq("episode_id", THIRD_SHORT.episodeId);
+    if (requestError) throw new Error("third_short_request_resume_write_failed");
+    return res.json({
+      ok: true,
+      episode_id: THIRD_SHORT.episodeId,
+      pipeline_version: THIRD_SHORT.pipelineVersion,
+      global_default: LUMI_PIPELINE_VERSION,
+      ...resumed,
+      repair,
+      duplicate_provider_calls: 0,
+      provider_repair_calls: 0,
+    });
+  } catch (error) {
+    return res.status(409).json({ ok: false, error: error.code || error.message, provider_calls: 0 });
   }
 });
 

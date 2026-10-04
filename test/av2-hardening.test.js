@@ -10,6 +10,7 @@ import {
 import {
   AV2_AUTHORITY_MODEL,
   AV2_CANONICAL_ANCHOR_GRAMMAR,
+  TEMPORAL_REFERENCE_NORMALIZATION_GATE_VERSION,
   canonicalizeAv2Timeline,
 } from "../lib/av2/canonicalizer.js";
 import {
@@ -36,6 +37,9 @@ import { Av2PipelineIntegration } from "../lib/av2/pipeline-integration.js";
 
 const transportFixture = JSON.parse(await readFile(
   new URL("./fixtures/lumi-cinco-huevos.transport.json", import.meta.url), "utf8",
+));
+const floresInvalidSelfAnchors = JSON.parse(await readFile(
+  new URL("./fixtures/ep-lumi-flores-003.invalid-self-scene-anchors.transport.json", import.meta.url), "utf8",
 ));
 
 function clone(value = transportFixture) {
@@ -130,6 +134,24 @@ test("canonicalizer repairs derivable anchors, transition edges and one-frame du
   assert.equal(canonical.plan.episode.transitions[0].from_scene, "s01");
   assert.equal(canonical.plan.episode.transitions[0].to_scene, "s02");
   assert.equal(canonical.plan.scenes[0].transition_out, canonical.plan.episode.transitions[0].id);
+});
+
+test("temporal reference normalization repairs the exact 28 self-scene aliases from ep_lumi_flores_003", () => {
+  const rawDomain = transportToAv2Domain(floresInvalidSelfAnchors);
+  const before = validateEpisodePlan(rawDomain, { throwOnError: false });
+  const temporalErrors = before.errors.filter((error) => error.keyword === "timing_reference");
+  assert.equal(temporalErrors.length, 28);
+  assert.ok(temporalErrors.every((error) => /unknown local time anchor s[1-9]0\.start/.test(error.message)));
+
+  const canonical = canonicalizeAv2Timeline(rawDomain);
+  const after = validateEpisodePlan(canonical.plan, { throwOnError: false });
+  assert.equal(after.ok, true);
+  assert.equal(after.errors.filter((error) => error.keyword === "timing_reference").length, 0);
+  assert.equal(canonical.temporal_reference_normalization.version, TEMPORAL_REFERENCE_NORMALIZATION_GATE_VERSION);
+  assert.equal(canonical.temporal_reference_normalization.change_count, 28);
+  assert.ok(canonical.temporal_reference_normalization.changes.every((change) => (
+    /^s[1-9]0\.start$/.test(change.from) && change.to === "scene.start"
+  )));
 });
 
 test("canonicalizer repairs Attempt 5 flat continuity paths and canonical count aliases", () => {

@@ -50,7 +50,30 @@ test("request id is immutable and resume recovers it without duplicate provider 
   const result = await manager.resume("ep2", { inspectProviderRequest: async (id) => { inspections += 1; assert.equal(id, "req-1"); return { status: "succeeded", actual_cost_usd: 0.1 }; },
     recoverArtifact: async () => { recoveries += 1; return { path: "source.png" }; }, validateRecoveredArtifact: async () => ({ ok: true }) });
   assert.equal(result.provider_calls, 0); assert.equal(result.recovered_request_id, "req-1");
+  assert.equal(result.resumes, 1);
   assert.equal(inspections, 1); assert.equal(recoveries, 1); assert.equal((await store.getEpisode("ep2")).status, "READY_FOR_HUMAN_REVIEW");
+  assert.equal((await store.getEpisode("ep2")).metadata.resume_count, 1);
+});
+
+test("deterministic planning repair resolves the incident through Recovery Manager", async () => {
+  const store = new MemoryLumiRecoveryStore(); const manager = new LumiRecoveryIncidentManager({ store });
+  await manager.startEpisode({ episodeId: "ep-plan", actions: [{ key: "episode_plan_v2", stage: "PLANNING" }, actions[0]], authorizedCeilingUsd: 1 });
+  const incident = await manager.pause({ episodeId: "ep-plan", stage: "PLANNING", errorClass: "UNEXPECTED_RUNTIME_ERROR",
+    reason: "episode_plan_invalid", firstPendingAction: "episode_plan_v2", safeResumeAvailable: false });
+  const result = await manager.resume("ep-plan", { continueAction: async (action) => {
+    await manager.recordRequest("ep-plan", action.key, "resp-existing");
+    await manager.completeAction("ep-plan", action.key, { artifact: { id: "repaired" }, evidence: {
+      provider_succeeded: true, artifact_persisted: true, sha_verified: true, artifact_verified: true,
+    } });
+    return { incident_resolution: "RESOLVED_DETERMINISTICALLY", artifact_id_path: "av2/repaired" };
+  } });
+  assert.equal(result.first_pending_action, "image_s1");
+  assert.equal(result.resumes, 1);
+  assert.equal(result.incident_resolution, "RESOLVED_DETERMINISTICALLY");
+  const resolved = await store.getIncident(incident.incident_id);
+  assert.equal(resolved.status, "RESOLVED");
+  assert.equal(resolved.retryability, "RESOLVED_DETERMINISTICALLY");
+  assert.equal(resolved.artifact_id_path, "av2/repaired");
 });
 
 test("ambiguous dispatch fails closed before any call", async () => {

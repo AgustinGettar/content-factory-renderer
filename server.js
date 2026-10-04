@@ -949,7 +949,7 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/videos", (req, res) => {
 app.post("/lumi-pipeline/v1_1_2/episodes/third/temporal-qa", async (req, res) => {
   if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
-    const result = await recordThirdShortTemporalQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [] });
+    const result = await recordThirdShortTemporalQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [], expectedSha256: req.body?.sha256 });
     return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
   } catch (error) {
     return res.status(400).json({ ok: false, error: error.code || error.message });

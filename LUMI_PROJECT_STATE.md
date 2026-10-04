@@ -556,3 +556,21 @@ Production, Telegram, Make, queues, publication, approval workflow, Draft→HD, 
 - After explicit authorization for the exact repository and isolated branch, push was attempted again and failed because this runtime has no GitHub credentials (`could not read Username`). Therefore CI did not start and staging was not deployed.
 - `LUMI_APP_STATUS=PRODUCTION_READINESS_BLOCKER_PRESERVED`.
 - `FIRST_PENDING_ACTION=CONFIGURE_GITHUB_AUTH_PUSH_BRANCH_RUN_CI_THEN_DEPLOY_STAGING_ONLY`.
++
+## Authenticated zero-provider staging gate PASS — 2026-10-04
+
+- `LUMI_APP_PIPELINE_STATUS=READY_FOR_CONTROLLED_PRODUCTION`.
+- `AUTHENTICATED_STAGING_DRY_RUN=PASS`; `DRY_RUN_EXECUTION_ID=lumi-readiness-20261004T0046Z`; `SIMULATIONS_PASS_COUNT=5/5`.
+- `RECOVERY_MANAGER=PASS`; `EXACTLY_ONCE_RESUME=PASS`; `DUPLICATE_PROVIDER_CALLS=0`; `TELEGRAM_SINGLE_MESSAGE=PASS`.
+- `ARTIFACT_VALIDATION=PASS` for IMAGE, VIDEO, AUDIO, and MASTER; `TTS_STORAGE_GATE=PASS`; `BUDGET_GATE=PASS`.
+- `PROVIDER_CALLS=0`; `PRODUCTION_MUTATIONS=0`; no Image, Kling, or TTS generation occurred.
+- Internal authenticated path: staging process read its existing Render/admin token from process environment, used it only for a localhost self-call, and never logged, returned, persisted, copied, replaced, rotated, or exposed it.
+- Zero-provider hard lock: `PROVIDER_CALLS_ALLOWED=0`. The non-secret boot trigger was disabled after PASS; the final trigger-off deploy emitted no second dry-run event.
+- Required simulations passed: `INSUFFICIENT_PROVIDER_BALANCE`, `STORAGE_MIME_REJECTED`, `EXISTING_PROVIDER_REQUEST_AFTER_RESTART`, `VIDEO_DECODE_FAILURE`, `BUDGET_EXHAUSTED`.
+- Telegram model validated: `PRODUCING → INCIDENT_PAUSED → RESUMING → PRODUCING → HUMAN_REVIEW_PENDING`; one edited message; `REANUDAR`, `VER ESTADO`, `CANCELAR`; no permanent menu spam.
+- Remote code commit `e7ebb79bfa9a8d41091b031b038e3c711599e7b5`; tree `b6532eded1663635389745f054617136d6f75efd`; GitHub Actions run `37165908221` GREEN.
+- Focused tests `33/33 PASS`; full regression `203/204 PASS`; sole failure remains the pre-existing missing external fixture `visual-benchmark-v1/lumi-master.png`.
+- Authenticated PASS deploy `dep-db0q4kid0e5s73cobpkg`; final trigger-off deploy `dep-db0q50hsrm7s738nbqcg` LIVE.
+- `STAGING_FINAL_SHA=e7ebb79bfa9a8d41091b031b038e3c711599e7b5`; `STAGING_FINAL_HEALTH=HTTP_200_OK`; default `legacy`; autorun false; recovery runners OFF.
+- Production remains LIVE and unchanged at `main@5fe5556395829e78817771f96d33cce3f692965d`; no main merge, production deploy, publication, or global activation occurred.
+- `NEXT_ACTION=GENERATE_THIRD_SHORT_FROM_LUMI_CONTROLLED_PRODUCTION` with one explicit per-episode opt-in to `v1_1_2`; global production remains `legacy`.

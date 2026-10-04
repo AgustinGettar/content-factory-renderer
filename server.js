@@ -841,6 +841,17 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/resume", async (req, res) => {
   if (!supabase) return res.status(503).json({ ok: false, error: "supabase_not_configured" });
   try {
     const manager = new LumiRecoveryIncidentManager({ store: new SupabaseLumiRecoveryStore(supabase) });
+    if(req.body?.cost_optimized_asset_replan===true){
+      const {runThirdShotPackDesign}=await import("./lib/lumi-third-shot-pack-design-v1.js");
+      const {shotPackRuntimeReadiness}=await import("./lib/lumi-third-shot-pack-runtime-v1.js");
+      await shotPackRuntimeReadiness();
+      const report=await runThirdShotPackDesign({freshPreflight:true});
+      const {readFile}=await import("node:fs/promises");
+      const plan=JSON.parse(await readFile(new URL("./episodes/ep_lumi_flores_003/EPISODE_PLAN_V2.json",import.meta.url),"utf8"));
+      const resumed=await manager.installCostOptimizedAssetReplan(THIRD_SHORT.episodeId,{pack:report.pack,plan,freshQuotes:report.resume.status==="PASS"});
+      console.info(JSON.stringify({event:"lumi_shot_pack_replan",...resumed,pack_sha256:report.pack_sha256}));
+      return res.json({ok:true,...resumed});
+    }
     let repair = null;
     const resumed = await manager.resume(THIRD_SHORT.episodeId, {
       humanOverride: req.body?.human_override,
@@ -922,7 +933,7 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/images", (req, res) => {
 app.post("/lumi-pipeline/v1_1_2/episodes/third/source-qa", async (req, res) => {
   if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
-    const result = await recordThirdShortSourceQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [] });
+    const result = await recordThirdShortSourceQa({ supabase, sceneId: req.body?.scene_id, classification: req.body?.classification, findings: req.body?.findings || [], expectedSha256:req.body?.sha256 });
     return res.status(result.status === "PAUSED_INCIDENT" ? 409 : 200).json({ ok: result.status !== "PAUSED_INCIDENT", ...result });
   } catch (error) {
     return res.status(400).json({ ok: false, error: error.code || error.message });

@@ -852,6 +852,11 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/resume", async (req, res) => {
       console.info(JSON.stringify({event:"lumi_shot_pack_replan",...resumed,pack_sha256:report.pack_sha256}));
       return res.json({ok:true,...resumed});
     }
+    if(req.body?.q34_human_review===true){
+      const {applyQ34HumanReviewAndResume}=await import('./lib/cinematic-director-v1/q34-human-review.js');
+      const result=await applyQ34HumanReviewAndResume({supabase,operation:req.body.review_operation||'APPLY'});
+      return res.json({ok:true,...result});
+    }
     let repair = null;
     const resumed = await manager.resume(THIRD_SHORT.episodeId, {
       humanOverride: req.body?.human_override,

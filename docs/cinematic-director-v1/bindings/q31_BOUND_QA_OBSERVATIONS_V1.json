@@ -1,0 +1,67 @@
+{
+  "version": "LUMI_BOUND_QA_OBSERVATIONS_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q31",
+  "binding_fingerprint": "30c68dc9bc8f1bfef638ec70be71f28b6f4a2d86367381635d586477dde952fd",
+  "source": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "SILHOUETTE_DRIFT",
+        "certainty": "UNKNOWN",
+        "evidence_ids": [
+          "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+        ],
+        "note": "Visible rear crescent outside overalls. New V2 topology review required; historical source approval is preserved and does not waive this rule."
+      }
+    ]
+  },
+  "video": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "EXTRA_WING_LOBE",
+        "certainty": "POSSIBLE_OCCLUSION",
+        "evidence_ids": [
+          "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+        ],
+        "note": "Accepted historical lower-wing contour warning, exact artifact only; not an additional-wing diagnosis."
+      }
+    ]
+  },
+  "intended_preset": "GREETING",
+  "observed_motion": {
+    "body_yaw": "UNKNOWN",
+    "torso_rotation": "UNKNOWN",
+    "wing_motion": "UNKNOWN",
+    "camera": "STATIC"
+  },
+  "observation_provenance": {
+    "actor": "Codex visual inspection + retrieved existing QA",
+    "date": "2026-10-05",
+    "new_human_approval": false,
+    "inspected_source": true,
+    "inspected_video_frames": [
+      48
+    ],
+    "all_frames_decoded": true,
+    "full_native_speed_visual_playback": false,
+    "quantified_angles": null,
+    "complete_anatomy_certified": false
+  },
+  "requested_motion_analysis": "Exact historical request envelope not recovered. Current code was amended after generation, so it cannot prove the historical wording. Observed torso rotation exceeds the proposed preset; wing angles remain unmeasured."
+}

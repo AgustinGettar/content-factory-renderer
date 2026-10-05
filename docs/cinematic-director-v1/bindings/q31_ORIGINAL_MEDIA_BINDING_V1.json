@@ -1,0 +1,270 @@
+{
+  "version": "ORIGINAL_MEDIA_BINDING_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q31",
+  "revision": 1,
+  "AUTHENTIC_MEDIA_VERIFIED": "PASS",
+  "source": {
+    "artifact_id": "e64582a6-db46-497a-84a7-450ac534c1d2",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/source/5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.png",
+    "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "bytes": 2282010,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_ad7b77d849e48191be35b1049b5af9a8",
+    "local_filename": "LUMI_CANONICAL_SOURCE_V2(2).png",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 941,
+      "height": 1672,
+      "codec": "png"
+    },
+    "provider_request_id": null,
+    "origin": "USER_ATTACHMENT"
+  },
+  "video": {
+    "artifact_id": "eb76d930-ee06-4df9-a81e-4a4c32ddc04a",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/video/ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307/original.mp4",
+    "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "bytes": 5009453,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_70c1089914708191b2a2618f4b854d7b",
+    "local_filename": "q31-PRO2.mp4",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1080,
+      "height": 1916,
+      "codec": "h264",
+      "duration_seconds": 4.041667,
+      "fps": "24/1",
+      "pixel_format": "yuv420p",
+      "decoded_frame_count": 97,
+      "audio_streams": 0,
+      "black_segments": 0,
+      "black_frame_sanity": "PASS",
+      "blackdetect": "d=0:pix_th=0.10:pic_th=0.98",
+      "frame_extraction": "PASS",
+      "frames": [
+        {
+          "index": 0,
+          "time_s": 0,
+          "sha256": "134e7cd7ec5e61e10f92d47976bdd1469d1e11dffd5261c7fe9c8a02400f0a0e",
+          "relative_path": "q31-PRO2.mp4.frames/0.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 20,
+          "time_s": 0.8333333333333334,
+          "sha256": "8e0563c18395af9d7d663b571178d19dca76d56d4e55daf20e9e387a1d61bbf0",
+          "relative_path": "q31-PRO2.mp4.frames/20.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 48,
+          "time_s": 2,
+          "sha256": "ad0ebedced9725f9205899597f202ccec830b87b14ca2151211e35aac1067ce3",
+          "relative_path": "q31-PRO2.mp4.frames/48.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 69,
+          "time_s": 2.875,
+          "sha256": "95a10d72c454af16871e479f7475ecff8106010ea0bb9cc8c150d4abf6999d2f",
+          "relative_path": "q31-PRO2.mp4.frames/69.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 75,
+          "time_s": 3.125,
+          "sha256": "98f996ccfeed16200eabb1dd514f35eb13608b01c3989ff5ca069f5d9d0bf66a",
+          "relative_path": "q31-PRO2.mp4.frames/75.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 80,
+          "time_s": 3.3333333333333335,
+          "sha256": "87c78d57c13e3a3a64a011855ebc195793780984360347dda964c0a47da5bcc1",
+          "relative_path": "q31-PRO2.mp4.frames/80.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 89,
+          "time_s": 3.7083333333333335,
+          "sha256": "1c5340b4c7851d57befac19a1c3fdc85b477f44457969e4742cf534a0aee9c37",
+          "relative_path": "q31-PRO2.mp4.frames/89.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 96,
+          "time_s": 4,
+          "sha256": "f9bb8a65ddd9caad0ad8b00d3d755ee966e939ef4b1b28315222dad321e21d2f",
+          "relative_path": "q31-PRO2.mp4.frames/96.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        }
+      ],
+      "visual_complete_native_speed_review": "NOT_PERFORMED_BY_THIS_SCRIPT",
+      "sampled_frames_do_not_certify_all_frames": true
+    },
+    "provider_request_id": "ace9ee08-5058-44f0-a98b-19d3b01b6608"
+  },
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "ledger": {
+    "video_row_id": "0b19cde7-ea60-477e-ae01-4cc8318543c6",
+    "source_row_id": null,
+    "snapshot": "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json"
+  },
+  "director_input_package": {
+    "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+    "contract_sha256": "8efd2cd70a303e6954e1dadfad3752bd0e841093ce1db32344575bdead519c0a",
+    "historical_contract": {
+      "shot_id": "q31",
+      "shot_type": "ESTABLISHING",
+      "START_STATE": {
+        "description": "Lumi remains grounded in the canonical garden, flowers absent, all limbs and exactly two wings visible, looking near the viewer; full figure and caption headroom.",
+        "object_inventory": []
+      },
+      "CHARACTER_STATE": {
+        "description": "Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.",
+        "character_lock_id": "LUMI_CANONICAL_CHARACTER_LOCK_V2",
+        "character_lock_sha256": null,
+        "world_lock_id": "LUMI_WORLD_BIBLE_V2",
+        "world_lock_sha256": null,
+        "identity_preserved": true,
+        "canonical_wings": 2,
+        "wand_policy": "No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only."
+      },
+      "REQUIRED_OBJECTS": [],
+      "EDUCATIONAL_INVARIANTS": [],
+      "PRIMARY_ACTION": {
+        "action": "look_at_viewer",
+        "description": "One small welcoming gaze adjustment toward the viewer, with no step, turn or translation."
+      },
+      "ALLOWED_SECONDARY_MOTION": [
+        "blink",
+        "subtle_wing_response"
+      ],
+      "FORBIDDEN_ACTIONS": [
+        "walking",
+        "turning to reveal unverified anatomy",
+        "new abdomen or tail",
+        "extra wings or limbs",
+        "object pop-in or disappearance",
+        "flower recoloring or count change",
+        "unmotivated orbit",
+        "aggressive zoom",
+        "text or captions generated by provider",
+        "static freeze",
+        "slow motion",
+        "multiple shots"
+      ],
+      "CAMERA": {
+        "type": "STATIC",
+        "description": "Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.",
+        "necessary": false
+      },
+      "END_STATE": {
+        "description": "Lumi remains grounded in the canonical garden, flowers absent, all limbs and exactly two wings visible, looking near the viewer; full figure and caption headroom. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.",
+        "object_inventory": []
+      },
+      "DURATION": 4,
+      "SOURCE_ARTIFACT": {
+        "artifact_id": "s31-source",
+        "path": "evidence/current-sources/s31-source.png",
+        "sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903"
+      },
+      "GOLDEN_REFERENCES": [],
+      "NEGATIVE_STYLE_CONTRACT": [
+        "flat cartoon",
+        "2D illustration",
+        "cel shading",
+        "anime",
+        "comic look",
+        "cheap TV animation",
+        "simplified low-detail rendering",
+        "plastic toy",
+        "rubber toy",
+        "human photorealism",
+        "live-action humanization",
+        "uncanny insect anatomy",
+        "overly realistic skin pores"
+      ],
+      "metadata": {
+        "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+        "historical_ledger_alias": "q31",
+        "source_status": "BLOCKED_PENDING_CANONICAL_REPLACEMENT_OR_PROVEN_LOCAL_DERIVATIVE",
+        "current_phase_provider_calls_allowed": 0,
+        "provider_defaults": {
+          "model": "kling-video/v3.0/std/image-to-video",
+          "tier": "Kling 3.0 Standard",
+          "audio": "OFF",
+          "multi_shots": false,
+          "natural_speed": 1,
+          "automatic_retries": 0,
+          "automatic_variants": 0,
+          "provider_repair_budget": 0
+        },
+        "estimated_cost_usd_historical": 0.286,
+        "quote_at": "2026-10-04T13:58Z",
+        "quote_status": "HISTORICAL_REQUOTE_REQUIRED",
+        "golden_binding_status": "UNRESOLVED_MEDIA_BLOCKED",
+        "golden_authority_manifest": "../golden/GOLDEN_REFERENCE_PACK.json",
+        "golden_required_roles": [
+          "character",
+          "world",
+          "lighting",
+          "motion"
+        ]
+      }
+    },
+    "compiler": "PROMPT_COMPILER_V3",
+    "director": "LUMI_CINEMATIC_DIRECTOR_V1",
+    "request_envelope_status": "FULL_PERSISTED_ENVELOPE_NOT_RECOVERED",
+    "runtime_revision": "f42d5a83e2806b3db17080c2829d305bad4a8525",
+    "note": "Historical contract remains incomplete; not silently upgraded to an approved direction."
+  },
+  "qa": {
+    "source": null,
+    "video": {
+      "DECODE": "PASS",
+      "WING_QA": "HUMAN_REVIEW_REQUIRED",
+      "MOTION_QA": "PASS_VISUAL",
+      "REALISM_QA": "PASS_VISUAL",
+      "IDENTITY_QA": "PASS",
+      "BLACK_FRAMES": 0,
+      "human_review": "PENDING",
+      "CARTOON_DRIFT": "MINIMAL",
+      "FREEZE_DEFECTS": 0,
+      "decoded_frames": 97,
+      "artifact_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+    },
+    "forensics": null
+  },
+  "human_review": {
+    "state": "HUMAN_APPROVED",
+    "persisted": {
+      "MOTION": "APPROVED",
+      "reason": "Possible lower wing contour is visually acceptable and does not compromise Lumi identity.",
+      "REALISM": "APPROVED",
+      "IDENTITY": "APPROVED",
+      "statement": "Esta Lumi está perfecta.",
+      "CARTOON_DRIFT": "ACCEPTED_MINIMAL",
+      "artifact_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "WING_AUTOMATED_QA": "HUMAN_REVIEW_REQUIRED",
+      "WING_HUMAN_DECISION": "APPROVED_WITH_WARNING"
+    },
+    "historical_actor": null,
+    "historical_at": null,
+    "reaffirmation": {
+      "actor": "current user",
+      "date": "2026-10-05",
+      "scope": "Current continuation instruction; existing artifact status only; no new direction or generation approval"
+    }
+  },
+  "original_artifacts_mutated": false,
+  "new_generation_authorized": false,
+  "fingerprint": "30c68dc9bc8f1bfef638ec70be71f28b6f4a2d86367381635d586477dde952fd"
+}

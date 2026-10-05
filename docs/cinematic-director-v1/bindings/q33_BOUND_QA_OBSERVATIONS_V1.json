@@ -1,0 +1,67 @@
+{
+  "version": "LUMI_BOUND_QA_OBSERVATIONS_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q33",
+  "binding_fingerprint": "4ff39b9b9d1a66ec2454efa2cc16b32b386640c02b1a07d68e0e7fffd0d47c0c",
+  "source": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "EXTRA_BODY_SEGMENT",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83"
+        ],
+        "note": "Distinct posterior yellow crescent outside overalls behind screen-left hand; corroborates latest persisted source forensics."
+      }
+    ]
+  },
+  "video": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "STRIPED_ABDOMEN",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5:frame89"
+        ],
+        "note": "Large opaque black/yellow striped posterior abdomen, visibly separate from translucent upper wings."
+      }
+    ]
+  },
+  "intended_preset": "PRESENT_OBJECT",
+  "observed_motion": {
+    "body_yaw": "ADDED_ROTATION",
+    "torso_rotation": "ADDED_ROTATION",
+    "wing_motion": "UNKNOWN",
+    "camera": "STATIC"
+  },
+  "observation_provenance": {
+    "actor": "Codex visual inspection + retrieved existing QA",
+    "date": "2026-10-05",
+    "new_human_approval": false,
+    "inspected_source": true,
+    "inspected_video_frames": [
+      89
+    ],
+    "all_frames_decoded": true,
+    "full_native_speed_visual_playback": false,
+    "quantified_angles": null,
+    "complete_anatomy_certified": false
+  },
+  "requested_motion_analysis": "Exact historical request envelope not recovered. Current code was amended after generation, so it cannot prove the historical wording. Observed torso rotation exceeds the proposed preset; wing angles remain unmeasured."
+}

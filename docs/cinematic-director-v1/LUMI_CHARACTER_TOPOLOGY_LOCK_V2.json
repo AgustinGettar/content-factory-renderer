@@ -1,0 +1,29 @@
+{
+  "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+  "canonical": {
+    "head": 1,
+    "rounded_torso": 1,
+    "arms": 2,
+    "legs": 2,
+    "antennae": 2,
+    "wings": 2,
+    "wing_attachment": "UPPER_BACK_ONLY",
+    "lower_torso_silhouette": "DEFINED_BY_OVERALLS"
+  },
+  "hard": [
+    "NO_BEE_ABDOMEN",
+    "NO_STRIPED_POSTERIOR_BODY",
+    "NO_STINGER",
+    "NO_REAR_BULB",
+    "NO_SECOND_TORSO",
+    "NO_EXTRA_APPENDAGE",
+    "NO_EXTRA_WING_LOBES",
+    "NO_BODY_MASS_BEHIND_OVERALLS"
+  ],
+  "stages": [
+    "SOURCE_PREFLIGHT",
+    "VIDEO_REQUEST_PACKAGE",
+    "SAMPLED_FRAME_TEMPORAL_QA",
+    "MASTER_QA"
+  ]
+}

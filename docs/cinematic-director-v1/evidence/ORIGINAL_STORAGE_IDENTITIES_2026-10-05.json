@@ -1,0 +1,231 @@
+{
+  "retrieved_on": "2026-10-05",
+  "via": "Authenticated Supabase MCP SELECT only",
+  "project": "hdptwtzhpfdrqiuezjhu",
+  "rows": [
+    {
+      "id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-SOURCE-V2-1/artifact/ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2/original.png",
+      "metadata": {
+        "eTag": "\"fd5031b090021e6ccc447b4d93c724ba\"",
+        "size": 5766459,
+        "mimetype": "image/png",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T14:48:50.000Z",
+        "contentLength": 5766459,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "bfc71fa1-c54d-454c-9ebb-9c937e78ecef",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-V2-PRO1/artifact/0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313/original.mp4",
+      "metadata": {
+        "eTag": "\"5419aae189c778ff640455d7ecffd5f1\"",
+        "size": 5326841,
+        "mimetype": "video/mp4",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T14:55:45.000Z",
+        "contentLength": 5326841,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "cb384e66-6e3c-4772-8423-301c9e1774c5",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-SOURCE-V2-1/artifact/fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83/original.png",
+      "metadata": {
+        "eTag": "\"2b29bf5584cd15431dffac91822cbf64\"",
+        "size": 5907421,
+        "mimetype": "image/png",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T15:01:26.000Z",
+        "contentLength": 5907421,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "92e3846b-3628-4377-a2b0-51ce1ba6bfaa",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-V2-PRO1/artifact/69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5/original.mp4",
+      "metadata": {
+        "eTag": "\"93b5532eb5547644caa2fbbe1765cead\"",
+        "size": 5760274,
+        "mimetype": "video/mp4",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T15:08:55.000Z",
+        "contentLength": 5760274,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "9e832aa0-4fac-42fe-b30f-01b62e730863",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/accepted.json",
+      "metadata": {
+        "eTag": "\"7d5620c2e2a8fbcab30bedcf94cab181\"",
+        "size": 2567,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:23.000Z",
+        "contentLength": 2567,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "245f25ca-de1f-4682-8564-c6222a67452f",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/actual-settings.json",
+      "metadata": {
+        "eTag": "\"a713a85b9af4a3258ad91ce2272bc933\"",
+        "size": 132,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:44:26.000Z",
+        "contentLength": 132,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "f9c33063-8022-4fad-b9be-00d7c205b363",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/completed.json",
+      "metadata": {
+        "eTag": "\"0b8398992a6ab3fc1ac853326bf43c39\"",
+        "size": 2408,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:44:51.000Z",
+        "contentLength": 2408,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "c78c7fd2-9ff4-4416-8660-b7ae56e2cc06",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/journal/ACKNOWLEDGED.json",
+      "metadata": {
+        "eTag": "\"1ce86db4490116a3a7dfdaaacb215809\"",
+        "size": 3984,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:22.000Z",
+        "contentLength": 3984,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "6cbe9a14-9729-435f-8641-624b61cc7022",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/journal/EMITTING.json",
+      "metadata": {
+        "eTag": "\"93b7f4dfcdf3c88ab0ebee91877fd0a3\"",
+        "size": 3703,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:21.000Z",
+        "contentLength": 3703,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "c9f2d0ac-c2cf-4720-b627-c9cfc02f9673",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/journal/PREPARED.json",
+      "metadata": {
+        "eTag": "\"26064ed5fcace7f3b17453d6e1f3846f\"",
+        "size": 3657,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:20.000Z",
+        "contentLength": 3657,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "678d06db-2aff-42fd-a6b8-ba048a71969b",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/preflight.json",
+      "metadata": {
+        "eTag": "\"2ff48df30acbbd6a22b6307cfa008a3b\"",
+        "size": 2071,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:19.000Z",
+        "contentLength": 2071,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "3a2570c8-4c70-4991-b9e5-f7e542a31bec",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/provider-terminal.json",
+      "metadata": {
+        "eTag": "\"1726c8e1e69b24a80f6136e4ddeb7dc7\"",
+        "size": 406,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:44:26.000Z",
+        "contentLength": 406,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "167a197a-cd76-490c-af2a-dc297007db46",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/source-status.json",
+      "metadata": {
+        "eTag": "\"3166af394785d3bce42e14f8ad0f9269\"",
+        "size": 667,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:16.000Z",
+        "contentLength": 667,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "e64582a6-db46-497a-84a7-450ac534c1d2",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/source/5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.png",
+      "metadata": {
+        "eTag": "\"e99dbdb9301b64b46c48e84fff28a062\"",
+        "size": 2282010,
+        "mimetype": "image/png",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:41:16.000Z",
+        "contentLength": 2282010,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "0a7a3a64-0723-4061-b4d7-aa3c44b10731",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/status.json",
+      "metadata": {
+        "eTag": "\"2df2bba27759105a29cec891d99c7aa5\"",
+        "size": 406,
+        "mimetype": "application/json",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:44:26.000Z",
+        "contentLength": 406,
+        "httpStatusCode": 200
+      }
+    },
+    {
+      "id": "eb76d930-ee06-4df9-a81e-4a4c32ddc04a",
+      "bucket_id": "av2-generative-video-benchmarks",
+      "name": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/video/ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307/original.mp4",
+      "metadata": {
+        "eTag": "\"ebb5f467c8254432e4601b7de9e701fd\"",
+        "size": 5009453,
+        "mimetype": "video/mp4",
+        "cacheControl": "max-age=3600",
+        "lastModified": "2026-10-05T08:44:31.000Z",
+        "contentLength": 5009453,
+        "httpStatusCode": 200
+      }
+    }
+  ]
+}

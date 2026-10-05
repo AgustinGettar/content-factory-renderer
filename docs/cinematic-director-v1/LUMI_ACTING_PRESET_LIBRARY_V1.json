@@ -1,0 +1,312 @@
+{
+  "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+  "presets": {
+    "GREETING": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "One restrained greeting toward viewer; prepare, small forearm gesture, settle.",
+      "eye_behavior": "Warm eye contact; subtle glance and blink.",
+      "hand_arm_amplitude": "SMALL_FOREARM_WRIST",
+      "allowed_secondary_motion": [
+        "blink",
+        "small_head_response",
+        "minimal_reviewed_wing_response"
+      ]
+    },
+    "PRESENT_OBJECT": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "One small presentation gesture beside the educational object; keep its color and shape legible.",
+      "eye_behavior": "Look briefly at target then settle toward viewer.",
+      "hand_arm_amplitude": "SMALL_FOREARM_WRIST",
+      "allowed_secondary_motion": [
+        "blink",
+        "warm_expression"
+      ]
+    },
+    "POINT": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "Point beside one reviewed target without covering it; settle.",
+      "eye_behavior": "One target-directed gaze.",
+      "hand_arm_amplitude": "SMALL_FOREARM_WRIST",
+      "allowed_secondary_motion": [
+        "blink"
+      ]
+    },
+    "LOOK_AT_OBJECT": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "Bring gaze to one reviewed object and settle without moving torso.",
+      "eye_behavior": "Target fixation; natural blink.",
+      "hand_arm_amplitude": "PRESERVE_INITIAL",
+      "allowed_secondary_motion": [
+        "small_head_response",
+        "blink"
+      ]
+    },
+    "LOOK_AT_VIEWER": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "Bring gaze to viewer and settle warmly.",
+      "eye_behavior": "Warm contact; natural blink.",
+      "hand_arm_amplitude": "PRESERVE_INITIAL",
+      "allowed_secondary_motion": [
+        "small_head_response",
+        "blink"
+      ]
+    },
+    "ASK_QUESTION": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "Address the viewer with a curious expression, opening a response opportunity.",
+      "eye_behavior": "Viewer contact; no answer-directed gaze.",
+      "hand_arm_amplitude": "PRESERVE_NEUTRAL",
+      "allowed_secondary_motion": [
+        "blink",
+        "subtle_breathing"
+      ]
+    },
+    "WAIT_LISTEN": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Attentive live hold; preserve approved response duration, objects, torso and neutral hands.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "Maintain attentive listening throughout the approved response window.",
+      "eye_behavior": "Viewer contact; no cue to answer.",
+      "hand_arm_amplitude": "PRESERVE_NEUTRAL",
+      "allowed_secondary_motion": [
+        "blink",
+        "subtle_breathing"
+      ]
+    },
+    "CELEBRATE": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "One small encouraging forearm lift and warm smile; settle.",
+      "eye_behavior": "Viewer contact.",
+      "hand_arm_amplitude": "SMALL_FOREARM_WRIST",
+      "allowed_secondary_motion": [
+        "blink",
+        "warm_expression"
+      ]
+    },
+    "GENTLE_WAVE": {
+      "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+      "status": "OFFLINE_DIRECTION_POLICY_REQUIRES_SHOT_REVIEW",
+      "maximum_body_yaw": "NO_ADDED_YAW_PRESERVE_SOURCE",
+      "maximum_torso_rotation": "NO_ADDED_ROTATION",
+      "numeric_angle_measurements": null,
+      "head_movement": "SMALL_SOURCE_SUPPORTED_NO_REAR_REVEAL",
+      "wing_amplitude": "MINIMAL_REVIEWED_RESPONSE_ONLY",
+      "camera_behavior": "STATIC_OR_SEPARATELY_APPROVED_SUPPORTED_PATH",
+      "forbidden_movements": [
+        "TORSO_TURN",
+        "ORBIT_REVEAL",
+        "BACK_FACING",
+        "LARGE_WING_FLUTTER",
+        "SQUASH_STRETCH",
+        "SECOND_EDUCATIONAL_ACTION"
+      ],
+      "end_state_contract": "Natural settle; same body orientation, object inventory, screen direction and unobstructed teaching objects.",
+      "required_evidence": [
+        "source pose",
+        "target visibility",
+        "active hand availability and character/screen laterality if used",
+        "safe wing silhouette",
+        "caption space"
+      ],
+      "timing": "NATURAL_1X; no numeric turn angles inferred from prose or frames",
+      "primary_action": "One small wrist/forearm wave toward viewer; settle.",
+      "eye_behavior": "Warm viewer contact.",
+      "hand_arm_amplitude": "SMALL_FOREARM_WRIST",
+      "allowed_secondary_motion": [
+        "blink",
+        "small_head_response"
+      ]
+    }
+  },
+  "approval": "Generic policy derived from current user instruction; individual source/motion reviews required. No measured numeric yaw inferred."
+}

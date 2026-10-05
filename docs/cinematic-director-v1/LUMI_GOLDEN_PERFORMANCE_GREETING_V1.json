@@ -1,0 +1,22 @@
+{
+  "version": "LUMI_GOLDEN_PERFORMANCE_GREETING_V1",
+  "artifact_id": "q31-PRO2",
+  "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+  "role": "GREETING_ONLY",
+  "human_state": "HUMAN_APPROVED",
+  "authority": "Current user reaffirmation 2026-10-05 and ledger HUMAN_APPROVAL; historical reviewer/time absent",
+  "qualities": [
+    "natural 1x timing",
+    "restrained greeting",
+    "subtle eyes/head",
+    "small arm gesture",
+    "minimal wing response",
+    "no exaggerated animation"
+  ],
+  "historical_style_label": "premium ultra-realistic CGI",
+  "effective_visual_style": "premium stylized 3D CGI; no human photorealism or redesign",
+  "warning_scope": "accepted existing lower wing contour only",
+  "universal_motion_template": false,
+  "universal_anatomy_approval": false,
+  "new_execution_permission": false
+}

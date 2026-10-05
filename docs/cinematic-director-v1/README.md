@@ -1,5 +1,7 @@
 # LUMI_CINEMATIC_DIRECTOR_V1
 
+**Continuación 2026-10-05:** consultar `INTEGRATION_VALIDATION_V1.md` para publicación remota, CI, medios auténticos, topología y replay. El reporte siguiente documenta la fase inicial en `c53bb1c`; sus frases “no push” y “originales no materializados” son históricas y fueron superadas por la continuación. Los blockers restantes no se convierten en PASS.
+
 Estado: **IMPLEMENTED_WITH_BLOCKERS**. Implementación local e integración offline probadas; no desplegada, sin validación mediante nuevas generaciones.
 
 Base: `AgustinGettar/content-factory-renderer`, rama `lumi-app-recovery-manager-v1`, commit `f42d5a83e2806b3db17080c2829d305bad4a8525`. Trabajo aislado en `local/lumi-cinematic-director-v1`. `main` sigue en `5fe5556395829e78817771f96d33cce3f692965d`. No push, merge ni deploy.

@@ -463,6 +463,11 @@
               "source",
               "qa"
             ]
+          },
+          "canonical_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Explicit persistent artifact path; accepted with SHA-verified local materialization only. Not a signed URL."
           }
         },
         "required": [

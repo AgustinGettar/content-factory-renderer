@@ -1,0 +1,66 @@
+{
+  "version": "LUMI_BOUND_QA_OBSERVATIONS_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q32",
+  "binding_fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77",
+  "source": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": []
+  },
+  "video": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "POSTERIOR_BODY_MUTATION",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313:frame80"
+        ],
+        "note": "Posterior volume visible behind screen-right arm at 3.333 s. Persisted forensic evidence identifies temporal origin."
+      },
+      {
+        "category": "POSTERIOR_BODY_MUTATION",
+        "certainty": "POSSIBLE_OCCLUSION",
+        "evidence_ids": [
+          "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313:frame20"
+        ],
+        "note": "Earlier under-arm dark precursor remains partly occluded, not an independently confirmed onset."
+      }
+    ]
+  },
+  "intended_preset": "PRESENT_OBJECT",
+  "observed_motion": {
+    "body_yaw": "ADDED_ROTATION",
+    "torso_rotation": "ADDED_ROTATION",
+    "wing_motion": "UNKNOWN",
+    "camera": "STATIC"
+  },
+  "observation_provenance": {
+    "actor": "Codex visual inspection + retrieved existing QA",
+    "date": "2026-10-05",
+    "new_human_approval": false,
+    "inspected_source": true,
+    "inspected_video_frames": [
+      80
+    ],
+    "all_frames_decoded": true,
+    "full_native_speed_visual_playback": false,
+    "quantified_angles": null,
+    "complete_anatomy_certified": false
+  },
+  "requested_motion_analysis": "Exact historical request envelope not recovered. Current code was amended after generation, so it cannot prove the historical wording. Observed torso rotation exceeds the proposed preset; wing angles remain unmeasured."
+}

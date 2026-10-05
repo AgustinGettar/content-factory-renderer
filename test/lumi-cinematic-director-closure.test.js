@@ -58,3 +58,10 @@ test('recovered estimator payload fingerprint is never presented as original pro
  assert.equal(x.prompt_sha256,null);assert.equal(x.estimator_hash_is_prompt_hash,false);assert.equal(x.request_timestamp,null);assert.ok(x.UNAVAILABLE_FIELDS.prompt_and_hash);}
 });
 test('closure tests attempted zero outgoing/provider calls',()=>assert.deepEqual(globalThis.LUMI_OFFLINE_GUARD.attempts,[]));
+test('current source review remains required despite historical posterior-anatomy PASS',async()=>{
+ const x=JSON.parse(await readFile(new URL('../docs/cinematic-director-v1/closure-v2/replay/q32_AUTHENTIC_DIRECTOR_PACKET_V1.json',import.meta.url)));
+ assert.equal(x.historical_replay.source_gate.status,'REVIEW_REQUIRED');
+ assert.equal(x.historical_replay.minimum_future_repair.source,'REVIEW_REQUIRED');
+ assert.equal(x.historical_replay.minimum_future_repair.estimated_provider_calls,null);
+ assert.equal(x.historical_replay.repair_outcome,'CONTROLLED_REPAIR_REQUIRED');
+});

@@ -526,15 +526,11 @@
   "creative_fingerprint": "d24cd5a4ae2f3d7cad950b501ae3f777493fd82369760377d37a67dcc3f0dad0",
   "repair_outcome": "CONTROLLED_REPAIR_REQUIRED",
   "minimum_future_repair": {
-    "source": "SOURCE_REUSE",
+    "source": "REVIEW_REQUIRED",
     "video": "VIDEO_REPAIR_REQUIRED",
     "source_reuse_condition": "Current source action/topology review must pass before future emission; existing bytes retained.",
     "acting_preset": "PRESENT_OBJECT",
-    "estimated_provider_calls": {
-      "image": 0,
-      "video": 1,
-      "tts": 0
-    },
+    "estimated_provider_calls": null,
     "estimated_cost_usd": null,
     "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
     "historical_cost_reference_usd": 0.381,
@@ -742,5 +738,5 @@
   ],
   "source_regeneration_sequence": null,
   "provider_calls": 0,
-  "package_hash": "ff6a961ffbf70fe50ebde324587a482dff21e77d8c378a7ecff30d7204986a65"
+  "package_hash": "ecedc29818d9fb98b97948f3487977e1f9d37195e5f0600697d466a5a6acb42e"
 }

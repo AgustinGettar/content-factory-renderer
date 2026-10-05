@@ -18,7 +18,7 @@ Se reutilizan `runLumiV2Step → reviewAtCanonicalBoundary → compileDirectorPa
 
 Cambios mínimos: gramática GREETING explícita (proyección/gramática revisión 2), política PRESENT_OBJECT de no añadir rotación corporal/torso/hombro, cobertura topológica de fuente/primer frame/temporal/máximo riesgo/final/playback, auditoría de campos solicitados e invalidación creativa incluyendo políticas. Los ceros de rotación son objetivos normativos, no ángulos medidos ni garantías del modelo. Actuación pendiente de aprobación por plano.
 
-Se ejecutaron **233/233 tests PASS**, incluyendo 33 nuevos, V3, feature flag OFF, topología, actuación, capacidades, generalización a otras escenas/objetos y regresión relevante. El guard bloquea red/clientes generativos. Replay auténtico por entrada canónica ejecutado dos veces por plano con fingerprints idénticos, cero intentos salientes y payload siempre nulo. Clasificaciones: q31 ACCEPT_COMPATIBLE_WITH_HUMAN_GOLDEN; q32 CONTROLLED_REPAIR_REQUIRED; q33 SOURCE_REGEN_AND_VIDEO_REPAIR_REQUIRED. Estas clasificaciones no hacen despachables los paquetes.
+Se ejecutaron **234/234 tests PASS**, incluyendo 34 nuevos, V3, feature flag OFF, topología, actuación, capacidades, generalización a otras escenas/objetos y regresión relevante. El guard bloquea red/clientes generativos. Replay auténtico por entrada canónica ejecutado dos veces por plano con fingerprints idénticos, cero intentos salientes y payload siempre nulo. Clasificaciones: q31 ACCEPT_COMPATIBLE_WITH_HUMAN_GOLDEN; q32 CONTROLLED_REPAIR_REQUIRED; q33 SOURCE_REGEN_AND_VIDEO_REPAIR_REQUIRED. Estas clasificaciones no hacen despachables los paquetes.
 
 ## Evidencia de endpoint
 

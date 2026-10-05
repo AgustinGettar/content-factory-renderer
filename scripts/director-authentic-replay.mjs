@@ -50,6 +50,10 @@ for(const shot of ['q31','q32','q33']){
   else assert.equal(packet.historical_replay.evaluation,'BLOCKED');
   if(shot==='q33')assert.equal(packet.historical_replay.source_gate.status,'BLOCKED');
   if(shot==='q32')assert.ok(packet.historical_replay.topology_stages.SAMPLED_FRAME_TEMPORAL_QA.blockers.includes('NO_BODY_MASS_BEHIND_OVERALLS'));
+  if(!packet.historical_replay.human_approval_preserved&&packet.historical_replay.source_gate.status==='REVIEW_REQUIRED'){
+    assert.equal(packet.historical_replay.minimum_future_repair.source,'REVIEW_REQUIRED');
+    assert.equal(packet.historical_replay.minimum_future_repair.estimated_provider_calls,null);
+  }
   await writeFile(join(output,shot+'_AUTHENTIC_DIRECTOR_INPUT_V1.json'),JSON.stringify({...input,media:input.media.map(({path,...x})=>({...x,local_file:'RESOLVED_BY_SHA_MANIFEST'}))},null,2)+'\n');
   await writeFile(join(output,shot+'_AUTHENTIC_DIRECTOR_PACKET_V1.json'),JSON.stringify(packet,null,2)+'\n');
   summary.push({shot,assertions:'PASS',evaluation:packet.historical_replay.evaluation,binding_fingerprint:binding.fingerprint,

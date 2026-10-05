@@ -37,7 +37,7 @@
       "binding_fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77",
       "repair_outcome": "CONTROLLED_REPAIR_REQUIRED",
       "creative_fingerprint": "d24cd5a4ae2f3d7cad950b501ae3f777493fd82369760377d37a67dcc3f0dad0",
-      "replay_sha256": "f11eb341f10100c7c38f724df81e4c05c6e2c439bf5ae8adc06d9681a0eb9fba",
+      "replay_sha256": "d7c17cdbb5dbaebff2dd06dfd11fe906e6fc2b5c6d497caea523ae970cccec8e",
       "gates": {
         "SCHEMA_VALID": false,
         "DIRECTION_COHERENT": false,
@@ -48,15 +48,11 @@
         "EXECUTION_AUTHORIZATION": false
       },
       "repair": {
-        "source": "SOURCE_REUSE",
+        "source": "REVIEW_REQUIRED",
         "video": "VIDEO_REPAIR_REQUIRED",
         "source_reuse_condition": "Current source action/topology review must pass before future emission; existing bytes retained.",
         "acting_preset": "PRESENT_OBJECT",
-        "estimated_provider_calls": {
-          "image": 0,
-          "video": 1,
-          "tts": 0
-        },
+        "estimated_provider_calls": null,
         "estimated_cost_usd": null,
         "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
         "historical_cost_reference_usd": 0.381,
@@ -70,7 +66,7 @@
         "would_direction_reduce_risk": "LIKELY: preserve torso and restrict gesture; no causal guarantee or word-level diagnosis.",
         "would_endpoint_gate_change_request": "BLOCK_PENDING_EXACT_ENDPOINT_LIMITS_AND_PERSISTED_ENVELOPE; never silently rewrite fields or change model.",
         "would_temporal_qa_detect": "YES_WITH_BOUND_DEFECT_OBSERVATIONS",
-        "repair_class": "VIDEO_ONLY_CONDITIONAL_SOURCE_REUSE"
+        "repair_class": "VIDEO_REPAIR_SOURCE_DECISION_PENDING"
       }
     },
     {

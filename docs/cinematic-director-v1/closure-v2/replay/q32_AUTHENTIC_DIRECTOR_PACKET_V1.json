@@ -1529,18 +1529,14 @@
       "would_direction_reduce_risk": "LIKELY: preserve torso and restrict gesture; no causal guarantee or word-level diagnosis.",
       "would_endpoint_gate_change_request": "BLOCK_PENDING_EXACT_ENDPOINT_LIMITS_AND_PERSISTED_ENVELOPE; never silently rewrite fields or change model.",
       "would_temporal_qa_detect": "YES_WITH_BOUND_DEFECT_OBSERVATIONS",
-      "repair_class": "VIDEO_ONLY_CONDITIONAL_SOURCE_REUSE"
+      "repair_class": "VIDEO_REPAIR_SOURCE_DECISION_PENDING"
     },
     "minimum_future_repair": {
-      "source": "SOURCE_REUSE",
+      "source": "REVIEW_REQUIRED",
       "video": "VIDEO_REPAIR_REQUIRED",
       "source_reuse_condition": "Current source action/topology review must pass before future emission; existing bytes retained.",
       "acting_preset": "PRESENT_OBJECT",
-      "estimated_provider_calls": {
-        "image": 0,
-        "video": 1,
-        "tts": 0
-      },
+      "estimated_provider_calls": null,
       "estimated_cost_usd": null,
       "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
       "historical_cost_reference_usd": 0.381,

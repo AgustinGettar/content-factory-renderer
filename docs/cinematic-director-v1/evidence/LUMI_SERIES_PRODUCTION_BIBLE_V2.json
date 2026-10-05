@@ -1,0 +1,203 @@
+{
+  "id": "LUMI_SERIES_PRODUCTION_BIBLE_V2",
+  "version": "2.0.0",
+  "decision_date_local": "2026-10-05",
+  "timezone": "Europe/Berlin",
+  "status": "CONCEPTUAL_POLICY_FROZEN_REFERENCE_CALIBRATION_PENDING",
+  "runtime_active": false,
+  "global_default_changed": false,
+  "provider_calls_allowed_this_phase": 0,
+  "provider_calls_executed_by_bible_work": 0,
+  "authority": {
+    "executive_decision": "The user designated the approved five-eggs style as permanent series aesthetic authority and discontinued the ultra-realistic experiment.",
+    "primary": {
+      "name": "LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4",
+      "human_review": "HUMAN_APPROVED",
+      "library_file_id": "libfile_c83a23be436481918cb6e9a1488d9bab",
+      "file_id": "file_00000000547c820da1fb922a80013f27",
+      "documented_sha256": "51d354c230972478ef784fc29ecfe0ad32d5f441ed2bfff0c00b33bb60eaf18c",
+      "documented_bytes": 41497878,
+      "documented_dimensions": [1080, 1920],
+      "documented_fps": 30,
+      "documented_duration_seconds": 49.166667,
+      "metadata_status": "AUTHORITATIVE_MANIFEST_RECOVERED_BY_PARENT_AUDIT",
+      "local_original_bytes_verified": false,
+      "golden_frame_visual_qa_completed": false
+    },
+    "lineage": {
+      "parent": "LUMI_PILOT_CINCO_HUEVOS_V1.mp4",
+      "library_file_id": "libfile_a652e2cfe3d48191ae48a869527081b9",
+      "documented_sha256": "4374bb617713f9ba264fe473409df5e0b73dc382898c50bfd135ef6e6558a380",
+      "documented_bytes": 29677540,
+      "v1_1_manifest_library_file_id": "libfile_11052d4502e08191bd049c5226f4555c",
+      "v1_1_change": "editorial micro-motion adjustments in windows beginning at 33.1, 40.6, 41.5 and 46.5 seconds; base creative content unchanged",
+      "pixel_equivalence_claim": false,
+      "rule": "A V1 fallback must be labeled as lineage fallback and independently verified; V1.1 remains primary. Re-encoding does not imply identical pixels."
+    },
+    "secondary": ["approved original source images", "approved original Kling clips", "approved Character Lock", "approved World Lock", "approved Human Review"],
+    "hierarchy": ["latest explicit executive user decision", "approved primary master aesthetic", "explicit canonical identity/educational invariants", "approved secondary original artifacts", "scene-specific contract"],
+    "conflict_rule": "An approved master is not blanket approval of every frame. Exclude individual blurry, corrupted, anatomically defective or text-overlapped frames from golden promotion."
+  },
+  "components": {
+    "style": "LUMI_SERIES_STYLE_V2.json",
+    "character": "CHARACTER_MODEL_SHEET_V2.json",
+    "world": "WORLD_BIBLE_V2.json",
+    "source_readiness": "SOURCE_READINESS_V2.json",
+    "experimental_archive_registry": "EXPERIMENT_REGISTRY_V2.json",
+    "shot_contract": "LUMI_KLING_SHOT_CONTRACT_V2",
+    "prompt_compiler": "PROMPT_COMPILER_V3",
+    "production_plan": "THIRD_SHORT_SERIES_QUALITY_PRODUCTION_PLAN",
+    "golden_pack": "GOLDEN_REFERENCE_PACK"
+  },
+  "golden_reference_policy": {
+    "pack_status": "PENDING_ORIGINAL_BYTES_AND_VISUAL_QA",
+    "ids": ["LUMI_GOLDEN_CHARACTER_REFERENCE_V1", "LUMI_GOLDEN_WORLD_REFERENCE_V1", "LUMI_GOLDEN_LIGHTING_REFERENCE_V1", "LUMI_GOLDEN_MOTION_REFERENCE_V1"],
+    "character_frames": {"minimum": 3, "maximum": 5, "coverage": ["close-up", "medium teaching", "full-body/world", "magic/performance if available"]},
+    "world_frames_minimum": 1,
+    "approved_motion_clips": {"minimum": 1, "maximum": 2},
+    "source_rule": "Extract lossless frames and high-quality excerpts only from original approved masters or original artifacts; previews/thumbnails cannot become golden authority.",
+    "reference_qa_required": ["identity", "anatomy", "materials", "lighting", "wings", "clothing", "face", "no text overlap", "no motion blur", "no corruption"],
+    "motion_qa": ["watch full excerpt at native 1x speed", "stable identity/anatomy/count", "natural action timing", "no freeze defect", "no corrupt/black frames", "no camera discontinuity"],
+    "provenance_required": ["artifact id", "original SHA256", "reference SHA256", "source dimensions", "timecode or exact interval", "extraction method", "QA reviewer/status/reason"],
+    "no_false_pass": "Metadata, old approval or prompt text cannot substitute for current pixel/motion inspection. Missing evidence remains UNKNOWN."
+  },
+  "camera_grammar": {
+    "shot_types": ["ESTABLISHING", "MEDIUM_TEACHING", "CLOSE_EMOTION", "EDUCATIONAL_OBJECT", "MAGIC_REWARD", "QUESTION_TO_VIEWER"],
+    "moves": ["STATIC", "SUBTLE_PUSH_IN", "SUBTLE_REFRAME", "GENTLE_TRACKING"],
+    "gentle_tracking_condition": "only if necessary for the educational action and supported by source geometry",
+    "maximum_camera_moves_per_shot": 1,
+    "default": "STATIC",
+    "forbidden": ["unmotivated orbit", "aggressive zoom", "fast camera", "excessive parallax", "cartoon camera movement"],
+    "teaching_rule": "Keep all critical educational objects fully readable and reserve caption space throughout the trajectory."
+  },
+  "motion_grammar": {
+    "authorized_actions": ["blink", "look at object", "look at viewer", "small pointing gesture", "small wave", "gentle wand gesture", "subtle wing response", "smile", "natural settle"],
+    "primary_action_count": 1,
+    "secondary_motion": "Explicitly bounded natural micro-motion only, never a second teaching action or a new object transition.",
+    "pacing": "natural real-time 1x motion; normal conversational gesture and blink timing",
+    "forbidden": ["multiple independent primary actions", "slow-motion or dreamy gesture timing", "unplanned walk/hop/orbit", "freeze pose used to fill narration", "looped motion with visible discontinuity", "unplanned prop morph/disappearance/duplication"],
+    "pedagogical_pause": "A deliberate 2.5-second response window retains subtle life; pause is timing, never a visible technical label."
+  },
+  "shot_contract": {
+    "required_fields": ["START_STATE", "CHARACTER_STATE", "REQUIRED_OBJECTS", "EDUCATIONAL_INVARIANTS", "PRIMARY_ACTION", "ALLOWED_SECONDARY_MOTION", "FORBIDDEN_ACTIONS", "CAMERA", "END_STATE", "DURATION", "SOURCE_ARTIFACT", "GOLDEN_REFERENCES", "NEGATIVE_STYLE_CONTRACT"],
+    "missing_field_behavior": "NO_PROVIDER_CALL",
+    "null_or_placeholder_behavior": "NO_PROVIDER_CALL",
+    "binding": "Bind approved original source SHA and golden reference SHAs before dispatch; generation can never substitute an experimental source silently."
+  },
+  "provider_policy": {
+    "preferred_lineage": "Use the same tier that produced approved five-eggs clips unless evidence proves another tier is necessary.",
+    "default_model": "Kling 3.0 Standard",
+    "historical_tier_verification": "PILOT_CODE_CONFIG_CONFIRMS_STANDARD; EXACT_APPROVED_CLIP_REQUEST_EVIDENCE_PENDING",
+    "local_code_evidence": {"path": "repo/lib/lumi-production-pilot-v1.js", "constant": "LUMI_PILOT_VIDEO_MODEL", "model": "kling-video/v3.0/std/image-to-video", "documented_input": {"duration": 5, "sound": "off", "multi_shots": false, "cfg_scale": 0.5}, "scope": "Current local pilot code configuration; not a historical provider receipt and not a current price quote"},
+    "audio": "OFF",
+    "single_continuous_shot": true,
+    "multi_shots": false,
+    "motion": "natural real-time",
+    "kling_pro_required": false,
+    "quality_principle": "Source, contract and review determine quality first; Pro is not a quality prerequisite.",
+    "phase_execution": "PROHIBITED"
+  },
+  "prompt_compiler": {
+    "id": "PROMPT_COMPILER_V3",
+    "deterministic": true,
+    "block_order": ["golden style authority", "canonical character lock", "canonical world lock", "exact start state", "one primary action", "allowed secondary motion", "educational invariants", "forbidden changes", "camera instruction", "exact end state"],
+    "free_form_narrative": false,
+    "same_input_rule": "Same versioned canonical inputs produce byte-identical prompt and SHA; compilation performs no provider/network action."
+  },
+  "pre_provider_storyboard": {
+    "required": ["contact sheet", "shot list", "source preview", "start/end state", "motion summary", "educational-object inventory", "expected duration", "cost"],
+    "readability": "Each shot must be understandable before animation.",
+    "preview_label": "A storyboard preview is for review; provider input still binds the approved original bytes.",
+    "gate": "Missing previews, costs, inventories or end states block execution, even when six contract templates exist."
+  },
+  "educational_graphics": {
+    "deterministic_postproduction": ["colors", "shapes", "numbers", "letters", "labels", "questions", "captions"],
+    "tools": ["local vectors", "deterministic rasterization", "masked color correction", "tracked composite"],
+    "geometry_rule": "Use exact local vectors for clean educational shapes; do not spend retries to correct simple geometry.",
+    "color_rule": "Explicit stable color tokens, mask-constrained correction and tracked object identity; retain shading/material texture. Do not tint Lumi or the entire garden.",
+    "occlusion_rule": "Use validated masks, tracking, depth/occlusion order and contact shadows so local elements coexist with Lumi and scene perspective. Composite cannot hide broken anatomy or invent missing source performance.",
+    "text_over_lumi": "FORBIDDEN",
+    "text_character_overlap": 0,
+    "critical_object_text_overlap": 0,
+    "caption_space": "Reserve and verify safe regions at every frame; shorten, reposition or suppress optional text when needed. Required text with no safe region fails layout.",
+    "visible_pause_labels": false,
+    "suppressed_technical_labels": ["PAUSA", "Pausa", "pause", "wait", "hold", "espera"],
+    "providers_for_simple_color_geometry_text_caption_fixes": false,
+    "source_invariant": "Source object completeness must already support the planned performance; deterministic postproduction is not permission for missing required source objects."
+  },
+  "qa_policy": {
+    "defect_classes": {
+      "LOCAL_DETERMINISTIC_REPAIR": "An evidenced local color/geometry/text/layout/composite/timing correction can preserve identity, anatomy and educational meaning; re-review derivative.",
+      "HUMAN_WARNING": "Minor preference or continuity deviation with no identity, teaching or safety failure; human review required, no automatic promotion.",
+      "GENERATION_FATAL": "Unrecoverable identity/anatomy/style/performance/object failure after concrete local-salvage assessment; may justify a request, never automatic spending."
+    },
+    "paid_regeneration": "Only GENERATION_FATAL plus explicit human authorization specifying artifact, count and incremental/total budget permits a paid regeneration.",
+    "quality_waiver": "Human warning cannot silently waive an exact count, semantic, anatomy or text-over-character invariant.",
+    "original_evidence": "Preserve original automated QA, human history, artifacts, hashes, provider requests and costs; derivatives receive separate provenance."
+  },
+  "economic_policy": {
+    "metric": "COST_PER_APPROVED_CLIP",
+    "formula": "all attributable generation/repair/experiment costs in USD divided by number of technically and creatively approved clips",
+    "zero_approved_denominator": "UNDEFINED, never zero",
+    "unknown_cost_behavior": "UNRECONCILED; do not claim ceiling PASS",
+    "automatic_retries": 0,
+    "automatic_variants": 0,
+    "automatic_resubmits": 0,
+    "provider_repair_budget_usd": 0,
+    "clean_path": {"unique_images": [5, 6], "provider_videos": [5, 6], "seconds_per_video": [3, 5]},
+    "target_visual_usd": [2.5, 3.5],
+    "preventive_hard_ceiling_visual_usd": 4,
+    "ceiling_override": "explicit human authorization required",
+    "cumulative_preflight_formula": "settled episode visual cost + unresolved cost upper bound + allocated experimental cost + quoted remaining calls + local paid processing, if any",
+    "credit_policy": "Do not treat a credit as USD or an unknown credit charge as free; reconcile applied provider quote/conversion and settlement before PASS.",
+    "preflight_required": ["same provider/tier evidence", "duration-specific quote", "quote timestamp", "currency/credit conversion", "actual versus estimated cost", "existing sunk cost", "incremental cost", "cumulative projected cost", "approved-clip count", "hard ceiling result"],
+    "unreconciled_task_snapshot_from_parent_audit": {
+      "images_usd": 0.591597,
+      "kling_q31_q32_estimated_usd": 0.572,
+      "subtotal_usd": 1.163597,
+      "experimental_preflight_quote_credits": 2, "experimental_settled_charge_credits": null, "experimental_settled_charge_usd": null,
+      "settlement_status": "NOT_RECONCILED",
+      "ceiling_pass": false,
+      "note": "This is a documentary snapshot; exact provenance and latest settled values belong to the cost plan. No free remaining budget is asserted."
+    }
+  },
+  "third_short_policy": {
+    "episode_id": "ep_lumi_flores_003",
+    "visual_shots": ["q31", "q32", "q33", "q34", "q35", "q36"],
+    "duration_seconds": {"q31": 4, "q32": 4, "q33": 4, "q34": 4, "q35": 5, "q36": 5},
+    "total_provider_seconds_planned": 26,
+    "pedagogical_beats_retained": 9,
+    "source_audit": "All six sources require evidence-based comparison against verified golden frames and Source Readiness V2. Unknown does not mean pass or regeneration required.",
+    "q31": "Preserve rejected q31; stop q31-PRO1. Assess local alignment first; if impossible, prepare exactly one canonical q31 source request with execution OFF.",
+    "q32": "Parent audit reports existing video fatal abdominal anatomy; preserve its artifact, history and cost. No replacement generation authorized.",
+    "rebuild_plan_required": ["six complete shot contracts", "reference frames", "source status", "provider calls", "durations", "cost preflight", "local educational graphics", "QA gates"],
+    "generation_until_plan_complete": false
+  },
+  "master_policy": {
+    "resolution": [1080, 1920],
+    "aspect_ratio": "9:16",
+    "codec": "H.264 High",
+    "pixel_format": "yuv420p",
+    "crf_range": [16, 18],
+    "preferred_crf": 17,
+    "preset": "slow",
+    "maximum_final_encodes": 1,
+    "frame_rate": "preserve canonical project rate",
+    "perceived_speed": "NATURAL_1X",
+    "clip_stretched_to_fill": false,
+    "no_black_frames": true,
+    "no_freeze_defects": true,
+    "highest_quality_originals_only": true,
+    "master_generation_this_phase": false,
+    "tts_this_phase": false
+  },
+  "quality_gate": ["style matches approved five-eggs authority", "Lumi identity and model sheet locked", "all shot contracts complete", "all required elements present", "only necessary motion", "no text over Lumi", "no visible PAUSA label", "natural 1x pacing", "Full HD master unchanged", "projected cumulative visual cost <= USD 4.00"],
+  "gate_status": "BLOCKED_REFERENCE_PIXELS_NUMERIC_LOCKS_SOURCE_QA_AND_COST_RECONCILIATION_PENDING",
+  "protected_scope": ["production", "main", "global default", "publication", "Telegram/Make", "TTS", "q32-q36 provider generation", "public.characters RLS"],
+  "evidence_ledger": {
+    "confirmed": ["latest user executive aesthetic and zero-provider decision", "local canonical character-lock text", "local production preset text", "local third-short episode plan text", "primary master/parent lineage metadata from parent audit", "local GARDEN_WORLD_LANDMARK_LOCK_V1 with documented approved s11 world artifact", "local pilot code Standard tier configuration"],
+    "proposed_implementation_policy": ["deterministic V3 compiler and V2 contracts in isolated package", "masked local educational graphics with occlusion QA", "image-bound numerical measurement workflow"],
+    "unavailable_or_not_yet_verified": ["primary master original bytes in this worker", "golden frames and full motion playback", "measured character ratios and tolerances", "verified world landmark positions and measured palette", "historical exact provider-tier request evidence", "fully reconciled cumulative USD including experimental credits", "complete visual audit against golden pixels"]
+  },
+  "completion_truth": "Conceptual direction and policies are frozen. A production-ready visual/numeric freeze and permission to generate are not claimed."
+}

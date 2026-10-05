@@ -1,0 +1,43 @@
+{
+  "id": "LUMI_SERIES_STYLE_V2",
+  "version": "2.0.0",
+  "conceptual_policy_status": "FROZEN_BY_EXECUTIVE_USER_DECISION",
+  "reference_calibration_status": "PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA",
+  "runtime_active": false,
+  "provider_execution_authorized": false,
+  "positive_definition": "PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI",
+  "primary_aesthetic_authority": "LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4",
+  "primary_authority_status": "HUMAN_APPROVED_PER_USER; original pixels not yet locally verified for this package",
+  "secondary_authorities": ["approved original sources", "approved original Kling clips", "approved Character Lock", "approved World Lock", "approved Human Review"],
+  "positive_contract": [
+    "rounded preschool proportions",
+    "rich physically plausible materials",
+    "warm yellow soft skin/material",
+    "subtle subsurface scattering",
+    "large expressive turquoise eyes",
+    "natural eye depth and catchlights",
+    "translucent light-blue wings",
+    "fine denim texture",
+    "soft cinematic daylight",
+    "rich colorful garden",
+    "natural shadows",
+    "cinematic depth of field",
+    "polished preschool animation",
+    "clean high-end CGI"
+  ],
+  "negative_style_contract": [
+    "flat cartoon", "2D illustration", "cel shading", "anime", "comic look",
+    "cheap TV animation", "simplified low-detail rendering", "plastic toy",
+    "rubber toy", "human photorealism", "live-action humanization",
+    "uncanny insect anatomy", "overly realistic skin pores"
+  ],
+  "terminology": {
+    "canonical": "premium stylized 3D CGI",
+    "discontinued_as_positive_goals": ["ultra-realistic", "photorealism", "live action", "human realism", "ultra-real human rendering"],
+    "physical_plausibility_means": "coherent material response, depth, light and shadows within the approved stylized character design"
+  },
+  "style_approval_rule": "Compare original-resolution source side by side against QA-passed golden frames. A prompt label or a technically valid render does not prove style match.",
+  "authority_conflict_rule": "The latest executive style decision and explicit canonical identity invariants take precedence. Preserve historical approved artifacts even when an individual frame has a defect; do not promote defective pixels to a canonical golden reference.",
+  "freeze_scope": "The vocabulary and visual direction are frozen. No claim of completed numeric geometry, measured palette, golden QA or production activation is made.",
+  "version_change_rule": "No shot may silently reinterpret this style. Changes require a versioned decision and explicit human approval."
+}

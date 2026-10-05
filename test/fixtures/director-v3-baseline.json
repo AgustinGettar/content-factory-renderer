@@ -1,0 +1,782 @@
+{
+  "label": "HISTORICAL_OFFLINE_COMPILER_OUTPUT_NOT_APPROVAL",
+  "context": {
+    "style_authority": {
+      "id": "LUMI_SERIES_STYLE_V2",
+      "status": "FROZEN_BY_EXECUTIVE_USER_DECISION",
+      "reference_calibration_status": "PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA",
+      "positive_definition": "PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI"
+    },
+    "locks": {},
+    "artifact_evidence": {
+      "s31-source": {
+        "artifact_id": "s31-source",
+        "path": "evidence/current-sources/s31-source.png",
+        "expected_sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903",
+        "actual_sha256": "245ebe394a18d482ec36158657086f9edb8a19c088c398083160c6577e798903",
+        "bytes": 2715594,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s31-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      },
+      "s32-source": {
+        "artifact_id": "s32-source",
+        "path": "evidence/current-sources/s32-source.png",
+        "expected_sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
+        "actual_sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
+        "bytes": 2746575,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s32-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      },
+      "s33-source": {
+        "artifact_id": "s33-source",
+        "path": "evidence/current-sources/s33-source.png",
+        "expected_sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
+        "actual_sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
+        "bytes": 2963993,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s33-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      },
+      "s34-source": {
+        "artifact_id": "s34-source",
+        "path": "evidence/current-sources/s34-source.png",
+        "expected_sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+        "actual_sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+        "bytes": 2758469,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s34-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      },
+      "s35-source": {
+        "artifact_id": "s35-source",
+        "path": "evidence/current-sources/s35-source.png",
+        "expected_sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+        "actual_sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+        "bytes": 2896322,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s35-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      },
+      "s36-source": {
+        "artifact_id": "s36-source",
+        "path": "evidence/current-sources/s36-source.png",
+        "expected_sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+        "actual_sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+        "bytes": 2902504,
+        "hash_status": "PASS",
+        "verified_local_path": "C:\\Users\\Usuario\\.codex\\.chatgpt-projects\\g-p-6aa5ee42d0848191b1c23c19ad791cba\\series-v2\\evidence\\current-sources\\s36-source.png",
+        "human_approved": false,
+        "qa_status": "FAIL_SERIES_STYLE_V2",
+        "note": "Byte integrity is independently checked; historical approval is not V2 source approval."
+      }
+    },
+    "source_readiness": {
+      "s31-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      },
+      "s32-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      },
+      "s33-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      },
+      "s34-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      },
+      "s35-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      },
+      "s36-source": {
+        "STYLE_MATCH_TO_GOLDEN_REFERENCE": "NOT_EVALUATED",
+        "IDENTITY": "COARSE_TRAITS_PRESENT_CANONICAL_PROPORTIONS_PENDING_GOLDEN",
+        "ANATOMY": "VISIBLE_STILL_PASS_TWO_ARMS_TWO_LEGS_TWO_WINGS_TWO_ANTENNAE",
+        "MATERIALS": "FAIL_FLAT_ILLUSTRATED_SURFACES",
+        "LIGHTING": "FAIL_PREMIUM_CINEMATIC_CRITERION_FLAT_DIFFUSE",
+        "WORLD": "FAIL_ILLUSTRATED_GARDEN_GOLDEN_LAYOUT_PENDING",
+        "OBJECT_COMPLETENESS": "PASS_VISIBLE_INVENTORY",
+        "EDUCATIONAL_SEMANTICS": "PASS_STILL_COLOR_AND_COUNT",
+        "MOTION_SPACE": "PASS_FOR_SMALL_IN_PLACE_GESTURE_ONLY",
+        "CAMERA_COMPATIBILITY": "PASS_STATIC_ONLY_NO_ORBIT_OR_TURN",
+        "END_STATE_COMPATIBILITY": "CONDITIONAL_SMALL_GESTURE_NO_TEMPORAL_CLAIM"
+      }
+    },
+    "provider_policy": {
+      "model": "Kling 3.0 Standard",
+      "audio": false,
+      "multi_shots": false,
+      "playback_rate": 1,
+      "automatic_retries": 0,
+      "automatic_variants": 0,
+      "automatic_resubmits": 0,
+      "provider_repair_budget": 0
+    },
+    "economic": {
+      "episode_projected_usd": null,
+      "currency": "USD",
+      "quote_verified": false,
+      "reason": "Historical estimates are not a reconciled current authorized quote."
+    },
+    "postproduction": {
+      "deterministic_educational_graphics": true,
+      "text_character_overlap": 0,
+      "visible_pause_label": false,
+      "playback_rate": 1,
+      "master_width": 1080,
+      "master_height": 1920,
+      "planned_captions": [],
+      "scope": "Planned policy only; no rendered master or caption QA claimed."
+    }
+  },
+  "shots": [
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q31",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi remains grounded in the canonical garden, flowers absent, all limbs and exactly two wings visible, looking near the viewer; full figure and caption headroom.\",\"object_inventory\":[]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"look_at_viewer\",\"description\":\"One small welcoming gaze adjustment toward the viewer, with no step, turn or translation.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"subtle_wing_response\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[],\"required_objects\":[]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":4,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi remains grounded in the canonical garden, flowers absent, all limbs and exactly two wings visible, looking near the viewer; full figure and caption headroom. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[]}",
+      "prompt_sha256": "096a8a47f37fdd7075241ec798aebcb8687dbf85d1610d70667389ca50f508bf",
+      "contract_sha256": "8efd2cd70a303e6954e1dadfad3752bd0e841093ce1db32344575bdead519c0a",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s31-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s31-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s31-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    },
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q32",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi stands beside one red flower; the complete flower head remains visible to the left. Free hand can point without crossing petals.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"small_pointing_gesture\",\"description\":\"One small free-hand teaching gesture toward the red flower, remaining outside its petals; settle in place.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"subtle_wing_response\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[{\"object_id\":\"flower_red\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_red\",\"property\":\"color\",\"value\":\"red\"},{\"object_id\":\"flower_red\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"}],\"required_objects\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"}]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":4,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi stands beside one red flower; the complete flower head remains visible to the left. Free hand can point without crossing petals. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}",
+      "prompt_sha256": "b392be7cdfab44d2d79b3d27b2d36faa49f169a23051e47dae53a7f52c417759",
+      "contract_sha256": "b982c9e515ad5ff0091818cf7ee8bbbf58d48186a0178c8b3faea6f692d7d315",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s32-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s32-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s32-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    },
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q33",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi stands behind and beside one yellow flower; the complete flower head remains visible in the lower center. Free hand can point without crossing petals.\",\"object_inventory\":[{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"small_pointing_gesture\",\"description\":\"One small free-hand teaching gesture toward the yellow flower, remaining outside its petals; settle in place.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"subtle_wing_response\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[{\"object_id\":\"flower_yellow\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_yellow\",\"property\":\"color\",\"value\":\"yellow\"},{\"object_id\":\"flower_yellow\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"}],\"required_objects\":[{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"}]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":4,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi stands behind and beside one yellow flower; the complete flower head remains visible in the lower center. Free hand can point without crossing petals. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}",
+      "prompt_sha256": "6a49098969b84a4ff7f005af0ca06c26ac26f079b650ca1d4b1276f8977201ab",
+      "contract_sha256": "6c40eaaecff8907fee0d6d1f010361b7efe669081e964704622266cebb8f599f",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s33-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s33-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s33-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    },
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q34",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi stands beside one blue flower; the complete flower head remains visible to the right. Free hand can point without crossing petals.\",\"object_inventory\":[{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"small_pointing_gesture\",\"description\":\"One small free-hand teaching gesture toward the blue flower, remaining outside its petals; settle in place.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"subtle_wing_response\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[{\"object_id\":\"flower_blue\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_blue\",\"property\":\"color\",\"value\":\"blue\"},{\"object_id\":\"flower_blue\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"}],\"required_objects\":[{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"}]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":4,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi stands beside one blue flower; the complete flower head remains visible to the right. Free hand can point without crossing petals. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}",
+      "prompt_sha256": "067fc5b8b9774f7678f9358dca92f5fa07e692b2905f030ecf8f460578a51253",
+      "contract_sha256": "5abe6fc3ef1289b17fac1d529040eb5df104b08dce8c8526f98e4464cd17fa02",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s34-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s34-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s34-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    },
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q35",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi stands with three separated flowers, red left, yellow center and blue right. Neutral hands and gaze to viewer; no flower receives emphasis.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"look_at_viewer\",\"description\":\"Maintain a warm, neutral listening gaze to the viewer. Final 2.5 seconds remain a genuine response interval with no answer cue.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"natural_settle\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[{\"object_id\":\"flower_red\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_red\",\"property\":\"color\",\"value\":\"red\"},{\"object_id\":\"flower_red\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"object_id\":\"flower_yellow\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_yellow\",\"property\":\"color\",\"value\":\"yellow\"},{\"object_id\":\"flower_yellow\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"object_id\":\"flower_blue\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_blue\",\"property\":\"color\",\"value\":\"blue\"},{\"object_id\":\"flower_blue\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"}],\"required_objects\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"}]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\",\"pointing to answer\",\"answer-directed gaze\",\"blue-only glow or highlight\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":5,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi stands with three separated flowers, red left, yellow center and blue right. Neutral hands and gaze to viewer; no flower receives emphasis. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}",
+      "prompt_sha256": "7bed0d4d0d83a04754212db57d941c393435acea0f9a9bfaff4c8d2d291de21a",
+      "contract_sha256": "088d78df487cddf83d684f47318609ab032dfdcdc2a00378370cd4bdbcda6019",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s35-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s35-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s35-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    },
+    {
+      "compiler_version": "PROMPT_COMPILER_V3",
+      "mode": "OFFLINE_REVIEW_DRAFT",
+      "shot_id": "q36",
+      "prompt": "1. GOLDEN STYLE AUTHORITY\n{\"authority\":{\"id\":\"LUMI_SERIES_STYLE_V2\",\"positive_definition\":\"PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI\",\"reference_calibration_status\":\"PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA\",\"status\":\"FROZEN_BY_EXECUTIVE_USER_DECISION\"},\"references\":[],\"style\":\"premium feature-film-quality stylized 3D CGI\"}\n\n2. CANONICAL CHARACTER LOCK\n{\"lock\":\"UNRESOLVED\",\"state\":{\"canonical_wings\":2,\"character_lock_id\":\"LUMI_CANONICAL_CHARACTER_LOCK_V2\",\"character_lock_sha256\":null,\"description\":\"Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.\",\"identity_preserved\":true,\"wand_policy\":\"No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only.\",\"world_lock_id\":\"LUMI_WORLD_BIBLE_V2\",\"world_lock_sha256\":null}}\n\n3. CANONICAL WORLD LOCK\n\"UNRESOLVED\"\n\n4. EXACT START STATE\n{\"description\":\"Lumi stands with the same three separated flowers; one free hand can give a small farewell wave away from the object region.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}\n\n5. ONE PRIMARY ACTION\n{\"action\":\"small_wave\",\"description\":\"One small farewell wave toward the viewer, away from flowers, returning gently to a resting pose.\"}\n\n6. ALLOWED SECONDARY MOTION\n[\"blink\",\"subtle_wing_response\"]\n\n7. EDUCATIONAL INVARIANTS\n{\"execution\":\"Exact colors, geometry and text are deterministic postproduction. Preserve count, visibility, silhouette and motion space.\",\"invariants\":[{\"object_id\":\"flower_red\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_red\",\"property\":\"color\",\"value\":\"red\"},{\"object_id\":\"flower_red\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"object_id\":\"flower_yellow\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_yellow\",\"property\":\"color\",\"value\":\"yellow\"},{\"object_id\":\"flower_yellow\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"object_id\":\"flower_blue\",\"property\":\"count\",\"value\":1},{\"object_id\":\"flower_blue\",\"property\":\"color\",\"value\":\"blue\"},{\"object_id\":\"flower_blue\",\"property\":\"shape\",\"value\":\"rounded multi-petal flower with one center, one stem and leaves\"}],\"required_objects\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\"}]}\n\n8. FORBIDDEN CHANGES\n{\"actions\":[\"walking\",\"turning to reveal unverified anatomy\",\"new abdomen or tail\",\"extra wings or limbs\",\"object pop-in or disappearance\",\"flower recoloring or count change\",\"unmotivated orbit\",\"aggressive zoom\",\"text or captions generated by provider\",\"static freeze\",\"slow motion\",\"multiple shots\"],\"anatomy\":\"Preserve canonical anatomy, two wings, clothing, face and all locks.\",\"negative_style\":[\"flat cartoon\",\"2D illustration\",\"cel shading\",\"anime\",\"comic look\",\"cheap TV animation\",\"simplified low-detail rendering\",\"plastic toy\",\"rubber toy\",\"human photorealism\",\"live-action humanization\",\"uncanny insect anatomy\",\"overly realistic skin pores\"]}\n\n9. CAMERA INSTRUCTION\n{\"audio\":false,\"camera\":{\"description\":\"Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.\",\"necessary\":false,\"type\":\"STATIC\"},\"duration_seconds\":5,\"multi_shots\":false,\"playback_rate\":1,\"shot\":\"single continuous shot\"}\n\n10. EXACT END STATE\n{\"description\":\"Lumi stands with the same three separated flowers; one free hand can give a small farewell wave away from the object region. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.\",\"object_inventory\":[{\"color\":\"red\",\"count\":1,\"id\":\"flower_red\",\"placement\":\"foreground left, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"yellow\",\"count\":1,\"id\":\"flower_yellow\",\"placement\":\"foreground center, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"},{\"color\":\"blue\",\"count\":1,\"id\":\"flower_blue\",\"placement\":\"foreground right, fully separated from Lumi\",\"shape\":\"rounded multi-petal flower with one center, one stem and leaves\",\"visibility\":\"FULLY_VISIBLE\"}]}",
+      "prompt_sha256": "9537223417adc98ee8d218fca2fe52109a3466576decd72bbd3375cb192b1d78",
+      "contract_sha256": "30abdc918315e642c57e3e5a414ae9939fffbd13e6173b107fcda9cf49245126",
+      "gates": {
+        "contract_valid": false,
+        "evidence_ready": false,
+        "blockers": [
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.character_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_TYPE",
+            "path": "$.CHARACTER_STATE.world_lock_sha256"
+          },
+          {
+            "code": "SCHEMA_MIN_ITEMS",
+            "path": "$.GOLDEN_REFERENCES"
+          },
+          {
+            "code": "STYLE_AUTHORITY_UNFROZEN",
+            "path": "context.style_authority"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.character"
+          },
+          {
+            "code": "LOCK_UNFROZEN_OR_UNVERIFIED",
+            "path": "context.locks.world"
+          },
+          {
+            "code": "HUMAN_REFERENCE_APPROVAL_MISSING",
+            "path": "context.artifact_evidence.s36-source"
+          },
+          {
+            "code": "ARTIFACT_QA_NOT_PASS",
+            "path": "context.artifact_evidence.s36-source"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.STYLE_MATCH_TO_GOLDEN_REFERENCE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.IDENTITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.ANATOMY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.MATERIALS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.LIGHTING"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.WORLD"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.OBJECT_COMPLETENESS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.EDUCATIONAL_SEMANTICS"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.MOTION_SPACE"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.CAMERA_COMPATIBILITY"
+          },
+          {
+            "code": "SOURCE_NOT_READY",
+            "path": "context.source_readiness.s36-source.END_STATE_COMPATIBILITY"
+          },
+          {
+            "code": "COST_UNKNOWN_OR_UNVERIFIED",
+            "path": "context.economic"
+          }
+        ],
+        "provider_dispatch_authorized": false,
+        "execution_hold": "DESIGN_ONLY_NO_PROVIDERS",
+        "provider_calls": 0
+      },
+      "provider_calls": 0
+    }
+  ]
+}

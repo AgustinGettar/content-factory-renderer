@@ -1,0 +1,303 @@
+{
+  "status": "LUMI SERIES V2 — q32/q33 REPAIR PLAN READY",
+  "provider_generation_calls_added": 0,
+  "new_provider_requests": 0,
+  "tts_calls_added": 0,
+  "master_calls_added": 0,
+  "q34_q36_calls_added": 0,
+  "estimated_previously_emitted_usd": 1.216,
+  "providers": "OFF",
+  "golden": "q31-PRO2 HUMAN_APPROVED; unchanged",
+  "analysis": {
+    "q32": {
+      "SOURCE_ANATOMY": "PASS",
+      "source_note": "No discrete posterior bulb, segmented mass or black/yellow striping is visible in the exact source. The narrow warm-yellow edge between arm and overalls is consistent with the canonical torso/arm overlap and remains a caution for future motion.",
+      "VIDEO_ANATOMY": "BLOCKER",
+      "classification": "TEMPORAL_MUTATION",
+      "first_clean_frame": {
+        "index": 0,
+        "time_s": 0
+      },
+      "first_visible_material_anomaly": {
+        "index": 20,
+        "time_s": 0.8333333333333334,
+        "confidence": "VISUAL_PRECURSOR; dark under-arm patch is partly occluded"
+      },
+      "first_unambiguous_rear_bulb": {
+        "index": 75,
+        "time_s": 3.125,
+        "confidence": "HIGH; separate rounded yellow posterior volume protrudes behind arm during torso turn"
+      },
+      "last_defective_frame": {
+        "index": 96,
+        "time_s": 4
+      },
+      "visible_rear_bulb_duration_s": 0.9166666666666666,
+      "material_anomaly_visible_through_clip_end": true,
+      "defect_disappears": false,
+      "correlation": "Body rotation and arm occlusion during the final settle; static camera. Below-wing location and rounded yellow/black mass exclude wing overlap.",
+      "worst_frame": {
+        "index": 80,
+        "time_s": 3.3333333333333335
+      },
+      "LOCAL_SALVAGE": "NOT_PROFESSIONAL",
+      "local_salvage_reason": "A tracked repair would need to replace the moving rear volume inside and outside the arm/overalls gap. Available early/source frames do not provide a complete clean plate under the changing arm silhouette. Simple crop/foreground occlusion would remove canonical limb/wing or teaching composition; invisible tracking/material continuity is not verified. No forced patch or derived clip created.",
+      "MINIMUM_REPAIR": "VIDEO_REGEN_ONLY",
+      "image_regeneration_required": false,
+      "expected_cost_usd_reference": 0.381
+    },
+    "q33": {
+      "SOURCE_ANATOMY": "BLOCKER",
+      "source_note": "The exact source already contains a distinct yellow oval/crescent posterior volume behind the left hand and outside the overalls, with an upper dark area and light curved band. It resembles the ambiguous rear crescent in the canonical anchor, but the newly specified permanent body rule prohibits copying that contour.",
+      "VIDEO_ANATOMY": "HARD_BLOCKER",
+      "classification": "SOURCE_DEFECT_WITH_TEMPORAL_AMPLIFICATION",
+      "first_clean_frame": null,
+      "first_defective_frame": {
+        "index": 0,
+        "time_s": 0,
+        "reason": "Posterior source volume is visible in the first decoded frame; no clean start under the new body rule."
+      },
+      "first_unambiguous_expanded_striping": {
+        "index": 69,
+        "time_s": 2.875
+      },
+      "last_defective_frame": {
+        "index": 96,
+        "time_s": 4
+      },
+      "defect_duration_s": 4.041666666666667,
+      "expanded_striping_duration_s": 1.1666666666666667,
+      "defect_disappears": false,
+      "correlation": "Arm lowers and torso rotates near 2.875 s; the inherited yellow rear bulb expands into a large black/yellow striped abdomen. Camera static. Opaque striped body material differs from translucent upper-back wings.",
+      "worst_frame": {
+        "index": 89,
+        "time_s": 3.7083333333333335
+      },
+      "LOCAL_SALVAGE": "NOT_PROFESSIONAL",
+      "local_salvage_reason": "Large growing abdomen changes silhouette and becomes partially occluded by the moving forearm. Masking would require reconstructing missing garden and correct body contact/shadow edges without a clean plate. Crop/foreground cover would conceal canonical anatomy. No invisible professional repair is verified; no derived clip created.",
+      "MINIMUM_REPAIR": "IMAGE_REGEN_REQUIRED",
+      "image_regeneration_required": true,
+      "video_regeneration_required": true,
+      "expected_image_cost_usd_reference": 0.227,
+      "expected_video_cost_usd_reference": 0.381,
+      "expected_total_cost_usd_reference": 0.608
+    }
+  },
+  "cost_plan": {
+    "status": "NOT_AUTHORIZED_FOR_EMISSION",
+    "reference_total_usd": 0.989,
+    "reference_quote_basis": "Last verified direct API estimates recorded today: source high/2K marketing-studio/image USD 0.227, Kling 3.0 Pro 4 s audio off USD 0.381. No estimator/provider call was made in this execution. Source price may change with strengthened prompt; exact live USD preflight required only after future authorization.",
+    "bounded_proposal": {
+      "q32_image_calls": 0,
+      "q32_video_calls": 1,
+      "q33_image_calls": 1,
+      "q33_video_calls": 1,
+      "retries": 0,
+      "variants": 0,
+      "resubmits": 0
+    },
+    "emission_permission": false
+  },
+  "body_lock": {
+    "id": "LUMI_BODY_ANATOMY_LOCK_V1",
+    "NO_BEE_ABDOMEN": "HARD",
+    "NO_STRIPED_POSTERIOR_BODY": "HARD",
+    "NO_STINGER": "HARD",
+    "NO_EXTRA_TORSO": "HARD",
+    "NO_REAR_BULB": "HARD",
+    "source_qa": "REQUIRED_EXPLICIT_PASS",
+    "temporal_qa": "REQUIRED_EXPLICIT_PASS",
+    "canonical_reference_scope": "IDENTITY_AND_STYLE; DO_NOT_COPY_AMBIGUOUS_POSTERIOR_CRESCENT",
+    "below_wings": "ONLY_CANONICAL_TORSO_OVERALLS_SILHOUETTE"
+  },
+  "future_motion": {
+    "camera": "STATIC",
+    "body_orientation": "FRONT_OR_THREE_QUARTER_FIXED",
+    "no_body_turn": true,
+    "no_torso_twist": true,
+    "no_back_facing": true,
+    "wings": "MINIMAL",
+    "secondary": "SMALL_HEAD_MOTION_AND_NATURAL_BLINK"
+  },
+  "code": {
+    "branch": "lumi-app-recovery-manager-v1",
+    "commit": "f42d5a83e2806b3db17080c2829d305bad4a8525",
+    "deployed": false,
+    "tests_passed": 5,
+    "production_main_modified": false,
+    "global_default_modified": false
+  },
+  "existing_provenance": [
+    {
+      "scene_id": "q31-PRO2",
+      "stage": "VIDEO",
+      "request_id": "ace9ee08-5058-44f0-a98b-19d3b01b6608",
+      "artifact_path": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/video/ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307/original.mp4",
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "bytes": 5009453,
+      "model": "kling-video/v3.0/pro/image-to-video",
+      "source_sha256": null,
+      "mode_provenance": "REQUEST_ENDPOINT_CONFIRMED"
+    },
+    {
+      "scene_id": "q32-SOURCE-V2-1",
+      "stage": "IMAGE",
+      "request_id": "f6c5e3a8-ac87-4590-9134-c7ed01237e21",
+      "artifact_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-SOURCE-V2-1/artifact/ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2/original.png",
+      "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "bytes": 5766459,
+      "model": "marketing-studio/image",
+      "source_sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+      "mode_provenance": null
+    },
+    {
+      "scene_id": "q32-V2-PRO1",
+      "stage": "VIDEO",
+      "request_id": "f6ce8062-c965-4768-b040-f9be13e97596",
+      "artifact_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-V2-PRO1/artifact/0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313/original.mp4",
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "bytes": 5326841,
+      "model": "kling-video/v3.0/pro/image-to-video",
+      "source_sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "mode_provenance": "REQUEST_ENDPOINT_CONFIRMED"
+    },
+    {
+      "scene_id": "q33-SOURCE-V2-1",
+      "stage": "IMAGE",
+      "request_id": "f1e37da2-94d9-448d-8962-4261cbcdc433",
+      "artifact_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-SOURCE-V2-1/artifact/fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83/original.png",
+      "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+      "bytes": 5907421,
+      "model": "marketing-studio/image",
+      "source_sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+      "mode_provenance": null
+    },
+    {
+      "scene_id": "q33-V2-PRO1",
+      "stage": "VIDEO",
+      "request_id": "6c9a0127-bc8b-4d46-b26d-7a081ab2f894",
+      "artifact_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-V2-PRO1/artifact/69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5/original.mp4",
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "bytes": 5760274,
+      "model": "kling-video/v3.0/pro/image-to-video",
+      "source_sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+      "mode_provenance": "REQUEST_ENDPOINT_CONFIRMED"
+    }
+  ],
+  "delivery": {
+    "original_bytes_preserved": true,
+    "transcoded": false,
+    "q32_url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JyiUQvqW4GLHeQWvPah1G5GKhm/ee02bce6-bfcb-420c-a155-279d8164f979.mp4",
+    "q33_url": "https://d2ol7oe51mr4n9.cloudfront.net/user_3JyiUQvqW4GLHeQWvPah1G5GKhm/ce487c4f-6180-4661-a18b-78ebfb026810.mp4",
+    "q32_library_download": "https://chatgpt.com/api/library/files/libfile_20ee9c38374081919e2d8e6b7b9120de/download",
+    "q33_library_download": "https://chatgpt.com/api/library/files/libfile_4d2c889d8ab48191a439b6182e98e471/download",
+    "HTTP": "200",
+    "content_type": "video/mp4",
+    "range_HTTP": "206",
+    "sha_match": "PASS",
+    "browser_playback_test": "NOT_PERFORMED; original H264/yuv420p fully decoded; HTTP media delivery/range verified.",
+    "http_verification": [
+      {
+        "file": "q32-V2-PRO1.mp4",
+        "HTTP": 200,
+        "SHA_MATCH": "PASS",
+        "Content-Type": "video/mp4",
+        "Accept-Ranges": "bytes",
+        "range_HTTP": 206,
+        "range_bytes": 1024
+      },
+      {
+        "file": "q33-V2-PRO1.mp4",
+        "HTTP": 200,
+        "SHA_MATCH": "PASS",
+        "Content-Type": "video/mp4",
+        "Accept-Ranges": "bytes",
+        "range_HTTP": 206,
+        "range_bytes": 1024
+      }
+    ]
+  },
+  "technical_reverification": [
+    {
+      "file": "q32-V2-PRO1.mp4",
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "SHA_MATCH": "PASS",
+      "size": 5326841,
+      "codec": "h264",
+      "width": 1080,
+      "height": 1912,
+      "fps": "24/1",
+      "duration": "4.042000",
+      "pix_fmt": "yuv420p",
+      "DECODE": "PASS",
+      "BLACK_FRAMES": 0,
+      "FREEZE_DEFECTS": 0,
+      "decoded_frames": 97
+    },
+    {
+      "file": "q33-V2-PRO1.mp4",
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "SHA_MATCH": "PASS",
+      "size": 5760274,
+      "codec": "h264",
+      "width": 1080,
+      "height": 1912,
+      "fps": "24/1",
+      "duration": "4.042000",
+      "pix_fmt": "yuv420p",
+      "DECODE": "PASS",
+      "BLACK_FRAMES": 0,
+      "FREEZE_DEFECTS": 0,
+      "decoded_frames": 97
+    },
+    {
+      "file": "q32-SOURCE-V2-1.png",
+      "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "SHA_MATCH": "PASS",
+      "size": 5766459,
+      "DECODE": "PASS",
+      "width": 1520,
+      "height": 2688
+    },
+    {
+      "file": "q33-SOURCE-V2-1.png",
+      "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+      "SHA_MATCH": "PASS",
+      "size": 5907421,
+      "DECODE": "PASS",
+      "width": 1520,
+      "height": 2688
+    },
+    {
+      "file": "LUMI_SERIES_V2_QUALITY_GATE_REPORT.json",
+      "sha256": "691a52a17340bc6fefe3ab9093b6ea44a03394c59074bf400f09acaa8b896554",
+      "SHA_MATCH": "PASS",
+      "size": 26406
+    },
+    {
+      "file": "LUMI_CANONICAL_SOURCE_V2(2).png",
+      "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+      "SHA_MATCH": "PASS",
+      "size": 2282010,
+      "DECODE": "PASS",
+      "width": 941,
+      "height": 1672
+    },
+    {
+      "file": "q31-PRO2.mp4",
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "SHA_MATCH": "PASS",
+      "size": 5009453,
+      "codec": "h264",
+      "width": 1080,
+      "height": 1916,
+      "fps": "24/1",
+      "duration": "4.042000",
+      "pix_fmt": "yuv420p",
+      "DECODE": "PASS",
+      "BLACK_FRAMES": 0,
+      "FREEZE_DEFECTS": 0,
+      "decoded_frames": 97
+    }
+  ]
+}

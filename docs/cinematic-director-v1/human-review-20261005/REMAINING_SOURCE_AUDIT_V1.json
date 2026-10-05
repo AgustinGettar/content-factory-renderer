@@ -1,0 +1,63 @@
+{
+  "status": "PASS_AUDIT_COMPLETED",
+  "originals": [
+    {
+      "shot": "q34",
+      "sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+      "status": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "inspection": "Original SHA-verified pixels viewed against LUMI_CANONICAL_SOURCE_V2; prior full-frame audit also preserved",
+      "identity": "COARSE_CANONICAL_TRAITS_ONLY",
+      "topology": "VISIBLE_STILL_CANONICAL_COUNTS",
+      "materials": "FLAT_ILLUSTRATED",
+      "eye_depth": "INSUFFICIENT",
+      "wing_translucency": "ILLUSTRATED_SIMPLIFIED",
+      "denim_detail": "INSUFFICIENT",
+      "lighting": "FLAT_DIFFUSE",
+      "environment": "ILLUSTRATED_SIMPLIFIED",
+      "cartoon_drift": "MATERIAL",
+      "educational_semantics": "PASS",
+      "video_readiness": "V2_UPGRADE_REQUIRED"
+    },
+    {
+      "shot": "q35",
+      "sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+      "status": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "inspection": "Original SHA-verified pixels viewed against LUMI_CANONICAL_SOURCE_V2; prior full-frame audit also preserved",
+      "identity": "COARSE_CANONICAL_TRAITS_ONLY",
+      "topology": "VISIBLE_STILL_CANONICAL_COUNTS",
+      "materials": "FLAT_ILLUSTRATED",
+      "eye_depth": "INSUFFICIENT",
+      "wing_translucency": "ILLUSTRATED_SIMPLIFIED",
+      "denim_detail": "INSUFFICIENT",
+      "lighting": "FLAT_DIFFUSE",
+      "environment": "ILLUSTRATED_SIMPLIFIED",
+      "cartoon_drift": "MATERIAL",
+      "educational_semantics": "PASS",
+      "video_readiness": "V2_UPGRADE_REQUIRED"
+    },
+    {
+      "shot": "q36",
+      "sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+      "status": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "inspection": "Original SHA-verified pixels viewed against LUMI_CANONICAL_SOURCE_V2; prior full-frame audit also preserved",
+      "identity": "COARSE_CANONICAL_TRAITS_ONLY",
+      "topology": "VISIBLE_STILL_CANONICAL_COUNTS",
+      "materials": "FLAT_ILLUSTRATED",
+      "eye_depth": "INSUFFICIENT",
+      "wing_translucency": "ILLUSTRATED_SIMPLIFIED",
+      "denim_detail": "INSUFFICIENT",
+      "lighting": "FLAT_DIFFUSE",
+      "environment": "ILLUSTRATED_SIMPLIFIED",
+      "cartoon_drift": "MATERIAL",
+      "educational_semantics": "PASS",
+      "video_readiness": "V2_UPGRADE_REQUIRED"
+    }
+  ],
+  "IMAGE_UPGRADE_CALLS_REQUIRED": 3,
+  "IMAGE_UPGRADE_COST": 0.692,
+  "KLING_PRO_COST": 1.333,
+  "PROJECTED_ADDITIONAL_VISUAL_COST": 2.025,
+  "HARD_ADDITIONAL_VISUAL_CEILING_USD": 3,
+  "quote_scope": "Authenticated fresh staging estimator, before providers",
+  "new_provider_calls": 0
+}

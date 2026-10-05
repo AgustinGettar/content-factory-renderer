@@ -1,7 +1,7 @@
 import '../scripts/director-offline-guard.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {compileRemainingRequest} from '../lib/cinematic-director-v1/episode-step.js';
+import {compileRemainingRequest,runDirectedEpisodeStep} from '../lib/cinematic-director-v1/episode-step.js';
 import {budgetGate,previousVideoGate,BODY_QA_FIELDS} from '../lib/lumi-series-v2-gates.js';
 const sha='a'.repeat(64),qa={classification:'PASS',sha256:sha,IDENTITY:'PASS',REALISM:'PASS',ANATOMY:'PASS',EDUCATIONAL_SEMANTICS:'PASS',COLOR:'PASS',VIDEO_SOURCE_READINESS:'PASS',CARTOON_DRIFT:'MINIMAL',BODY_LOCK_VERSION:'LUMI_BODY_ANATOMY_LOCK_V1',...Object.fromEntries(BODY_QA_FIELDS.map(k=>[k,'PASS']))};
 for(const shot of ['q34','q35','q36'])test(shot+' compiled Pro payload preserves safe motion, topology and exact source',()=>{
@@ -17,3 +17,4 @@ test('new budget measures only spend additional to verified checkpoint, preservi
  assert.doesNotThrow(()=>budgetGate(b,3.241));assert.throws(()=>budgetGate(b,4.217),/exceeds_3/);
 });
 test('unbound human approval cannot waive previous video QA',()=>assert.throws(()=>previousVideoGate({content_hash:sha,result:{human_review_layers:{HUMAN_REVIEW_20261005:{shot:'q33',record_sha256:sha}}}}),/previous_video_quality_gate/));
+test('provider-disabled staging stops before clients or claims',async()=>assert.rejects(runDirectedEpisodeStep({env:{LUMI_RUNTIME_ENV:'staging',LUMI_DIRECTOR_EPISODE_COMPLETION:'ep_lumi_flores_003',PROVIDER_CALLS_ALLOWED:'0'}}),/SINGLE_PROVIDER_WINDOW_REQUIRED/));

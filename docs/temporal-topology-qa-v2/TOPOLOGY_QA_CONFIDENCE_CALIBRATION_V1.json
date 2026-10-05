@@ -1,0 +1,1624 @@
+{
+  "version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+  "topology_version": "TEMPORAL_TOPOLOGY_QA_V2",
+  "status": "PASS",
+  "dataset_sha256": "d7b90695e8480a76cc854cf7d001b98ba2eac874b3fc048a483c15b4bead810b",
+  "FALSE_FATALS_ON_HUMAN_APPROVED_SET": 0,
+  "TRUE_FATAL_FIXTURES_BLOCKED": "100_PERCENT",
+  "AMBIGUOUS_FINDINGS_PRESERVED": true,
+  "HUMAN_REVIEW_PROVENANCE_PRESERVED": "PENDING_RUNTIME_VERIFICATION",
+  "positives": [
+    {
+      "attempt": "q31-PRO2",
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "confidence_class": "NO_DEFECT",
+      "severity": "PASS",
+      "status": "PASS",
+      "automatic_classification": "PASS",
+      "findings": [],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "attempt": "q32-V2-PRO1",
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "confidence_class": "AMBIGUOUS_CONTOUR",
+      "severity": "REVIEW_REQUIRED",
+      "status": "REVIEW_REQUIRED",
+      "automatic_classification": "REVIEW_REQUIRED",
+      "findings": [
+        {
+          "category": "VISIBLE_CONTOUR_ANOMALY",
+          "first_suspicious_frame": 72,
+          "last_suspicious_frame": 96,
+          "duration_seconds": 1.0416666666666667,
+          "frame_indices": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96
+          ],
+          "region": {
+            "bbox": [
+              0.1,
+              0.48,
+              0.65,
+              0.35
+            ],
+            "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+          },
+          "confidence": "AMBIGUOUS_CONTOUR",
+          "evidence_ids": [
+            "q32-V2-PRO1:native-lower-torso-risk-window",
+            "q32-V2-PRO1:video-source"
+          ],
+          "signals": {
+            "NEW_MASS": {
+              "observed": false,
+              "evidence_ids": [
+                "q32-V2-PRO1:source-comparison"
+              ],
+              "note": "New independent body-like mass not proven."
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": false,
+              "evidence_ids": [
+                "q32-V2-PRO1:root-occluded"
+              ],
+              "note": "Independent connection unresolved."
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "q32-V2-PRO1:body-adjacent-motion"
+              ],
+              "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "q32-V2-PRO1:visible-contour-change"
+              ],
+              "note": "Contour differs, significance as anatomy uncertain."
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": false,
+            "origin": "PRESENT_IN_VIDEO_SOURCE"
+          },
+          "supporting_signals": [
+            "VISIBLE_LOWER_CONTOUR",
+            "DARK_BANDS",
+            "TEMPORAL_PERSISTENCE"
+          ],
+          "contradicting_signals": [
+            "INDEPENDENT_ROOT_NOT_VISIBLE",
+            "CLOTHING_ARM_OCCLUSION",
+            "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+          ],
+          "description": "Lower rear contour becomes darker during late perspective change; small yellow source contour already exists. No independent root or separately articulated mass is resolved.",
+          "consecutive_decoded_frames": 25,
+          "persistence_seconds": 1.0416666666666667,
+          "confidence_class": "AMBIGUOUS_CONTOUR",
+          "severity": "REVIEW_REQUIRED",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": false,
+            "independent_connection": false,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "attempt": "q33-V2-PRO1",
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "confidence_class": "AMBIGUOUS_CONTOUR",
+      "severity": "REVIEW_REQUIRED",
+      "status": "REVIEW_REQUIRED",
+      "automatic_classification": "REVIEW_REQUIRED",
+      "findings": [
+        {
+          "category": "VISIBLE_CONTOUR_ANOMALY",
+          "first_suspicious_frame": 72,
+          "last_suspicious_frame": 96,
+          "duration_seconds": 1.0416666666666667,
+          "frame_indices": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96
+          ],
+          "region": {
+            "bbox": [
+              0.1,
+              0.48,
+              0.65,
+              0.35
+            ],
+            "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+          },
+          "confidence": "AMBIGUOUS_CONTOUR",
+          "evidence_ids": [
+            "q33-V2-PRO1:native-lower-torso-risk-window",
+            "q33-V2-PRO1:video-source"
+          ],
+          "signals": {
+            "NEW_MASS": {
+              "observed": false,
+              "evidence_ids": [
+                "q33-V2-PRO1:source-comparison"
+              ],
+              "note": "New independent body-like mass not proven."
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": false,
+              "evidence_ids": [
+                "q33-V2-PRO1:root-occluded"
+              ],
+              "note": "Independent connection unresolved."
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "q33-V2-PRO1:body-adjacent-motion"
+              ],
+              "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "q33-V2-PRO1:visible-contour-change"
+              ],
+              "note": "Contour differs, significance as anatomy uncertain."
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": false,
+            "origin": "PRESENT_IN_VIDEO_SOURCE"
+          },
+          "supporting_signals": [
+            "VISIBLE_LOWER_CONTOUR",
+            "DARK_BANDS",
+            "TEMPORAL_PERSISTENCE"
+          ],
+          "contradicting_signals": [
+            "INDEPENDENT_ROOT_NOT_VISIBLE",
+            "CLOTHING_ARM_OCCLUSION",
+            "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+          ],
+          "description": "Striped lower rear contour appears during late turn. Source contains a yellow crescent behind overalls already. Temporal banding and shape change are visible, but independent anatomical attachment is occluded.",
+          "consecutive_decoded_frames": 25,
+          "persistence_seconds": 1.0416666666666667,
+          "confidence_class": "AMBIGUOUS_CONTOUR",
+          "severity": "REVIEW_REQUIRED",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": false,
+            "independent_connection": false,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "attempt": "q34-V2-PRO1",
+      "sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "confidence_class": "AMBIGUOUS_CONTOUR",
+      "severity": "REVIEW_REQUIRED",
+      "status": "REVIEW_REQUIRED",
+      "automatic_classification": "REVIEW_REQUIRED",
+      "findings": [
+        {
+          "category": "VISIBLE_CONTOUR_ANOMALY",
+          "first_suspicious_frame": 40,
+          "last_suspicious_frame": 96,
+          "duration_seconds": 2.375,
+          "frame_indices": [
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96
+          ],
+          "region": {
+            "bbox": [
+              0.1,
+              0.48,
+              0.65,
+              0.35
+            ],
+            "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+          },
+          "confidence": "AMBIGUOUS_CONTOUR",
+          "evidence_ids": [
+            "q34-V2-PRO1:native-lower-torso-risk-window",
+            "q34-V2-PRO1:video-source"
+          ],
+          "signals": {
+            "NEW_MASS": {
+              "observed": false,
+              "evidence_ids": [
+                "q34-V2-PRO1:source-comparison"
+              ],
+              "note": "New independent body-like mass not proven."
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": false,
+              "evidence_ids": [
+                "q34-V2-PRO1:root-occluded"
+              ],
+              "note": "Independent connection unresolved."
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "q34-V2-PRO1:body-adjacent-motion"
+              ],
+              "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "q34-V2-PRO1:visible-contour-change"
+              ],
+              "note": "Contour differs, significance as anatomy uncertain."
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": false,
+            "origin": "UNKNOWN"
+          },
+          "supporting_signals": [
+            "VISIBLE_LOWER_CONTOUR",
+            "DARK_BANDS",
+            "TEMPORAL_PERSISTENCE"
+          ],
+          "contradicting_signals": [
+            "INDEPENDENT_ROOT_NOT_VISIBLE",
+            "CLOTHING_ARM_OCCLUSION",
+            "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+          ],
+          "description": "Dark/yellow lower posterior contour visible behind overalls from approximately 1.667s. Separate anatomical root is occluded by clothing and arm; color and silhouette are insufficient to prove a second torso.",
+          "consecutive_decoded_frames": 57,
+          "persistence_seconds": 2.375,
+          "confidence_class": "AMBIGUOUS_CONTOUR",
+          "severity": "REVIEW_REQUIRED",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": false,
+            "independent_connection": false,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "attempt": "q35-V2-PRO1",
+      "sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "confidence_class": "AMBIGUOUS_CONTOUR",
+      "severity": "REVIEW_REQUIRED",
+      "status": "REVIEW_REQUIRED",
+      "automatic_classification": "REVIEW_REQUIRED",
+      "findings": [
+        {
+          "category": "VISIBLE_CONTOUR_ANOMALY",
+          "first_suspicious_frame": 54,
+          "last_suspicious_frame": 120,
+          "duration_seconds": 2.7916666666666665,
+          "frame_indices": [
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120
+          ],
+          "region": {
+            "bbox": [
+              0.1,
+              0.48,
+              0.65,
+              0.35
+            ],
+            "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+          },
+          "confidence": "AMBIGUOUS_CONTOUR",
+          "evidence_ids": [
+            "q35-V2-PRO1:native-lower-torso-risk-window",
+            "q35-V2-PRO1:video-source"
+          ],
+          "signals": {
+            "NEW_MASS": {
+              "observed": false,
+              "evidence_ids": [
+                "q35-V2-PRO1:source-comparison"
+              ],
+              "note": "New independent body-like mass not proven."
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": false,
+              "evidence_ids": [
+                "q35-V2-PRO1:root-occluded"
+              ],
+              "note": "Independent connection unresolved."
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "q35-V2-PRO1:body-adjacent-motion"
+              ],
+              "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "q35-V2-PRO1:visible-contour-change"
+              ],
+              "note": "Contour differs, significance as anatomy uncertain."
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": false,
+            "origin": "UNKNOWN"
+          },
+          "supporting_signals": [
+            "VISIBLE_LOWER_CONTOUR",
+            "DARK_BANDS",
+            "TEMPORAL_PERSISTENCE"
+          ],
+          "contradicting_signals": [
+            "INDEPENDENT_ROOT_NOT_VISIBLE",
+            "CLOTHING_ARM_OCCLUSION",
+            "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+          ],
+          "description": "Dark/yellow posterior contour from approximately 2.25s is visible across native frames. Its independent root is not exposed. Temporal persistence does not by itself prove anatomical topology.",
+          "consecutive_decoded_frames": 67,
+          "persistence_seconds": 2.7916666666666665,
+          "confidence_class": "AMBIGUOUS_CONTOUR",
+          "severity": "REVIEW_REQUIRED",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": false,
+            "independent_connection": false,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    }
+  ],
+  "negatives": [
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_POSTERIOR_BODY_MUTATION",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "POSTERIOR_BODY_MUTATION",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_INDEPENDENT_EXTRA_WING_ROOT",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "INDEPENDENT_EXTRA_WING_ROOT",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_DETACHED_EXTRA_WING",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "DETACHED_EXTRA_WING",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_SEPARATELY_ARTICULATED_EXTRA_WING",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "SEPARATELY_ARTICULATED_EXTRA_WING",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_STINGER",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "STINGER",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_ARM",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "EXTRA_ARM",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_LEG",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "EXTRA_LEG",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_LIMB",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "EXTRA_LIMB",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_SECOND_TORSO",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "SECOND_TORSO",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_REAR_BULB",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "REAR_BULB",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_PERSISTENT_SEGMENTED_ABDOMEN",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "version": "TEMPORAL_TOPOLOGY_QA_V2",
+      "calibration_version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+      "severity": "BLOCKER",
+      "status": "BLOCKER",
+      "automatic_classification": "GENERATIVE_FATAL",
+      "findings": [
+        {
+          "category": "PERSISTENT_SEGMENTED_ABDOMEN",
+          "evidence_ids": [
+            "SYNTHETIC_FRAME_5",
+            "SYNTHETIC_FRAME_6"
+          ],
+          "first_suspicious_frame": 5,
+          "last_suspicious_frame": 9,
+          "frame_indices": [
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "duration_seconds": 0.20833333333333334,
+          "region": {
+            "bbox": [
+              0.1,
+              0.2,
+              0.3,
+              0.3
+            ],
+            "units": "NORMALIZED"
+          },
+          "signals": {
+            "NEW_MASS": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+              ]
+            },
+            "INDEPENDENT_ANATOMICAL_CONNECTION": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+              ]
+            },
+            "MOTION_COHERENCE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+              ]
+            },
+            "CANONICAL_SILHOUETTE_CHANGE": {
+              "observed": true,
+              "evidence_ids": [
+                "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+              ]
+            }
+          },
+          "source_relation": {
+            "absent_from_canonical": true,
+            "origin": "INTRODUCED_TEMPORALLY"
+          },
+          "supporting_signals": [
+            "NEW_MASS",
+            "INDEPENDENT_ANATOMICAL_CONNECTION",
+            "MOTION_COHERENCE",
+            "CANONICAL_SILHOUETTE_CHANGE"
+          ],
+          "contradicting_signals": [],
+          "consecutive_decoded_frames": 5,
+          "persistence_seconds": 0.20833333333333334,
+          "confidence_class": "HIGH_CONFIDENCE_MUTATION",
+          "confidence": "HIGH_CONFIDENCE_MUTATION",
+          "severity": "BLOCKER",
+          "pending": [],
+          "high_confidence_criteria": {
+            "new_mass": true,
+            "independent_connection": true,
+            "temporal_persistence": true,
+            "motion_coherence": true,
+            "canonical_silhouette_change": true,
+            "source_comparison": true
+          }
+        }
+      ],
+      "pending": [],
+      "visual_certification": false,
+      "human_override_used": false,
+      "limitation": "Typed evidence classification; review annotations must be grounded in decoded pixels. Human assembly approval does not alter confidence."
+    }
+  ],
+  "provider_calls": 0,
+  "scope": "Deterministic typed evidence calibration; synthetic fixtures do not measure pixel-detector accuracy.",
+  "authentic_byte_replay": "PENDING_LOCAL_AND_STAGING_REPLAY"
+}

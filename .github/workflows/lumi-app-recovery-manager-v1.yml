@@ -33,6 +33,8 @@ jobs:
         run: node --test test/lumi-recovery-incident-manager-v1.test.js test/lumi-staging-dry-run-on-boot.test.js test/lumi-recovery-server-integration.test.js test/lumi-second-short-runtime.test.js test/lumi-editorial-readiness-v1.test.js test/render-profiles.test.js
       - name: Artifact-specific q34 Human Review and no-provider RESUME
         run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-remaining-director-contract.test.js test/lumi-q34-human-resume.test.js test/lumi-series-v2-gates.test.js test/lumi-cinematic-director-human-assembly.test.js
+      - name: Temporal topology confidence, provenance and Director regression without providers
+        run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-temporal-topology-v2.test.js test/lumi-topology-calibration-integration.test.js test/lumi-cinematic-director*.test.js lib/cinematic-director-v1/PROMPT_COMPILER_V3.test.mjs
       - name: Shot pack and USD accounting gates
         run: node --test test/lumi-third-shot-pack-v1.test.js test/lumi-third-shot-pack-runtime-v1.test.js test/higgsfield-usd-budget-v1.test.js
       - name: Confirm provider-free implementation

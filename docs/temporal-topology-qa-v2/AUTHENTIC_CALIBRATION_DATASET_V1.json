@@ -1,0 +1,2004 @@
+{
+  "version": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+  "episode_id": "ep_lumi_flores_003",
+  "positives": [
+    {
+      "attempt": "q31-PRO2",
+      "kind": "AUTHENTIC_HUMAN_APPROVED_ASSEMBLY_EXAMPLE",
+      "golden_anatomy_reference": false,
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+        "evidence_ids": [
+          "q31-PRO2:native-decoded-pixels"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 97,
+        "fps": 24,
+        "observation_method": "Native decoded source/first/sampled chronological/risk-window frames; not a new human playback attestation.",
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q31-PRO2:canonical_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q31-PRO2:video_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q31-PRO2:first_frame"
+            ],
+            "video_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q31-PRO2:preceding_clean_frames"
+            ],
+            "video_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q31-PRO2:following_frames"
+            ],
+            "video_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+          }
+        },
+        "findings": []
+      }
+    },
+    {
+      "attempt": "q32-V2-PRO1",
+      "kind": "AUTHENTIC_HUMAN_APPROVED_ASSEMBLY_EXAMPLE",
+      "golden_anatomy_reference": false,
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+        "evidence_ids": [
+          "q32-V2-PRO1:native-decoded-pixels"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 97,
+        "fps": 24,
+        "observation_method": "Native decoded source/first/sampled chronological/risk-window frames; not a new human playback attestation.",
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q32-V2-PRO1:canonical_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q32-V2-PRO1:video_source"
+            ],
+            "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q32-V2-PRO1:first_frame"
+            ],
+            "video_sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q32-V2-PRO1:preceding_clean_frames"
+            ],
+            "video_sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q32-V2-PRO1:following_frames"
+            ],
+            "video_sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313"
+          }
+        },
+        "findings": [
+          {
+            "category": "VISIBLE_CONTOUR_ANOMALY",
+            "first_suspicious_frame": 72,
+            "last_suspicious_frame": 96,
+            "duration_seconds": 1.0416666666666667,
+            "frame_indices": [
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "region": {
+              "bbox": [
+                0.1,
+                0.48,
+                0.65,
+                0.35
+              ],
+              "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+            },
+            "confidence": "UNCLASSIFIED_OBSERVATION",
+            "evidence_ids": [
+              "q32-V2-PRO1:native-lower-torso-risk-window",
+              "q32-V2-PRO1:video-source"
+            ],
+            "signals": {
+              "NEW_MASS": {
+                "observed": false,
+                "evidence_ids": [
+                  "q32-V2-PRO1:source-comparison"
+                ],
+                "note": "New independent body-like mass not proven."
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": false,
+                "evidence_ids": [
+                  "q32-V2-PRO1:root-occluded"
+                ],
+                "note": "Independent connection unresolved."
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q32-V2-PRO1:body-adjacent-motion"
+                ],
+                "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q32-V2-PRO1:visible-contour-change"
+                ],
+                "note": "Contour differs, significance as anatomy uncertain."
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": false,
+              "origin": "PRESENT_IN_VIDEO_SOURCE"
+            },
+            "supporting_signals": [
+              "VISIBLE_LOWER_CONTOUR",
+              "DARK_BANDS",
+              "TEMPORAL_PERSISTENCE"
+            ],
+            "contradicting_signals": [
+              "INDEPENDENT_ROOT_NOT_VISIBLE",
+              "CLOTHING_ARM_OCCLUSION",
+              "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+            ],
+            "description": "Lower rear contour becomes darker during late perspective change; small yellow source contour already exists. No independent root or separately articulated mass is resolved."
+          }
+        ]
+      }
+    },
+    {
+      "attempt": "q33-V2-PRO1",
+      "kind": "AUTHENTIC_HUMAN_APPROVED_ASSEMBLY_EXAMPLE",
+      "golden_anatomy_reference": false,
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+        "evidence_ids": [
+          "q33-V2-PRO1:native-decoded-pixels"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 97,
+        "fps": 24,
+        "observation_method": "Native decoded source/first/sampled chronological/risk-window frames; not a new human playback attestation.",
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q33-V2-PRO1:canonical_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q33-V2-PRO1:video_source"
+            ],
+            "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q33-V2-PRO1:first_frame"
+            ],
+            "video_sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q33-V2-PRO1:preceding_clean_frames"
+            ],
+            "video_sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q33-V2-PRO1:following_frames"
+            ],
+            "video_sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5"
+          }
+        },
+        "findings": [
+          {
+            "category": "VISIBLE_CONTOUR_ANOMALY",
+            "first_suspicious_frame": 72,
+            "last_suspicious_frame": 96,
+            "duration_seconds": 1.0416666666666667,
+            "frame_indices": [
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "region": {
+              "bbox": [
+                0.1,
+                0.48,
+                0.65,
+                0.35
+              ],
+              "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+            },
+            "confidence": "UNCLASSIFIED_OBSERVATION",
+            "evidence_ids": [
+              "q33-V2-PRO1:native-lower-torso-risk-window",
+              "q33-V2-PRO1:video-source"
+            ],
+            "signals": {
+              "NEW_MASS": {
+                "observed": false,
+                "evidence_ids": [
+                  "q33-V2-PRO1:source-comparison"
+                ],
+                "note": "New independent body-like mass not proven."
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": false,
+                "evidence_ids": [
+                  "q33-V2-PRO1:root-occluded"
+                ],
+                "note": "Independent connection unresolved."
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q33-V2-PRO1:body-adjacent-motion"
+                ],
+                "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q33-V2-PRO1:visible-contour-change"
+                ],
+                "note": "Contour differs, significance as anatomy uncertain."
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": false,
+              "origin": "PRESENT_IN_VIDEO_SOURCE"
+            },
+            "supporting_signals": [
+              "VISIBLE_LOWER_CONTOUR",
+              "DARK_BANDS",
+              "TEMPORAL_PERSISTENCE"
+            ],
+            "contradicting_signals": [
+              "INDEPENDENT_ROOT_NOT_VISIBLE",
+              "CLOTHING_ARM_OCCLUSION",
+              "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+            ],
+            "description": "Striped lower rear contour appears during late turn. Source contains a yellow crescent behind overalls already. Temporal banding and shape change are visible, but independent anatomical attachment is occluded."
+          }
+        ]
+      }
+    },
+    {
+      "attempt": "q34-V2-PRO1",
+      "kind": "AUTHENTIC_HUMAN_APPROVED_ASSEMBLY_EXAMPLE",
+      "golden_anatomy_reference": false,
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6",
+        "evidence_ids": [
+          "q34-V2-PRO1:native-decoded-pixels"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 97,
+        "fps": 24,
+        "observation_method": "Native decoded source/first/sampled chronological/risk-window frames; not a new human playback attestation.",
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q34-V2-PRO1:canonical_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q34-V2-PRO1:video_source"
+            ],
+            "sha256": "6616422e8e8f38c3282b1178e1a633881394b1d2676027953153fe3d7a53089b"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q34-V2-PRO1:first_frame"
+            ],
+            "video_sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q34-V2-PRO1:preceding_clean_frames"
+            ],
+            "video_sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q34-V2-PRO1:following_frames"
+            ],
+            "video_sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6"
+          }
+        },
+        "findings": [
+          {
+            "category": "VISIBLE_CONTOUR_ANOMALY",
+            "first_suspicious_frame": 40,
+            "last_suspicious_frame": 96,
+            "duration_seconds": 2.375,
+            "frame_indices": [
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96
+            ],
+            "region": {
+              "bbox": [
+                0.1,
+                0.48,
+                0.65,
+                0.35
+              ],
+              "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+            },
+            "confidence": "UNCLASSIFIED_OBSERVATION",
+            "evidence_ids": [
+              "q34-V2-PRO1:native-lower-torso-risk-window",
+              "q34-V2-PRO1:video-source"
+            ],
+            "signals": {
+              "NEW_MASS": {
+                "observed": false,
+                "evidence_ids": [
+                  "q34-V2-PRO1:source-comparison"
+                ],
+                "note": "New independent body-like mass not proven."
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": false,
+                "evidence_ids": [
+                  "q34-V2-PRO1:root-occluded"
+                ],
+                "note": "Independent connection unresolved."
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q34-V2-PRO1:body-adjacent-motion"
+                ],
+                "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q34-V2-PRO1:visible-contour-change"
+                ],
+                "note": "Contour differs, significance as anatomy uncertain."
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": false,
+              "origin": "UNKNOWN"
+            },
+            "supporting_signals": [
+              "VISIBLE_LOWER_CONTOUR",
+              "DARK_BANDS",
+              "TEMPORAL_PERSISTENCE"
+            ],
+            "contradicting_signals": [
+              "INDEPENDENT_ROOT_NOT_VISIBLE",
+              "CLOTHING_ARM_OCCLUSION",
+              "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+            ],
+            "description": "Dark/yellow lower posterior contour visible behind overalls from approximately 1.667s. Separate anatomical root is occluded by clothing and arm; color and silhouette are insufficient to prove a second torso."
+          }
+        ]
+      }
+    },
+    {
+      "attempt": "q35-V2-PRO1",
+      "kind": "AUTHENTIC_HUMAN_APPROVED_ASSEMBLY_EXAMPLE",
+      "golden_anatomy_reference": false,
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b",
+        "evidence_ids": [
+          "q35-V2-PRO1:native-decoded-pixels"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 121,
+        "fps": 24,
+        "observation_method": "Native decoded source/first/sampled chronological/risk-window frames; not a new human playback attestation.",
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q35-V2-PRO1:canonical_source"
+            ],
+            "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q35-V2-PRO1:video_source"
+            ],
+            "sha256": "7b0b8ade886e778bcab74033ba89ce319d0222a048201c5befebfa1dfc437491"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q35-V2-PRO1:first_frame"
+            ],
+            "video_sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q35-V2-PRO1:preceding_clean_frames"
+            ],
+            "video_sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "q35-V2-PRO1:following_frames"
+            ],
+            "video_sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b"
+          }
+        },
+        "findings": [
+          {
+            "category": "VISIBLE_CONTOUR_ANOMALY",
+            "first_suspicious_frame": 54,
+            "last_suspicious_frame": 120,
+            "duration_seconds": 2.7916666666666665,
+            "frame_indices": [
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120
+            ],
+            "region": {
+              "bbox": [
+                0.1,
+                0.48,
+                0.65,
+                0.35
+              ],
+              "units": "NORMALIZED_COARSE_LOWER_TORSO_ROI"
+            },
+            "confidence": "UNCLASSIFIED_OBSERVATION",
+            "evidence_ids": [
+              "q35-V2-PRO1:native-lower-torso-risk-window",
+              "q35-V2-PRO1:video-source"
+            ],
+            "signals": {
+              "NEW_MASS": {
+                "observed": false,
+                "evidence_ids": [
+                  "q35-V2-PRO1:source-comparison"
+                ],
+                "note": "New independent body-like mass not proven."
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": false,
+                "evidence_ids": [
+                  "q35-V2-PRO1:root-occluded"
+                ],
+                "note": "Independent connection unresolved."
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q35-V2-PRO1:body-adjacent-motion"
+                ],
+                "note": "Body-adjacent region moves; shadow/occlusion alternatives remain."
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "q35-V2-PRO1:visible-contour-change"
+                ],
+                "note": "Contour differs, significance as anatomy uncertain."
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": false,
+              "origin": "UNKNOWN"
+            },
+            "supporting_signals": [
+              "VISIBLE_LOWER_CONTOUR",
+              "DARK_BANDS",
+              "TEMPORAL_PERSISTENCE"
+            ],
+            "contradicting_signals": [
+              "INDEPENDENT_ROOT_NOT_VISIBLE",
+              "CLOTHING_ARM_OCCLUSION",
+              "PERSPECTIVE_LIGHTING_NOT_EXCLUDED"
+            ],
+            "description": "Dark/yellow posterior contour from approximately 2.25s is visible across native frames. Its independent root is not exposed. Temporal persistence does not by itself prove anatomical topology."
+          }
+        ]
+      }
+    }
+  ],
+  "negatives": [
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_POSTERIOR_BODY_MUTATION",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "POSTERIOR_BODY_MUTATION",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_INDEPENDENT_EXTRA_WING_ROOT",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "INDEPENDENT_EXTRA_WING_ROOT",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_DETACHED_EXTRA_WING",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "DETACHED_EXTRA_WING",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_SEPARATELY_ARTICULATED_EXTRA_WING",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "SEPARATELY_ARTICULATED_EXTRA_WING",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_STINGER",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "STINGER",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_ARM",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "EXTRA_ARM",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_LEG",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "EXTRA_LEG",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_EXTRA_LIMB",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "EXTRA_LIMB",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_SECOND_TORSO",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "SECOND_TORSO",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_REAR_BULB",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "REAR_BULB",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "SYNTHETIC_UNAMBIGUOUS_PERSISTENT_SEGMENTED_ABDOMEN",
+      "kind": "SYNTHETIC_NOT_HISTORICAL_CLIP",
+      "review": {
+        "version": "TEMPORAL_TOPOLOGY_QA_V2",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "evidence_ids": [
+          "SYNTHETIC_PIXELS_NOT_HUMAN"
+        ],
+        "all_frames_decoded": true,
+        "decoded_frame_count": 24,
+        "fps": 24,
+        "comparisons": {
+          "canonical_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_canonical_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "video_source": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_video_source"
+            ],
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "first_frame": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_first_frame"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preceding_clean_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_preceding_clean_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "following_frames": {
+            "reviewed": true,
+            "evidence_ids": [
+              "SYNTHETIC_following_frames"
+            ],
+            "video_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        "findings": [
+          {
+            "category": "PERSISTENT_SEGMENTED_ABDOMEN",
+            "evidence_ids": [
+              "SYNTHETIC_FRAME_5",
+              "SYNTHETIC_FRAME_6"
+            ],
+            "first_suspicious_frame": 5,
+            "last_suspicious_frame": 9,
+            "frame_indices": [
+              5,
+              6,
+              7,
+              8,
+              9
+            ],
+            "duration_seconds": 0.20833333333333334,
+            "region": {
+              "bbox": [
+                0.1,
+                0.2,
+                0.3,
+                0.3
+              ],
+              "units": "NORMALIZED"
+            },
+            "signals": {
+              "NEW_MASS": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_0"
+                ]
+              },
+              "INDEPENDENT_ANATOMICAL_CONNECTION": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_1"
+                ]
+              },
+              "MOTION_COHERENCE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_2"
+                ]
+              },
+              "CANONICAL_SILHOUETTE_CHANGE": {
+                "observed": true,
+                "evidence_ids": [
+                  "SYNTHETIC_STRUCTURAL_SIGNAL_3"
+                ]
+              }
+            },
+            "source_relation": {
+              "absent_from_canonical": true,
+              "origin": "INTRODUCED_TEMPORALLY"
+            },
+            "supporting_signals": [
+              "NEW_MASS",
+              "INDEPENDENT_ANATOMICAL_CONNECTION",
+              "MOTION_COHERENCE",
+              "CANONICAL_SILHOUETTE_CHANGE"
+            ],
+            "contradicting_signals": []
+          }
+        ]
+      }
+    }
+  ],
+  "label_policy": "Human-positive labels score false-fatals only; never enter confidence classifier. Synthetic structural fixtures are typed observations, not image-detector sensitivity estimates.",
+  "canonical_source_sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+  "provider_calls": 0,
+  "sha256": "d7b90695e8480a76cc854cf7d001b98ba2eac874b3fc048a483c15b4bead810b"
+}

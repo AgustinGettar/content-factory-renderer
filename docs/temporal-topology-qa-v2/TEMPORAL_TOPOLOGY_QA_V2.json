@@ -1,0 +1,66 @@
+{
+  "version": "TEMPORAL_TOPOLOGY_QA_V2",
+  "canonical_wing_assemblies": 2,
+  "principle": "VISIBLE_CONTOUR_ANOMALY is not ACTUAL_TOPOLOGY_MUTATION",
+  "required_structural_signals": [
+    "NEW_MASS",
+    "INDEPENDENT_ANATOMICAL_CONNECTION",
+    "MOTION_COHERENCE",
+    "CANONICAL_SILHOUETTE_CHANGE"
+  ],
+  "required_persistence": "5 consecutive decoded frames OR 0.20s across at least 2 consecutive decoded frames",
+  "blocker_categories": [
+    "POSTERIOR_BODY_MUTATION",
+    "INDEPENDENT_EXTRA_WING_ROOT",
+    "DETACHED_EXTRA_WING",
+    "SEPARATELY_ARTICULATED_EXTRA_WING",
+    "STINGER",
+    "EXTRA_ARM",
+    "EXTRA_LEG",
+    "EXTRA_LIMB",
+    "SECOND_TORSO",
+    "REAR_BULB",
+    "PERSISTENT_SEGMENTED_ABDOMEN"
+  ],
+  "insufficient_standalone_evidence": [
+    "DARK_REGION",
+    "DARK_BANDS",
+    "LOWER_CONTOUR",
+    "LIGHTING_GRADIENT",
+    "SHADOW",
+    "TRANSLUCENT_WING_OVERLAP",
+    "WING_EDGE",
+    "OVERALLS_EDGE",
+    "BACKGROUND_ALIGNMENT",
+    "PERSPECTIVE_COMPRESSION",
+    "MOTION_BLUR",
+    "TEMPORARY_SILHOUETTE_AMBIGUITY"
+  ],
+  "required_comparisons": [
+    "canonical_source",
+    "video_source",
+    "first_frame",
+    "preceding_clean_frames",
+    "following_frames"
+  ],
+  "required_per_finding": [
+    "first_suspicious_frame",
+    "last_suspicious_frame",
+    "duration_seconds",
+    "frame_indices",
+    "region.bbox",
+    "confidence_class",
+    "supporting_signals",
+    "contradicting_signals"
+  ],
+  "wing_rule": "Internal veins, translucent overlaps, folded edges and perspective lobes are permitted; extra root, detached wing or independently articulated appendage requires structural evidence.",
+  "severity_mapping": {
+    "HIGH_CONFIDENCE_MUTATION": "BLOCKER",
+    "AMBIGUOUS_CONTOUR": "REVIEW_REQUIRED",
+    "LIKELY_PERSPECTIVE_OR_OVERLAP": "PASS_WITH_WARNING",
+    "NO_DEFECT": "PASS"
+  },
+  "scope": "All future opted-in Director episodes; legacy historical reports retained without rewriting.",
+  "human_approval_enters_classifier": false,
+  "providers": 0
+}

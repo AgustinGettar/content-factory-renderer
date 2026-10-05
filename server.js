@@ -951,6 +951,13 @@ app.post("/lumi-pipeline/v1_1_2/episodes/third/videos", (req, res) => {
   return res.status(202).json({ ok: true, started, state: thirdShortJobState.get("VIDEO") });
 });
 
+app.post("/lumi-pipeline/v1_1_2/episodes/third/directed-control", async (req,res) => {
+  const {controlledEpisodeAuthorized,beginControlledEpisodeAction}=await import('./lib/cinematic-director-v1/controlled-episode-action.js');
+  if(!controlledEpisodeAuthorized(process.env,req.headers['x-lumi-episode-token']))return res.status(401).json({ok:false,error:'unauthorized'});
+  try {const result=beginControlledEpisodeAction({env:process.env,body:req.body});return res.status(result.status==='ACCEPTED'?202:200).json({ok:true,...result});}
+  catch(error){return res.status(409).json({ok:false,error:error.code||error.message});}
+});
+
 app.post("/lumi-pipeline/v1_1_2/episodes/third/temporal-qa", async (req, res) => {
   if (!authorized(req) || LUMI_RUNTIME_ENV !== "staging") return res.status(401).json({ ok: false, error: "unauthorized" });
   try {

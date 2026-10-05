@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Q31, requestInput, CalibrationJournalStore, runQ31SeriesV2Calibration } from '../lib/lumi-q31-series-v2-calibration.js';
+import { Q31, requestInput, CalibrationJournalStore, runQ31SeriesV2Calibration, readCalibrationJson } from '../lib/lumi-q31-series-v2-calibration.js';
 import { journaledFetch } from '../lib/provider-emission-journal-v1.js';
 function memoryStorage(){
   const values=new Map();
@@ -53,4 +53,13 @@ test('journal rejects identity changes and unauthorized transitions',async()=>{
   await assert.rejects(store.prepare({...context(),state:'PREPARED',scene_id:'q32'}),/scope_mismatch/);
   await store.prepare({...context(),state:'PREPARED'});
   await assert.rejects(store.transition(Q31.revision,'PREPARED',{state:'ACKNOWLEDGED'}),/transition_rejected/);
+});
+test('absence is proven by successful listing, not inferred from opaque download errors',async()=>{
+  let downloads=0;
+  assert.equal(await readCalibrationJson({list:async()=>({data:[],error:null}),download:async()=>{downloads++;throw new Error('opaque');}},'completed'),null);
+  assert.equal(downloads,0);
+});
+test('listing access failures and unreadable existing records fail closed',async()=>{
+  await assert.rejects(readCalibrationJson({list:async()=>({error:{message:'auth'}})},'completed'),/list_failed/);
+  await assert.rejects(readCalibrationJson({list:async()=>({data:[{name:'completed.json'}]}),download:async()=>({error:{message:'{}'}})},'completed'),/read_failed/);
 });

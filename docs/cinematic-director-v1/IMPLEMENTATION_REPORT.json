@@ -1,0 +1,93 @@
+{
+  "status": "LUMI_CINEMATIC_DIRECTOR_V1 — IMPLEMENTED_WITH_BLOCKERS",
+  "date": "2026-10-05",
+  "repository": "AgustinGettar/content-factory-renderer",
+  "base_commit": "f42d5a83e2806b3db17080c2829d305bad4a8525",
+  "local_branch": "local/lumi-cinematic-director-v1",
+  "modified_existing_files": [
+    "lib/lumi-series-v2-execution.js"
+  ],
+  "added_files": [
+    "docs/cinematic-director-v1/README.md",
+    "docs/cinematic-director-v1/evidence/CHARACTER_MODEL_SHEET_V2.json",
+    "docs/cinematic-director-v1/evidence/LUMI_SERIES_PRODUCTION_BIBLE_V2.json",
+    "docs/cinematic-director-v1/evidence/LUMI_SERIES_STYLE_V2.json",
+    "docs/cinematic-director-v1/evidence/LUMI_SERIES_V2_QUALITY_BUDGET_REVIEW.json",
+    "docs/cinematic-director-v1/evidence/LUMI_SERIES_V2_QUALITY_GATE_REPORT.json",
+    "docs/cinematic-director-v1/evidence/LUMI_SERIES_V2_STATE_ADDENDUM.md",
+    "docs/cinematic-director-v1/evidence/LUMI_q32_q33_REPAIR_PLAN.json",
+    "docs/cinematic-director-v1/evidence/SHOT_CONTRACTS_V2.json",
+    "docs/cinematic-director-v1/evidence/WORLD_BIBLE_V2.json",
+    "docs/cinematic-director-v1/evidence/manifest.json",
+    "lib/cinematic-director-v1/LUMI_CINEMATIC_DIRECTION_V1.schema.json",
+    "lib/cinematic-director-v1/LUMI_KLING_SHOT_CONTRACT_V2.schema.json",
+    "lib/cinematic-director-v1/PROMPT_COMPILER_V3.mjs",
+    "lib/cinematic-director-v1/PROMPT_COMPILER_V3.test.mjs",
+    "lib/cinematic-director-v1/director.js",
+    "lib/cinematic-director-v1/integration.js",
+    "lib/cinematic-director-v1/profiles.js",
+    "lib/cinematic-director-v1/projection.js",
+    "scripts/director-dry-run.mjs",
+    "scripts/director-offline-guard.mjs",
+    "test/fixtures/director-v1.js",
+    "test/fixtures/director-v3-baseline.json",
+    "test/lumi-cinematic-director-v1.test.js",
+    "docs/cinematic-director-v1/IMPLEMENTATION_REPORT.json"
+  ],
+  "integration_point": "runLumiV2Step: opt-in early return to reviewAtCanonicalBoundary before clients/preflight/claims",
+  "tests": {
+    "passed": 169,
+    "failed": 0,
+    "skipped": 0,
+    "original_v3": 38,
+    "director": 52,
+    "existing_regression": 79,
+    "network_guard": "ACTIVE",
+    "full_repository_suite": "NOT_RUN; focused relevant regression executed"
+  },
+  "dry_run": {
+    "canonical_entry": true,
+    "three_synthetic_examples": "EXPECTED_RESULTS_PASS",
+    "documentary_q31_q32_q33": "BLOCKERS_PRESERVED",
+    "real_visual_recertification": false,
+    "remote_preflight": false,
+    "live_database_access": false
+  },
+  "states": {
+    "PRODUCTION_ACTIVATED": false,
+    "PROVIDER_CALLS": 0,
+    "NEW_GENERATION_COST": 0,
+    "NEW_MEDIA": 0,
+    "TTS": 0,
+    "MASTER": "NOT_CREATED",
+    "EPISODE_RESUMED": false,
+    "PUSH": false,
+    "MERGE": false,
+    "DEPLOY": false
+  },
+  "capabilities_confirmed": [
+    "exact Higgsfield Pro I2V endpoint",
+    "sound on/off",
+    "duration integer 3..15",
+    "cfg_scale 0..1",
+    "image_url required string",
+    "multi_shots boolean",
+    "prompt string"
+  ],
+  "capabilities_pending": [
+    "documented prompt length limit",
+    "detailed media constraints",
+    "provider internal prompt transformations not observable"
+  ],
+  "source_and_review_blockers": [
+    "q32 temporal defect retained",
+    "q33 source defect with temporal amplification retained",
+    "q31-PRO2 human approval retained; warning actor/date unknown in recovered report",
+    "current original media, action-specific reviews and complete golden roles not bound",
+    "source orientation, laterality and free hands UNKNOWN in real documentary drafts",
+    "full sequence/neighbor visual review pending"
+  ],
+  "runtime_protection": "Flag default OFF; true requires local_offline and existing v1_1_2 selection. No dispatcher available in director.",
+  "cost_scope": "Historical amounts and ledger remain unchanged; no quote refreshed or authorization inferred.",
+  "evidence_manifest": "evidence/manifest.json"
+}

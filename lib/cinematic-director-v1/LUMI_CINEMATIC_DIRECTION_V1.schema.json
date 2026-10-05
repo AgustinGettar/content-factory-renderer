@@ -1,0 +1,558 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lumi:LUMI_CINEMATIC_DIRECTION_V1",
+  "type": "object",
+  "properties": {
+    "version": {
+      "const": "LUMI_CINEMATIC_DIRECTION_V1"
+    },
+    "episode_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "contract": {
+      "type": "object"
+    },
+    "direction": {
+      "type": "object",
+      "properties": {
+        "educational_goal": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_es": {
+          "type": "string",
+          "minLength": 1
+        },
+        "emotion": {
+          "type": "string",
+          "enum": [
+            "warm",
+            "curious",
+            "encouraging",
+            "attentive"
+          ]
+        },
+        "focus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "framing": {
+          "const": "FROM_APPROVED_SOURCE"
+        },
+        "principal_actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "grammar": {
+                "type": "string",
+                "enum": [
+                  "GREETING",
+                  "PRESENT_FLOWER",
+                  "ATTENTIVE_WAIT",
+                  "GAZE_VIEWER",
+                  "FAREWELL"
+                ]
+              },
+              "actor": {
+                "const": "lumi"
+              },
+              "body_part": {
+                "type": "string",
+                "enum": [
+                  "gaze",
+                  "character_left_forearm",
+                  "character_right_forearm"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "toward_target",
+                  "toward_viewer"
+                ]
+              },
+              "amplitude": {
+                "const": "small"
+              },
+              "pace": {
+                "const": "natural_1x"
+              },
+              "body_motion": {
+                "type": "string",
+                "enum": [
+                  "PRESERVE_INITIAL",
+                  "TURN"
+                ]
+              },
+              "timing": {
+                "type": "object",
+                "properties": {
+                  "preparation": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "gesture": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "settle": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "response_window": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "preparation",
+                  "gesture",
+                  "settle",
+                  "response_window"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "grammar",
+              "actor",
+              "body_part",
+              "target",
+              "direction",
+              "amplitude",
+              "pace",
+              "body_motion",
+              "timing"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "secondary_motion": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "blink",
+              "smile",
+              "natural_settle",
+              "subtle_wing_response"
+            ]
+          }
+        },
+        "stable_parts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "torso",
+              "feet",
+              "posterior_silhouette",
+              "wand",
+              "educational_objects"
+            ]
+          }
+        },
+        "camera": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "STATIC",
+                "SUBTLE_PUSH_IN",
+                "SUBTLE_REFRAME",
+                "GENTLE_TRACKING"
+              ]
+            },
+            "reason_es": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approval_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "type",
+            "reason_es",
+            "approval_id"
+          ],
+          "additionalProperties": false
+        },
+        "end": {
+          "type": "string",
+          "enum": [
+            "NATURAL_SETTLE",
+            "ATTENTIVE_LIVE_HOLD"
+          ]
+        },
+        "continuity": {
+          "type": "object",
+          "properties": {
+            "previous_shot": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "next_shot": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "entry_gaze": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exit_gaze": {
+              "type": "string",
+              "minLength": 1
+            },
+            "screen_direction": {
+              "type": "string",
+              "enum": [
+                "PRESERVE",
+                "UNKNOWN"
+              ]
+            },
+            "function": {
+              "type": "string",
+              "enum": [
+                "introduction",
+                "teaching",
+                "question",
+                "closing"
+              ]
+            }
+          },
+          "required": [
+            "previous_shot",
+            "next_shot",
+            "entry_gaze",
+            "exit_gaze",
+            "screen_direction",
+            "function"
+          ],
+          "additionalProperties": false
+        },
+        "captions": {
+          "type": "object",
+          "properties": {
+            "generated_text": {
+              "const": false
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "text_character_overlap": {
+              "const": 0
+            },
+            "critical_object_overlap": {
+              "const": 0
+            },
+            "safe_region_fact": {
+              "const": "caption_space"
+            }
+          },
+          "required": [
+            "generated_text",
+            "labels",
+            "text_character_overlap",
+            "critical_object_overlap",
+            "safe_region_fact"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "educational_goal",
+        "reason_es",
+        "emotion",
+        "focus",
+        "framing",
+        "principal_actions",
+        "secondary_motion",
+        "stable_parts",
+        "camera",
+        "end",
+        "continuity",
+        "captions"
+      ],
+      "additionalProperties": false
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "en",
+        "es"
+      ]
+    },
+    "facts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "value": {},
+          "status": {
+            "type": "string",
+            "enum": [
+              "OBSERVED",
+              "APPROVED",
+              "PROPOSED",
+              "UNKNOWN"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "value",
+          "status",
+          "evidence_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "actor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "HUMAN",
+              "VISUAL_REVIEW",
+              "SYNTHETIC_FIXTURE",
+              "DOCUMENTARY"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "APPROVED",
+              "APPROVED_WITH_WARNING",
+              "BLOCKER",
+              "REVIEW_REQUIRED",
+              "UNKNOWN"
+            ]
+          },
+          "observations": {
+            "type": "object"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "code",
+                "scope",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "artifact_id",
+          "sha256",
+          "actor",
+          "at",
+          "scope",
+          "kind",
+          "status",
+          "observations",
+          "warnings"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "context": {
+      "type": "object"
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "source",
+              "qa"
+            ]
+          },
+          "canonical_path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Explicit persistent artifact path; accepted with SHA-verified local materialization only. Not a signed URL."
+          }
+        },
+        "required": [
+          "artifact_id",
+          "path",
+          "sha256",
+          "role"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "source_qa": {
+      "type": "object"
+    },
+    "request_parameters": {
+      "type": "object"
+    },
+    "required_controls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "direction_approval": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fingerprint": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "actor": {
+              "type": "string",
+              "minLength": 1
+            },
+            "at": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "const": "DIRECTOR_DIRECTION"
+            }
+          },
+          "required": [
+            "fingerprint",
+            "actor",
+            "at",
+            "scope"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "execution_authorization": {
+      "const": false
+    },
+    "synthetic_fixture": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "version",
+    "episode_id",
+    "revision",
+    "contract",
+    "direction",
+    "policy_id",
+    "language",
+    "facts",
+    "reviews",
+    "context",
+    "media",
+    "source_qa",
+    "request_parameters",
+    "required_controls",
+    "direction_approval",
+    "execution_authorization",
+    "synthetic_fixture"
+  ],
+  "additionalProperties": false,
+  "description": "Explicit envelope. contract is validated by validateShotContract from PROMPT_COMPILER_V3; schema validation never certifies pixels."
+}

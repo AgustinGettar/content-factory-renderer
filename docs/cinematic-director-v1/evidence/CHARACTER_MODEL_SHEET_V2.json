@@ -1,0 +1,63 @@
+{
+  "id": "CHARACTER_MODEL_SHEET_V2",
+  "version": "2.0.0",
+  "character_id": "lumi",
+  "status": "CANONICAL_QUALITATIVE_LOCK_FROZEN_NUMERIC_IMAGE_BOUND_LOCK_PENDING",
+  "runtime_active": false,
+  "evidence": {
+    "read_local": "repo/lib/asset-v2/character-lock.js",
+    "documented_lock_version": "lumi-character-lock/1",
+    "pixel_review_completed_in_this_file": false,
+    "identity_reference_scope": "The local canonical wand PNG is a historical 2D illustration inspected by the parent reviewer. Use only for identity features and wand design, never as 3D style/material/lighting golden authority.",
+    "identity_master_documented": {
+      "storage_bucket": "characters",
+      "object_path": "lumi-reference.png",
+      "width": 1122,
+      "height": 1402,
+      "sha256": "9216398a13f8baac4ddae2d80718997248fbce9a9bef9a61e6be2c409f797c00",
+      "sha_evidence": "read from canonical lock; not reverified against downloaded bytes"
+    },
+    "approved_state_references_documented": [
+      {"path": "repo/assets/lumi-canonical-wand.png", "role": "open_eyes_with_wand", "sha256": "77d1b42c07a3de6a3845ae7674bc3637b79d9d1c373959c736ed984656646b17"},
+      {"path": "repo/assets/lumi-canonical-wand-blink.png", "role": "blink_with_wand", "sha256": "ae8ecb4886b88e9ec0bff6f178b70839037f0f8698e977d4953d225c09a0c5fd"}
+    ],
+    "style_authority": "LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4",
+    "golden_character_reference": "LUMI_GOLDEN_CHARACTER_REFERENCE_V1"
+  },
+  "immutable": {
+    "identity": "original fairy-firefly preschool teacher; warm, magical, encouraging, curious and safe; no humanization",
+    "head_proportions": "large rounded head; match approved golden silhouette and original identity lock",
+    "eye_dimensions": "exactly two very large turquoise oval eyes; relative width, height, spacing and placement image-bound to approved identity",
+    "eyes": "dark pupils, white catchlights, soft lashes, natural depth; turquoise remains stable",
+    "antennae_count": 2,
+    "antenna_shape": "two thin warm-brown antennae with rounded violet tips",
+    "violet_tips": "one rounded violet tip per antenna; stable color and silhouette",
+    "hair_tuft": "one small three-point yellow tuft",
+    "cheeks": "two soft round pink cheeks",
+    "face": "wide gentle curved smile, small rounded mouth, thin warm-brown expressive eyebrows, mouth centered low below nose mark",
+    "wing_count": 2,
+    "wing_silhouette": "two simple symmetric translucent light-blue teardrop wings with subtle pale veins; one per side behind upper torso; no extra lobes or extra wings",
+    "body": "warm luminous yellow; rounded firefly body, short torso, short rounded limbs, stable preschool-readable silhouette",
+    "overalls": "light-blue denim-style overalls; two straps, two round yellow buttons, centered front pocket and rolled cuffs; fine denim texture",
+    "shoes": "rounded white preschool sneakers with light-blue side and sole accents",
+    "wand": "lumi_wand_v1: short violet handle, rounded yellow five-point star tip and warm inner glow; one-handed child-friendly proportions",
+    "wand_trail": "small white, yellow and violet particles following star tip; never duplicate the wand or obscure face or educational objects"
+  },
+  "wand_rules": {
+    "required": "explicitly declare present/visible/held/offscreen in every start and end state; canonical teaching shots retain the approved wand",
+    "hands": "one continuous plausible grip; no floating, fused hand or swapped hand without a specified natural action",
+    "magic": "small localized reward only; no object creation, disappearance, count or color change unless explicitly specified and deterministically controlled",
+    "educational_pointer": "point beside an object, never hide its defining color/geometry or touch through it"
+  },
+  "measurements": {
+    "status": "PENDING_ORIGINAL_GOLDEN_BYTES_AND_VISUAL_QA",
+    "coordinate_system": "normalized to verified reference width and height; pose and perspective documented",
+    "required": ["head_to_body_ratio", "head_width_to_height", "eye_width_to_head_width", "eye_height_to_head_height", "inter_eye_spacing", "antenna_curve_and_tip_scale", "wing_silhouette_and_attachment", "torso_and_limb_ratios", "overall_fit", "shoe_to_body_ratio", "wand_to_hand_and_body_ratio"],
+    "values": null,
+    "tolerance": null,
+    "rule": "Measure from accepted original pixels and record reference SHA/timecode; do not invent numerical dimensions or tolerances. A new 3D model or turnaround requires review."
+  },
+  "mutable_scene_state": ["pose", "expression", "gaze", "mouth_state", "hand_gesture", "wand_position", "wing_pose", "body_orientation", "camera_facing_angle"],
+  "forbidden": ["identity redesign", "extra/malformed limbs, hands or fingers", "more than two wings", "noncanonical wing lobes", "extra antennae", "changed eye/body/clothing colors", "changed species or age", "plastic or rubber toy material", "human pores", "unapproved costume or accessory"],
+  "acceptance": "All qualitative locks and image-bound geometry must match; occlusion never justifies inventing hidden anatomy. No scene may reinterpret the model sheet."
+}

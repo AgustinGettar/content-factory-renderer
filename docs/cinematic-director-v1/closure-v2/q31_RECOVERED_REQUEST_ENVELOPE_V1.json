@@ -1,0 +1,94 @@
+{
+  "version": "RECOVERED_REQUEST_ENVELOPE_V1",
+  "shot": "q31",
+  "episode": "ep_lumi_flores_003",
+  "binding_fingerprint": "30c68dc9bc8f1bfef638ec70be71f28b6f4a2d86367381635d586477dde952fd",
+  "reconstruction": "PARTIAL_EVIDENCE_RECORD_NOT_AN_ORIGINAL_PAYLOAD",
+  "credentials_included": false,
+  "provider": {
+    "value": "higgsfield_api",
+    "evidence": "ledger.provider"
+  },
+  "endpoint_model_id": {
+    "value": "kling-video/v3.0/pro/image-to-video",
+    "evidence": "ledger.result.model"
+  },
+  "mode_tier": {
+    "value": "PRO",
+    "evidence": "successful request endpoint path + ledger MODE_PROVENANCE; no mode field inferred"
+  },
+  "job_id": {
+    "value": "ace9ee08-5058-44f0-a98b-19d3b01b6608",
+    "evidence": "ledger.provider_request_id"
+  },
+  "source_artifact": {
+    "artifact_id": "e64582a6-db46-497a-84a7-450ac534c1d2",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/source/5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.png",
+    "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33"
+  },
+  "media_roles": {
+    "value": [
+      "START_FRAME"
+    ],
+    "evidence": "source_sha256 lineage + direct endpoint image_url contract"
+  },
+  "duration": {
+    "planned_seconds": 4,
+    "observed_seconds": 4.041667,
+    "submitted_value": null,
+    "evidence": "approved Shot Pack + ffprobe; not a recovered request field"
+  },
+  "aspect_ratio": {
+    "submitted_value": null,
+    "direct_endpoint_field": "NOT_EXPOSED",
+    "output_dimensions": [
+      1080,
+      1916
+    ],
+    "exact_9_16": false
+  },
+  "audio": {
+    "submitted_value": null,
+    "observed_streams": 0,
+    "future_required": "sound=off"
+  },
+  "prompt_sha256": null,
+  "submitted_parameters": {},
+  "request_timestamp": null,
+  "ledger_completion_recorded_at": "2026-10-05T08:44:50.029Z",
+  "response_metadata": {
+    "raw_response": null,
+    "ledger_status": "SUCCEEDED",
+    "artifact_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "bytes": 5009453,
+    "actual_mode_echo": "UNAVAILABLE",
+    "actual_model_echo": "UNAVAILABLE"
+  },
+  "estimator_payload_sha256": "9a20fdcdea236e9dbfbc853028c0f46bee1918a4539b14a73694e53ca28c2b77",
+  "estimator_hash_is_prompt_hash": false,
+  "unsupported_or_omitted_fields": {
+    "historical_omissions": "UNAVAILABLE; cannot infer absence from incomplete envelope",
+    "future_omitted": [
+      "mode",
+      "aspect_ratio",
+      "resolution",
+      "mask",
+      "negative_prompt",
+      "seed",
+      "camera_control",
+      "elements",
+      "last_image_url",
+      "multi_prompt"
+    ]
+  },
+  "UNAVAILABLE_FIELDS": {
+    "prompt_and_hash": "CRITICAL_FOR_EXACT_HISTORICAL_REPRODUCTION; new reviewed prompt would be a new revision",
+    "duration_sound_cfg_multi_shots_values": "Original submission values not recovered; current code/defaults do not prove them",
+    "request_timestamp": "NONCRITICAL; do not substitute completion timestamp",
+    "raw_ack_and_terminal_response": "NONCRITICAL if ledger job/artifact binding is sufficient",
+    "transport_url": "NONCRITICAL_VOLATILE; identity uses canonical artifact and SHA",
+    "actual_mode_echo": "NONCRITICAL; PRO selection established by endpoint, execution echo unobservable"
+  },
+  "gate": "PARTIAL; absence of noncritical fields alone is not a blocker. Exact historical replay of request text/parameters remains unproven."
+}

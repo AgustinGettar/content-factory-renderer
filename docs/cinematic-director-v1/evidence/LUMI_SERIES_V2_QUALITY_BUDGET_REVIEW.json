@@ -1,0 +1,624 @@
+{
+  "status": "LUMI SERIES V2 — QUALITY BUDGET REVIEW REQUIRED",
+  "human_approval": {
+    "revision": "q31-PRO2",
+    "status": "HUMAN_APPROVED",
+    "statement": "Esta Lumi está perfecta.",
+    "identity": "APPROVED",
+    "realism": "APPROVED",
+    "motion": "APPROVED",
+    "automated_wing_qa": "HUMAN_REVIEW_REQUIRED",
+    "human_wing_decision": "APPROVED_WITH_WARNING",
+    "wing_reason": "Possible lower wing contour acceptable visually; Lumi identity preserved.",
+    "artifact_sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "video_unchanged": true
+  },
+  "video_quality_profile": {
+    "id": "LUMI_VIDEO_QUALITY_PROFILE_V2",
+    "status": "FROZEN_HUMAN_APPROVED",
+    "source": "LUMI_CANONICAL_SOURCE_V2.png",
+    "source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "golden_video": "q31-PRO2",
+    "golden_video_sha": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "model": "kling-video/v3.0/pro/image-to-video",
+    "mode": "PRO",
+    "quality_provenance": "PRO_BY_REQUEST_ENDPOINT",
+    "style": "LUMI_ULTRA_REALISTIC_CGI_STYLE_V1",
+    "motion": "natural_real_time_1x",
+    "camera": "static_or_subtle_cinematic",
+    "realism_qa": "REQUIRED",
+    "technical_qa": "REQUIRED",
+    "wing_human_decision": "APPROVED_WITH_WARNING",
+    "automated_wing_qa": "HUMAN_REVIEW_REQUIRED",
+    "source_style_gate": "MUST_MATCH_CANONICAL_V2",
+    "max_new_image_calls_per_shot": 1,
+    "max_new_video_calls_per_shot": 1,
+    "retries": 0,
+    "variants": 0,
+    "resubmits": 0
+  },
+  "image_quality_profile": {
+    "id": "LUMI_IMAGE_QUALITY_PROFILE_V2",
+    "status": "FROZEN_CONFIGURATION_BUDGET_REVIEW_REQUIRED",
+    "model": "marketing-studio/image",
+    "display_model": "Marketing Studio Image 2.0 Alpha",
+    "resolution": "2k",
+    "quality": "high",
+    "aspect_ratio": "9:16",
+    "enhance_prompt": false,
+    "canonical_identity_source": "LUMI_CANONICAL_SOURCE_V2.png",
+    "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "source_input_policy": "ONLY_SHA_VERIFIED_CANONICAL_V2_AS_IDENTITY_AND_STYLE_REFERENCE",
+    "max_provider_calls_per_shot": 1,
+    "retries": 0,
+    "variants": 0,
+    "resubmits": 0,
+    "selection_basis": "Documented current direct API with canonical reference-guided editing, 2K/high/9:16 and numeric USD estimator. Flare 2.5 was considered only in read-only price discovery; estimator returned token pricing without a per-request USD quote. No image-model benchmark generations performed.",
+    "required_source_qa": [
+      "IDENTITY",
+      "REALISM",
+      "ANATOMY",
+      "EDUCATIONAL_SEMANTICS",
+      "COLOR",
+      "VIDEO_SOURCE_READINESS"
+    ],
+    "cartoon_drift": "MINIMAL",
+    "local_color_repair": "DETERMINISTIC_ONLY",
+    "semantics": "PRESERVE_EXISTING_EPISODE_PLAN_AND_SHOT_PACK",
+    "serial_gate": "SOURCE_QA_THEN_ONE_PRO_VIDEO_THEN_FULL_TEMPORAL_QA",
+    "superseded_preflight_candidate": "marketing-studio/image/flare",
+    "premium_source_rendering": "LUMI_ULTRA_REALISTIC_CGI_STYLE_V1"
+  },
+  "source_audit": [
+    {
+      "shot": "q32",
+      "canonical_pack_shot": "q32",
+      "source_scene": "s32",
+      "sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac",
+      "classification": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "identity": "RECOGNIZABLE_LEGACY_BUT_V2_FACE_MATERIAL_PARITY_NOT_MET",
+      "material_realism": "FAIL_FLAT_ILLUSTRATED_SHADING",
+      "eye_depth": "INSUFFICIENT_VS_Q31_PRO2",
+      "wing_translucency": "SIMPLIFIED_VS_V2",
+      "denim_detail": "SIMPLIFIED_VS_V2",
+      "environment_detail": "FAIL_ILLUSTRATED_LOW_DEPTH",
+      "cinematic_lighting": "FAIL_FLAT_GRADIENTS",
+      "cartoon_drift": "ABOVE_V2_THRESHOLD",
+      "video_source_readiness": "FAIL_STYLE_GATE",
+      "educational_objects": [
+        "red"
+      ],
+      "source_sha_verified": true
+    },
+    {
+      "shot": "q33",
+      "canonical_pack_shot": "q33",
+      "source_scene": "s33",
+      "sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819",
+      "classification": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "identity": "RECOGNIZABLE_LEGACY_BUT_V2_FACE_MATERIAL_PARITY_NOT_MET",
+      "material_realism": "FAIL_FLAT_ILLUSTRATED_SHADING",
+      "eye_depth": "INSUFFICIENT_VS_Q31_PRO2",
+      "wing_translucency": "SIMPLIFIED_VS_V2",
+      "denim_detail": "SIMPLIFIED_VS_V2",
+      "environment_detail": "FAIL_ILLUSTRATED_LOW_DEPTH",
+      "cinematic_lighting": "FAIL_FLAT_GRADIENTS",
+      "cartoon_drift": "ABOVE_V2_THRESHOLD",
+      "video_source_readiness": "FAIL_STYLE_GATE",
+      "educational_objects": [
+        "yellow"
+      ],
+      "source_sha_verified": true
+    },
+    {
+      "shot": "q34",
+      "canonical_pack_shot": "q34",
+      "source_scene": "s34",
+      "sha256": "18bfd8598f14ec29ba750849ad3ae07c1cdda3ca5c725662d66edf1aaf7ed72c",
+      "classification": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "identity": "RECOGNIZABLE_LEGACY_BUT_V2_FACE_MATERIAL_PARITY_NOT_MET",
+      "material_realism": "FAIL_FLAT_ILLUSTRATED_SHADING",
+      "eye_depth": "INSUFFICIENT_VS_Q31_PRO2",
+      "wing_translucency": "SIMPLIFIED_VS_V2",
+      "denim_detail": "SIMPLIFIED_VS_V2",
+      "environment_detail": "FAIL_ILLUSTRATED_LOW_DEPTH",
+      "cinematic_lighting": "FAIL_FLAT_GRADIENTS",
+      "cartoon_drift": "ABOVE_V2_THRESHOLD",
+      "video_source_readiness": "FAIL_STYLE_GATE",
+      "educational_objects": [
+        "blue"
+      ],
+      "source_sha_verified": true
+    },
+    {
+      "shot": "q35",
+      "canonical_pack_shot": "q37",
+      "source_scene": "s35",
+      "sha256": "6ae868575d242eb15c1fb454337bf5657a65c05d78c5281207e42c94273eb213",
+      "classification": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "identity": "RECOGNIZABLE_LEGACY_BUT_V2_FACE_MATERIAL_PARITY_NOT_MET",
+      "material_realism": "FAIL_FLAT_ILLUSTRATED_SHADING",
+      "eye_depth": "INSUFFICIENT_VS_Q31_PRO2",
+      "wing_translucency": "SIMPLIFIED_VS_V2",
+      "denim_detail": "SIMPLIFIED_VS_V2",
+      "environment_detail": "FAIL_ILLUSTRATED_LOW_DEPTH",
+      "cinematic_lighting": "FAIL_FLAT_GRADIENTS",
+      "cartoon_drift": "ABOVE_V2_THRESHOLD",
+      "video_source_readiness": "FAIL_STYLE_GATE",
+      "educational_objects": [
+        "red",
+        "yellow",
+        "blue"
+      ],
+      "source_sha_verified": true
+    },
+    {
+      "shot": "q36",
+      "canonical_pack_shot": "q39",
+      "source_scene": "s36",
+      "sha256": "e65b466aeb0d41148bdde4a017daa3c49bba26e45eae3cbe9b3c24c1a6011671",
+      "classification": "SOURCE_STYLE_UPGRADE_REQUIRED",
+      "identity": "RECOGNIZABLE_LEGACY_BUT_V2_FACE_MATERIAL_PARITY_NOT_MET",
+      "material_realism": "FAIL_FLAT_ILLUSTRATED_SHADING",
+      "eye_depth": "INSUFFICIENT_VS_Q31_PRO2",
+      "wing_translucency": "SIMPLIFIED_VS_V2",
+      "denim_detail": "SIMPLIFIED_VS_V2",
+      "environment_detail": "FAIL_ILLUSTRATED_LOW_DEPTH",
+      "cinematic_lighting": "FAIL_FLAT_GRADIENTS",
+      "cartoon_drift": "ABOVE_V2_THRESHOLD",
+      "video_source_readiness": "FAIL_STYLE_GATE",
+      "educational_objects": [
+        "red",
+        "yellow",
+        "blue"
+      ],
+      "source_sha_verified": true
+    }
+  ],
+  "budget": {
+    "status": "QUALITY_BUDGET_REVIEW_REQUIRED",
+    "source_upgrade_calls_required": 5,
+    "source_upgrade_cost_usd": 1.143,
+    "kling_pro_calls_required": 5,
+    "kling_pro_cost_usd": 2.095,
+    "projected_new_visual_spend_usd": 3.238,
+    "authorized_additional_ceiling_usd": 3,
+    "excess_usd": 0.238,
+    "previous_accounted_visual_usd": 1.830597,
+    "projected_total_accounted_visual_usd": 5.068597,
+    "projected_total_cost_basis": "ACCOUNTED_PREVIOUS_COSTS_PLUS_NEW_USD_ESTIMATES; historical connector image/edit USD costs unavailable; estimates pending reconciliation",
+    "provider_generation_calls_added": 0,
+    "new_image_calls": 0,
+    "new_video_calls": 0,
+    "new_tts_calls": 0,
+    "allow_emission": false,
+    "quote_time": "2026-10-05T12:52:42.510Z",
+    "per_shot": [
+      {
+        "shot": "q32",
+        "source_cost_usd": 0.228,
+        "video_cost_usd": 0.381,
+        "duration_seconds": 4,
+        "total_usd": 0.609
+      },
+      {
+        "shot": "q33",
+        "source_cost_usd": 0.228,
+        "video_cost_usd": 0.381,
+        "duration_seconds": 4,
+        "total_usd": 0.609
+      },
+      {
+        "shot": "q34",
+        "source_cost_usd": 0.228,
+        "video_cost_usd": 0.381,
+        "duration_seconds": 4,
+        "total_usd": 0.609
+      },
+      {
+        "shot": "q35",
+        "source_cost_usd": 0.23,
+        "video_cost_usd": 0.476,
+        "duration_seconds": 5,
+        "total_usd": 0.706
+      },
+      {
+        "shot": "q36",
+        "source_cost_usd": 0.229,
+        "video_cost_usd": 0.476,
+        "duration_seconds": 5,
+        "total_usd": 0.705
+      }
+    ]
+  },
+  "price_quotes": {
+    "images": [
+      {
+        "shot": "q32",
+        "provider": "higgsfield_api",
+        "model": "marketing-studio/image",
+        "currency": "USD",
+        "estimated_cost_usd": 0.228,
+        "provider_units": "3.648",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:38.649Z",
+        "payload_sha256": "65f219877e0b1638cc260fbea4fda4167244f351152d531329ec4fc8a35c9384"
+      },
+      {
+        "shot": "q33",
+        "provider": "higgsfield_api",
+        "model": "marketing-studio/image",
+        "currency": "USD",
+        "estimated_cost_usd": 0.228,
+        "provider_units": "3.648",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:39.627Z",
+        "payload_sha256": "ff40bb2717456263970856504705dcb333baec2e0088e97980ae021ab6148144"
+      },
+      {
+        "shot": "q34",
+        "provider": "higgsfield_api",
+        "model": "marketing-studio/image",
+        "currency": "USD",
+        "estimated_cost_usd": 0.228,
+        "provider_units": "3.648",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:40.251Z",
+        "payload_sha256": "b2619be3e974e8bc441e3572d8577f5c1a1658c5012d85173429937a2f91d6e9"
+      },
+      {
+        "shot": "q35",
+        "provider": "higgsfield_api",
+        "model": "marketing-studio/image",
+        "currency": "USD",
+        "estimated_cost_usd": 0.23,
+        "provider_units": "3.666",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:41.311Z",
+        "payload_sha256": "e73e59f55b09b42ef774208fc29bdc33f76f719c62b77b44af29fc818593ef24"
+      },
+      {
+        "shot": "q36",
+        "provider": "higgsfield_api",
+        "model": "marketing-studio/image",
+        "currency": "USD",
+        "estimated_cost_usd": 0.229,
+        "provider_units": "3.660",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:42.304Z",
+        "payload_sha256": "5f32754269c1175ac24c1699089eeefba2f848611acf092192fd74c3e53cdac7"
+      }
+    ],
+    "videos": [
+      {
+        "shot": "q32",
+        "duration": 4,
+        "provider": "higgsfield_api",
+        "model": "kling-video/v3.0/pro/image-to-video",
+        "currency": "USD",
+        "estimated_cost_usd": 0.381,
+        "provider_units": "6.093",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:38.861Z",
+        "payload_sha256": "2fc5fcfaa4925984c27f4a883cd61f09c02206467e8fe50d3411e2ac227fa449"
+      },
+      {
+        "shot": "q33",
+        "duration": 4,
+        "provider": "higgsfield_api",
+        "model": "kling-video/v3.0/pro/image-to-video",
+        "currency": "USD",
+        "estimated_cost_usd": 0.381,
+        "provider_units": "6.093",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:39.858Z",
+        "payload_sha256": "c0dedc383f1087476ca12bbd2c722b36e6a445a6293bb9d81d0b3772d9d2e2f7"
+      },
+      {
+        "shot": "q34",
+        "duration": 4,
+        "provider": "higgsfield_api",
+        "model": "kling-video/v3.0/pro/image-to-video",
+        "currency": "USD",
+        "estimated_cost_usd": 0.381,
+        "provider_units": "6.093",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:40.483Z",
+        "payload_sha256": "57a6fbdfade73666008968c83297f58997378f14db56e2325b52ccc14e235f09"
+      },
+      {
+        "shot": "q35",
+        "duration": 5,
+        "provider": "higgsfield_api",
+        "model": "kling-video/v3.0/pro/image-to-video",
+        "currency": "USD",
+        "estimated_cost_usd": 0.476,
+        "provider_units": "7.616",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:41.541Z",
+        "payload_sha256": "1b4811789ea624b454b215c1bf6b431ece7e83460416d41cfef5ca16233fe187"
+      },
+      {
+        "shot": "q36",
+        "duration": 5,
+        "provider": "higgsfield_api",
+        "model": "kling-video/v3.0/pro/image-to-video",
+        "currency": "USD",
+        "estimated_cost_usd": 0.476,
+        "provider_units": "7.616",
+        "provider_units_meaning": "API_ESTIMATOR_UNITS_NOT_WORKSPACE_BALANCE",
+        "actual_cost_usd": null,
+        "quoted_at": "2026-10-05T12:52:42.510Z",
+        "payload_sha256": "41fcad97b53fe0ad0dc4f6cea8ea1899adc3bb3c9d1992e821a600d14d3089ab"
+      }
+    ]
+  },
+  "pedagogical_mapping": [
+    {
+      "id": "s31",
+      "beat_ref": "beat_setup",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q31",
+          "start_seconds": 0,
+          "duration_seconds": 4
+        }
+      ],
+      "narration": "¡Hola! Estoy en un jardín. ¿Ves algo interesante?",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s10_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Introducción al jardín; preparar atención visual.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s32",
+      "beat_ref": "beat_discover_red",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q32",
+          "start_seconds": 0,
+          "duration_seconds": 4
+        }
+      ],
+      "narration": "¡Mira! Una flor roja.",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s20_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Mostrar la flor roja claramente.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s33",
+      "beat_ref": "beat_discover_yellow",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q33",
+          "start_seconds": 0,
+          "duration_seconds": 4
+        }
+      ],
+      "narration": "¡Aquí hay una flor amarilla!",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s30_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Mostrar la flor amarilla claramente.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s34",
+      "beat_ref": "beat_discover_blue",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q34",
+          "start_seconds": 0,
+          "duration_seconds": 4
+        }
+      ],
+      "narration": "Y aquí está la flor azul.",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s40_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Mostrar la flor azul claramente.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s35",
+      "beat_ref": "beat_development",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q32",
+          "start_seconds": 1,
+          "duration_seconds": 1.2
+        },
+        {
+          "speed": 1,
+          "shot_id": "q33",
+          "start_seconds": 1,
+          "duration_seconds": 1.2
+        },
+        {
+          "speed": 1,
+          "shot_id": "q34",
+          "start_seconds": 1,
+          "duration_seconds": 1.2
+        },
+        {
+          "speed": 1,
+          "shot_id": "q37",
+          "start_seconds": 2.5,
+          "duration_seconds": 1.4
+        }
+      ],
+      "narration": "Rojo... Amarillo... Azul. Tres flores, tres colores.",
+      "local_only": true,
+      "text_overlay": [],
+      "narration_ids": [
+        "s50_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Nombrar los tres colores mientras la varita guía la atención.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s36",
+      "beat_ref": "beat_practice",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q32",
+          "start_seconds": 2,
+          "duration_seconds": 2
+        },
+        {
+          "speed": 1,
+          "shot_id": "q33",
+          "start_seconds": 2,
+          "duration_seconds": 2
+        },
+        {
+          "speed": 1,
+          "shot_id": "q34",
+          "start_seconds": 2,
+          "duration_seconds": 2
+        }
+      ],
+      "narration": "Muy bien. Ahora mira aquí... y aquí... y aquí.",
+      "local_only": true,
+      "text_overlay": [],
+      "narration_ids": [
+        "s60_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Breve práctica guiada: mirar cada flor según la dirección de Lumi.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s37",
+      "beat_ref": "beat_question",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q37",
+          "start_seconds": 0,
+          "duration_seconds": 5
+        }
+      ],
+      "narration": "¿Dónde está la flor azul?",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s70_u1"
+      ],
+      "pause_seconds": 2.5,
+      "breath_seconds": 0,
+      "educational_goal": "Hacer la pregunta clara: identificar la flor azul y permitir la respuesta del niño.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s38",
+      "beat_ref": "beat_answer",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q34",
+          "start_seconds": 0.5,
+          "duration_seconds": 3.5
+        },
+        {
+          "speed": 1,
+          "shot_id": "q37",
+          "start_seconds": 2.5,
+          "duration_seconds": 2.5
+        }
+      ],
+      "narration": "¡Sí, muy bien! Esa es la flor azul.",
+      "local_only": true,
+      "text_overlay": [],
+      "narration_ids": [
+        "s80_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 0,
+      "educational_goal": "Confirmar la respuesta y celebrar la selección correcta.",
+      "technical_pause_label": false
+    },
+    {
+      "id": "s39",
+      "beat_ref": "beat_recap",
+      "segments": [
+        {
+          "speed": 1,
+          "shot_id": "q37",
+          "start_seconds": 4,
+          "duration_seconds": 1
+        },
+        {
+          "speed": 1,
+          "shot_id": "q39",
+          "start_seconds": 0,
+          "duration_seconds": 5
+        }
+      ],
+      "narration": "Muy bien. Rojo, amarillo y azul. ¡Excelente trabajo!",
+      "local_only": false,
+      "text_overlay": [],
+      "narration_ids": [
+        "s90_u1"
+      ],
+      "pause_seconds": 0,
+      "breath_seconds": 1,
+      "educational_goal": "Recapitular los tres colores y cerrar con celebración.",
+      "technical_pause_label": false
+    }
+  ],
+  "source_audit_evidence": "Actual five SHA-verified decoded legacy source images, compared against canonical source and Human Approved q31-PRO2. Legacy WORLD_LOCK explicitly requested 2D illustration.",
+  "emission_policy": {
+    "blocked": true,
+    "reason": "Projected additional USD 3.238 exceeds authorized USD 3.00",
+    "new_image_calls": 0,
+    "new_kling_calls": 0,
+    "new_tts_calls": 0,
+    "master_created": false,
+    "remaining_authorizations_unconsumed": true,
+    "requote_before_future_emission": true
+  },
+  "accounting_limits": [
+    "Historical connector source/edit costs in USD unavailable; projected episode total excludes those unreported charges.",
+    "USD amounts are provider estimates pending actual usage reconciliation."
+  ],
+  "production_main_untouched": true,
+  "global_default": "legacy"
+}

@@ -1,0 +1,346 @@
+{
+  "version": "PROVIDER_ENDPOINT_CAPABILITY_MATRIX_V1",
+  "verified_on": "2026-10-05",
+  "generation_calls": 0,
+  "record_completeness": "ALL_REQUESTED_DIMENSIONS_RECORDED_WITH_UNKNOWNS",
+  "ENDPOINT_CAPABILITIES": "Q32_MINIMUM_EVIDENCE_PASS; unrelated endpoints remain unchanged",
+  "endpoints": [
+    {
+      "provider": "higgsfield_api",
+      "canonical_model_id": "kling-video/v3.0/pro/image-to-video",
+      "catalog": "DIRECT_API_NOT_CONNECTOR_ALIAS",
+      "provenance": [
+        "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/api-reference",
+        "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/playground",
+        "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+        "lib/lumi-series-v2-execution.js",
+        "Official exact endpoint API reference re-read 2026-10-05; connector models_get(kling3_0) kept separate"
+      ],
+      "mode_tier_support": {
+        "requested": "PRO_CONFIRMED_BY_ENDPOINT",
+        "mode_parameter": "NOT_EXPOSED",
+        "actual_provider_echo": "UNAVAILABLE; absence is not evidence of Standard or fallback"
+      },
+      "start_image_role": {
+        "field": "image_url",
+        "type": "string",
+        "required": true,
+        "role": "START_FRAME"
+      },
+      "end_image_role": {
+        "field": "last_image_url",
+        "documented": true,
+        "enabled": false,
+        "historical_usage": false
+      },
+      "image_references": {
+        "field": "elements",
+        "type": "array[string]",
+        "enabled": false,
+        "required_approval": "NOT_GRANTED",
+        "qa_golden_roles_are_elements": false
+      },
+      "duration": {
+        "type": "integer",
+        "min": 3,
+        "max": 15,
+        "historically_requested": 4,
+        "observed_output_seconds": 4.042
+      },
+      "aspect_ratios": {
+        "parameter": "NOT_EXPOSED",
+        "observed": [
+          {
+            "input": [
+              941,
+              1672
+            ],
+            "output": [
+              1080,
+              1916
+            ]
+          },
+          {
+            "input": [
+              1520,
+              2688
+            ],
+            "output": [
+              1080,
+              1912
+            ]
+          }
+        ],
+        "exact_9_16_guarantee": false,
+        "minor_normalization": "Local editorial derivative only; not performed, original bytes preserved"
+      },
+      "resolution_behavior": {
+        "parameter": "NOT_EXPOSED",
+        "observed_width": 1080,
+        "fixed_resolution_guarantee": false
+      },
+      "audio": {
+        "field": "sound",
+        "type": "string",
+        "enum": [
+          "on",
+          "off"
+        ],
+        "requested": "off",
+        "observed_audio_streams": 0
+      },
+      "multi_shot": {
+        "fields": [
+          "multi_shots",
+          "multi_prompt"
+        ],
+        "documented": true,
+        "enabled": false
+      },
+      "negative_constraints": {
+        "negative_prompt_field": "NOT_DOCUMENTED_NOT_ROUTED",
+        "brief_prompt_exclusions": "TEXT_ONLY_NOT_GUARANTEED"
+      },
+      "mask_inpaint": {
+        "field": "NOT_DOCUMENTED_NOT_ROUTED",
+        "underlying_model_support": "NOT_INFERRED"
+      },
+      "job_id_behavior": {
+        "async": true,
+        "observed": "provider_request_id retained in ledger",
+        "documented": "status/result for existing request ID",
+        "exact_persisted_ack_body": "NOT_RECOVERED"
+      },
+      "request_provenance": {
+        "endpoint": "CONFIRMED_BY_SUCCESSFUL_LEDGER_AND_HISTORICAL_REPORT",
+        "full_original_envelopes": "Partial recovered records available; exact request values/text unavailable. Noncritical missing fields explicitly separated.",
+        "current_source_code": "NOT_PROOF_OF_PRE_AMENDMENT_PROMPT"
+      },
+      "actual_model_mode_echo": {
+        "actual_model": "UNAVAILABLE",
+        "actual_mode": "UNAVAILABLE",
+        "request_proves_pro_tier_selection": true,
+        "accepted_provenance": "PRO_BY_REQUEST_ENDPOINT"
+      },
+      "output_fields": {
+        "documented": [
+          "video"
+        ],
+        "successful_ledger": [
+          "request_id",
+          "sha256",
+          "artifact_path",
+          "bytes"
+        ],
+        "raw_terminal_envelopes": "PENDING_RECOVERY"
+      },
+      "cost_estimator": {
+        "supported_by_existing_adapter": true,
+        "adapter": "lib/higgsfield-usd-budget-v1.js",
+        "historical_4s_audio_off_usd": 0.381,
+        "fresh_quote": null,
+        "actual_charge": null
+      },
+      "idempotency_reconciliation": {
+        "provider_exactly_once": "NOT_DOCUMENTED",
+        "local_authority": "provider-emission-journal-v1 + LumiRecoveryIncidentManager",
+        "ambiguous_emission": "INSPECT_FIRST_NO_RESUBMIT",
+        "URL_refresh": "same creative intent for same bytes"
+      },
+      "prompt_length_limit": {
+        "value": null,
+        "status": "UNVERIFIED_NOT_DOCUMENTED_IN_RETRIEVED_EXACT_ENDPOINT_REFERENCE"
+      },
+      "media_limits": {
+        "mime_dimensions_size_ranges": null,
+        "status": "UNVERIFIED; successful PNG inputs are observations, not universal endpoint bounds"
+      },
+      "cfg_scale": {
+        "type": "number",
+        "min": 0,
+        "max": 1,
+        "configured": 0.5,
+        "obedience_percentage": false
+      },
+      "prompt_enhancement_control": "NOT_EXPOSED; internal transformation is unobservable",
+      "verification_status": "PASS_FOR_CURRENT_CONTROLLED_Q32_ONLY"
+    },
+    {
+      "provider": "higgsfield_api",
+      "canonical_model_id": "marketing-studio/image",
+      "catalog": "DIRECT_API_NOT_CONNECTOR_ALIAS",
+      "provenance": [
+        "https://open.higgsfield.ai/models/marketing-studio/image/api-reference",
+        "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+        "lib/lumi-series-v2-continuation.js"
+      ],
+      "mode_tier_support": {
+        "historical_quality": "high",
+        "current_quality_enum": "NOT_FULLY_DOCUMENTED"
+      },
+      "start_image_role": "NOT_VIDEO",
+      "end_image_role": "NOT_APPLICABLE",
+      "image_references": {
+        "field": "image_urls",
+        "role": "EDITING_REFERENCES",
+        "historical_count": 1,
+        "max_count": "NOT_VERIFIED"
+      },
+      "duration": "NOT_APPLICABLE",
+      "aspect_ratios": [
+        "auto",
+        "1:1",
+        "3:2",
+        "2:3",
+        "4:3",
+        "3:4",
+        "16:9",
+        "9:16",
+        "21:9"
+      ],
+      "resolution_behavior": {
+        "documented": [
+          "1k",
+          "2k",
+          "4k"
+        ],
+        "historical_request": "2k",
+        "observed_png_dimensions": [
+          1520,
+          2688
+        ],
+        "exact_pixels_guaranteed": false
+      },
+      "audio": "NOT_APPLICABLE",
+      "multi_shot": "NOT_APPLICABLE",
+      "negative_constraints": "No separate documented negative_prompt; do not route",
+      "mask_inpaint": {
+        "mask_field": "NOT_DOCUMENTED_NOT_ROUTED",
+        "generic_model_inpaint_claim_does_not_enable_connector_mask": true
+      },
+      "job_id_behavior": "Asynchronous request ID; observed persisted successful image jobs",
+      "request_provenance": "Ledger and historical report confirmed; complete original request envelope pending",
+      "actual_model_mode_echo": "UNAVAILABLE_IN_RECOVERED_PROVIDER_RESPONSE; ledger requested model is not an execution echo",
+      "output_fields": {
+        "observed_ledger": [
+          "request_id",
+          "artifact_path",
+          "mime",
+          "sha256",
+          "bytes"
+        ],
+        "raw_terminal_response": "PENDING_RECOVERY"
+      },
+      "cost_estimator": {
+        "existing_adapter": true,
+        "historical_high_2k_usd": 0.227,
+        "fresh_quote": null,
+        "actual_charge": null
+      },
+      "idempotency_reconciliation": "No provider exactly-once guarantee established; existing journal INSPECT_FIRST",
+      "prompt_enhancement": {
+        "field": "enhance_prompt",
+        "historical": false,
+        "auto_enable": false
+      },
+      "prompt_length_limit": null,
+      "media_limits": null,
+      "verification_status": "PARTIAL_BLOCK_FUTURE_REQUESTS"
+    }
+  ],
+  "connector_catalog_check": {
+    "tool": "models_search",
+    "query": "Kling 3.0",
+    "returned_model_ids": [
+      "kling3_0_turbo"
+    ],
+    "same_as_direct_pro_endpoint": false,
+    "automatic_substitution": false,
+    "later_exact_lookup": {
+      "tool": "models_get",
+      "model_id": "kling3_0",
+      "verified_on": "2026-10-05",
+      "parameters": {
+        "duration": {
+          "type": "number",
+          "min": 3,
+          "max": 15,
+          "default": 5
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "std",
+            "pro",
+            "4k"
+          ],
+          "default": "std"
+        },
+        "sound": {
+          "type": "string",
+          "enum": [
+            "on",
+            "off"
+          ],
+          "default": "on"
+        }
+      },
+      "media_roles": [
+        "start_image",
+        "end_image"
+      ],
+      "aspect_ratios": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "multi_shot": "Tag only; no explicit selectable field in returned parameter schema",
+      "not_direct_endpoint_schema": true,
+      "automatic_substitution": false
+    }
+  },
+  "policy": "Unknown, unsupported or unauthorized capabilities block before provider; no silent dropping/coercion. Official Pro page includes one conflicting Standard prose label, while endpoint, title and request provenance select Pro.",
+  "revision": 2,
+  "historical_envelopes": "closure-v2/q{31,32,33}_RECOVERED_REQUEST_ENVELOPE_V1.json",
+  "emission_field_policy": {
+    "SUPPORTED": [
+      "prompt",
+      "image_url",
+      "sound",
+      "duration",
+      "cfg_scale",
+      "multi_shots"
+    ],
+    "LOCALLY_CONSUMED": [
+      "provider",
+      "endpoint",
+      "model/tier selection via endpoint",
+      "source_sha256",
+      "artifact_id",
+      "topology_lock",
+      "acting_preset",
+      "caption_plan",
+      "qa_evidence",
+      "fingerprints"
+    ],
+    "OMITTED": [
+      "elements",
+      "last_image_url",
+      "multi_prompt"
+    ],
+    "BLOCKED_UNSUPPORTED": [
+      "mode as body field",
+      "aspect_ratio as direct endpoint field",
+      "resolution",
+      "negative_prompt",
+      "mask",
+      "seed",
+      "camera_control",
+      "unknown multi-shot field"
+    ],
+    "all_previews": "NOT_SENT; emitted=false; payload=null",
+    "whole_request_gate": "BLOCKED until limits, source evidence and package approvals pass"
+  },
+  "evidence_policy": "MINIMUM_SUFFICIENT_REPRODUCIBLE_EVIDENCE",
+  "q32_minimum_evidence": "closure-v3/Q32_MINIMUM_ENDPOINT_EVIDENCE_V1.json"
+}

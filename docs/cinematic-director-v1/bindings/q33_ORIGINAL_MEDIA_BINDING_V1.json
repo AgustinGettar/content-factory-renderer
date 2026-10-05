@@ -1,0 +1,351 @@
+{
+  "version": "ORIGINAL_MEDIA_BINDING_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q33",
+  "revision": 1,
+  "AUTHENTIC_MEDIA_VERIFIED": "PASS",
+  "source": {
+    "artifact_id": "cb384e66-6e3c-4772-8423-301c9e1774c5",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-SOURCE-V2-1/artifact/fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83/original.png",
+    "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+    "bytes": 5907421,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_24c33e1ef8f481919bbd5d4aed9322a4",
+    "local_filename": "q33-SOURCE-V2-1.png",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1520,
+      "height": 2688,
+      "codec": "png"
+    },
+    "provider_request_id": "f1e37da2-94d9-448d-8962-4261cbcdc433",
+    "origin": "PROVIDER_ORIGINAL"
+  },
+  "video": {
+    "artifact_id": "92e3846b-3628-4377-a2b0-51ce1ba6bfaa",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q33-V2-PRO1/artifact/69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5/original.mp4",
+    "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+    "bytes": 5760274,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_4d2c889d8ab48191a439b6182e98e471",
+    "local_filename": "q33-V2-PRO1.mp4",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1080,
+      "height": 1912,
+      "codec": "h264",
+      "duration_seconds": 4.041667,
+      "fps": "24/1",
+      "pixel_format": "yuv420p",
+      "decoded_frame_count": 97,
+      "audio_streams": 0,
+      "black_segments": 0,
+      "black_frame_sanity": "PASS",
+      "blackdetect": "d=0:pix_th=0.10:pic_th=0.98",
+      "frame_extraction": "PASS",
+      "frames": [
+        {
+          "index": 0,
+          "time_s": 0,
+          "sha256": "2739e970d49f95a225110cb2d35a7df362b7673db7c105ebacacbd3045692e7b",
+          "relative_path": "q33-V2-PRO1.mp4.frames/0.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 20,
+          "time_s": 0.8333333333333334,
+          "sha256": "f0c5f469f28978e54c2f23d48f283cee0daf8d30bf213b8db04c27f645aee939",
+          "relative_path": "q33-V2-PRO1.mp4.frames/20.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 48,
+          "time_s": 2,
+          "sha256": "397c56543d983248c7d7309a8d1b645d57bafe9eeb3a4bb01d1fcf55cdae4fc3",
+          "relative_path": "q33-V2-PRO1.mp4.frames/48.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 69,
+          "time_s": 2.875,
+          "sha256": "51f967b02db439ab3e6c2ce34025542380ab5e3ca141b69b1f9756663e42e6dc",
+          "relative_path": "q33-V2-PRO1.mp4.frames/69.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 75,
+          "time_s": 3.125,
+          "sha256": "ceeb3c906afed4b8ab5808aab32e3f4e27b420fc0f01fec830b19a2c9c415194",
+          "relative_path": "q33-V2-PRO1.mp4.frames/75.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 80,
+          "time_s": 3.3333333333333335,
+          "sha256": "c2bb72b591410334f90847d96af4d5e19d461bc1c10207d2e1d00c3c5aab1209",
+          "relative_path": "q33-V2-PRO1.mp4.frames/80.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 89,
+          "time_s": 3.7083333333333335,
+          "sha256": "22c6b24b65aa7f8de09b8ff0277f89c8f734cd6ec1333b4ba79b20f591c11ee5",
+          "relative_path": "q33-V2-PRO1.mp4.frames/89.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 96,
+          "time_s": 4,
+          "sha256": "7cbd4c86cc3de3f36b51640269ae16fc2cb5fbc46b0374b7433c35d1d3013b1d",
+          "relative_path": "q33-V2-PRO1.mp4.frames/96.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        }
+      ],
+      "visual_complete_native_speed_review": "NOT_PERFORMED_BY_THIS_SCRIPT",
+      "sampled_frames_do_not_certify_all_frames": true
+    },
+    "provider_request_id": "6c9a0127-bc8b-4d46-b26d-7a081ab2f894"
+  },
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "ledger": {
+    "video_row_id": "620a9d01-8992-4594-9332-f1037f315344",
+    "source_row_id": "28498091-ce7c-4af9-92f4-1a1de6da0a99",
+    "snapshot": "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json"
+  },
+  "director_input_package": {
+    "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+    "contract_sha256": "6c40eaaecff8907fee0d6d1f010361b7efe669081e964704622266cebb8f599f",
+    "historical_contract": {
+      "shot_id": "q33",
+      "shot_type": "MEDIUM_TEACHING",
+      "START_STATE": {
+        "description": "Lumi stands behind and beside one yellow flower; the complete flower head remains visible in the lower center. Free hand can point without crossing petals.",
+        "object_inventory": [
+          {
+            "id": "flower_yellow",
+            "count": 1,
+            "color": "yellow",
+            "shape": "rounded multi-petal flower with one center, one stem and leaves",
+            "placement": "foreground center, fully separated from Lumi",
+            "visibility": "FULLY_VISIBLE"
+          }
+        ]
+      },
+      "CHARACTER_STATE": {
+        "description": "Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.",
+        "character_lock_id": "LUMI_CANONICAL_CHARACTER_LOCK_V2",
+        "character_lock_sha256": null,
+        "world_lock_id": "LUMI_WORLD_BIBLE_V2",
+        "world_lock_sha256": null,
+        "identity_preserved": true,
+        "canonical_wings": 2,
+        "wand_policy": "No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only."
+      },
+      "REQUIRED_OBJECTS": [
+        {
+          "id": "flower_yellow",
+          "count": 1,
+          "color": "yellow",
+          "shape": "rounded multi-petal flower with one center, one stem and leaves",
+          "placement": "foreground center, fully separated from Lumi"
+        }
+      ],
+      "EDUCATIONAL_INVARIANTS": [
+        {
+          "object_id": "flower_yellow",
+          "property": "count",
+          "value": 1
+        },
+        {
+          "object_id": "flower_yellow",
+          "property": "color",
+          "value": "yellow"
+        },
+        {
+          "object_id": "flower_yellow",
+          "property": "shape",
+          "value": "rounded multi-petal flower with one center, one stem and leaves"
+        }
+      ],
+      "PRIMARY_ACTION": {
+        "action": "small_pointing_gesture",
+        "description": "One small free-hand teaching gesture toward the yellow flower, remaining outside its petals; settle in place."
+      },
+      "ALLOWED_SECONDARY_MOTION": [
+        "blink",
+        "subtle_wing_response"
+      ],
+      "FORBIDDEN_ACTIONS": [
+        "walking",
+        "turning to reveal unverified anatomy",
+        "new abdomen or tail",
+        "extra wings or limbs",
+        "object pop-in or disappearance",
+        "flower recoloring or count change",
+        "unmotivated orbit",
+        "aggressive zoom",
+        "text or captions generated by provider",
+        "static freeze",
+        "slow motion",
+        "multiple shots"
+      ],
+      "CAMERA": {
+        "type": "STATIC",
+        "description": "Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.",
+        "necessary": false
+      },
+      "END_STATE": {
+        "description": "Lumi stands behind and beside one yellow flower; the complete flower head remains visible in the lower center. Free hand can point without crossing petals. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.",
+        "object_inventory": [
+          {
+            "id": "flower_yellow",
+            "count": 1,
+            "color": "yellow",
+            "shape": "rounded multi-petal flower with one center, one stem and leaves",
+            "placement": "foreground center, fully separated from Lumi",
+            "visibility": "FULLY_VISIBLE"
+          }
+        ]
+      },
+      "DURATION": 4,
+      "SOURCE_ARTIFACT": {
+        "artifact_id": "s33-source",
+        "path": "evidence/current-sources/s33-source.png",
+        "sha256": "69cf3dcb29efe5ba9f9f3989b628a3a3c947ef39a4fbd7c5442b4098dc958819"
+      },
+      "GOLDEN_REFERENCES": [],
+      "NEGATIVE_STYLE_CONTRACT": [
+        "flat cartoon",
+        "2D illustration",
+        "cel shading",
+        "anime",
+        "comic look",
+        "cheap TV animation",
+        "simplified low-detail rendering",
+        "plastic toy",
+        "rubber toy",
+        "human photorealism",
+        "live-action humanization",
+        "uncanny insect anatomy",
+        "overly realistic skin pores"
+      ],
+      "metadata": {
+        "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+        "historical_ledger_alias": "q33",
+        "source_status": "BLOCKED_PENDING_CANONICAL_REPLACEMENT_OR_PROVEN_LOCAL_DERIVATIVE",
+        "current_phase_provider_calls_allowed": 0,
+        "provider_defaults": {
+          "model": "kling-video/v3.0/std/image-to-video",
+          "tier": "Kling 3.0 Standard",
+          "audio": "OFF",
+          "multi_shots": false,
+          "natural_speed": 1,
+          "automatic_retries": 0,
+          "automatic_variants": 0,
+          "provider_repair_budget": 0
+        },
+        "estimated_cost_usd_historical": 0.286,
+        "quote_at": "2026-10-04T13:58Z",
+        "quote_status": "HISTORICAL_REQUOTE_REQUIRED",
+        "golden_binding_status": "UNRESOLVED_MEDIA_BLOCKED",
+        "golden_authority_manifest": "../golden/GOLDEN_REFERENCE_PACK.json",
+        "golden_required_roles": [
+          "character",
+          "world",
+          "lighting",
+          "motion"
+        ]
+      }
+    },
+    "compiler": "PROMPT_COMPILER_V3",
+    "director": "LUMI_CINEMATIC_DIRECTOR_V1",
+    "request_envelope_status": "FULL_PERSISTED_ENVELOPE_NOT_RECOVERED",
+    "runtime_revision": "f42d5a83e2806b3db17080c2829d305bad4a8525",
+    "note": "Historical contract remains incomplete; not silently upgraded to an approved direction."
+  },
+  "qa": {
+    "source": {
+      "COLOR": "PASS",
+      "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+      "ANATOMY": "PASS",
+      "REALISM": "PASS",
+      "IDENTITY": "PASS",
+      "WING_NOTE": "Canonical two-wing silhouettes; minor lower contour comparable to human-approved baseline.",
+      "CARTOON_DRIFT": "MINIMAL",
+      "classification": "PASS_WITH_MINOR_WARNING",
+      "EDUCATIONAL_SEMANTICS": "PASS",
+      "VIDEO_SOURCE_READINESS": "PASS"
+    },
+    "video": {
+      "DECODE": "PASS",
+      "MOTION": "PASS_VISUAL_TIMING_ONLY",
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "ANATOMY": "FAIL",
+      "REALISM": "PASS_VISUAL_RENDER_ONLY",
+      "WING_QA": "HUMAN_REVIEW_REQUIRED",
+      "IDENTITY": "FAIL_ANATOMY_DRIFT",
+      "BLACK_FRAMES": 0,
+      "MAJOR_DEFECT": "Unrequested large black/yellow striped rear bee abdomen becomes visible around 3.0-4.0 seconds as body turns. Source does not contain this anatomy. No local concealment; no retry.",
+      "TECHNICAL_QA": "PASS",
+      "CARTOON_DRIFT": "MINIMAL_RENDER",
+      "FREEZE_DEFECTS": 0,
+      "EDUCATIONAL_OBJECT_STABILITY": "PASS_WITH_MINOR_WARNING",
+      "QUALITY_PARITY_WITH_Q31_PRO2": "FAIL"
+    },
+    "forensics": {
+      "SOURCE_ANATOMY": "BLOCKER",
+      "source_note": "The exact source already contains a distinct yellow oval/crescent posterior volume behind the left hand and outside the overalls, with an upper dark area and light curved band. It resembles the ambiguous rear crescent in the canonical anchor, but the newly specified permanent body rule prohibits copying that contour.",
+      "VIDEO_ANATOMY": "HARD_BLOCKER",
+      "classification": "SOURCE_DEFECT_WITH_TEMPORAL_AMPLIFICATION",
+      "first_clean_frame": null,
+      "first_defective_frame": {
+        "index": 0,
+        "time_s": 0,
+        "reason": "Posterior source volume is visible in the first decoded frame; no clean start under the new body rule."
+      },
+      "first_unambiguous_expanded_striping": {
+        "index": 69,
+        "time_s": 2.875
+      },
+      "last_defective_frame": {
+        "index": 96,
+        "time_s": 4
+      },
+      "defect_duration_s": 4.041666666666667,
+      "expanded_striping_duration_s": 1.1666666666666667,
+      "defect_disappears": false,
+      "correlation": "Arm lowers and torso rotates near 2.875 s; the inherited yellow rear bulb expands into a large black/yellow striped abdomen. Camera static. Opaque striped body material differs from translucent upper-back wings.",
+      "worst_frame": {
+        "index": 89,
+        "time_s": 3.7083333333333335
+      },
+      "LOCAL_SALVAGE": "NOT_PROFESSIONAL",
+      "local_salvage_reason": "Large growing abdomen changes silhouette and becomes partially occluded by the moving forearm. Masking would require reconstructing missing garden and correct body contact/shadow edges without a clean plate. Crop/foreground cover would conceal canonical anatomy. No invisible professional repair is verified; no derived clip created.",
+      "MINIMUM_REPAIR": "IMAGE_REGEN_REQUIRED",
+      "image_regeneration_required": true,
+      "video_regeneration_required": true,
+      "expected_image_cost_usd_reference": 0.227,
+      "expected_video_cost_usd_reference": 0.381,
+      "expected_total_cost_usd_reference": 0.608
+    }
+  },
+  "human_review": {
+    "state": "BLOCKER",
+    "persisted": null,
+    "historical_actor": null,
+    "historical_at": null,
+    "reaffirmation": {
+      "actor": "current user",
+      "date": "2026-10-05",
+      "scope": "Current continuation instruction; existing artifact status only; no new direction or generation approval"
+    }
+  },
+  "original_artifacts_mutated": false,
+  "new_generation_authorized": false,
+  "fingerprint": "4ff39b9b9d1a66ec2454efa2cc16b32b386640c02b1a07d68e0e7fffd0d47c0c"
+}

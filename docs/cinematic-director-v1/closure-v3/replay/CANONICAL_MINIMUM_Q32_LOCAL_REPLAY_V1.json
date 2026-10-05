@@ -1,0 +1,162 @@
+{
+  "version": "CANONICAL_MINIMUM_Q32_LOCAL_REPLAY_V1",
+  "entrypoint": "runLumiV2Step → reviewAtCanonicalBoundary",
+  "results": [
+    {
+      "shot": "q31",
+      "outcome": "ACCEPT_COMPATIBLE_WITH_HUMAN_GOLDEN",
+      "source_gate": {
+        "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "stage": "SOURCE_PREFLIGHT",
+        "status": "REVIEW_REQUIRED",
+        "blockers": [],
+        "pending": [
+          "REAR_BULB:UNKNOWN",
+          "NO_BEE_ABDOMEN:REVIEW_REQUIRED",
+          "NO_STRIPED_POSTERIOR_BODY:REVIEW_REQUIRED",
+          "NO_REAR_BULB:REVIEW_REQUIRED",
+          "NO_SECOND_TORSO:REVIEW_REQUIRED",
+          "NO_BODY_MASS_BEHIND_OVERALLS:REVIEW_REQUIRED",
+          "LOWER_TORSO_REVIEW_REQUIRED"
+        ],
+        "confirmed": [],
+        "hypotheses": [
+          {
+            "category": "REAR_BULB",
+            "certainty": "UNKNOWN",
+            "evidence_ids": [
+              "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33:source"
+            ],
+            "note": "Yellow crescent outside overalls below screen-left arm also exists in the approved source/clip. Requires explicit reconciliation with new NO_BODY_MASS_BEHIND_OVERALLS rule; approval is preserved, not silently expanded."
+          }
+        ],
+        "visual_certification": false,
+        "WING_ASSEMBLY_COUNT": 2,
+        "VISIBLE_CONTOUR_LOBE_COUNT": null,
+        "warnings": [
+          "SOURCE_TOPOLOGY_PASS_WITH_WARNING: lower contour overlap must remain attached to its canonical assembly"
+        ],
+        "limitation": "Consumes scoped QA observations; does not inspect pixels, certify all frames, or waive hard rules."
+      },
+      "repair": null,
+      "current_controlled_repair": null,
+      "binding_fingerprint": "30c68dc9bc8f1bfef638ec70be71f28b6f4a2d86367381635d586477dde952fd",
+      "replay_sha256": "5488ac54dd6f2c96a8a7b449a09bbc029599f7c9cd0c052edf3a3dd00c8a4ee8",
+      "historical_compiler_audit": "Preserved incomplete historical V2 contract; not a readiness requirement for this current minimum package."
+    },
+    {
+      "shot": "q32",
+      "outcome": "CONTROLLED_VIDEO_REPAIR_READY",
+      "source_gate": {
+        "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "stage": "SOURCE_PREFLIGHT",
+        "status": "PASS",
+        "blockers": [],
+        "pending": [],
+        "confirmed": [],
+        "hypotheses": [],
+        "visual_certification": false,
+        "WING_ASSEMBLY_COUNT": 2,
+        "VISIBLE_CONTOUR_LOBE_COUNT": 4,
+        "warnings": [
+          "SOURCE_TOPOLOGY_PASS_WITH_WARNING: lower contour overlap must remain attached to its canonical assembly"
+        ],
+        "limitation": "Consumes scoped QA observations; does not inspect pixels, certify all frames, or waive hard rules."
+      },
+      "repair": {
+        "source": "SOURCE_REUSE",
+        "video": "VIDEO_REPAIR_REQUIRED",
+        "source_reuse_condition": "Current source action/topology review must pass before future emission; existing bytes retained.",
+        "acting_preset": "PRESENT_OBJECT",
+        "estimated_provider_calls": {
+          "image": 0,
+          "video": 1,
+          "tts": 0
+        },
+        "estimated_cost_usd": null,
+        "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
+        "historical_cost_reference_usd": 0.381,
+        "retries": 0,
+        "variants": 0,
+        "resubmits": 0,
+        "execute": false
+      },
+      "current_controlled_repair": {
+        "status": "PASS",
+        "errors": [],
+        "package_hash": "c91ed06addb7e9c1acd6eb576322c7c0ce02455acf09db07411d8179a0093674",
+        "generation_authorized": false,
+        "provider_calls": 0
+      },
+      "binding_fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77",
+      "replay_sha256": "34f637bb31c46b8af1c35347adab27c5fb6023f0c0e4d3258a439f516223b0cf",
+      "historical_compiler_audit": "Preserved incomplete historical V2 contract; not a readiness requirement for this current minimum package."
+    },
+    {
+      "shot": "q33",
+      "outcome": "SOURCE_REGEN_AND_VIDEO_REPAIR_REQUIRED",
+      "source_gate": {
+        "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "stage": "SOURCE_PREFLIGHT",
+        "status": "BLOCKED",
+        "blockers": [
+          "NO_REAR_BULB",
+          "NO_BODY_MASS_BEHIND_OVERALLS"
+        ],
+        "pending": [
+          "NO_BEE_ABDOMEN:REVIEW_REQUIRED",
+          "NO_STRIPED_POSTERIOR_BODY:REVIEW_REQUIRED",
+          "NO_SECOND_TORSO:REVIEW_REQUIRED",
+          "LOWER_TORSO_REVIEW_REQUIRED"
+        ],
+        "confirmed": [
+          {
+            "category": "REAR_BULB",
+            "certainty": "CONFIRMED",
+            "evidence_ids": [
+              "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83:source"
+            ],
+            "note": "Distinct yellow crescent/volume behind screen-left hand, outside overalls and below the blue wing. Black/yellow repeated stripes are not established in this source."
+          }
+        ],
+        "hypotheses": [],
+        "visual_certification": false,
+        "WING_ASSEMBLY_COUNT": 2,
+        "VISIBLE_CONTOUR_LOBE_COUNT": null,
+        "warnings": [
+          "SOURCE_TOPOLOGY_PASS_WITH_WARNING: lower contour overlap must remain attached to its canonical assembly"
+        ],
+        "limitation": "Consumes scoped QA observations; does not inspect pixels, certify all frames, or waive hard rules."
+      },
+      "repair": {
+        "source": "SOURCE_REGEN_REQUIRED",
+        "video": "VIDEO_REPAIR_REQUIRED",
+        "source_reuse_condition": null,
+        "acting_preset": "PRESENT_OBJECT",
+        "estimated_provider_calls": {
+          "image": 1,
+          "video": 1,
+          "tts": 0
+        },
+        "estimated_cost_usd": null,
+        "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
+        "historical_cost_reference_usd": 0.608,
+        "retries": 0,
+        "variants": 0,
+        "resubmits": 0,
+        "execute": false
+      },
+      "current_controlled_repair": null,
+      "binding_fingerprint": "4ff39b9b9d1a66ec2454efa2cc16b32b386640c02b1a07d68e0e7fffd0d47c0c",
+      "replay_sha256": "ed952d64165e2923b872ac36476fcf028b629ec7685c67a5f70cf3a7729915d4",
+      "historical_compiler_audit": "Preserved incomplete historical V2 contract; not a readiness requirement for this current minimum package."
+    }
+  ],
+  "Q32_REPAIR_PACKAGE_HASH": "c91ed06addb7e9c1acd6eb576322c7c0ce02455acf09db07411d8179a0093674",
+  "provider_calls": 0,
+  "outgoing_connections": 0,
+  "assertions": "PASS",
+  "staging_replay": "NOT_RUN",
+  "full_native_speed_review": "NOT_PERFORMED",
+  "overall_readiness": false
+}

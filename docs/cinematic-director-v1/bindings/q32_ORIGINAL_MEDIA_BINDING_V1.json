@@ -1,0 +1,361 @@
+{
+  "version": "ORIGINAL_MEDIA_BINDING_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q32",
+  "revision": 1,
+  "AUTHENTIC_MEDIA_VERIFIED": "PASS",
+  "source": {
+    "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-SOURCE-V2-1/artifact/ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2/original.png",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "bytes": 5766459,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_73f957c68a488191aa19b461b4359a60",
+    "local_filename": "q32-SOURCE-V2-1.png",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1520,
+      "height": 2688,
+      "codec": "png"
+    },
+    "provider_request_id": "f6c5e3a8-ac87-4590-9134-c7ed01237e21",
+    "origin": "PROVIDER_ORIGINAL"
+  },
+  "video": {
+    "artifact_id": "bfc71fa1-c54d-454c-9ebb-9c937e78ecef",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-V2-PRO1/artifact/0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313/original.mp4",
+    "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+    "bytes": 5326841,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_20ee9c38374081919e2d8e6b7b9120de",
+    "local_filename": "q32-V2-PRO1.mp4",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1080,
+      "height": 1912,
+      "codec": "h264",
+      "duration_seconds": 4.041667,
+      "fps": "24/1",
+      "pixel_format": "yuv420p",
+      "decoded_frame_count": 97,
+      "audio_streams": 0,
+      "black_segments": 0,
+      "black_frame_sanity": "PASS",
+      "blackdetect": "d=0:pix_th=0.10:pic_th=0.98",
+      "frame_extraction": "PASS",
+      "frames": [
+        {
+          "index": 0,
+          "time_s": 0,
+          "sha256": "afe0aab6967e1e67398f57cea22cf090b6d1780aa99a412bf89471691b9516c6",
+          "relative_path": "q32-V2-PRO1.mp4.frames/0.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 20,
+          "time_s": 0.8333333333333334,
+          "sha256": "1455d2ecf53782ac11e48c69a9aeeccd9eed3e64707cbfa5bce4bbe5dba09206",
+          "relative_path": "q32-V2-PRO1.mp4.frames/20.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 48,
+          "time_s": 2,
+          "sha256": "6b27464efb382a9bae45b3c9af45ab9e2bf3f1753223209f6c5b0845df1d1b42",
+          "relative_path": "q32-V2-PRO1.mp4.frames/48.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 69,
+          "time_s": 2.875,
+          "sha256": "975bb396257ecfdd39c294a2c00489705446219fe476f5bda6c06b40ac71ac68",
+          "relative_path": "q32-V2-PRO1.mp4.frames/69.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 75,
+          "time_s": 3.125,
+          "sha256": "34bb7a53ad1f10cc4e959434bc0b514c9d0da197b6970e11445af469fb9a63e9",
+          "relative_path": "q32-V2-PRO1.mp4.frames/75.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 80,
+          "time_s": 3.3333333333333335,
+          "sha256": "7b2bfe39484cb483274c07a4cc25a5da6c2db5ca2fe1cf3a20be5cb01f691396",
+          "relative_path": "q32-V2-PRO1.mp4.frames/80.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 89,
+          "time_s": 3.7083333333333335,
+          "sha256": "afd58c3ca524eb064eb9f97424ec853985c71e99c12f710f4980eb5b65bdea7b",
+          "relative_path": "q32-V2-PRO1.mp4.frames/89.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        },
+        {
+          "index": 96,
+          "time_s": 4,
+          "sha256": "4cba96b74f12ab0e5d1d9d90cbc866e04448c75e83fde93d0cc415acf399055d",
+          "relative_path": "q32-V2-PRO1.mp4.frames/96.png",
+          "role": "QA_DERIVATIVE_NOT_ORIGINAL"
+        }
+      ],
+      "visual_complete_native_speed_review": "NOT_PERFORMED_BY_THIS_SCRIPT",
+      "sampled_frames_do_not_certify_all_frames": true
+    },
+    "provider_request_id": "f6ce8062-c965-4768-b040-f9be13e97596"
+  },
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "ledger": {
+    "video_row_id": "43b2851e-3fe3-4eb1-8a64-7c2bf07928d5",
+    "source_row_id": "33218f4a-a38e-49d8-86ab-a2389bf92ab5",
+    "snapshot": "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json"
+  },
+  "director_input_package": {
+    "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+    "contract_sha256": "b982c9e515ad5ff0091818cf7ee8bbbf58d48186a0178c8b3faea6f692d7d315",
+    "historical_contract": {
+      "shot_id": "q32",
+      "shot_type": "MEDIUM_TEACHING",
+      "START_STATE": {
+        "description": "Lumi stands beside one red flower; the complete flower head remains visible to the left. Free hand can point without crossing petals.",
+        "object_inventory": [
+          {
+            "id": "flower_red",
+            "count": 1,
+            "color": "red",
+            "shape": "rounded multi-petal flower with one center, one stem and leaves",
+            "placement": "foreground left, fully separated from Lumi",
+            "visibility": "FULLY_VISIBLE"
+          }
+        ]
+      },
+      "CHARACTER_STATE": {
+        "description": "Premium feature-film-quality stylized 3D CGI Lumi. Canonical proportions, two wings, warm yellow material, turquoise eyes, violet antenna tips, tuft, pink cheeks, blue overalls and white shoes locked by verified golden artifacts; no anatomical reinterpretation. Current source listed below fails V2 and cannot be submitted.",
+        "character_lock_id": "LUMI_CANONICAL_CHARACTER_LOCK_V2",
+        "character_lock_sha256": null,
+        "world_lock_id": "LUMI_WORLD_BIBLE_V2",
+        "world_lock_sha256": null,
+        "identity_preserved": true,
+        "canonical_wings": 2,
+        "wand_policy": "No wand invented during animation. If canonical source includes a wand, retain same hand/scale/shape without crossing educational objects; free-hand action only."
+      },
+      "REQUIRED_OBJECTS": [
+        {
+          "id": "flower_red",
+          "count": 1,
+          "color": "red",
+          "shape": "rounded multi-petal flower with one center, one stem and leaves",
+          "placement": "foreground left, fully separated from Lumi"
+        }
+      ],
+      "EDUCATIONAL_INVARIANTS": [
+        {
+          "object_id": "flower_red",
+          "property": "count",
+          "value": 1
+        },
+        {
+          "object_id": "flower_red",
+          "property": "color",
+          "value": "red"
+        },
+        {
+          "object_id": "flower_red",
+          "property": "shape",
+          "value": "rounded multi-petal flower with one center, one stem and leaves"
+        }
+      ],
+      "PRIMARY_ACTION": {
+        "action": "small_pointing_gesture",
+        "description": "One small free-hand teaching gesture toward the red flower, remaining outside its petals; settle in place."
+      },
+      "ALLOWED_SECONDARY_MOTION": [
+        "blink",
+        "subtle_wing_response"
+      ],
+      "FORBIDDEN_ACTIONS": [
+        "walking",
+        "turning to reveal unverified anatomy",
+        "new abdomen or tail",
+        "extra wings or limbs",
+        "object pop-in or disappearance",
+        "flower recoloring or count change",
+        "unmotivated orbit",
+        "aggressive zoom",
+        "text or captions generated by provider",
+        "static freeze",
+        "slow motion",
+        "multiple shots"
+      ],
+      "CAMERA": {
+        "type": "STATIC",
+        "description": "Locked framing at natural 1x. Preserve headroom, feet, wings and all educational objects; no camera drift or zoom.",
+        "necessary": false
+      },
+      "END_STATE": {
+        "description": "Lumi stands beside one red flower; the complete flower head remains visible to the left. Free hand can point without crossing petals. End with the same inventory, position and silhouette; action completed or listening pose naturally sustained, no frame freeze.",
+        "object_inventory": [
+          {
+            "id": "flower_red",
+            "count": 1,
+            "color": "red",
+            "shape": "rounded multi-petal flower with one center, one stem and leaves",
+            "placement": "foreground left, fully separated from Lumi",
+            "visibility": "FULLY_VISIBLE"
+          }
+        ]
+      },
+      "DURATION": 4,
+      "SOURCE_ARTIFACT": {
+        "artifact_id": "s32-source",
+        "path": "evidence/current-sources/s32-source.png",
+        "sha256": "1d75158f61c29ee6977943215d4564bcaaa4d24fe6973cb0bc34e799a3534aac"
+      },
+      "GOLDEN_REFERENCES": [],
+      "NEGATIVE_STYLE_CONTRACT": [
+        "flat cartoon",
+        "2D illustration",
+        "cel shading",
+        "anime",
+        "comic look",
+        "cheap TV animation",
+        "simplified low-detail rendering",
+        "plastic toy",
+        "rubber toy",
+        "human photorealism",
+        "live-action humanization",
+        "uncanny insect anatomy",
+        "overly realistic skin pores"
+      ],
+      "metadata": {
+        "contract_version": "LUMI_KLING_SHOT_CONTRACT_V2",
+        "historical_ledger_alias": "q32",
+        "source_status": "BLOCKED_PENDING_CANONICAL_REPLACEMENT_OR_PROVEN_LOCAL_DERIVATIVE",
+        "current_phase_provider_calls_allowed": 0,
+        "provider_defaults": {
+          "model": "kling-video/v3.0/std/image-to-video",
+          "tier": "Kling 3.0 Standard",
+          "audio": "OFF",
+          "multi_shots": false,
+          "natural_speed": 1,
+          "automatic_retries": 0,
+          "automatic_variants": 0,
+          "provider_repair_budget": 0
+        },
+        "estimated_cost_usd_historical": 0.286,
+        "quote_at": "2026-10-04T13:58Z",
+        "quote_status": "HISTORICAL_REQUOTE_REQUIRED",
+        "golden_binding_status": "UNRESOLVED_MEDIA_BLOCKED",
+        "golden_authority_manifest": "../golden/GOLDEN_REFERENCE_PACK.json",
+        "golden_required_roles": [
+          "character",
+          "world",
+          "lighting",
+          "motion"
+        ]
+      }
+    },
+    "compiler": "PROMPT_COMPILER_V3",
+    "director": "LUMI_CINEMATIC_DIRECTOR_V1",
+    "request_envelope_status": "FULL_PERSISTED_ENVELOPE_NOT_RECOVERED",
+    "runtime_revision": "f42d5a83e2806b3db17080c2829d305bad4a8525",
+    "note": "Historical contract remains incomplete; not silently upgraded to an approved direction."
+  },
+  "qa": {
+    "source": {
+      "COLOR": "PASS",
+      "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "ANATOMY": "PASS",
+      "REALISM": "PASS",
+      "IDENTITY": "PASS",
+      "WING_NOTE": "Two main canonical wing silhouettes; small lower contours remain comparable to human-approved q31 baseline. No independent new wing.",
+      "NO_STINGER": "PASS",
+      "NO_REAR_BULB": "PASS",
+      "CARTOON_DRIFT": "MINIMAL",
+      "NO_BEE_ABDOMEN": "PASS",
+      "NO_EXTRA_TORSO": "PASS",
+      "classification": "PASS_WITH_MINOR_WARNING",
+      "BODY_LOCK_VERSION": "LUMI_BODY_ANATOMY_LOCK_V1",
+      "EDUCATIONAL_SEMANTICS": "PASS",
+      "VIDEO_SOURCE_READINESS": "PASS",
+      "NO_STRIPED_POSTERIOR_BODY": "PASS"
+    },
+    "video": {
+      "NOTE": "Reassessment after q33 native-frame comparison: dark yellow rear contour under right arm around 2.5-4.0 seconds could indicate unrequested abdomen. Initial anatomy PASS withdrawn; not a usable assembly approval.",
+      "DECODE": "PASS",
+      "MOTION": "PASS_VISUAL",
+      "origin": "TEMPORAL_MUTATION",
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "ANATOMY": "BLOCKER",
+      "REALISM": "PASS_VISUAL",
+      "WING_QA": "PASS_WITH_MINOR_WARNING",
+      "IDENTITY": "HUMAN_REVIEW_REQUIRED",
+      "BLACK_FRAMES": 0,
+      "TECHNICAL_QA": "PASS",
+      "CARTOON_DRIFT": "MINIMAL",
+      "FREEZE_DEFECTS": 0,
+      "BODY_LOCK_VERSION": "LUMI_BODY_ANATOMY_LOCK_V1",
+      "SUPERSEDES_INITIAL_PASS": true,
+      "EDUCATIONAL_OBJECT_STABILITY": "PASS",
+      "QUALITY_PARITY_WITH_Q31_PRO2": "HUMAN_REVIEW_REQUIRED"
+    },
+    "forensics": {
+      "SOURCE_ANATOMY": "PASS",
+      "source_note": "No discrete posterior bulb, segmented mass or black/yellow striping is visible in the exact source. The narrow warm-yellow edge between arm and overalls is consistent with the canonical torso/arm overlap and remains a caution for future motion.",
+      "VIDEO_ANATOMY": "BLOCKER",
+      "classification": "TEMPORAL_MUTATION",
+      "first_clean_frame": {
+        "index": 0,
+        "time_s": 0
+      },
+      "first_visible_material_anomaly": {
+        "index": 20,
+        "time_s": 0.8333333333333334,
+        "confidence": "VISUAL_PRECURSOR; dark under-arm patch is partly occluded"
+      },
+      "first_unambiguous_rear_bulb": {
+        "index": 75,
+        "time_s": 3.125,
+        "confidence": "HIGH; separate rounded yellow posterior volume protrudes behind arm during torso turn"
+      },
+      "last_defective_frame": {
+        "index": 96,
+        "time_s": 4
+      },
+      "visible_rear_bulb_duration_s": 0.9166666666666666,
+      "material_anomaly_visible_through_clip_end": true,
+      "defect_disappears": false,
+      "correlation": "Body rotation and arm occlusion during the final settle; static camera. Below-wing location and rounded yellow/black mass exclude wing overlap.",
+      "worst_frame": {
+        "index": 80,
+        "time_s": 3.3333333333333335
+      },
+      "LOCAL_SALVAGE": "NOT_PROFESSIONAL",
+      "local_salvage_reason": "A tracked repair would need to replace the moving rear volume inside and outside the arm/overalls gap. Available early/source frames do not provide a complete clean plate under the changing arm silhouette. Simple crop/foreground occlusion would remove canonical limb/wing or teaching composition; invisible tracking/material continuity is not verified. No forced patch or derived clip created.",
+      "MINIMUM_REPAIR": "VIDEO_REGEN_ONLY",
+      "image_regeneration_required": false,
+      "expected_cost_usd_reference": 0.381
+    }
+  },
+  "human_review": {
+    "state": "REVIEW_REQUIRED_BLOCKED",
+    "persisted": null,
+    "historical_actor": null,
+    "historical_at": null,
+    "reaffirmation": {
+      "actor": "current user",
+      "date": "2026-10-05",
+      "scope": "Current continuation instruction; existing artifact status only; no new direction or generation approval"
+    }
+  },
+  "original_artifacts_mutated": false,
+  "new_generation_authorized": false,
+  "fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77"
+}

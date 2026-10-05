@@ -1,0 +1,56 @@
+[
+  {
+    "file": "LUMI_q32_q33_REPAIR_PLAN.json",
+    "sha256": "680dd20201922dae16367de53151296b96de433d0b0ff1fe37f83e47ccb0baaf",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "LUMI_SERIES_V2_QUALITY_GATE_REPORT.json",
+    "sha256": "691a52a17340bc6fefe3ab9093b6ea44a03394c59074bf400f09acaa8b896554",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "LUMI_SERIES_V2_QUALITY_BUDGET_REVIEW.json",
+    "sha256": "a2f72728081380277728d10043d03af32cf9438af895648723c1f777456d352c",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "SHOT_CONTRACTS_V2.json",
+    "sha256": "6693c4750868c20d5b34cf0c8c1905e051c1f77fdfa92810b9ae56f41c2c3933",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "LUMI_SERIES_PRODUCTION_BIBLE_V2.json",
+    "sha256": "2fad6294cd9631de3a209ee08ee940df6e4808e52f6cc7dd1bc2d1d91c495af9",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "LUMI_SERIES_STYLE_V2.json",
+    "sha256": "aacb5367f9c0cb68d84c86badeb5e4a4510b5122001dd01a54196d55eb571e27",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "CHARACTER_MODEL_SHEET_V2.json",
+    "sha256": "a91209df30160168c723f23af559214b4223466fc62728914bcd34615bf30f67",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "WORLD_BIBLE_V2.json",
+    "sha256": "5708591f6f5c1e32e753cefb81220373c5b5e149416ab4513ea7eb4b50864293",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  },
+  {
+    "file": "LUMI_SERIES_V2_STATE_ADDENDUM.md",
+    "sha256": "5c0f1a1948284dec1d941d471b2665a3c45db5eecf132acbfbb109d29d3d6df6",
+    "source": "Library current version recovered 2026-10-05",
+    "scope": "documentary evidence; not current pixel certification"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "id": "WORLD_BIBLE_V2",
+  "version": "2.0.0",
+  "status": "QUALITATIVE_POLICY_FROZEN_VISUAL_LANDMARK_MEASUREMENTS_PENDING",
+  "runtime_active": false,
+  "authorities": ["LUMI_PILOT_CINCO_HUEVOS_V1_1.mp4", "approved original five-eggs source assets", "approved World Lock", "LUMI_GOLDEN_WORLD_REFERENCE_V1", "LUMI_GOLDEN_LIGHTING_REFERENCE_V1"],
+  "confirmed_documentary_evidence": [
+    {"path": "repo/episodes/ep_lumi_flores_003/EPISODE_PLAN_V2.json", "facts": ["environment_ref lumi_garden/1.0", "lighting_ref garden_day/1.0", "episode has nine educational beats"]},
+    {"path": "repo/LUMI_SHORT_PRODUCTION_PRESET_V1_1.json", "facts": ["world_prop_continuity must remain", "highest-quality persisted original required", "text over Lumi forbidden"]},
+    {"path": "repo/lib/asset-v2/visual-benchmark-v11.js", "constant": "GARDEN_WORLD_LANDMARK_LOCK_V1", "facts": ["garden_world_01", "large mature mossy tree", "arched wooden door", "circular blue four-pane window", "tree right of curved path after basket clearing", "short stone steps"]}
+  ],
+  "garden_style": "rich colorful stylized 3D garden with rounded preschool-friendly vegetation and physically plausible material response",
+  "lighting": "soft cinematic daylight; natural contact shadows; warm friendly skin response; coherent direction and exposure",
+  "vegetation_density": "match approved five-eggs wide reference; preserve clear educational foreground and readable character silhouette",
+  "color_palette": {
+    "qualitative": "rich garden greens, warm daylight, controlled colorful accents; Lumi yellow, turquoise eyes and light-blue clothing/wings remain distinct",
+    "measured_swatches": null,
+    "measurement_status": "PENDING_ORIGINAL_REFERENCE_PIXELS",
+    "educational_colors": "defined independently as deterministic local graphic tokens; do not change the character or ambient palette to correct a teaching object"
+  },
+  "tree_door_window_landmarks": {
+    "status": "DOCUMENTARY_QUALITATIVE_LOCK_CONFIRMED_ORIGINAL_PIXELS_PENDING",
+    "source_lock": "garden-world-landmark-lock/1",
+    "evidence_asset_id": "a71f34d3-f2d1-4ff1-8ba9-6a5186d13cf3",
+    "evidence_scene_id": "s11",
+    "documented_asset_sha256": "b069f9d7c6ff086708d57e126a3342ed820dc58d58f730f9abd0c1faf65483d4",
+    "canonical_positions": "tree_trunk_01 on the right side of the curved garden_path after basket_clearing; rounded canopy overhead; short stone steps at base",
+    "canonical_shapes": "large mature mossy garden tree; rounded warm wooden arched door; small circular blue four-pane window",
+    "canonical_materials": "soft stylized bark, moss patches, warm wood door, blue glass window",
+    "forbidden_drift": ["open_tree_hole", "dark_hollow", "door_without_circular_window"],
+    "pixel_bounds": null,
+    "rule": "Preserve these documented features when visible. Bind exact silhouette, bounds, palette and perspective to original approved pixels before full visual freeze; do not invent measurements."
+  },
+  "path": {"status": "QUALITATIVE_CURVED_PATH_DOCUMENTED_MEASUREMENTS_PENDING", "geometry": "curved garden_path; basket_clearing precedes tree_trunk_01, which lies on the right side", "measured_geometry": null, "rule": "Preserve path course, width, surface and relation to landmarks established by original world pixels; no scene-specific redesign."},
+  "grounding": "feet, props and vegetation rest on coherent ground with contact shadows; no floating feet, sliding planted objects or inconsistent scale",
+  "depth": "layered foreground/midground/background and gentle cinematic depth of field; character eyes and the teaching object stay readable; no flat backdrop",
+  "weather_time_of_day": {
+    "default": "stable soft daytime matching the five-eggs authority",
+    "weather": "calm garden conditions; no new wind/rain/storm event",
+    "within_episode": "no uncontrolled exposure, weather or time-of-day drift",
+    "change_policy": "a story-motivated exception requires a versioned explicit plan and human review before generation"
+  },
+  "shot_continuity": ["retain landmark placement", "retain ground plane and scale", "retain light direction and character material response", "retain object identity/count/color", "use crop/reframe of a verified world rather than inventing a new location"],
+  "activation_gate": "Original world and lighting references pass QA; required landmarks are measured or their verified absence is recorded; no UNKNOWN world field may be treated as PASS."
+}

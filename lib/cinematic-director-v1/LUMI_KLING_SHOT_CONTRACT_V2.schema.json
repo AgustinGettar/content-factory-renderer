@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lumi:LUMI_KLING_SHOT_CONTRACT_V2",
+  "title": "LUMI_KLING_SHOT_CONTRACT_V2",
+  "description": "Offline contract. Schema validity alone never authorizes a provider call. Runtime readiness and evidence gates remain mandatory.",
+  "type": "object",
+  "properties": {
+    "shot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "shot_type": {
+      "type": "string",
+      "enum": [
+        "ESTABLISHING",
+        "MEDIUM_TEACHING",
+        "CLOSE_EMOTION",
+        "EDUCATIONAL_OBJECT",
+        "MAGIC_REWARD",
+        "QUESTION_TO_VIEWER"
+      ]
+    },
+    "START_STATE": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object_inventory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "color": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shape": {
+                "type": "string",
+                "minLength": 1
+              },
+              "placement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "FULLY_VISIBLE",
+                  "PARTIAL",
+                  "HIDDEN"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "count",
+              "color",
+              "shape",
+              "placement",
+              "visibility"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "description",
+        "object_inventory"
+      ],
+      "additionalProperties": false
+    },
+    "CHARACTER_STATE": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "character_lock_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "character_lock_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "world_lock_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "world_lock_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "identity_preserved": {
+          "const": true
+        },
+        "canonical_wings": {
+          "const": 2
+        },
+        "wand_policy": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "description",
+        "character_lock_id",
+        "character_lock_sha256",
+        "world_lock_id",
+        "world_lock_sha256",
+        "identity_preserved",
+        "canonical_wings"
+      ],
+      "additionalProperties": false
+    },
+    "REQUIRED_OBJECTS": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "color": {
+            "type": "string",
+            "minLength": 1
+          },
+          "shape": {
+            "type": "string",
+            "minLength": 1
+          },
+          "placement": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "count",
+          "color",
+          "shape",
+          "placement"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "EDUCATIONAL_INVARIANTS": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "object_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "property": {
+            "type": "string",
+            "enum": [
+              "count",
+              "color",
+              "shape"
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "object_id",
+          "property",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    },
+    "PRIMARY_ACTION": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "blink",
+            "look_at_object",
+            "look_at_viewer",
+            "small_pointing_gesture",
+            "small_wave",
+            "gentle_wand_gesture",
+            "subtle_wing_response",
+            "smile",
+            "natural_settle"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "action",
+        "description"
+      ],
+      "additionalProperties": false
+    },
+    "ALLOWED_SECONDARY_MOTION": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "blink",
+          "subtle_wing_response",
+          "smile",
+          "natural_settle"
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 2,
+      "uniqueItems": true
+    },
+    "FORBIDDEN_ACTIONS": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "CAMERA": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "STATIC",
+            "SUBTLE_PUSH_IN",
+            "SUBTLE_REFRAME",
+            "GENTLE_TRACKING"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "necessary": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "description",
+        "necessary"
+      ],
+      "additionalProperties": false
+    },
+    "END_STATE": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "object_inventory": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "color": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shape": {
+                "type": "string",
+                "minLength": 1
+              },
+              "placement": {
+                "type": "string",
+                "minLength": 1
+              },
+              "visibility": {
+                "type": "string",
+                "enum": [
+                  "FULLY_VISIBLE",
+                  "PARTIAL",
+                  "HIDDEN"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "count",
+              "color",
+              "shape",
+              "placement",
+              "visibility"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "description",
+        "object_inventory"
+      ],
+      "additionalProperties": false
+    },
+    "DURATION": {
+      "type": "number",
+      "minimum": 3,
+      "maximum": 5
+    },
+    "SOURCE_ARTIFACT": {
+      "type": "object",
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "GOLDEN_REFERENCES": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "character",
+              "world",
+              "lighting",
+              "motion"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 4
+    },
+    "NEGATIVE_STYLE_CONTRACT": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "flat cartoon",
+          "2D illustration",
+          "cel shading",
+          "anime",
+          "comic look",
+          "cheap TV animation",
+          "simplified low-detail rendering",
+          "plastic toy",
+          "rubber toy",
+          "human photorealism",
+          "live-action humanization",
+          "uncanny insect anatomy",
+          "overly realistic skin pores"
+        ]
+      },
+      "minItems": 13,
+      "maxItems": 13,
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "shot_id",
+    "shot_type",
+    "START_STATE",
+    "CHARACTER_STATE",
+    "REQUIRED_OBJECTS",
+    "EDUCATIONAL_INVARIANTS",
+    "PRIMARY_ACTION",
+    "ALLOWED_SECONDARY_MOTION",
+    "FORBIDDEN_ACTIONS",
+    "CAMERA",
+    "END_STATE",
+    "DURATION",
+    "SOURCE_ARTIFACT",
+    "GOLDEN_REFERENCES",
+    "NEGATIVE_STYLE_CONTRACT"
+  ],
+  "additionalProperties": false
+}

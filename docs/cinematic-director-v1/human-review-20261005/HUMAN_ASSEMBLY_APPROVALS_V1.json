@@ -1,0 +1,62 @@
+{
+  "version": "HUMAN_ASSEMBLY_APPROVALS_V1",
+  "records": [
+    {
+      "episode_id": "ep_lumi_flores_003",
+      "shot": "q31",
+      "artifact_id": "eb76d930-ee06-4df9-a81e-4a4c32ddc04a",
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "kind": "HUMAN",
+      "actor": "USER",
+      "at": "2026-10-05T21:23:53Z",
+      "scope": "CURRENT_EPISODE_ASSEMBLY",
+      "status": "HUMAN_APPROVED",
+      "full_playback_1x": true,
+      "assembly_eligible": true,
+      "golden_reference": true,
+      "golden_scope": "GREETING",
+      "statement": "PERFECTO / APPROVED",
+      "provenance": "Explicit current user message; user personally watched each full video at 1x",
+      "automated_findings_policy": "PRESERVE_UNCHANGED_SEPARATE_LAYER",
+      "repair_policy": "NO_REGENERATION_NO_REPAIR_CURRENT_EPISODE"
+    },
+    {
+      "episode_id": "ep_lumi_flores_003",
+      "shot": "q32",
+      "artifact_id": "bfc71fa1-c54d-454c-9ebb-9c937e78ecef",
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "kind": "HUMAN",
+      "actor": "USER",
+      "at": "2026-10-05T21:23:53Z",
+      "scope": "CURRENT_EPISODE_ASSEMBLY",
+      "status": "HUMAN_APPROVED_FOR_ASSEMBLY",
+      "full_playback_1x": true,
+      "assembly_eligible": true,
+      "golden_reference": false,
+      "golden_scope": null,
+      "statement": "PERFECTO / APPROVED",
+      "provenance": "Explicit current user message; user personally watched each full video at 1x",
+      "automated_findings_policy": "PRESERVE_UNCHANGED_SEPARATE_LAYER",
+      "repair_policy": "NO_REGENERATION_NO_REPAIR_CURRENT_EPISODE"
+    },
+    {
+      "episode_id": "ep_lumi_flores_003",
+      "shot": "q33",
+      "artifact_id": "92e3846b-3628-4377-a2b0-51ce1ba6bfaa",
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "kind": "HUMAN",
+      "actor": "USER",
+      "at": "2026-10-05T21:23:53Z",
+      "scope": "CURRENT_EPISODE_ASSEMBLY",
+      "status": "HUMAN_APPROVED_FOR_ASSEMBLY",
+      "full_playback_1x": true,
+      "assembly_eligible": true,
+      "golden_reference": false,
+      "golden_scope": null,
+      "statement": "PERFECTO / APPROVED",
+      "provenance": "Explicit current user message; user personally watched each full video at 1x",
+      "automated_findings_policy": "PRESERVE_UNCHANGED_SEPARATE_LAYER",
+      "repair_policy": "NO_REGENERATION_NO_REPAIR_CURRENT_EPISODE"
+    }
+  ]
+}

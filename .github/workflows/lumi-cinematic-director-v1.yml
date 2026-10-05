@@ -1,0 +1,27 @@
+name: Lumi Cinematic Director offline validation
+on:
+  push:
+    branches: [lumi-cinematic-director-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Focused and relevant regression, no providers
+        run: node --import ./scripts/director-offline-guard.mjs --test lib/cinematic-director-v1/PROMPT_COMPILER_V3.test.mjs test/lumi-cinematic-director*.test.js test/lumi-series-v2-gates.test.js test/lumi-third-shot-pack-v1.test.js test/lumi-third-shot-pack-runtime-v1.test.js test/lumi-third-shot-pack-preflight-resume.test.js test/lumi-recovery-incident-manager-v1.test.js test/lumi-recovery-server-integration.test.js test/lumi-q31-qa-recovery.test.js test/lumi-q31-pro2-calibration.test.js test/provider-emission-journal-v1.test.js
+      - name: Canonical offline dry run (synthetic and documentary only)
+        run: node --import ./scripts/director-offline-guard.mjs scripts/director-dry-run.mjs /tmp/director-ci
+      - name: Protected surface and secret diff review
+        run: python3 scripts/director-security-diff.py

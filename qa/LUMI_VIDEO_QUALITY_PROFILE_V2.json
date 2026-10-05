@@ -20,5 +20,26 @@
   "max_new_video_calls_per_shot": 1,
   "retries": 0,
   "variants": 0,
-  "resubmits": 0
+  "resubmits": 0,
+  "body_anatomy_lock": {
+    "id": "LUMI_BODY_ANATOMY_LOCK_V1",
+    "NO_BEE_ABDOMEN": "HARD",
+    "NO_STRIPED_POSTERIOR_BODY": "HARD",
+    "NO_STINGER": "HARD",
+    "NO_EXTRA_TORSO": "HARD",
+    "NO_REAR_BULB": "HARD",
+    "source_qa": "REQUIRED_EXPLICIT_PASS",
+    "temporal_qa": "REQUIRED_EXPLICIT_PASS",
+    "canonical_reference_scope": "IDENTITY_AND_STYLE; DO_NOT_COPY_AMBIGUOUS_POSTERIOR_CRESCENT",
+    "below_wings": "ONLY_CANONICAL_TORSO_OVERALLS_SILHOUETTE"
+  },
+  "future_motion_addendum": {
+    "camera": "STATIC",
+    "body_orientation": "FRONT_OR_THREE_QUARTER_FIXED",
+    "no_body_turn": true,
+    "no_torso_twist": true,
+    "no_back_facing": true,
+    "wings": "MINIMAL",
+    "secondary": "SMALL_HEAD_MOTION_AND_NATURAL_BLINK"
+  }
 }

@@ -1,0 +1,262 @@
+{
+  "version": "LUMI_BOUND_QA_OBSERVATIONS_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q32",
+  "binding_fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77",
+  "source": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json",
+      "closure-v2/q32_BOUND_QA_OBSERVATIONS_R2.json"
+    ],
+    "checks": {
+      "NO_STINGER": "PASS",
+      "NO_EXTRA_APPENDAGE": "PASS",
+      "NO_EXTRA_WING_LOBES": "REVIEW_REQUIRED",
+      "NO_BEE_ABDOMEN": "PASS",
+      "NO_STRIPED_POSTERIOR_BODY": "PASS",
+      "NO_REAR_BULB": "PASS",
+      "NO_SECOND_TORSO": "PASS",
+      "NO_BODY_MASS_BEHIND_OVERALLS": "PASS"
+    },
+    "counts": {
+      "head": 1,
+      "rounded_torso": 1,
+      "arms": 2,
+      "legs": 2,
+      "antennae": 2,
+      "wings": 2
+    },
+    "findings": [
+      {
+        "category": "EXTRA_WING_LOBE",
+        "certainty": "UNKNOWN",
+        "evidence_ids": [
+          "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2:source"
+        ],
+        "note": "Two main wing silhouettes with small lower contours. Existing PASS_WITH_MINOR_WARNING cannot inherit q31 human acceptance under the new hard no-extra-lobe lock."
+      }
+    ],
+    "coverage": {
+      "source_frame": true,
+      "first_frame": true,
+      "sampled_temporal_frames": true,
+      "worst_silhouette_frames": true,
+      "end_frame": true,
+      "full_native_speed_playback": false
+    },
+    "counts_scope": "Visible main parts only. Two main wing silhouettes does not resolve lower lobe classification.",
+    "lower_torso_silhouette": "DEFINED_BY_OVERALLS"
+  },
+  "video": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json",
+      "closure-v2/q32_FRAME_COVERAGE_R2.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "POSTERIOR_BODY_MUTATION",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313:frame80"
+        ],
+        "note": "Posterior volume visible behind screen-right arm at 3.333 s. Persisted forensic evidence identifies temporal origin."
+      },
+      {
+        "category": "POSTERIOR_BODY_MUTATION",
+        "certainty": "POSSIBLE_OCCLUSION",
+        "evidence_ids": [
+          "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313:frame20"
+        ],
+        "note": "Earlier under-arm dark precursor remains partly occluded, not an independently confirmed onset."
+      }
+    ],
+    "coverage": {
+      "source_frame": true,
+      "first_frame": true,
+      "sampled_temporal_frames": true,
+      "worst_silhouette_frames": true,
+      "end_frame": true,
+      "full_native_speed_playback": false
+    }
+  },
+  "intended_preset": "PRESENT_OBJECT",
+  "observed_motion": {
+    "body_yaw": "ADDED_ROTATION",
+    "torso_rotation": "ADDED_ROTATION",
+    "wing_motion": "UNKNOWN",
+    "camera": "STATIC"
+  },
+  "observation_provenance": {
+    "actor": "Codex visual inspection + retrieved existing QA",
+    "date": "2026-10-05",
+    "new_human_approval": false,
+    "inspected_source": true,
+    "inspected_video_frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96
+    ],
+    "all_frames_decoded": true,
+    "full_native_speed_visual_playback": false,
+    "quantified_angles": null,
+    "complete_anatomy_certified": false,
+    "inspection_method": "Chronological all-frame overview sheets, source detail, and enlarged risk windows; static visual review, NOT native-speed playback"
+  },
+  "requested_motion_analysis": "Exact historical request envelope not recovered. Current code was amended after generation, so it cannot prove the historical wording. Observed torso rotation exceeds the proposed preset; wing angles remain unmeasured.",
+  "revision": 2,
+  "supersedes_observation_scope": "Expands static visual coverage; does not supersede original artifacts, ledger or human approval.",
+  "source_decision": {
+    "posterior_body": "PASS",
+    "topology_v2": "REVIEW_REQUIRED",
+    "source_reuse": "REVIEW_REQUIRED",
+    "reason": "No posterior source mutation; remaining lower-wing-lobe scope must be resolved before source reuse is final."
+  },
+  "temporal_findings": {
+    "classification": "POSTERIOR_BODY_MUTATION",
+    "first_suspicious_frame": 20,
+    "first_suspicious_s": 0.8333333333333334,
+    "first_unambiguous_frame": 75,
+    "first_unambiguous_s": 3.125,
+    "worst_frame": 80,
+    "worst_s": 3.3333333333333335,
+    "last_defective_frame": 96,
+    "last_defective_s": 4,
+    "confirmed_visible_duration_s": 0.9166666666666666,
+    "recovery": false,
+    "onset_precision": "First unambiguous visible frame, not proof of hidden physical onset. Earlier under-arm patch remains possible occlusion.",
+    "excluded_for_confirmed_rear_bulb": [
+      "WING_OVERLAP",
+      "SHADOW_FALSE_POSITIVE",
+      "PERSPECTIVE_OVERLAP"
+    ],
+    "basis": "Rounded yellow volume protrudes outside overalls below the blue wings and behind screen-right arm during final torso turn."
+  },
+  "source_fact_review": {
+    "id": "q32-source-visible-facts-r2",
+    "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "actor": "Codex static visual review (not a human approval)",
+    "at": "2026-10-05T00:00:00Z",
+    "scope": "VISIBLE_SOURCE_FACTS_ONLY",
+    "kind": "VISUAL_REVIEW",
+    "status": "APPROVED_WITH_WARNING",
+    "observations": {
+      "body_orientation": "FRONT",
+      "gaze": "VIEWER",
+      "wand_state": "ABSENT",
+      "left_hand": "FREE",
+      "right_hand": "FREE",
+      "laterality": "CHARACTER_SIDES_VERIFIED"
+    },
+    "warnings": [
+      {
+        "code": "SOURCE_TOPOLOGY_NOT_APPROVED",
+        "scope": "VISIBLE_SOURCE_FACTS_ONLY",
+        "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2"
+      }
+    ]
+  },
+  "source_fact_review_timestamp_basis": "Review date 2026-10-05; midnight is serialization of date, not a measured session event timestamp."
+}

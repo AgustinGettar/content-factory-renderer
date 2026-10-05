@@ -52,6 +52,7 @@
               "grammar": {
                 "type": "string",
                 "enum": [
+                  "GREETING",
                   "PRESENT_FLOWER",
                   "ATTENTIVE_WAIT",
                   "GAZE_VIEWER",

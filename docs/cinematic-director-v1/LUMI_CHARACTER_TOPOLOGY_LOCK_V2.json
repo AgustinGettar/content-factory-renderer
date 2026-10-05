@@ -25,5 +25,19 @@
     "VIDEO_REQUEST_PACKAGE",
     "SAMPLED_FRAME_TEMPORAL_QA",
     "MASTER_QA"
-  ]
+  ],
+  "detection_contract": {
+    "version": "TOPOLOGY_FRAME_COVERAGE_V1",
+    "source": [
+      "source_frame"
+    ],
+    "video": [
+      "first_frame",
+      "sampled_temporal_frames",
+      "worst_silhouette_frames",
+      "end_frame"
+    ],
+    "playback": "FULL_NATIVE_SPEED_REVIEW_REQUIRED; all-frame decoding or contact sheets are not playback",
+    "measurements": "Frame timestamps may be measured; hidden geometry and 3D angles must not be inferred as exact."
+  }
 }

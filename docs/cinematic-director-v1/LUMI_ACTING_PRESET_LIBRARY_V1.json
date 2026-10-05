@@ -1,5 +1,6 @@
 {
   "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
+  "revision": 2,
   "presets": {
     "GREETING": {
       "version": "LUMI_ACTING_PRESET_LIBRARY_V1",
@@ -308,5 +309,23 @@
       ]
     }
   },
-  "approval": "Generic policy derived from current user instruction; individual source/motion reviews required. No measured numeric yaw inferred."
+  "presentation_safe_policy": {
+    "revision": 2,
+    "status": "PROPOSED_FOR_SHOT_APPROVAL",
+    "initial_orientation": [
+      "FRONT",
+      "MILD_THREE_QUARTER_REVIEWED"
+    ],
+    "body_yaw_added_degrees": 0,
+    "torso_rotation_added_degrees": 0,
+    "shoulder_turn_added_degrees": 0,
+    "numeric_limits_basis": "Normative no-added-rotation targets, NOT measured safe angles or provider controls.",
+    "arm_amplitude": "FOREARM_WRIST_ONLY; keep shoulder at source position, gesture beside target without crossing it",
+    "head_turn": "EYES_LEAD; small source-supported follow; preserve visible facial and posterior silhouette",
+    "wing_movement": "PRESERVE_SOURCE_SILHOUETTE; no deliberate flutter or added lobes",
+    "camera": "STATIC; a subtle path requires separate source evidence and approval",
+    "end_state": "Source torso orientation; one overalls-defined lower silhouette, no posterior body; object fully legible",
+    "q31_parity": "Rendering and restrained performance reference only; GREETING is not a presentation motion template",
+    "guarantee": false
+  }
 }

@@ -9,6 +9,7 @@ import { makeFixture } from './fixtures/director-v1.js';
 
 const sha='a'.repeat(64);
 const mockReview=()=>({version:TOPOLOGY.version,sha256:sha,evidence_ids:['SYNTHETIC_NOT_HUMAN_APPROVAL'],
+  coverage:{source_frame:true},
   checks:Object.fromEntries(TOPOLOGY.hard.map(k=>[k,'PASS'])),counts:{head:1,rounded_torso:1,arms:2,legs:2,antennae:2,wings:2},
   wing_attachment:'UPPER_BACK_ONLY',lower_torso_silhouette:'DEFINED_BY_OVERALLS',findings:[]});
 for(const stage of TOPOLOGY.stages)for(const category of ['POSTERIOR_BODY_MUTATION','STRIPED_ABDOMEN','EXTRA_BODY_SEGMENT','EXTRA_WING_LOBE','SILHOUETTE_DRIFT']){

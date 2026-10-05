@@ -1,0 +1,130 @@
+{
+  "version": "LUMI_AUTHENTIC_REPLAY_REPORT_V1",
+  "entrypoint": "runLumiV2Step → reviewAtCanonicalBoundary → compileDirectorPacket",
+  "runtime": "LOCAL_OFFLINE_CANONICAL_ENTRY",
+  "authentic_media_verified": "PASS",
+  "shots": [
+    {
+      "shot": "q31",
+      "assertions": "PASS",
+      "evaluation": "COMPATIBLE_WITH_EXISTING_HUMAN_APPROVAL",
+      "binding_fingerprint": "30c68dc9bc8f1bfef638ec70be71f28b6f4a2d86367381635d586477dde952fd",
+      "repair_outcome": "ACCEPT_COMPATIBLE_WITH_HUMAN_GOLDEN",
+      "creative_fingerprint": "232041981a4ad60c6e6ff36c2c5b6ee31e789cb5a7995f0dd248c9e08c3da86d",
+      "replay_sha256": "a7f8c57e9371fc0ec154cff27ee351e0e016bed8f43f91605ec92dfbd8b1a89b",
+      "gates": {
+        "SCHEMA_VALID": false,
+        "DIRECTION_COHERENT": false,
+        "SOURCE_EVIDENCE_READY": false,
+        "CAPABILITIES_VERIFIED": false,
+        "HUMAN_DIRECTION_APPROVAL": false,
+        "BUDGET_AUTHORIZATION": false,
+        "EXECUTION_AUTHORIZATION": false
+      },
+      "repair": null,
+      "questions": {
+        "would_source_gate_block": "REVIEW_REQUIRED_UNDER_V2",
+        "would_direction_reduce_risk": "LIKELY: preserve torso and restrict gesture; no causal guarantee or word-level diagnosis.",
+        "would_endpoint_gate_change_request": "BLOCK_PENDING_EXACT_ENDPOINT_LIMITS_AND_PERSISTED_ENVELOPE; never silently rewrite fields or change model.",
+        "would_temporal_qa_detect": "EXISTING_APPROVAL_PRESERVED_WITH_SCOPED_WARNING",
+        "repair_class": "NONE_FOR_APPROVED_HISTORICAL_CLIP"
+      }
+    },
+    {
+      "shot": "q32",
+      "assertions": "PASS",
+      "evaluation": "BLOCKED",
+      "binding_fingerprint": "09abe52d1b292cd0f931474a09e8e8360597b9409acbed409c58e26533237c77",
+      "repair_outcome": "CONTROLLED_REPAIR_REQUIRED",
+      "creative_fingerprint": "d24cd5a4ae2f3d7cad950b501ae3f777493fd82369760377d37a67dcc3f0dad0",
+      "replay_sha256": "f11eb341f10100c7c38f724df81e4c05c6e2c439bf5ae8adc06d9681a0eb9fba",
+      "gates": {
+        "SCHEMA_VALID": false,
+        "DIRECTION_COHERENT": false,
+        "SOURCE_EVIDENCE_READY": false,
+        "CAPABILITIES_VERIFIED": false,
+        "HUMAN_DIRECTION_APPROVAL": false,
+        "BUDGET_AUTHORIZATION": false,
+        "EXECUTION_AUTHORIZATION": false
+      },
+      "repair": {
+        "source": "SOURCE_REUSE",
+        "video": "VIDEO_REPAIR_REQUIRED",
+        "source_reuse_condition": "Current source action/topology review must pass before future emission; existing bytes retained.",
+        "acting_preset": "PRESENT_OBJECT",
+        "estimated_provider_calls": {
+          "image": 0,
+          "video": 1,
+          "tts": 0
+        },
+        "estimated_cost_usd": null,
+        "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
+        "historical_cost_reference_usd": 0.381,
+        "retries": 0,
+        "variants": 0,
+        "resubmits": 0,
+        "execute": false
+      },
+      "questions": {
+        "would_source_gate_block": "REVIEW_REQUIRED_UNDER_V2",
+        "would_direction_reduce_risk": "LIKELY: preserve torso and restrict gesture; no causal guarantee or word-level diagnosis.",
+        "would_endpoint_gate_change_request": "BLOCK_PENDING_EXACT_ENDPOINT_LIMITS_AND_PERSISTED_ENVELOPE; never silently rewrite fields or change model.",
+        "would_temporal_qa_detect": "YES_WITH_BOUND_DEFECT_OBSERVATIONS",
+        "repair_class": "VIDEO_ONLY_CONDITIONAL_SOURCE_REUSE"
+      }
+    },
+    {
+      "shot": "q33",
+      "assertions": "PASS",
+      "evaluation": "BLOCKED",
+      "binding_fingerprint": "4ff39b9b9d1a66ec2454efa2cc16b32b386640c02b1a07d68e0e7fffd0d47c0c",
+      "repair_outcome": "SOURCE_REGEN_AND_VIDEO_REPAIR_REQUIRED",
+      "creative_fingerprint": "80a9de1aa7f90ce10a71e8f0d8ebddc71ccab6bf20b7a69bdf29f75beddd57bb",
+      "replay_sha256": "3ac5c0785efe511bfd672b6f96962d1256a48b2c780af2ab8ecbf175dbf28765",
+      "gates": {
+        "SCHEMA_VALID": false,
+        "DIRECTION_COHERENT": false,
+        "SOURCE_EVIDENCE_READY": false,
+        "CAPABILITIES_VERIFIED": false,
+        "HUMAN_DIRECTION_APPROVAL": false,
+        "BUDGET_AUTHORIZATION": false,
+        "EXECUTION_AUTHORIZATION": false
+      },
+      "repair": {
+        "source": "SOURCE_REGEN_REQUIRED",
+        "video": "VIDEO_REPAIR_REQUIRED",
+        "source_reuse_condition": null,
+        "acting_preset": "PRESENT_OBJECT",
+        "estimated_provider_calls": {
+          "image": 1,
+          "video": 1,
+          "tts": 0
+        },
+        "estimated_cost_usd": null,
+        "cost_status": "FRESH_QUOTE_REQUIRED_NOT_AUTHORIZED",
+        "historical_cost_reference_usd": 0.608,
+        "retries": 0,
+        "variants": 0,
+        "resubmits": 0,
+        "execute": false
+      },
+      "questions": {
+        "would_source_gate_block": "YES",
+        "would_direction_reduce_risk": "LIKELY: preserve torso and restrict gesture; no causal guarantee or word-level diagnosis.",
+        "would_endpoint_gate_change_request": "BLOCK_PENDING_EXACT_ENDPOINT_LIMITS_AND_PERSISTED_ENVELOPE; never silently rewrite fields or change model.",
+        "would_temporal_qa_detect": "YES_WITH_BOUND_DEFECT_OBSERVATIONS",
+        "repair_class": "SOURCE_THEN_VIDEO"
+      }
+    }
+  ],
+  "provider_calls": 0,
+  "outgoing_connections_during_replay": 0,
+  "original_artifacts_modified": false,
+  "new_generation_cost": 0,
+  "new_media_generated": 0,
+  "master_created": false,
+  "episode_resumed": false,
+  "staging_replay": "NOT_RUN",
+  "observation_revision": 2,
+  "visual_scope": "All 97 frames per clip inspected as chronological overview sheets and enlarged risk windows. Full native-speed playback NOT performed; no new human certification."
+}

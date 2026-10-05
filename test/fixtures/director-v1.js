@@ -14,9 +14,9 @@ export const syntheticCapabilities = () => ({ ...structuredClone(CAPABILITIES), 
 export async function makeFixture({ grammar = 'PRESENT_FLOWER', directory } = {}) {
   const dir = directory || await mkdtemp(join(tmpdir(), 'lumi-director-test-'));
   await mkdir(dir, { recursive: true });
-  const wait = grammar === 'ATTENTIVE_WAIT', shot = wait ? 'q35' : grammar === 'GAZE_VIEWER' ? 'q31' : grammar === 'FAREWELL' ? 'q36' : 'q32';
+  const wait = grammar === 'ATTENTIVE_WAIT', shot = wait ? 'q35' : ['GAZE_VIEWER','GREETING'].includes(grammar) ? 'q31' : grammar === 'FAREWELL' ? 'q36' : 'q32';
   const duration = POLICY.durations[shot];
-  const required = (wait || grammar === 'FAREWELL' ? ['red','yellow','blue'] : grammar === 'GAZE_VIEWER' ? [] : ['red']).map(color => ({ id: `flower_${color}`, count: 1, color, shape: 'flower', placement: 'reviewed source position' }));
+  const required = (wait || grammar === 'FAREWELL' ? ['red','yellow','blue'] : ['GAZE_VIEWER','GREETING'].includes(grammar) ? [] : ['red']).map(color => ({ id: `flower_${color}`, count: 1, color, shape: 'flower', placement: 'reviewed source position' }));
   const inventory = required.map(o => ({ ...o, visibility: 'FULLY_VISIBLE' }));
   const source = { artifact_id: 'SYNTHETIC_SOURCE', path: join(dir, 'SYNTHETIC_SOURCE.txt'), sha256: sha256('SYNTHETIC SOURCE BYTES NOT AN IMAGE') };
   const refs = ['character','world','lighting','motion'].map(role => ({ artifact_id: `SYNTHETIC_${role}`, role, sha256: sha256(`SYNTHETIC ${role} BYTES NOT MEDIA`) }));
@@ -29,7 +29,7 @@ export async function makeFixture({ grammar = 'PRESENT_FLOWER', directory } = {}
     CHARACTER_STATE: { description: 'SYNTHETIC canonical identity.', character_lock_id: 'SYNTHETIC_CHARACTER_LOCK', character_lock_sha256: sha256('character lock'),
       world_lock_id: 'SYNTHETIC_WORLD_LOCK', world_lock_sha256: sha256('world lock'), identity_preserved: true, canonical_wings: 2 },
     REQUIRED_OBJECTS: required, EDUCATIONAL_INVARIANTS: required.flatMap(o => ['count','color','shape'].map(property => ({ object_id: o.id, property, value: o[property] }))),
-    PRIMARY_ACTION: { action: grammar === 'PRESENT_FLOWER' ? 'small_pointing_gesture' : grammar === 'FAREWELL' ? 'small_wave' : 'look_at_viewer', description: 'SYNTHETIC one performance.' },
+    PRIMARY_ACTION: { action: grammar === 'PRESENT_FLOWER' ? 'small_pointing_gesture' : ['FAREWELL','GREETING'].includes(grammar) ? 'small_wave' : 'look_at_viewer', description: 'SYNTHETIC one performance.' },
     ALLOWED_SECONDARY_MOTION: ['blink'], FORBIDDEN_ACTIONS: ['Identity change'], CAMERA: { type: 'STATIC', description: 'Reviewed static camera.', necessary: false },
     DURATION: duration, SOURCE_ARTIFACT: source, GOLDEN_REFERENCES: refs, NEGATIVE_STYLE_CONTRACT: [...NEGATIVE_STYLES],
   };
@@ -57,7 +57,7 @@ export async function makeFixture({ grammar = 'PRESENT_FLOWER', directory } = {}
     direction: { educational_goal: plan.scenes.find(s => s.id === sceneId).educational_goal,
       reason_es: wait ? 'La espera conserva contacto visual y no revela la respuesta.' : 'Un único gesto dirige la atención sin girar el torso ni tapar los pétalos.',
       emotion: wait ? 'attentive' : 'warm', focus: grammar === 'PRESENT_FLOWER' ? 'flower_red' : 'viewer', framing: 'FROM_APPROVED_SOURCE',
-      principal_actions: [{ grammar, actor: 'lumi', body_part: grammar === 'PRESENT_FLOWER' || grammar === 'FAREWELL' ? 'character_left_forearm' : 'gaze',
+      principal_actions: [{ grammar, actor: 'lumi', body_part: ['PRESENT_FLOWER','FAREWELL','GREETING'].includes(grammar) ? 'character_left_forearm' : 'gaze',
         target: grammar === 'PRESENT_FLOWER' ? 'flower_red' : 'viewer', direction: grammar === 'PRESENT_FLOWER' ? 'toward_target' : 'toward_viewer', amplitude: 'small', pace: 'natural_1x', body_motion: 'PRESERVE_INITIAL',
         timing: { preparation: 0.5, gesture: duration - 1.5, settle: 1, response_window: wait ? 2.5 : 0 } }],
       secondary_motion: ['blink'], stable_parts: ['torso','feet','posterior_silhouette','educational_objects'],

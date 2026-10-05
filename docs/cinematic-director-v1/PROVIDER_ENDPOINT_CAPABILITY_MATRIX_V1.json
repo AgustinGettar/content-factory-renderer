@@ -13,7 +13,8 @@
         "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/api-reference",
         "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/playground",
         "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
-        "lib/lumi-series-v2-execution.js"
+        "lib/lumi-series-v2-execution.js",
+        "Official exact endpoint API reference re-read 2026-10-05; connector models_get(kling3_0) kept separate"
       ],
       "mode_tier_support": {
         "requested": "PRO_CONFIRMED_BY_ENDPOINT",
@@ -112,7 +113,7 @@
       },
       "request_provenance": {
         "endpoint": "CONFIRMED_BY_SUCCESSFUL_LEDGER_AND_HISTORICAL_REPORT",
-        "full_original_envelopes": "PENDING_AUTHENTIC_STORAGE_JSON_RECOVERY",
+        "full_original_envelopes": "Partial recovered records available; exact request values/text unavailable. Noncritical missing fields explicitly separated.",
         "current_source_code": "NOT_PROOF_OF_PRE_AMENDMENT_PROMPT"
       },
       "actual_model_mode_echo": {
@@ -253,7 +254,90 @@
       "kling3_0_turbo"
     ],
     "same_as_direct_pro_endpoint": false,
-    "automatic_substitution": false
+    "automatic_substitution": false,
+    "later_exact_lookup": {
+      "tool": "models_get",
+      "model_id": "kling3_0",
+      "verified_on": "2026-10-05",
+      "parameters": {
+        "duration": {
+          "type": "number",
+          "min": 3,
+          "max": 15,
+          "default": 5
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "std",
+            "pro",
+            "4k"
+          ],
+          "default": "std"
+        },
+        "sound": {
+          "type": "string",
+          "enum": [
+            "on",
+            "off"
+          ],
+          "default": "on"
+        }
+      },
+      "media_roles": [
+        "start_image",
+        "end_image"
+      ],
+      "aspect_ratios": [
+        "16:9",
+        "9:16",
+        "1:1"
+      ],
+      "multi_shot": "Tag only; no explicit selectable field in returned parameter schema",
+      "not_direct_endpoint_schema": true,
+      "automatic_substitution": false
+    }
   },
-  "policy": "Unknown, unsupported or unauthorized capabilities block before provider; no silent dropping/coercion. Official Pro page includes one conflicting Standard prose label, while endpoint, title and request provenance select Pro."
+  "policy": "Unknown, unsupported or unauthorized capabilities block before provider; no silent dropping/coercion. Official Pro page includes one conflicting Standard prose label, while endpoint, title and request provenance select Pro.",
+  "revision": 2,
+  "historical_envelopes": "closure-v2/q{31,32,33}_RECOVERED_REQUEST_ENVELOPE_V1.json",
+  "emission_field_policy": {
+    "SUPPORTED": [
+      "prompt",
+      "image_url",
+      "sound",
+      "duration",
+      "cfg_scale",
+      "multi_shots"
+    ],
+    "LOCALLY_CONSUMED": [
+      "provider",
+      "endpoint",
+      "model/tier selection via endpoint",
+      "source_sha256",
+      "artifact_id",
+      "topology_lock",
+      "acting_preset",
+      "caption_plan",
+      "qa_evidence",
+      "fingerprints"
+    ],
+    "OMITTED": [
+      "elements",
+      "last_image_url",
+      "multi_prompt"
+    ],
+    "BLOCKED_UNSUPPORTED": [
+      "mode as body field",
+      "aspect_ratio as direct endpoint field",
+      "resolution",
+      "negative_prompt",
+      "mask",
+      "seed",
+      "camera_control",
+      "unknown multi-shot field"
+    ],
+    "all_previews": "NOT_SENT; emitted=false; payload=null",
+    "whole_request_gate": "BLOCKED until limits, source evidence and package approvals pass"
+  }
 }

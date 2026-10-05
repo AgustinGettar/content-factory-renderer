@@ -104,3 +104,5 @@ La regresión usa mocks rotulados cuando evalúa el journal/adaptador; no llega 
 - Probar integración remota y videos reales únicamente en otra fase autorizada. No se consultó/escribió la base de datos en esta fase ni se reanudó el episodio.
 
 Estado final: `PRODUCTION_ACTIVATED=false`, `PROVIDER_CALLS=0`, `NEW_GENERATION_COST=0`, `NEW_MEDIA=0`, `TTS=0`, `MASTER=NOT_CREATED`, `EPISODE_RESUMED=false`.
+
+Continuation review R2: [closure report](closure-v2/REVIEW_CLOSURE_REPORT.md). All-frame static review is recorded separately from pending native-speed playback. Staging remains gated.

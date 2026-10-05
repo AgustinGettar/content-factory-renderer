@@ -1,0 +1,15 @@
+{
+  "status": "SUPERSEDED_FOR_CURRENT_EPISODE_BY_HUMAN_APPROVAL",
+  "episode_id": "ep_lumi_flores_003",
+  "execute": false,
+  "preserved": [
+    {
+      "path": "closure-v3/replay/Q32_CONTROLLED_REPAIR_DIRECTION_PACKAGE_V1.json",
+      "sha256": "62ffd0a41402cb221644e8afdfab2cce0a1885c62049b97707837b1414d72193"
+    },
+    {
+      "path": "evidence/LUMI_q32_q33_REPAIR_PLAN.json",
+      "sha256": "680dd20201922dae16367de53151296b96de433d0b0ff1fe37f83e47ccb0baaf"
+    }
+  ]
+}

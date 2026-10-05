@@ -1,0 +1,32 @@
+{
+  "id": "LUMI_IMAGE_QUALITY_PROFILE_V2",
+  "status": "FROZEN_CONFIGURATION_BUDGET_REVIEW_REQUIRED",
+  "model": "marketing-studio/image",
+  "display_model": "Marketing Studio Image 2.0 Alpha",
+  "resolution": "2k",
+  "quality": "high",
+  "aspect_ratio": "9:16",
+  "enhance_prompt": false,
+  "canonical_identity_source": "LUMI_CANONICAL_SOURCE_V2.png",
+  "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+  "source_input_policy": "ONLY_SHA_VERIFIED_CANONICAL_V2_AS_IDENTITY_AND_STYLE_REFERENCE",
+  "max_provider_calls_per_shot": 1,
+  "retries": 0,
+  "variants": 0,
+  "resubmits": 0,
+  "selection_basis": "Documented current direct API with canonical reference-guided editing, 2K/high/9:16 and numeric USD estimator. Flare 2.5 was considered only in read-only price discovery; estimator returned token pricing without a per-request USD quote. No image-model benchmark generations performed.",
+  "required_source_qa": [
+    "IDENTITY",
+    "REALISM",
+    "ANATOMY",
+    "EDUCATIONAL_SEMANTICS",
+    "COLOR",
+    "VIDEO_SOURCE_READINESS"
+  ],
+  "cartoon_drift": "MINIMAL",
+  "local_color_repair": "DETERMINISTIC_ONLY",
+  "semantics": "PRESERVE_EXISTING_EPISODE_PLAN_AND_SHOT_PACK",
+  "serial_gate": "SOURCE_QA_THEN_ONE_PRO_VIDEO_THEN_FULL_TEMPORAL_QA",
+  "superseded_preflight_candidate": "marketing-studio/image/flare",
+  "premium_source_rendering": "LUMI_ULTRA_REALISTIC_CGI_STYLE_V1"
+}

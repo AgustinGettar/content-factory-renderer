@@ -21,6 +21,7 @@ test('real Recovery Manager resumes once from q35 and preserves previous request
  await manager.startEpisode({episodeId:episode,actions,authorizedCeilingUsd:3.05});
  await manager.checkpoint(episode,d=>{d.current_cost_usd=1.163597;d.actions[0].provider_request_id='ORIGINAL_IMMUTABLE_ID';});
  const incident=await manager.pause({episodeId:episode,sceneId:'q34',stage:'TEMPORAL_QA',errorClass:'QA_BLOCKER',reason:'PRESERVED GENERATIVE_FATAL',firstPendingAction:'video:q31',safeResumeAvailable:false});
+ const pending=await store.getEpisode(episode);pending.first_pending_action='quality_review:q34-V2-PRO1';await store.putEpisode(pending);
  const rows=['q31-PRO2','q32-V2-PRO1','q33-V2-PRO1'].map((scene_id,i)=>({...row(),scene_id,content_hash:'existing'+i,result:{shot:'q3'+(i+1)}}));rows.push(row());
  const result=await prepareApprovedVisualResume({manager,rows});assert.equal(result.status,'RUNNING');assert.equal(result.first_pending_action,'video:q37');assert.equal(result.provider_calls,0);assert.equal(result.incident_resolution,'RESOLVED_BY_EXPLICIT_HUMAN_CREATIVE_REVIEW');
  const cp=await store.getEpisode(episode),closed=await store.getIncident(incident.incident_id);assert.equal(closed.reason,'PRESERVED GENERATIVE_FATAL');assert.equal(closed.status,'RESOLVED');assert.equal(cp.current_cost_usd,1.163597);assert.equal(cp.actions[0].provider_request_id,'ORIGINAL_IMMUTABLE_ID');assert.equal(cp.metadata.resume_count,1);assert.equal(cp.runner_enabled,false);

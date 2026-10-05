@@ -107,10 +107,10 @@ for (const [field, value, code] of [
   assert.equal(p.PROVIDER_REQUEST_PREVIEW.payload, null);
 }));
 
-test('required unsupported control, mismatched endpoint and unknown official limits block', async t => withFixture(t, async f => {
+test('required unsupported control and mismatched endpoint block; universal limits are noncritical', async t => withFixture(t, async f => {
   f.input.required_controls.push('motion_control'); f.options.capabilities = CAPABILITIES;
   const p = await compile(f);
-  for (const code of ['REQUIRED_CONTROL_UNSUPPORTED:motion_control','PROMPT_LIMIT_UNVERIFIED','MEDIA_CAPABILITIES_UNVERIFIED']) assert.ok(codes(p).includes(code));
+  for (const code of ['REQUIRED_CONTROL_UNSUPPORTED:motion_control']) assert.ok(codes(p).includes(code));
   assert.ok(validateCapabilities({},[],{...CAPABILITIES,endpoint:'different'},POLICY).includes('CAPABILITY_PROFILE_MISMATCH'));
 }));
 

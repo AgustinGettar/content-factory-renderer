@@ -1,0 +1,35 @@
+{
+  "version": "Q32_MINIMUM_REPRODUCIBLE_ENVELOPE_V1",
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "mode_provenance": "PRO_BY_REQUEST_ENDPOINT",
+  "source_artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+  "source_sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+  "duration": 4,
+  "aspect_ratio": "9:16",
+  "sound": "off",
+  "count": 1,
+  "prompt_hash": "be344aaec69c82c26ba404f5f3b23f8eee3f83ff4c12a5fe2146e84a0def4002",
+  "Direction_Package_hash": "c91ed06addb7e9c1acd6eb576322c7c0ce02455acf09db07411d8179a0093674",
+  "attempt_identity": "q32-DIRECTOR-CONTROLLED-R1",
+  "expected_cost_usd": null,
+  "UNAVAILABLE_NONCRITICAL_FIELDS": [
+    "historical prompt and prompt hash (new current prompt is hashed separately)",
+    "original duration/sound/cfg/multi_shots values",
+    "original submission timestamp",
+    "raw acknowledgement and terminal response",
+    "volatile transport URL",
+    "actual mode/model echo",
+    "universal prompt-length limit",
+    "universal media-size bounds"
+  ],
+  "current_cost_status": "DEFERRED_UNTIL_ALL_READINESS_GATES_PASS",
+  "historical_submission_reconstructed": false,
+  "validation": {
+    "status": "BLOCKED",
+    "errors": [
+      "CURRENT_COST_QUOTE_REQUIRED"
+    ],
+    "execution_authorized": false
+  }
+}

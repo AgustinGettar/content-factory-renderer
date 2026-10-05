@@ -1,0 +1,97 @@
+{
+  "version": "Q32_MINIMUM_ENDPOINT_EVIDENCE_V1",
+  "status": "PASS",
+  "verified_on": "2026-10-05",
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "evidence_policy": "MINIMUM_SUFFICIENT_REPRODUCIBLE_EVIDENCE",
+  "official_schema_url": "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/api-reference",
+  "minimum_proof": {
+    "endpoint_exists": true,
+    "pro_route_exists": true,
+    "start_image_supported": true,
+    "duration_4s_supported": true,
+    "portrait_9_16_intent_supported": true,
+    "sound_off_supported": true,
+    "one_output_supported": true,
+    "request_id_persistable": true,
+    "artifact_recoverable": true,
+    "cost_estimable": true,
+    "minor_native_dimension_variation_allowed": true,
+    "local_crop_pad_normalization_allowed": true
+  },
+  "schema_fields": {
+    "prompt": "string",
+    "image_url": "required string",
+    "sound": [
+      "on",
+      "off"
+    ],
+    "duration": {
+      "type": "integer",
+      "min": 3,
+      "max": 15
+    },
+    "cfg_scale": {
+      "type": "number",
+      "min": 0,
+      "max": 1
+    },
+    "multi_shots": "boolean",
+    "multi_prompt": "array[object]",
+    "last_image_url": "string",
+    "elements": "array[string]"
+  },
+  "start_image_binding": {
+    "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "mime": "image/png",
+    "dimensions": [
+      1520,
+      2688
+    ],
+    "basis": "Same source bytes already accepted for original q32; no universal media bounds inferred."
+  },
+  "portrait_policy": {
+    "provider_aspect_ratio_field": false,
+    "input_portrait_near_9_16": true,
+    "historical_output_dimensions": [
+      1080,
+      1912
+    ],
+    "exact_9_16_provider_guarantee": false,
+    "post_generation_normalization": "Local crop/pad to 1080x1920 after generation; preserve original bytes; protect wings, feet and flower. No normalization performed now."
+  },
+  "mode_provenance": "PRO_BY_REQUEST_ENDPOINT",
+  "fallback_evidence": false,
+  "one_output_basis": "One submission returns a video; count=1 is consumed locally and never sent as an unsupported field.",
+  "job_and_recovery_basis": {
+    "provider_request_id": "f6ce8062-c965-4768-b040-f9be13e97596",
+    "artifact_sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+    "ledger_binding": "../bindings/q32_ORIGINAL_MEDIA_BINDING_V1.json",
+    "official_lifecycle": "status/result by request ID; never resubmit on uncertain acknowledgement"
+  },
+  "cost_basis": "Existing estimateHiggsfieldUsd adapter, POST /estimate/{exact endpoint}, read-only estimate, no generation. Fresh quote deferred until all readiness gates pass.",
+  "UNAVAILABLE_NONCRITICAL_FIELDS": [
+    "historical prompt and prompt hash (new current prompt is hashed separately)",
+    "original duration/sound/cfg/multi_shots values",
+    "original submission timestamp",
+    "raw acknowledgement and terminal response",
+    "volatile transport URL",
+    "actual mode/model echo",
+    "universal prompt-length limit",
+    "universal media-size bounds"
+  ],
+  "unsupported_fields": [
+    "aspect_ratio",
+    "count",
+    "mode",
+    "resolution",
+    "negative_prompt",
+    "mask",
+    "seed",
+    "camera_control"
+  ],
+  "UNKNOWN_AND_EMITTED": 0,
+  "provider_generation_calls": 0
+}

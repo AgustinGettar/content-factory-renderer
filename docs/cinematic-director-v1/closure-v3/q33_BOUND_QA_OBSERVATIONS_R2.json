@@ -1,0 +1,265 @@
+{
+  "version": "LUMI_BOUND_QA_OBSERVATIONS_V1",
+  "episode": "ep_lumi_flores_003",
+  "shot": "q33",
+  "binding_fingerprint": "4ff39b9b9d1a66ec2454efa2cc16b32b386640c02b1a07d68e0e7fffd0d47c0c",
+  "source": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json",
+      "closure-v2/q33_BOUND_QA_OBSERVATIONS_R2.json",
+      "closure-v3/q33_BOUND_QA_OBSERVATIONS_R2.json"
+    ],
+    "checks": {
+      "NO_STINGER": "PASS",
+      "NO_EXTRA_APPENDAGE": "PASS",
+      "NO_REAR_BULB": "FAIL",
+      "NO_BODY_MASS_BEHIND_OVERALLS": "FAIL",
+      "NO_STRIPED_POSTERIOR_BODY": "REVIEW_REQUIRED",
+      "NO_INDEPENDENT_EXTRA_WING": "PASS"
+    },
+    "counts": {
+      "head": 1,
+      "rounded_torso": 1,
+      "arms": 2,
+      "legs": 2,
+      "antennae": 2,
+      "wings": 2
+    },
+    "findings": [
+      {
+        "category": "REAR_BULB",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83:source"
+        ],
+        "note": "Distinct yellow crescent/volume behind screen-left hand, outside overalls and below the blue wing. Black/yellow repeated stripes are not established in this source."
+      },
+      {
+        "category": "CANONICAL_WING_CONTOUR",
+        "certainty": "CONFIRMED",
+        "structure": "FOREGROUND_BACKGROUND_OVERLAP",
+        "evidence_ids": [
+          "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83:source"
+        ],
+        "note": "Two upper-back attachment assemblies; small lower translucent contours belong to the corresponding wing assemblies. No independent additional root or detached appendage visible. q31 human-approved lower-contour precedent is scoped to topology."
+      }
+    ],
+    "coverage": {
+      "source_frame": true,
+      "first_frame": true,
+      "sampled_temporal_frames": true,
+      "worst_silhouette_frames": true,
+      "end_frame": true,
+      "full_native_speed_playback": false
+    },
+    "counts_scope": "Visible canonical assemblies; VISIBLE_CONTOUR_LOBE_COUNT records four silhouette contours without counting four wings. Hidden geometry is not certified.",
+    "WING_ASSEMBLY_COUNT": 2,
+    "VISIBLE_CONTOUR_LOBE_COUNT": null,
+    "wing_attachment": "UPPER_BACK_ONLY",
+    "warnings": [
+      "SOURCE_TOPOLOGY_PASS_WITH_WARNING: lower contour overlap must remain attached to its canonical assembly"
+    ]
+  },
+  "video": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+    "evidence_ids": [
+      "AUTHENTIC_LEDGER_SNAPSHOT_2026-10-05.json",
+      "LUMI_q32_q33_REPAIR_PLAN.json",
+      "closure-v2/q33_FRAME_COVERAGE_R2.json"
+    ],
+    "checks": {},
+    "counts": {},
+    "findings": [
+      {
+        "category": "STRIPED_ABDOMEN",
+        "certainty": "CONFIRMED",
+        "evidence_ids": [
+          "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5:frame89"
+        ],
+        "note": "Large opaque black/yellow striped posterior abdomen, visibly separate from translucent upper wings."
+      }
+    ],
+    "coverage": {
+      "source_frame": true,
+      "first_frame": true,
+      "sampled_temporal_frames": true,
+      "worst_silhouette_frames": true,
+      "end_frame": true,
+      "full_native_speed_playback": false
+    }
+  },
+  "intended_preset": "PRESENT_OBJECT",
+  "observed_motion": {
+    "body_yaw": "ADDED_ROTATION",
+    "torso_rotation": "ADDED_ROTATION",
+    "wing_motion": "UNKNOWN",
+    "camera": "STATIC"
+  },
+  "observation_provenance": {
+    "actor": "Codex visual inspection + retrieved existing QA",
+    "date": "2026-10-05",
+    "new_human_approval": false,
+    "inspected_source": true,
+    "inspected_video_frames": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80,
+      81,
+      82,
+      83,
+      84,
+      85,
+      86,
+      87,
+      88,
+      89,
+      90,
+      91,
+      92,
+      93,
+      94,
+      95,
+      96
+    ],
+    "all_frames_decoded": true,
+    "full_native_speed_visual_playback": false,
+    "quantified_angles": null,
+    "complete_anatomy_certified": false,
+    "inspection_method": "Chronological all-frame overview sheets, source detail, and enlarged risk windows; static visual review, NOT native-speed playback",
+    "current_review": "Source pixel comparison performed in current execution. Prior all-frame static temporal observations retained; full normal-speed playback NOT performed."
+  },
+  "requested_motion_analysis": "Exact historical request envelope not recovered. Current code was amended after generation, so it cannot prove the historical wording. Observed torso rotation exceeds the proposed preset; wing angles remain unmeasured.",
+  "revision": 3,
+  "supersedes_observation_scope": "Wing assembly semantics and source decision only; retained temporal evidence is not a new 1x playback.",
+  "source_decision": {
+    "posterior_body": "BLOCKER",
+    "topology_v2": "BLOCKER",
+    "source_reuse": "NO",
+    "source_regeneration_required": true,
+    "source_defect_class": "SOURCE_REAR_BULB",
+    "SOURCE_STRIPED_ABDOMEN": "NOT_CONFIRMED",
+    "decision": "FINAL",
+    "VIDEO_REPAIR_REQUIRED": "YES"
+  },
+  "temporal_findings": {
+    "classification": "TEMPORAL_STRIPED_ABDOMEN",
+    "inherited_source_defect_frame": 0,
+    "inherited_source_defect_s": 0,
+    "first_stripe_anomaly_frame": 69,
+    "first_stripe_anomaly_s": 2.875,
+    "worst_frame": 89,
+    "worst_s": 3.7083333333333335,
+    "last_defective_frame": 96,
+    "last_defective_s": 4,
+    "recovery": false,
+    "basis": "Existing source rear volume develops high-contrast repeated black/yellow bands, clearly separated from blue wings."
+  },
+  "source_fact_review": {
+    "id": "q33-source-visible-facts-r2",
+    "artifact_id": "cb384e66-6e3c-4772-8423-301c9e1774c5",
+    "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83",
+    "actor": "Codex static visual review (not a human approval)",
+    "at": "2026-10-05T00:00:00Z",
+    "scope": "VISIBLE_SOURCE_FACTS_ONLY",
+    "kind": "VISUAL_REVIEW",
+    "status": "APPROVED_WITH_WARNING",
+    "observations": {
+      "body_orientation": "THREE_QUARTER",
+      "gaze": "VIEWER",
+      "wand_state": "ABSENT",
+      "left_hand": "FREE",
+      "right_hand": "FREE",
+      "laterality": "CHARACTER_SIDES_VERIFIED"
+    },
+    "warnings": [
+      {
+        "code": "SOURCE_TOPOLOGY_NOT_APPROVED",
+        "scope": "VISIBLE_SOURCE_FACTS_ONLY",
+        "sha256": "fac477859c48fda244d2b4b3d40ef8ffa2987fd8839567a85915353a42b21a83"
+      }
+    ]
+  },
+  "source_fact_review_timestamp_basis": "Review date 2026-10-05; midnight is serialization of date, not a measured session event timestamp."
+}

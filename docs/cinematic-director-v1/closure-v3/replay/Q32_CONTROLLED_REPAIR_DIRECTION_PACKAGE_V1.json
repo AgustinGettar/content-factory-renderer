@@ -1,0 +1,483 @@
+{
+  "version": "Q32_CONTROLLED_REPAIR_DIRECTION_PACKAGE_V1",
+  "shot": "q32",
+  "episode": "ep_lumi_flores_003",
+  "status": "FINAL_REVIEW_PACKAGE_NOT_AUTHORIZED",
+  "provider": "higgsfield_api",
+  "endpoint": "kling-video/v3.0/pro/image-to-video",
+  "mode_provenance": "PRO_BY_REQUEST_ENDPOINT",
+  "fallback_evidence": false,
+  "source_reuse": "YES",
+  "source_warning": "SOURCE_TOPOLOGY_PASS_WITH_WARNING",
+  "source": {
+    "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+    "bucket": "av2-generative-video-benchmarks",
+    "object_path": "lumi-series-v2/ep_lumi_flores_003/continuation-v2/q32-SOURCE-V2-1/artifact/ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2/original.png",
+    "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+    "bytes": 5766459,
+    "authenticated_transport": "ChatGPT Library server-side materialization; SHA equals canonical Storage identity and persisted ledger",
+    "library_file_id": "libfile_73f957c68a488191aa19b461b4359a60",
+    "local_filename": "q32-SOURCE-V2-1.png",
+    "verification": {
+      "sha": "PASS",
+      "decode": "PASS",
+      "width": 1520,
+      "height": 2688,
+      "codec": "png"
+    },
+    "provider_request_id": "f6c5e3a8-ac87-4590-9134-c7ed01237e21",
+    "origin": "PROVIDER_ORIGINAL"
+  },
+  "source_decision": {
+    "posterior_body": "PASS",
+    "topology_v2": "SOURCE_TOPOLOGY_PASS_WITH_WARNING",
+    "source_reuse": "YES",
+    "decision": "FINAL",
+    "reason": "Two upper-back wing assemblies; no separate posterior mass, rear bulb, independent extra appendage or wing root; lower contour compatible with canonical overlap and q31 positive precedent."
+  },
+  "duration": 4,
+  "aspect_ratio": "9:16",
+  "sound": "off",
+  "count": 1,
+  "quality_profile": {
+    "id": "LUMI_VIDEO_QUALITY_PROFILE_V2",
+    "golden_positive_reference": {
+      "artifact_id": "q31-PRO2",
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "role": "QA_ONLY",
+      "human_approval": "PRESERVED",
+      "performance": "GREETING_ONLY",
+      "domains": [
+        "realism",
+        "identity",
+        "materials",
+        "natural_1x_movement",
+        "cartoon_drift"
+      ]
+    },
+    "required_quality_parity": [
+      "PASS",
+      "PASS_WITH_MINOR_WARNING"
+    ]
+  },
+  "topology_lock": {
+    "version": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "canonical": {
+      "head": 1,
+      "rounded_torso": 1,
+      "arms": 2,
+      "legs": 2,
+      "antennae": 2,
+      "wings": 2,
+      "wing_attachment": "UPPER_BACK_ONLY",
+      "lower_torso_silhouette": "DEFINED_BY_OVERALLS"
+    },
+    "hard": [
+      "NO_BEE_ABDOMEN",
+      "NO_STRIPED_POSTERIOR_BODY",
+      "NO_STINGER",
+      "NO_REAR_BULB",
+      "NO_SECOND_TORSO",
+      "NO_EXTRA_APPENDAGE",
+      "NO_INDEPENDENT_EXTRA_WING",
+      "NO_BODY_MASS_BEHIND_OVERALLS"
+    ],
+    "wing_semantics": {
+      "WING_ASSEMBLY_COUNT": 2,
+      "attachment_roots": [
+        "LEFT_UPPER_BACK",
+        "RIGHT_UPPER_BACK"
+      ],
+      "VISIBLE_CONTOUR_LOBE_COUNT": "SEPARATE_OBSERVATION_NOT_AN_ASSEMBLY_COUNT",
+      "allowed": [
+        "PERSPECTIVE_OVERLAP",
+        "INTERNAL_CONTOUR",
+        "FOLDED_EDGE",
+        "FOREGROUND_BACKGROUND_OVERLAP"
+      ],
+      "invalid": [
+        "INDEPENDENT_EXTRA_ROOT",
+        "DETACHED_APPENDAGE",
+        "SEPARATELY_ARTICULATED_STRUCTURE",
+        "NON_CANONICAL_APPENDAGE"
+      ],
+      "positive_precedent": "q31-PRO2 human-approved lower contour; no waiver for independent extra wings"
+    },
+    "stages": [
+      "SOURCE_PREFLIGHT",
+      "VIDEO_REQUEST_PACKAGE",
+      "SAMPLED_FRAME_TEMPORAL_QA",
+      "MASTER_QA"
+    ],
+    "detection_contract": {
+      "version": "TOPOLOGY_FRAME_COVERAGE_V1",
+      "source": [
+        "source_frame"
+      ],
+      "video": [
+        "first_frame",
+        "sampled_temporal_frames",
+        "worst_silhouette_frames",
+        "end_frame"
+      ],
+      "playback": "FULL_NATIVE_SPEED_REVIEW_REQUIRED; all-frame decoding or contact sheets are not playback",
+      "measurements": "Frame timestamps may be measured; hidden geometry and 3D angles must not be inferred as exact."
+    }
+  },
+  "acting_preset": "PRESENT_OBJECT",
+  "presentation_policy": {
+    "revision": 3,
+    "status": "FINAL_CONTROLLED_PRESENTATION_POLICY",
+    "initial_orientation": [
+      "FRONT",
+      "MILD_THREE_QUARTER_REVIEWED"
+    ],
+    "body_yaw_added_degrees": 0,
+    "torso_rotation_added_degrees": 0,
+    "shoulder_turn_added_degrees": 0,
+    "maximum_body_yaw_degrees": 15,
+    "maximum_torso_rotation_degrees": 8,
+    "source_contract_override": "PRESERVE_INITIAL: q32 adds zero yaw/torso/shoulder rotation, stricter than generic ceilings",
+    "numeric_limits_basis": "Normative no-added-rotation targets, NOT measured safe angles or provider controls.",
+    "arm_amplitude": "FOREARM_WRIST_ONLY; keep shoulder at source position, gesture beside target without crossing it",
+    "head_turn": "EYES_LEAD; small source-supported follow; preserve visible facial and posterior silhouette",
+    "wing_movement": "PRESERVE_SOURCE_SILHOUETTE; no deliberate flutter or added lobes",
+    "camera": "STATIC; a subtle path requires separate source evidence and approval",
+    "end_state": "Source torso orientation; one overalls-defined lower silhouette, no posterior body; object fully legible",
+    "q31_parity": "Rendering and restrained performance reference only; GREETING is not a presentation motion template",
+    "guarantee": false
+  },
+  "allowed_motion": {
+    "body_yaw": "PRESERVE_INITIAL",
+    "torso_rotation": "PRESERVE_INITIAL",
+    "shoulder_turn": "PRESERVE_INITIAL",
+    "arm_amplitude": "SMALL_FOREARM_WRIST",
+    "head_turn": "SMALL_SOURCE_SUPPORTED",
+    "end_silhouette": "PRESERVE_SOURCE",
+    "wing_motion": "STABLE",
+    "camera": "STATIC",
+    "body_yaw_degrees": 0,
+    "torso_rotation_degrees": 0
+  },
+  "forbidden_motion": [
+    "BACK_FACING",
+    "LARGE_TORSO_TWIST",
+    "FULL_BODY_ROTATION",
+    "LARGE_WING_FLUTTER",
+    "ORBIT_CAMERA",
+    "REAR_REVEAL",
+    "POSTERIOR_BODY_MUTATION",
+    "STRIPED_ABDOMEN",
+    "REAR_BULB",
+    "TAIL",
+    "STINGER",
+    "EXTRA_TORSO"
+  ],
+  "camera_contract": "STATIC; preserve framing, flower, wings, feet and caption space",
+  "end_state_contract": "Same canonical front/source silhouette; gesture settles naturally, one unchanged red flower fully legible; no freeze",
+  "plan": {
+    "contract": {
+      "shot_id": "q32",
+      "shot_type": "MEDIUM_TEACHING",
+      "DURATION": 4
+    },
+    "direction": {
+      "educational_goal": "Mostrar la flor roja claramente.",
+      "reason_es": "Presentar una flor roja con mirada y antebrazo; conservar torso, alas, silueta y calidad del Golden q31-PRO2.",
+      "emotion": "warm",
+      "focus": "flower_red",
+      "framing": "FROM_APPROVED_SOURCE",
+      "principal_actions": [
+        {
+          "grammar": "PRESENT_FLOWER",
+          "actor": "lumi",
+          "body_part": "character_right_forearm",
+          "target": "flower_red",
+          "direction": "toward_target",
+          "amplitude": "small",
+          "pace": "natural_1x",
+          "body_motion": "PRESERVE_INITIAL",
+          "timing": {
+            "preparation": 0.5,
+            "gesture": 2.5,
+            "settle": 1,
+            "response_window": 0
+          }
+        }
+      ],
+      "secondary_motion": [
+        "blink"
+      ],
+      "stable_parts": [
+        "torso",
+        "feet",
+        "posterior_silhouette",
+        "educational_objects",
+        "wand"
+      ],
+      "camera": {
+        "type": "STATIC",
+        "reason_es": "Evitar revelado de anatomía no documentada.",
+        "approval_id": null
+      },
+      "end": "NATURAL_SETTLE",
+      "continuity": {
+        "previous_shot": "q31",
+        "next_shot": "q33",
+        "entry_gaze": "UNKNOWN",
+        "exit_gaze": "UNKNOWN",
+        "screen_direction": "PRESERVE",
+        "function": "teaching"
+      },
+      "captions": {
+        "generated_text": false,
+        "labels": [],
+        "text_character_overlap": 0,
+        "critical_object_overlap": 0,
+        "safe_region_fact": "caption_space"
+      }
+    }
+  },
+  "prompt": {
+    "text": "Lumi, the character in the input image, in a teaching medium shot. Preserve the source's premium stylized 3D CGI finish. Lumi prepares a small gesture with her own right forearm, points beside the red flower without covering its petals, and settles naturally so its color is easy to read. The torso keeps its initial orientation; the feet remain grounded and the rear contour retains its silhouette. The eyes lead one restrained forearm presentation gesture toward the flower. Preserve exactly two wing assemblies, one on each side of the upper back; overlapping contours belong to those same wings. No torso twist, full-body rotation, back-facing turn or rear reveal; no body mass behind the overalls, striped abdomen, rear bulb, tail, stinger, extra torso or new appendage. Keep the existing wing silhouette with no large flutter. Accompany the performance with one natural blink. The teaching objects keep their count, color, shape, position and visibility. Clothing, existing accessories, lighting and the garden remain stable. The camera remains fixed. One continuous 4-second shot at a natural pace.  End with the gesture settled and a warm expression. Keep the reviewed caption space clear; no generated text or cuts.",
+    "clauses": [
+      {
+        "index": 0,
+        "text": "Lumi, the character in the input image, in a teaching medium shot. Preserve the source's premium stylized 3D CGI finish."
+      },
+      {
+        "index": 1,
+        "text": "Lumi prepares a small gesture with her own right forearm, points beside the red flower without covering its petals, and settles naturally so its color is easy to read."
+      },
+      {
+        "index": 2,
+        "text": "The torso keeps its initial orientation; the feet remain grounded and the rear contour retains its silhouette."
+      },
+      {
+        "index": 3,
+        "text": "The eyes lead one restrained forearm presentation gesture toward the flower. Preserve exactly two wing assemblies, one on each side of the upper back; overlapping contours belong to those same wings. No torso twist, full-body rotation, back-facing turn or rear reveal; no body mass behind the overalls, striped abdomen, rear bulb, tail, stinger, extra torso or new appendage. Keep the existing wing silhouette with no large flutter."
+      },
+      {
+        "index": 4,
+        "text": "Accompany the performance with one natural blink."
+      },
+      {
+        "index": 5,
+        "text": "The teaching objects keep their count, color, shape, position and visibility. Clothing, existing accessories, lighting and the garden remain stable."
+      },
+      {
+        "index": 6,
+        "text": "The camera remains fixed."
+      },
+      {
+        "index": 7,
+        "text": "One continuous 4-second shot at a natural pace. "
+      },
+      {
+        "index": 8,
+        "text": "End with the gesture settled and a warm expression."
+      },
+      {
+        "index": 9,
+        "text": "Keep the reviewed caption space clear; no generated text or cuts."
+      }
+    ],
+    "language": "en",
+    "version": "lumi-cinematic-projection/2",
+    "timing_limit": "Timing guides planning and QA; text does not guarantee frame-accurate model timing.",
+    "sha256": "be344aaec69c82c26ba404f5f3b23f8eee3f83ff4c12a5fe2146e84a0def4002"
+  },
+  "provider_projection": {
+    "fields": {
+      "prompt": "Lumi, the character in the input image, in a teaching medium shot. Preserve the source's premium stylized 3D CGI finish. Lumi prepares a small gesture with her own right forearm, points beside the red flower without covering its petals, and settles naturally so its color is easy to read. The torso keeps its initial orientation; the feet remain grounded and the rear contour retains its silhouette. The eyes lead one restrained forearm presentation gesture toward the flower. Preserve exactly two wing assemblies, one on each side of the upper back; overlapping contours belong to those same wings. No torso twist, full-body rotation, back-facing turn or rear reveal; no body mass behind the overalls, striped abdomen, rear bulb, tail, stinger, extra torso or new appendage. Keep the existing wing silhouette with no large flutter. Accompany the performance with one natural blink. The teaching objects keep their count, color, shape, position and visibility. Clothing, existing accessories, lighting and the garden remain stable. The camera remains fixed. One continuous 4-second shot at a natural pace.  End with the gesture settled and a warm expression. Keep the reviewed caption space clear; no generated text or cuts.",
+      "duration": 4,
+      "sound": "off",
+      "cfg_scale": 0.5,
+      "multi_shots": false
+    },
+    "image_url": {
+      "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+      "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "role": "START_FRAME",
+      "transport": "RESOLVE_SAME_BYTES_ONLY_AFTER_AUTHORIZATION"
+    },
+    "field_classifications": {
+      "prompt": "SUPPORTED_PROVIDER_FIELD",
+      "image_url": "SUPPORTED_PROVIDER_FIELD",
+      "duration": "SUPPORTED_PROVIDER_FIELD",
+      "sound": "SUPPORTED_PROVIDER_FIELD",
+      "cfg_scale": "SUPPORTED_PROVIDER_FIELD",
+      "multi_shots": "SUPPORTED_PROVIDER_FIELD",
+      "aspect_ratio": "LOCALLY_CONSUMED_DIRECTION",
+      "count": "LOCALLY_CONSUMED_DIRECTION",
+      "acting_preset": "LOCALLY_CONSUMED_DIRECTION",
+      "topology_lock": "LOCALLY_CONSUMED_DIRECTION",
+      "negative_prompt": "OMITTED_NOT_REQUIRED",
+      "elements": "OMITTED_NOT_REQUIRED",
+      "last_image_url": "OMITTED_NOT_REQUIRED",
+      "multi_prompt": "OMITTED_NOT_REQUIRED",
+      "mask": "BLOCKED_UNSUPPORTED"
+    },
+    "UNKNOWN_AND_EMITTED": 0,
+    "payload": null,
+    "executable": false,
+    "transmitted": false
+  },
+  "capability_validation": {
+    "version": "Q32_MINIMUM_ENDPOINT_EVIDENCE_V1",
+    "status": "PASS",
+    "verified_on": "2026-10-05",
+    "provider": "higgsfield_api",
+    "endpoint": "kling-video/v3.0/pro/image-to-video",
+    "evidence_policy": "MINIMUM_SUFFICIENT_REPRODUCIBLE_EVIDENCE",
+    "official_schema_url": "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/api-reference",
+    "minimum_proof": {
+      "endpoint_exists": true,
+      "pro_route_exists": true,
+      "start_image_supported": true,
+      "duration_4s_supported": true,
+      "portrait_9_16_intent_supported": true,
+      "sound_off_supported": true,
+      "one_output_supported": true,
+      "request_id_persistable": true,
+      "artifact_recoverable": true,
+      "cost_estimable": true,
+      "minor_native_dimension_variation_allowed": true,
+      "local_crop_pad_normalization_allowed": true
+    },
+    "schema_fields": {
+      "prompt": "string",
+      "image_url": "required string",
+      "sound": [
+        "on",
+        "off"
+      ],
+      "duration": {
+        "type": "integer",
+        "min": 3,
+        "max": 15
+      },
+      "cfg_scale": {
+        "type": "number",
+        "min": 0,
+        "max": 1
+      },
+      "multi_shots": "boolean",
+      "multi_prompt": "array[object]",
+      "last_image_url": "string",
+      "elements": "array[string]"
+    },
+    "start_image_binding": {
+      "artifact_id": "b8762d0b-74ab-4a57-ad11-1cc6b60b57b2",
+      "sha256": "ffc77faf76ac71eef3c476fccf1d9acafe9b49fe35d61ec3046b52369a8745d2",
+      "mime": "image/png",
+      "dimensions": [
+        1520,
+        2688
+      ],
+      "basis": "Same source bytes already accepted for original q32; no universal media bounds inferred."
+    },
+    "portrait_policy": {
+      "provider_aspect_ratio_field": false,
+      "input_portrait_near_9_16": true,
+      "historical_output_dimensions": [
+        1080,
+        1912
+      ],
+      "exact_9_16_provider_guarantee": false,
+      "post_generation_normalization": "Local crop/pad to 1080x1920 after generation; preserve original bytes; protect wings, feet and flower. No normalization performed now."
+    },
+    "mode_provenance": "PRO_BY_REQUEST_ENDPOINT",
+    "fallback_evidence": false,
+    "one_output_basis": "One submission returns a video; count=1 is consumed locally and never sent as an unsupported field.",
+    "job_and_recovery_basis": {
+      "provider_request_id": "f6ce8062-c965-4768-b040-f9be13e97596",
+      "artifact_sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "ledger_binding": "../bindings/q32_ORIGINAL_MEDIA_BINDING_V1.json",
+      "official_lifecycle": "status/result by request ID; never resubmit on uncertain acknowledgement"
+    },
+    "cost_basis": "Existing estimateHiggsfieldUsd adapter, POST /estimate/{exact endpoint}, read-only estimate, no generation. Fresh quote deferred until all readiness gates pass.",
+    "UNAVAILABLE_NONCRITICAL_FIELDS": [
+      "historical prompt and prompt hash (new current prompt is hashed separately)",
+      "original duration/sound/cfg/multi_shots values",
+      "original submission timestamp",
+      "raw acknowledgement and terminal response",
+      "volatile transport URL",
+      "actual mode/model echo",
+      "universal prompt-length limit",
+      "universal media-size bounds"
+    ],
+    "unsupported_fields": [
+      "aspect_ratio",
+      "count",
+      "mode",
+      "resolution",
+      "negative_prompt",
+      "mask",
+      "seed",
+      "camera_control"
+    ],
+    "UNKNOWN_AND_EMITTED": 0,
+    "provider_generation_calls": 0
+  },
+  "temporal_qa_plan": {
+    "source_gate": "FINAL_YES_WITH_SCOPED_CONTOUR_WARNING",
+    "technical": [
+      "decode",
+      "black_frames=0",
+      "freeze_defects=0"
+    ],
+    "full_1x_playback_required": true,
+    "coverage": [
+      "first_frame",
+      "all_frames_at_native_timestamps",
+      "worst_silhouette",
+      "end_frame"
+    ],
+    "compare_original_mutation_windows": {
+      "first_suspicious_s": 0.8333333333333334,
+      "first_unambiguous_s": 3.125,
+      "worst_s": 3.3333333333333335,
+      "last_s": 4
+    },
+    "separate_source_and_video": true,
+    "inspect_correlations": [
+      "body_yaw",
+      "torso_rotation",
+      "wing_motion",
+      "static_camera",
+      "arm_occlusion"
+    ],
+    "reject": [
+      "posterior_body_mutation",
+      "striped_abdomen",
+      "rear_bulb",
+      "independent_extra_wing",
+      "object_count_color_shape_change"
+    ],
+    "quality_parity_with_q31_pro2": [
+      "PASS",
+      "PASS_WITH_MINOR_WARNING"
+    ],
+    "human_review_required": true,
+    "automatic_retry": false
+  },
+  "attempt_identity": "q32-DIRECTOR-CONTROLLED-R1",
+  "expected_cost_usd": null,
+  "cost_status": "DEFERRED_UNTIL_ALL_READINESS_GATES_PASS",
+  "historical_fields_policy": "Unavailable historical fields remain unavailable; this is a new current direction, not an exact historical payload.",
+  "readiness": false,
+  "readiness_dependencies": [
+    "CI_GREEN_FINAL_TREE",
+    "FULL_PLAYBACK_REVIEW",
+    "STAGING_LIVE",
+    "CANONICAL_STAGING_DRY_RUN",
+    "CURRENT_COST_QUOTE"
+  ],
+  "execute": false,
+  "provider_calls": 0,
+  "retries": 0,
+  "variants": 0,
+  "resubmits": 0,
+  "Q32_REPAIR_PACKAGE_HASH": "c91ed06addb7e9c1acd6eb576322c7c0ce02455acf09db07411d8179a0093674"
+}

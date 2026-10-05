@@ -327,5 +327,27 @@
     "end_state": "Source torso orientation; one overalls-defined lower silhouette, no posterior body; object fully legible",
     "q31_parity": "Rendering and restrained performance reference only; GREETING is not a presentation motion template",
     "guarantee": false
+  },
+  "PRESENT_OBJECT_CONTROLLED_LIMITS": {
+    "revision": 3,
+    "status": "FINAL_CONTROLLED_PRESENTATION_POLICY",
+    "initial_orientation": [
+      "FRONT",
+      "MILD_THREE_QUARTER_REVIEWED"
+    ],
+    "body_yaw_added_degrees": 0,
+    "torso_rotation_added_degrees": 0,
+    "shoulder_turn_added_degrees": 0,
+    "maximum_body_yaw_degrees": 15,
+    "maximum_torso_rotation_degrees": 8,
+    "source_contract_override": "PRESERVE_INITIAL: q32 adds zero yaw/torso/shoulder rotation, stricter than generic ceilings",
+    "numeric_limits_basis": "Normative no-added-rotation targets, NOT measured safe angles or provider controls.",
+    "arm_amplitude": "FOREARM_WRIST_ONLY; keep shoulder at source position, gesture beside target without crossing it",
+    "head_turn": "EYES_LEAD; small source-supported follow; preserve visible facial and posterior silhouette",
+    "wing_movement": "PRESERVE_SOURCE_SILHOUETTE; no deliberate flutter or added lobes",
+    "camera": "STATIC; a subtle path requires separate source evidence and approval",
+    "end_state": "Source torso orientation; one overalls-defined lower silhouette, no posterior body; object fully legible",
+    "q31_parity": "Rendering and restrained performance reference only; GREETING is not a presentation motion template",
+    "guarantee": false
   }
 }

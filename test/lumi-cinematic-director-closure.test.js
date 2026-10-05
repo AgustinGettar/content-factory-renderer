@@ -15,7 +15,7 @@ const review=()=>({version:TOPOLOGY.version,sha256:sha,evidence_ids:['SYNTHETIC_
 const motion=()=>({body_yaw:'PRESERVE_INITIAL',torso_rotation:'PRESERVE_INITIAL',shoulder_turn:'PRESERVE_INITIAL',
  arm_amplitude:'SMALL_FOREARM_WRIST',head_turn:'SMALL_SOURCE_SUPPORTED',end_silhouette:'PRESERVE_SOURCE',wing_motion:'STABLE',camera:'STATIC'});
 for(const [episode,scene,object] of [['ep_numbers','new_square','green_square'],['ep_fruits','basket_42','pear'],['ep_shapes','triangle_88','triangle']]){
- for(const category of ['POSTERIOR_BODY_MUTATION','STRIPED_ABDOMEN','EXTRA_WING_LOBE'])test(`${episode}/${scene}/${object}: ${category} rejected independent of scene`,()=>{
+ for(const category of ['POSTERIOR_BODY_MUTATION','STRIPED_ABDOMEN','INDEPENDENT_EXTRA_WING_ROOT'])test(`${episode}/${scene}/${object}: ${category} rejected independent of scene`,()=>{
   const x=review();Object.assign(x,{episode,scene,educational_object:object});x.findings=[{category,certainty:'CONFIRMED',evidence_ids:['SYNTHETIC_DEFECT']}];
   assert.equal(evaluateTopology({stage:'SOURCE_PREFLIGHT',sha256:sha,review:x}).status,'BLOCKED');
  });

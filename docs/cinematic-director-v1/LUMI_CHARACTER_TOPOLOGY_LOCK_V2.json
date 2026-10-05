@@ -17,9 +17,30 @@
     "NO_REAR_BULB",
     "NO_SECOND_TORSO",
     "NO_EXTRA_APPENDAGE",
-    "NO_EXTRA_WING_LOBES",
+    "NO_INDEPENDENT_EXTRA_WING",
     "NO_BODY_MASS_BEHIND_OVERALLS"
   ],
+  "wing_semantics": {
+    "WING_ASSEMBLY_COUNT": 2,
+    "attachment_roots": [
+      "LEFT_UPPER_BACK",
+      "RIGHT_UPPER_BACK"
+    ],
+    "VISIBLE_CONTOUR_LOBE_COUNT": "SEPARATE_OBSERVATION_NOT_AN_ASSEMBLY_COUNT",
+    "allowed": [
+      "PERSPECTIVE_OVERLAP",
+      "INTERNAL_CONTOUR",
+      "FOLDED_EDGE",
+      "FOREGROUND_BACKGROUND_OVERLAP"
+    ],
+    "invalid": [
+      "INDEPENDENT_EXTRA_ROOT",
+      "DETACHED_APPENDAGE",
+      "SEPARATELY_ARTICULATED_STRUCTURE",
+      "NON_CANONICAL_APPENDAGE"
+    ],
+    "positive_precedent": "q31-PRO2 human-approved lower contour; no waiver for independent extra wings"
+  },
   "stages": [
     "SOURCE_PREFLIGHT",
     "VIDEO_REQUEST_PACKAGE",

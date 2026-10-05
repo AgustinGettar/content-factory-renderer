@@ -106,3 +106,6 @@ La regresión usa mocks rotulados cuando evalúa el journal/adaptador; no llega 
 Estado final: `PRODUCTION_ACTIVATED=false`, `PROVIDER_CALLS=0`, `NEW_GENERATION_COST=0`, `NEW_MEDIA=0`, `TTS=0`, `MASTER=NOT_CREATED`, `EPISODE_RESUMED=false`.
 
 Continuation review R2: [closure report](closure-v2/REVIEW_CLOSURE_REPORT.md). All-frame static review is recorded separately from pending native-speed playback. Staging remains gated.
+# Current minimum q32 closure
+
+The current executive evidence policy and package are documented in [closure-v3/README.md](closure-v3/README.md). That reviewed source/direction package supersedes the old universal endpoint and lower-contour blockers for the single q32 preparation. Historical incomplete drafts remain historical. Overall readiness still requires complete 1× playback, current GREEN CI, staging replay and a fresh quote; no generation is authorized.

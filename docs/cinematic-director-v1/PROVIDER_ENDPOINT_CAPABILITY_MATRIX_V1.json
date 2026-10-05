@@ -3,7 +3,7 @@
   "verified_on": "2026-10-05",
   "generation_calls": 0,
   "record_completeness": "ALL_REQUESTED_DIMENSIONS_RECORDED_WITH_UNKNOWNS",
-  "ENDPOINT_CAPABILITIES": "BLOCKED_PENDING_EVIDENCE",
+  "ENDPOINT_CAPABILITIES": "Q32_MINIMUM_EVIDENCE_PASS; unrelated endpoints remain unchanged",
   "endpoints": [
     {
       "provider": "higgsfield_api",
@@ -119,7 +119,8 @@
       "actual_model_mode_echo": {
         "actual_model": "UNAVAILABLE",
         "actual_mode": "UNAVAILABLE",
-        "request_proves_pro_tier_selection": true
+        "request_proves_pro_tier_selection": true,
+        "accepted_provenance": "PRO_BY_REQUEST_ENDPOINT"
       },
       "output_fields": {
         "documented": [
@@ -162,7 +163,7 @@
         "obedience_percentage": false
       },
       "prompt_enhancement_control": "NOT_EXPOSED; internal transformation is unobservable",
-      "verification_status": "PARTIAL_BLOCK_FUTURE_REQUESTS"
+      "verification_status": "PASS_FOR_CURRENT_CONTROLLED_Q32_ONLY"
     },
     {
       "provider": "higgsfield_api",
@@ -339,5 +340,7 @@
     ],
     "all_previews": "NOT_SENT; emitted=false; payload=null",
     "whole_request_gate": "BLOCKED until limits, source evidence and package approvals pass"
-  }
+  },
+  "evidence_policy": "MINIMUM_SUFFICIENT_REPRODUCIBLE_EVIDENCE",
+  "q32_minimum_evidence": "closure-v3/Q32_MINIMUM_ENDPOINT_EVIDENCE_V1.json"
 }

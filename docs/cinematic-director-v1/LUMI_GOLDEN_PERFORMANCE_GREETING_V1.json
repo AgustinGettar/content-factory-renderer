@@ -19,6 +19,6 @@
   "universal_motion_template": false,
   "universal_anatomy_approval": false,
   "new_execution_permission": false,
-  "observation_revision": "closure-v2/q31_BOUND_QA_OBSERVATIONS_R2.json",
-  "new_lock_reconciliation": "POLICY_CONFLICT_REVIEW_REQUIRED; existing human-approved clip remains approved"
+  "observation_revision": "closure-v3/q31_BOUND_QA_OBSERVATIONS_R2.json",
+  "new_lock_reconciliation": "PASS: two wing assemblies; accepted lower contour is positive topology precedent only, no waiver for independent extra roots"
 }

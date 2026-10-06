@@ -1,0 +1,1046 @@
+{
+  "GAZE_VIEWER": {
+    "version": "LUMI_CINEMATIC_DIRECTION_V1",
+    "episode_id": "ep_fixture_escucha_001",
+    "revision": 1,
+    "contract": {
+      "shot_id": "fixture_shot",
+      "shot_type": "MEDIUM_TEACHING",
+      "START_STATE": {
+        "description": "SYNTHETIC reviewed inventory.",
+        "object_inventory": []
+      },
+      "END_STATE": {
+        "description": "SYNTHETIC reviewed inventory.",
+        "object_inventory": []
+      },
+      "CHARACTER_STATE": {
+        "description": "SYNTHETIC canonical identity.",
+        "character_lock_id": "SYNTHETIC_CHARACTER_LOCK",
+        "character_lock_sha256": "8cf92b9557a3659bf1890fa25cb1a67391d144c2b48a27d8b16b083c61d1d8f0",
+        "world_lock_id": "SYNTHETIC_WORLD_LOCK",
+        "world_lock_sha256": "459a8e0922be043a2f36ac3e3cf1768b0f081d5a1a8bbb69d8bd5d554cbc6b60",
+        "identity_preserved": true,
+        "canonical_wings": 2
+      },
+      "REQUIRED_OBJECTS": [],
+      "EDUCATIONAL_INVARIANTS": [],
+      "PRIMARY_ACTION": {
+        "action": "look_at_viewer",
+        "description": "SYNTHETIC one performance."
+      },
+      "ALLOWED_SECONDARY_MOTION": [
+        "blink"
+      ],
+      "FORBIDDEN_ACTIONS": [
+        "Identity change"
+      ],
+      "CAMERA": {
+        "type": "STATIC",
+        "description": "Reviewed static camera.",
+        "necessary": false
+      },
+      "DURATION": 4,
+      "SOURCE_ARTIFACT": {
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "path": "fixture/SYNTHETIC_SOURCE.txt",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68"
+      },
+      "GOLDEN_REFERENCES": [
+        {
+          "artifact_id": "SYNTHETIC_character",
+          "role": "character",
+          "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "path": "fixture/SYNTHETIC_character.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_world",
+          "role": "world",
+          "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "path": "fixture/SYNTHETIC_world.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_lighting",
+          "role": "lighting",
+          "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "path": "fixture/SYNTHETIC_lighting.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_motion",
+          "role": "motion",
+          "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "path": "fixture/SYNTHETIC_motion.txt"
+        }
+      ],
+      "NEGATIVE_STYLE_CONTRACT": [
+        "flat cartoon",
+        "2D illustration",
+        "cel shading",
+        "anime",
+        "comic look",
+        "cheap TV animation",
+        "simplified low-detail rendering",
+        "plastic toy",
+        "rubber toy",
+        "human photorealism",
+        "live-action humanization",
+        "uncanny insect anatomy",
+        "overly realistic skin pores"
+      ]
+    },
+    "direction": {
+      "educational_goal": "Escuchar una pregunta y esperar para responder.",
+      "reason_es": "Contacto visual y espera natural respetan el turno del niño.",
+      "emotion": "warm",
+      "focus": "viewer",
+      "framing": "FROM_APPROVED_SOURCE",
+      "principal_actions": [
+        {
+          "grammar": "GAZE_VIEWER",
+          "actor": "lumi",
+          "body_part": "gaze",
+          "target": "viewer",
+          "direction": "toward_viewer",
+          "amplitude": "small",
+          "pace": "natural_1x",
+          "body_motion": "PRESERVE_INITIAL",
+          "timing": {
+            "preparation": 0.5,
+            "gesture": 2.5,
+            "settle": 1,
+            "response_window": 0
+          }
+        }
+      ],
+      "secondary_motion": [
+        "blink"
+      ],
+      "stable_parts": [
+        "torso",
+        "feet",
+        "posterior_silhouette",
+        "educational_objects"
+      ],
+      "camera": {
+        "type": "STATIC",
+        "reason_es": "El gesto concentra la atención; la cámara no necesita desplazarse.",
+        "approval_id": null
+      },
+      "end": "NATURAL_SETTLE",
+      "continuity": {
+        "previous_shot": null,
+        "next_shot": null,
+        "entry_gaze": "viewer",
+        "exit_gaze": "viewer",
+        "screen_direction": "PRESERVE",
+        "function": "teaching"
+      },
+      "captions": {
+        "generated_text": false,
+        "labels": [],
+        "text_character_overlap": 0,
+        "critical_object_overlap": 0,
+        "safe_region_fact": "caption_space"
+      }
+    },
+    "policy_id": "FIXTURE_POLICY_REBOUND_PER_EPISODE",
+    "language": "en",
+    "facts": {
+      "body_orientation": {
+        "value": "THREE_QUARTER",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "framing": {
+        "value": "SOURCE_SUPPORTS_SHOT",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "caption_space": {
+        "value": "CLEAR_OF_LUMI_AND_CRITICAL_OBJECTS",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "gaze": {
+        "value": "VIEWER",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "supported_actions": {
+        "value": [
+          "GAZE_VIEWER"
+        ],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "supported_cameras": {
+        "value": [
+          "STATIC"
+        ],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "wand_state": {
+        "value": "ABSENT",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "left_hand": {
+        "value": "FREE",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "right_hand": {
+        "value": "FREE",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "laterality": {
+        "value": "CHARACTER_SIDES_VERIFIED",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "educational_inventory": {
+        "value": [],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      }
+    },
+    "reviews": [
+      {
+        "id": "review_SYNTHETIC_SOURCE",
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {
+          "body_orientation": "THREE_QUARTER",
+          "framing": "SOURCE_SUPPORTS_SHOT",
+          "caption_space": "CLEAR_OF_LUMI_AND_CRITICAL_OBJECTS",
+          "gaze": "VIEWER",
+          "supported_actions": [
+            "GAZE_VIEWER"
+          ],
+          "supported_cameras": [
+            "STATIC"
+          ],
+          "wand_state": "ABSENT",
+          "left_hand": "FREE",
+          "right_hand": "FREE",
+          "laterality": "CHARACTER_SIDES_VERIFIED",
+          "educational_inventory": []
+        },
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_character",
+        "artifact_id": "SYNTHETIC_character",
+        "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_world",
+        "artifact_id": "SYNTHETIC_world",
+        "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_lighting",
+        "artifact_id": "SYNTHETIC_lighting",
+        "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_motion",
+        "artifact_id": "SYNTHETIC_motion",
+        "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      }
+    ],
+    "context": {
+      "style_authority": {
+        "id": "LUMI_SERIES_STYLE_V2",
+        "status": "FROZEN"
+      },
+      "locks": {
+        "character": {
+          "id": "SYNTHETIC_CHARACTER_LOCK",
+          "sha256": "8cf92b9557a3659bf1890fa25cb1a67391d144c2b48a27d8b16b083c61d1d8f0",
+          "status": "FROZEN",
+          "description": "SYNTHETIC lock"
+        },
+        "world": {
+          "id": "SYNTHETIC_WORLD_LOCK",
+          "sha256": "459a8e0922be043a2f36ac3e3cf1768b0f081d5a1a8bbb69d8bd5d554cbc6b60",
+          "status": "FROZEN",
+          "description": "SYNTHETIC lock"
+        }
+      },
+      "artifact_evidence": {
+        "SYNTHETIC_SOURCE": {
+          "path": "fixture/SYNTHETIC_SOURCE.txt",
+          "expected_sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+          "actual_sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_character": {
+          "path": "fixture/SYNTHETIC_character.txt",
+          "expected_sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "actual_sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_world": {
+          "path": "fixture/SYNTHETIC_world.txt",
+          "expected_sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "actual_sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_lighting": {
+          "path": "fixture/SYNTHETIC_lighting.txt",
+          "expected_sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "actual_sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_motion": {
+          "path": "fixture/SYNTHETIC_motion.txt",
+          "expected_sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "actual_sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        }
+      },
+      "source_readiness": {
+        "SYNTHETIC_SOURCE": {
+          "STYLE_MATCH_TO_GOLDEN_REFERENCE": "PASS",
+          "IDENTITY": "PASS",
+          "ANATOMY": "PASS",
+          "MATERIALS": "PASS",
+          "LIGHTING": "PASS",
+          "WORLD": "PASS",
+          "OBJECT_COMPLETENESS": "PASS",
+          "EDUCATIONAL_SEMANTICS": "PASS",
+          "MOTION_SPACE": "PASS",
+          "CAMERA_COMPATIBILITY": "PASS",
+          "END_STATE_COMPATIBILITY": "PASS"
+        }
+      },
+      "provider_policy": {
+        "model": "Kling 3.0 Standard",
+        "audio": false,
+        "multi_shots": false,
+        "playback_rate": 1,
+        "automatic_retries": 0,
+        "automatic_variants": 0,
+        "automatic_resubmits": 0,
+        "provider_repair_budget": 0
+      },
+      "economic": {
+        "quote_verified": true,
+        "currency": "USD",
+        "episode_projected_usd": 3.5
+      },
+      "postproduction": {
+        "deterministic_educational_graphics": true,
+        "text_character_overlap": 0,
+        "visible_pause_label": false,
+        "playback_rate": 1,
+        "master_width": 1080,
+        "master_height": 1920,
+        "planned_captions": []
+      }
+    },
+    "media": [
+      {
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "path": "fixture/SYNTHETIC_SOURCE.txt",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+        "role": "source"
+      },
+      {
+        "artifact_id": "SYNTHETIC_character",
+        "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+        "path": "fixture/SYNTHETIC_character.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_world",
+        "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+        "path": "fixture/SYNTHETIC_world.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_lighting",
+        "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+        "path": "fixture/SYNTHETIC_lighting.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_motion",
+        "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+        "path": "fixture/SYNTHETIC_motion.txt",
+        "role": "qa"
+      }
+    ],
+    "source_qa": {
+      "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+      "BODY_LOCK_VERSION": "LUMI_BODY_ANATOMY_LOCK_V1",
+      "ANATOMY": "PASS",
+      "NO_BEE_ABDOMEN": "PASS",
+      "NO_STRIPED_POSTERIOR_BODY": "PASS",
+      "NO_STINGER": "PASS",
+      "NO_EXTRA_TORSO": "PASS",
+      "NO_REAR_BULB": "PASS"
+    },
+    "request_parameters": {},
+    "required_controls": [
+      "sound",
+      "duration",
+      "multi_shots",
+      "image_url",
+      "prompt"
+    ],
+    "direction_approval": null,
+    "execution_authorization": false,
+    "synthetic_fixture": true
+  },
+  "ATTENTIVE_WAIT": {
+    "version": "LUMI_CINEMATIC_DIRECTION_V1",
+    "episode_id": "ep_fixture_escucha_001",
+    "revision": 1,
+    "contract": {
+      "shot_id": "fixture_shot",
+      "shot_type": "QUESTION_TO_VIEWER",
+      "START_STATE": {
+        "description": "SYNTHETIC reviewed inventory.",
+        "object_inventory": []
+      },
+      "END_STATE": {
+        "description": "SYNTHETIC reviewed inventory.",
+        "object_inventory": []
+      },
+      "CHARACTER_STATE": {
+        "description": "SYNTHETIC canonical identity.",
+        "character_lock_id": "SYNTHETIC_CHARACTER_LOCK",
+        "character_lock_sha256": "8cf92b9557a3659bf1890fa25cb1a67391d144c2b48a27d8b16b083c61d1d8f0",
+        "world_lock_id": "SYNTHETIC_WORLD_LOCK",
+        "world_lock_sha256": "459a8e0922be043a2f36ac3e3cf1768b0f081d5a1a8bbb69d8bd5d554cbc6b60",
+        "identity_preserved": true,
+        "canonical_wings": 2
+      },
+      "REQUIRED_OBJECTS": [],
+      "EDUCATIONAL_INVARIANTS": [],
+      "PRIMARY_ACTION": {
+        "action": "look_at_viewer",
+        "description": "SYNTHETIC one performance."
+      },
+      "ALLOWED_SECONDARY_MOTION": [
+        "blink"
+      ],
+      "FORBIDDEN_ACTIONS": [
+        "Identity change"
+      ],
+      "CAMERA": {
+        "type": "STATIC",
+        "description": "Reviewed static camera.",
+        "necessary": false
+      },
+      "DURATION": 5,
+      "SOURCE_ARTIFACT": {
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "path": "fixture/SYNTHETIC_SOURCE.txt",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68"
+      },
+      "GOLDEN_REFERENCES": [
+        {
+          "artifact_id": "SYNTHETIC_character",
+          "role": "character",
+          "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "path": "fixture/SYNTHETIC_character.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_world",
+          "role": "world",
+          "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "path": "fixture/SYNTHETIC_world.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_lighting",
+          "role": "lighting",
+          "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "path": "fixture/SYNTHETIC_lighting.txt"
+        },
+        {
+          "artifact_id": "SYNTHETIC_motion",
+          "role": "motion",
+          "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "path": "fixture/SYNTHETIC_motion.txt"
+        }
+      ],
+      "NEGATIVE_STYLE_CONTRACT": [
+        "flat cartoon",
+        "2D illustration",
+        "cel shading",
+        "anime",
+        "comic look",
+        "cheap TV animation",
+        "simplified low-detail rendering",
+        "plastic toy",
+        "rubber toy",
+        "human photorealism",
+        "live-action humanization",
+        "uncanny insect anatomy",
+        "overly realistic skin pores"
+      ]
+    },
+    "direction": {
+      "educational_goal": "Escuchar una pregunta y esperar para responder.",
+      "reason_es": "Contacto visual y espera natural respetan el turno del niño.",
+      "emotion": "attentive",
+      "focus": "viewer",
+      "framing": "FROM_APPROVED_SOURCE",
+      "principal_actions": [
+        {
+          "grammar": "ATTENTIVE_WAIT",
+          "actor": "lumi",
+          "body_part": "gaze",
+          "target": "viewer",
+          "direction": "toward_viewer",
+          "amplitude": "small",
+          "pace": "natural_1x",
+          "body_motion": "PRESERVE_INITIAL",
+          "timing": {
+            "preparation": 0.5,
+            "gesture": 3.5,
+            "settle": 1,
+            "response_window": 2.5
+          }
+        }
+      ],
+      "secondary_motion": [
+        "blink"
+      ],
+      "stable_parts": [
+        "torso",
+        "feet",
+        "posterior_silhouette",
+        "educational_objects"
+      ],
+      "camera": {
+        "type": "STATIC",
+        "reason_es": "El gesto concentra la atención; la cámara no necesita desplazarse.",
+        "approval_id": null
+      },
+      "end": "ATTENTIVE_LIVE_HOLD",
+      "continuity": {
+        "previous_shot": null,
+        "next_shot": null,
+        "entry_gaze": "viewer",
+        "exit_gaze": "viewer",
+        "screen_direction": "PRESERVE",
+        "function": "question"
+      },
+      "captions": {
+        "generated_text": false,
+        "labels": [],
+        "text_character_overlap": 0,
+        "critical_object_overlap": 0,
+        "safe_region_fact": "caption_space"
+      }
+    },
+    "policy_id": "FIXTURE_POLICY_REBOUND_PER_EPISODE",
+    "language": "en",
+    "facts": {
+      "body_orientation": {
+        "value": "THREE_QUARTER",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "framing": {
+        "value": "SOURCE_SUPPORTS_SHOT",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "caption_space": {
+        "value": "CLEAR_OF_LUMI_AND_CRITICAL_OBJECTS",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "gaze": {
+        "value": "VIEWER",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "supported_actions": {
+        "value": [
+          "ATTENTIVE_WAIT"
+        ],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "supported_cameras": {
+        "value": [
+          "STATIC"
+        ],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "wand_state": {
+        "value": "ABSENT",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "left_hand": {
+        "value": "FREE",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "right_hand": {
+        "value": "FREE",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "laterality": {
+        "value": "CHARACTER_SIDES_VERIFIED",
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      },
+      "educational_inventory": {
+        "value": [],
+        "status": "OBSERVED",
+        "evidence_ids": [
+          "review_SYNTHETIC_SOURCE"
+        ]
+      }
+    },
+    "reviews": [
+      {
+        "id": "review_SYNTHETIC_SOURCE",
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {
+          "body_orientation": "THREE_QUARTER",
+          "framing": "SOURCE_SUPPORTS_SHOT",
+          "caption_space": "CLEAR_OF_LUMI_AND_CRITICAL_OBJECTS",
+          "gaze": "VIEWER",
+          "supported_actions": [
+            "ATTENTIVE_WAIT"
+          ],
+          "supported_cameras": [
+            "STATIC"
+          ],
+          "wand_state": "ABSENT",
+          "left_hand": "FREE",
+          "right_hand": "FREE",
+          "laterality": "CHARACTER_SIDES_VERIFIED",
+          "educational_inventory": []
+        },
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_character",
+        "artifact_id": "SYNTHETIC_character",
+        "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_world",
+        "artifact_id": "SYNTHETIC_world",
+        "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_lighting",
+        "artifact_id": "SYNTHETIC_lighting",
+        "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      },
+      {
+        "id": "review_SYNTHETIC_motion",
+        "artifact_id": "SYNTHETIC_motion",
+        "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+        "actor": "SYNTHETIC_REVIEWER_NOT_A_PERSON",
+        "at": "2000-01-01T00:00:00Z",
+        "scope": "SOURCE_FOR_VIDEO",
+        "kind": "SYNTHETIC_FIXTURE",
+        "status": "APPROVED",
+        "observations": {},
+        "warnings": []
+      }
+    ],
+    "context": {
+      "style_authority": {
+        "id": "LUMI_SERIES_STYLE_V2",
+        "status": "FROZEN"
+      },
+      "locks": {
+        "character": {
+          "id": "SYNTHETIC_CHARACTER_LOCK",
+          "sha256": "8cf92b9557a3659bf1890fa25cb1a67391d144c2b48a27d8b16b083c61d1d8f0",
+          "status": "FROZEN",
+          "description": "SYNTHETIC lock"
+        },
+        "world": {
+          "id": "SYNTHETIC_WORLD_LOCK",
+          "sha256": "459a8e0922be043a2f36ac3e3cf1768b0f081d5a1a8bbb69d8bd5d554cbc6b60",
+          "status": "FROZEN",
+          "description": "SYNTHETIC lock"
+        }
+      },
+      "artifact_evidence": {
+        "SYNTHETIC_SOURCE": {
+          "path": "fixture/SYNTHETIC_SOURCE.txt",
+          "expected_sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+          "actual_sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_character": {
+          "path": "fixture/SYNTHETIC_character.txt",
+          "expected_sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "actual_sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_world": {
+          "path": "fixture/SYNTHETIC_world.txt",
+          "expected_sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "actual_sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_lighting": {
+          "path": "fixture/SYNTHETIC_lighting.txt",
+          "expected_sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "actual_sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        },
+        "SYNTHETIC_motion": {
+          "path": "fixture/SYNTHETIC_motion.txt",
+          "expected_sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "actual_sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+          "hash_status": "PASS",
+          "human_approved": true,
+          "qa_status": "PASS",
+          "qa_checks": {
+            "identity": "PASS",
+            "anatomy": "PASS",
+            "materials": "PASS",
+            "lighting": "PASS",
+            "wings": "PASS",
+            "clothing": "PASS",
+            "face": "PASS",
+            "no_text_overlap": "PASS",
+            "no_motion_blur": "PASS",
+            "no_corruption": "PASS"
+          }
+        }
+      },
+      "source_readiness": {
+        "SYNTHETIC_SOURCE": {
+          "STYLE_MATCH_TO_GOLDEN_REFERENCE": "PASS",
+          "IDENTITY": "PASS",
+          "ANATOMY": "PASS",
+          "MATERIALS": "PASS",
+          "LIGHTING": "PASS",
+          "WORLD": "PASS",
+          "OBJECT_COMPLETENESS": "PASS",
+          "EDUCATIONAL_SEMANTICS": "PASS",
+          "MOTION_SPACE": "PASS",
+          "CAMERA_COMPATIBILITY": "PASS",
+          "END_STATE_COMPATIBILITY": "PASS"
+        }
+      },
+      "provider_policy": {
+        "model": "Kling 3.0 Standard",
+        "audio": false,
+        "multi_shots": false,
+        "playback_rate": 1,
+        "automatic_retries": 0,
+        "automatic_variants": 0,
+        "automatic_resubmits": 0,
+        "provider_repair_budget": 0
+      },
+      "economic": {
+        "quote_verified": true,
+        "currency": "USD",
+        "episode_projected_usd": 3.5
+      },
+      "postproduction": {
+        "deterministic_educational_graphics": true,
+        "text_character_overlap": 0,
+        "visible_pause_label": false,
+        "playback_rate": 1,
+        "master_width": 1080,
+        "master_height": 1920,
+        "planned_captions": []
+      }
+    },
+    "media": [
+      {
+        "artifact_id": "SYNTHETIC_SOURCE",
+        "path": "fixture/SYNTHETIC_SOURCE.txt",
+        "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+        "role": "source"
+      },
+      {
+        "artifact_id": "SYNTHETIC_character",
+        "sha256": "73c6d18fba189e6d5630e119423f87ce64b0772dd76a7fc3839cae05c6d707a8",
+        "path": "fixture/SYNTHETIC_character.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_world",
+        "sha256": "6b5d8a00dd49296f92799bef70ae6a8f0deb994587499c0c3c91bf7c2f9053c2",
+        "path": "fixture/SYNTHETIC_world.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_lighting",
+        "sha256": "4b3b947a382040598c0e0e70d2e047e1559808c4bd03346737777b1e9cd26ffe",
+        "path": "fixture/SYNTHETIC_lighting.txt",
+        "role": "qa"
+      },
+      {
+        "artifact_id": "SYNTHETIC_motion",
+        "sha256": "baf5017317b6020de49adc344ef2276ee1e0019cc041858b67c4195c667d4e78",
+        "path": "fixture/SYNTHETIC_motion.txt",
+        "role": "qa"
+      }
+    ],
+    "source_qa": {
+      "sha256": "9cefdcbfba7525085d09bc6e5bc72754db2f00e097b691300341c90a329f4f68",
+      "BODY_LOCK_VERSION": "LUMI_BODY_ANATOMY_LOCK_V1",
+      "ANATOMY": "PASS",
+      "NO_BEE_ABDOMEN": "PASS",
+      "NO_STRIPED_POSTERIOR_BODY": "PASS",
+      "NO_STINGER": "PASS",
+      "NO_EXTRA_TORSO": "PASS",
+      "NO_REAR_BULB": "PASS"
+    },
+    "request_parameters": {},
+    "required_controls": [
+      "sound",
+      "duration",
+      "multi_shots",
+      "image_url",
+      "prompt"
+    ],
+    "direction_approval": null,
+    "execution_authorization": false,
+    "synthetic_fixture": true
+  }
+}

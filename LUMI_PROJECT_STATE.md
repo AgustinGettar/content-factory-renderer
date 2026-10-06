@@ -1,6 +1,22 @@
 # Lumi Project State
 
-## Current authoritative state
+## Current authority — real executor binding checkpoint, 2026-10-06
+
+- Branch: `lumi-telegram-review-v1`; recovered local HEAD `4d8459f`, remote/staging `97944e8`; identical tree `6fe8c716d40879319f6e512b5140359fa016e430`; clean tracked worktree before this change. Main remains `5fe5556395829e78817771f96d33cce3f692965d`.
+- Telegram HOME media-first PASS; canonical message `138`; existing actual human master approval and SHA/file_id bindings are preserved. This phase performs no Telegram media edits or new approval.
+- Frozen production/voice/master profiles remain unchanged. Runtime defaults remain legacy; global V2 OFF; runners OFF; autorun false; no provider or publication calls.
+- Exact adapter stages: PLANNING, SOURCE_PLANNING, IMAGE, SOURCE_QA, DIRECTOR, VIDEO, TEMPORAL_QA, SHOT_REVIEW, TTS, TTS_STORAGE, CAPTIONS, ASSEMBLY, MASTER, MASTER_REVIEW.
+- Executable component wrappers: `13/14`. Existing image/video submission and assembly command boundaries are shared with historical executors, not copied. This count is NOT a completed live pipeline binding.
+- `TTS=REAL_EXECUTOR_MISSING`: project runtime has OpenAI/Marin, whereas the immutable approved profile requires Higgsfield/text2speech_v2/ElevenLabs/Annie. The connector used for human validation is not executable deployed project code. No fallback is installed.
+- Live generic artifact materialization, asynchronous provider result/persistence handoff, and review receipt continuation remain unconfigured; no incomplete adapter is registered in production routing. Stage wrappers and orchestration are callable only through isolated real-executor diagnostics.
+- New fixture: `ep_fixture_escucha_001`, “Lumi y el juego de escuchar”; 9 scenes/shots; child response pause 2.5 s. Synthetic QA/audio/master metadata are clearly labeled and never constitute human/pixel/media acceptance.
+- Local network-disabled regression: `346/346 PASS`. Real executor dry diagnostic succeeds as a diagnostic but correctly returns production readiness BLOCKED at TTS. Downstream stages are independent probes, not successful E2E continuation.
+- Crash matrix: 52 injected crashes across 13 bound stages PASS; 4 TTS rows remain BLOCKED_MISSING_EXECUTOR. Duplicate provider calls 0. Durable claims without receipts pause EMISSION_AMBIGUOUS; complete receipts restore checkpoints.
+- `LAST_COMPLETED_ACTION=REAL_EXECUTOR_WRAPPERS_AND_RECOVERY_DIAGNOSTICS_VALIDATED_LOCAL`
+- `FIRST_PENDING_ACTION=IMPLEMENT_MISSING_APPROVED_TTS_RUNNER_AND_CONNECT_LIVE_GENERIC_HANDOFF`
+- `LUMI_APP_STATUS=REAL_EXECUTOR_BINDING_BLOCKER`. CI, staging deploy and signed canonical parity evidence for this change are recorded in the final LUMI_PRODUCTION_READINESS_V2_REPORT.json; this section records the implementation checkpoint.
+
+## Historical authority — retained unchanged
 
 - `PILOT_APPROVED=true`
 - `PILOT_MASTER_STATUS=HUMAN_APPROVED`

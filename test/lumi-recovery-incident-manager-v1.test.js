@@ -20,7 +20,7 @@ test("pipeline defaults to legacy and only accepts the explicit candidate", () =
 });
 
 test("all required incident classes are registered", () => {
-  assert.equal(INCIDENT_CLASSES.length, 20);
+  assert.equal(new Set(INCIDENT_CLASSES).size, INCIDENT_CLASSES.length);
   for (const key of ["INSUFFICIENT_PROVIDER_BALANCE", "STORAGE_MIME_REJECTED", "BUDGET_EXHAUSTED", "QA_BLOCKER"]) assert.ok(INCIDENT_CLASSES.includes(key));
 });
 

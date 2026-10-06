@@ -1,0 +1,4 @@
+{
+ "version":"LUMI_VOICE_PROFILE_V2","profile_version":2,"provider":"Higgsfield","model":"text2speech_v2","variant":"elevenlabs","engine":"ElevenLabs","voice":"Annie","voice_id":"f2801b0f-e345-598e-86f5-8364d886d96b","voice_type":"preset","language_content":"Spanish","accent_dialect":null,"accent_metadata":"NOT_EXPOSED","format":"mp3","native_sample_rate":44100,"channels":1,"pace":"natural","speech_rate":"ENGINE_DEFAULT_NATURAL; no unsupported speed parameter","HUMAN_APPROVED":true,
+ "benchmark_artifact_sha":"0f5b78a23260a770337af12072eecca9c1721c3a3ef6cdcdb984511044c47bbb","benchmark_job_id":"a606be2a-f0c8-4dac-9660-307bfd7815e2","authority_library_file_id":"libfile_74e0c0eb477081919ab482e1b08c26ba","human_approval":{"status":"APPROVED","sample":"A","statement":"la de eleven labs suena mejor la opción A","timestamp":"2026-10-06T09:35:00Z","actor":"USER"}
+}

@@ -14,7 +14,7 @@ test('HMAC accepts exact bytes and rejects missing, invalid, expired and substit
 const bytes=Buffer.from('immutable-test-master');
 const master={artifact_id:'master',sha256:sha256(bytes),size:bytes.length,mime:'video/mp4',bucket:'private',path:'master.mp4',width:1080,height:1920,duration:41.125};
 async function setup(){
- const store=new MemoryReviewStore();await store.create('1',newSession({user_id:'1',chat_id:'1',message_id:138,cover:master}));
+ const store=new MemoryReviewStore();await store.create('1',({...newSession({user_id:'1',chat_id:'1',message_id:138,cover:master}),panel_renderer_version:1}));
  let loads=0;const svc=new ReviewService({store,telegram:new MakeTransport(),loadBytes:async()=>{loads++;return bytes;}});
  await svc.registerEpisode('1','1',{episode_id:'ep',title:'Lumi',review_mode:'SUPERVISED',shots:[],master,beats:9});
  const message=c=>({message_id:138,chat:{id:1},caption:c.body.media.caption,video:{file_id:'telegram-file',file_unique_id:'telegram-unique',file_size:bytes.length,width:1080,height:1920}});

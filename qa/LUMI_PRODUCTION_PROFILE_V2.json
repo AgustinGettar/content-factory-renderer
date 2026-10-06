@@ -1,0 +1,115 @@
+{
+  "id": "LUMI_PRODUCTION_PROFILE_V2",
+  "version": 2,
+  "status": "FROZEN",
+  "runtime_active": false,
+  "global_default": "legacy",
+  "provider_execution_authorized": false,
+  "publication_authorized": false,
+  "visual": {
+    "source_id": "LUMI_CANONICAL_SOURCE_V2",
+    "source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "style_id": "LUMI_ULTRA_REALISTIC_CGI_STYLE_V1",
+    "style_vocabulary": "premium stylized 3D CGI; historical profile identifier preserved",
+    "video_profile": "LUMI_VIDEO_QUALITY_PROFILE_V2",
+    "character_lock": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "director": "LUMI_CINEMATIC_DIRECTOR_V1",
+    "temporal_qa": "TEMPORAL_TOPOLOGY_QA_V2",
+    "temporal_calibration": "TOPOLOGY_QA_CONFIDENCE_CALIBRATION_V1",
+    "golden_video_sha": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307"
+  },
+  "image": {
+    "provider": "Higgsfield",
+    "model": "marketing-studio/image",
+    "source_gate_required": true
+  },
+  "video": {
+    "provider": "Higgsfield",
+    "model": "Kling 3.0 Pro",
+    "endpoint": "kling-video/v3.0/pro/image-to-video",
+    "sound": "off",
+    "playback_rate": 1,
+    "cinematic_director_required": true,
+    "source_gate_required": true,
+    "exactly_once": true,
+    "automatic_paid_retries": 0,
+    "automatic_variants": 0,
+    "automatic_resubmits": 0
+  },
+  "voice": {
+    "profile": "LUMI_VOICE_PROFILE_V2",
+    "provider": "Higgsfield",
+    "model": "text2speech_v2",
+    "variant": "elevenlabs",
+    "voice": "Annie",
+    "voice_id": "f2801b0f-e345-598e-86f5-8364d886d96b",
+    "voice_type": "preset",
+    "language_content": "Spanish",
+    "format": "mp3",
+    "speech_rate": "ENGINE_DEFAULT_NATURAL; no unsupported speed parameter",
+    "human_status": "APPROVED",
+    "configuration_file": "qa/LUMI_VOICE_PROFILE_V2.json"
+  },
+  "editorial": {
+    "TEXT_OVER_LUMI": "FORBIDDEN",
+    "TEXT_CHARACTER_OVERLAP": 0,
+    "forbidden_visible_labels": [
+      "PAUSA",
+      "pause",
+      "wait",
+      "hold",
+      "espera"
+    ],
+    "pedagogical_pause_seconds": 2.5,
+    "pause_when_episode_plan_requires": true,
+    "pacing": "NATURAL_1X"
+  },
+  "master": {
+    "width": 1080,
+    "height": 1920,
+    "aspect_ratio": "9:16",
+    "codec": "H.264",
+    "profile": "High",
+    "crf": 17,
+    "preset": "slow",
+    "pixel_format": "yuv420p",
+    "audio_codec": "AAC",
+    "audio_channels": 2,
+    "audio_sample_rate": 48000,
+    "audio_bitrate": "192k",
+    "final_encodes": 1
+  },
+  "recovery": {
+    "manager": "LUMI_RECOVERY_INCIDENT_MANAGER_V1",
+    "journal": "PROVIDER_EMISSION_JOURNAL_V1",
+    "exactly_once_claims": true,
+    "budget_gate": true,
+    "artifact_validation": true,
+    "tts_storage_gate": true,
+    "local_salvage": true,
+    "human_overrides_preserve_automated_findings": true,
+    "telegram_incident_ux": true,
+    "automatic_provider_retry": false
+  },
+  "activation": {
+    "explicit_authorization_required": true,
+    "readiness_pass_required": true,
+    "routing_scope": "new_command_only",
+    "legacy_available": true,
+    "rollback": "V2 -> legacy; config-only, no migration, preserve artifacts and journals"
+  },
+  "evidence_scope": "Config frozen from approved source, q31-PRO2, q35 calibration, Annie A benchmark and approved master. Does not certify a new episode or generic live execution adapter.",
+  "component_bindings": {
+    "qa/LUMI_VIDEO_QUALITY_PROFILE_V2.json": "2853444f4b659159d839f9a4ee09330e057b018be9177c0e01d26b69b52046e8",
+    "qa/LUMI_VOICE_PROFILE_V2.json": "403aacaca39b36a2ba99b40619abe312d8716619add9a682070c180526f12fc2",
+    "lib/cinematic-director-v1/profiles.js": "1beb7e749c3c33832e40d08ccd0c0d02d17d91ebf07b2deda3039def06d0a5fe",
+    "lib/cinematic-director-v1/director.js": "d234e69c81264ce7fd83d8922d3361962b2151e42774155a2dbc07447d81396d",
+    "lib/cinematic-director-v1/topology.js": "17e29c4c4d6af889ad435ecc0d6c82c042e58af459f847a8949a06459a5191d9",
+    "lib/cinematic-director-v1/temporal-topology-qa-v2.js": "369ea14327f1e034f6d62d6670025ed54439dd858af0ba61c8ff399d4fd4375c",
+    "lib/cinematic-director-v1/topology-calibration.js": "e8effd3d822a9fba81f1705e21afd8b72b4135fd34c6466d835b6decf8aa6dc0",
+    "lib/lumi-series-v2-gates.js": "8fb5de4f899f25812aded3bdc532539d355fc89bbe2b56f4083d1917aab58a4b",
+    "lib/provider-emission-journal-v1.js": "5c32dbe75a4fc951e8209928505c5a94f4b565f5f826fbf51df115b800b006e9",
+    "lib/lumi-editorial-readiness-v1.js": "7a9a96b3a18b43d25faf7a43cc16949cf019c0c85f752f7d23cc5795d6f035c5",
+    "docs/temporal-topology-qa-v2/AUTHENTIC_CALIBRATION_DATASET_V1.json": "2b6d0604c9dee54ef4a69bdbdbb8b1fde5fe67024e74281df0970eb98e6e6161"
+  }
+}

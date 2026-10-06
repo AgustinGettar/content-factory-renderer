@@ -16,6 +16,8 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
+      - name: Install media inspection dependency
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: node --check server.js
       - name: Telegram, Recovery Manager and director regression with network disabled
         run: >-
@@ -28,6 +30,8 @@ jobs:
           test/lumi-real-executor-bindings.test.js
           test/lumi-tts-stage-v2.test.js
           test/lumi-stage-result-v2.test.js
+          test/lumi-materialization-v2.test.js
+          test/lumi-audio-review-v2.test.js
           test/provider-emission-journal-v1.test.js
           test/higgsfield-usd-budget-v1.test.js
           test/lumi-editorial-readiness-v1.test.js

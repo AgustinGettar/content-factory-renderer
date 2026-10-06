@@ -41,7 +41,7 @@ test('generic review renders in canonical panel, callback binds SHA/version and 
   const f=await fixture('SUCCEEDED_WITH_WARNING');await handleStageResult(f.args);
   let row=await f.reviewStore.get('1'),request=Object.values(row.state.episodes[episodeId].review_requests)[0];
   const view=renderTelegramPanel(row.state,{kind:'review',episode_id:episodeId,request_id:request.review_request_id});
-  assert.equal(view.panel_state,'STAGE_REVIEW');assert.equal(view.artifact.sha256,HOME_ASSET.sha256);
+  assert.equal(view.panel_state,'AUDIO_REVIEW');assert.equal(view.artifact.sha256,f.result.artifacts[0].sha256);
   row.state.tokens=view.tokens;await f.reviewStore.cas('1',row.revision,row.state);
   let deliveries=0;const service=new ReviewService({store:f.reviewStore,validateOwner:async()=>true,telegram:{call:async()=>{deliveries++;}},
     production:{reviewed:async({user,episodeId,requestId})=>reconcileStageReview({manager:f.manager,reviewStore:f.reviewStore,user,episodeId,requestId})}});

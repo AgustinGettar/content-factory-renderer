@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {executeLumiTtsStage,prepareLumiTtsInput,createTtsStorageProbe,inspectLumiAudio} from '../lib/lumi-tts-stage-v2.js';
+import {executeLumiTtsStage,prepareLumiTtsInput,createTtsStorageProbe,inspectLumiAudio,ttsBudgetDecision} from '../lib/lumi-tts-stage-v2.js';
 import {MemoryStageReceiptStore,ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
 import {MemoryReviewStore,newSession} from '../lib/telegram-review-v1/core.js';
 import {HOME_ASSET} from '../lib/telegram-review-v1/home-asset.js';
@@ -27,7 +27,7 @@ test('frozen persisted voice request and dry run never touch any dependency',asy
 });
 test('durable states, canonical artifact and exactly-once replay',async()=>{
   const f=fixture(),r=await executeLumiTtsStage(f.input,f.deps),again=await executeLumiTtsStage(f.input,f.deps);
-  assert.equal(r.status,'SUCCEEDED');assert.equal(again.provider_calls,0);assert.equal(f.calls.submit,1);assert.equal(f.calls.poll,1);
+  assert.equal(r.status,'SUCCEEDED');assert.equal(again.provider_calls,0);assert.equal(f.calls.submit,1);assert.equal(f.calls.poll,2);
   assert.deepEqual((await f.deps.receipts.get('tts:'+f.p.claim_id)).history,['PREPARED','CLAIMED','EMITTING','ACKNOWLEDGED','ARTIFACT_RECOVERED','PERSISTED','QA_COMPLETE','SUCCEEDED']);
   assert.equal(r.artifacts[0].sha256,hash(f.bytes));assert.equal(r.artifacts[0].sample_rate,44100);assert.equal(r.artifacts[0].qa_status,'PASS');
   await assert.rejects(executeLumiTtsStage({...f.input,text:'different'},f.deps),/IMMUTABLE/);
@@ -82,4 +82,15 @@ test('official CLI wrapper uses argv, selected engine, no wait/retry and same jo
   const args=[];const client=createHiggsfieldTtsCliClient({run:async(executable,argv)=>{args.push(argv);return {stdout:JSON.stringify({results:[{id:'same-job',status:argv[1]==='create'?'pending':'completed',results:{rawUrl:'https://fixture.invalid/audio'}}]})};}});
   const f=fixture();assert.equal((await client.submit(f.p.request)).job_id,'same-job');assert.equal((await client.poll('same-job')).job_id,'same-job');
   assert.ok(args[0].includes('elevenlabs'));assert.ok(!args[0].includes('--wait'));assert.deepEqual(args[1],['generate','get','same-job','--json']);
+});
+test('strict TTS dry preflight uses transport quote, storage, credit budget and never submits',async()=>{
+  const f=fixture();let quotes=0;f.deps.client.preflight=async request=>{quotes++;assert.equal(request.variant,'elevenlabs');return {authenticated:true,currency:'CREDITS',units:2.5,provenance:'EXPLICIT_TEST_QUOTE'};};
+  f.input.budget_context={currency:'CREDITS',ceiling_units:4,spent_units:1,remaining_reserve_units:.5};
+  const r=await executeLumiTtsStage({...f.input,dry_run:true,require_preflight:true},f.deps);
+  assert.equal(r.status,'DRY_PROVIDER_BOUNDARY');assert.equal(r.ESTIMATED_PROVIDER_CREDITS,2.5);assert.equal(r.quote.usd,undefined);
+  assert.equal(r.TTS_BUDGET_PREFLIGHT,'PASS');assert.equal(quotes,1);assert.equal(f.calls.submit,0);assert.equal(f.deps.receipts.rows.size,0);
+  assert.equal(ttsBudgetDecision({...f.input.budget_context,ceiling_units:3},r.quote,r.binding.request_fingerprint).status,'BUDGET_EXHAUSTED');
+  assert.throws(()=>ttsBudgetDecision({ceiling_usd:20},r.quote,r.binding.request_fingerprint),/CREDIT_BUDGET/);
+  f.deps.client.preflight=async()=>{throw Object.assign(Error('missing'),{code:'ENOENT'});};
+  await assert.rejects(executeLumiTtsStage({...f.input,dry_run:true,require_preflight:true},f.deps),/missing/);assert.equal(f.calls.submit,0);
 });

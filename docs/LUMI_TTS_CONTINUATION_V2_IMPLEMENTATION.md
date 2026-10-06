@@ -2,6 +2,37 @@
 
 Status: BLOCKED FOR PRODUCTION ACCEPTANCE. No activation or provider emission is authorized by this change.
 
+## Follow-up: shared materialization and audio transport
+
+The shared materializer now consumes accepted result identities for image, video,
+audio and local master stages, using the existing CAS receipts and storage client.
+Original bytes are written immutably before their digest/QA checkpoint; recovery
+reuses that object after crashes. Image pixels and audio/video are decoded with
+ffmpeg. Native video dimensions are retained. URLs are transport-only.
+`LumiV2ExecutionOrchestrator.recoverResult` requires the exact accepted job receipt,
+then routes through the real wrapper and existing StageResult/Recovery Manager.
+IMAGE/VIDEO recovery reuses the existing authenticated provider GET client.
+The TTS lifecycle delegates audio materialization to this same path.
+
+Telegram supports AUDIO_REVIEW, SHA/version-bound decisions, audio file_id caching,
+and HOME restoration. The existing Make action path can use a short-lived storage
+URL after verifying canonical bytes, then persist the returned audio file_id. It
+does not create a new navigation message or require a parallel Make scenario.
+
+The executor has a strict non-generative cost pathway through the same configured
+Higgsfield CLI as submission. Credit estimates require a credit budget; USD is
+never inferred. Canonical signed diagnostics can request `verify_tts_preflight`.
+The 100-credit diagnostic ceiling is fictitious test data, not production authority.
+An absent client/session/quote fails closed. No authentication is copied into Git.
+
+Evidence limits: historical original media exercises local decode/materialization
+and continuation. The existing full 14-stage dry fixture still contains explicit
+synthetic planning/source/Temporal QA metadata; it is not a real production E2E
+acceptance. Live routing remains unregistered until authenticated transport and
+the complete generic runtime handoff are verified. No test grants Human Approval.
+Audio UI transport contracts passing locally do not certify actual Telegram delivery.
+CI now installs ffmpeg, required by the real media tests.
+
 ## Recovered authority
 
 `qa/LUMI_VOICE_PROFILE_V2.json` matches the approved voice identity in Library

@@ -6,6 +6,7 @@ import net from 'node:net';
 import tls from 'node:tls';
 import dgram from 'node:dgram';
 import child from 'node:child_process';
+import {promisify} from 'node:util';
 import { syncBuiltinESMExports, registerHooks } from 'node:module';
 const attempts = [];
 const deny = operation => function () { attempts.push(operation); throw new Error('OFFLINE_NETWORK_OR_PROVIDER_DENIED:' + operation); };
@@ -21,6 +22,9 @@ for (const name of ['exec', 'execSync', 'spawn', 'spawnSync', 'execFile', 'execF
     if (['ffmpeg', 'ffprobe'].includes(file) && !JSON.stringify(args[0]).includes('://')) return original.call(this, file, ...args);
     return deny('subprocess:' + file)();
   };
+  if(name==='execFile')child[name][promisify.custom]=(...args)=>new Promise((resolve,reject)=>{
+    child.execFile(...args,(error,stdout,stderr)=>error?reject(Object.assign(error,{stdout,stderr})):resolve({stdout,stderr}));
+  });
 }
 registerHooks({ resolve(specifier, context, nextResolve) {
   if (/^(openai|@higgsfield\/|higgsfield)/.test(specifier)) return deny('generative_sdk_import')();

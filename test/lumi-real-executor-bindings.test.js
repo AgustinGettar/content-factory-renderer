@@ -13,12 +13,12 @@ import {signRequest} from '../lib/telegram-review-v1/make-transport.js';
 test('exact 14-stage matrix points to executable code and never disguises missing frozen TTS',async()=>{
  assert.deepEqual(EXECUTOR_BINDING_MATRIX.map(r=>r.stage_id),GENERIC_WORKER_STAGES);assert.equal(realExecutorReadiness().bound,13);assert.deepEqual(realExecutorReadiness().missing_stages,['TTS']);
  for(const r of EXECUTOR_BINDING_MATRIX.filter(r=>r.stage_id!=='TTS'))for(const p of r.executor_location.split('; '))assert.ok((await readFile(new URL('../'+p,import.meta.url),'utf8')).length>0);
- assert.equal(EXECUTOR_BINDING_MATRIX.find(r=>r.stage_id==='TTS').classification,'REAL_EXECUTOR_MISSING');
+ assert.equal(EXECUTOR_BINDING_MATRIX.find(r=>r.stage_id==='TTS').classification,'RUNTIME_TRANSPORT_REQUIRED');
 });
 test('real wrappers stop before providers and report partial E2E honestly, with full panel 138 events',async()=>{
- const r=await runRealExecutorDryGate({crashMatrix:true});assert.equal(r.status,'BLOCKED');assert.equal(r.stages.length,14);assert.equal(r.stages.filter(s=>s.executor_bound).length,13);assert.equal(r.end_to_end.status,'BLOCKED');assert.equal(r.first_pending_action,'tts');
+ const r=await runRealExecutorDryGate({crashMatrix:true});assert.equal(r.status,'BLOCKED');assert.equal(r.stages.length,14);assert.equal(r.stages.filter(s=>s.executor_bound).length,14);assert.equal(r.end_to_end.status,'BLOCKED');assert.equal(r.first_pending_action,'master_review');
  assert.deepEqual(r.provider_calls,{IMAGE:0,VIDEO:0,TTS:0});assert.equal(r.external_calls,0);assert.equal(r.publication_calls,0);assert.equal(r.live_approval_created,false);assert.ok(r.progress_events.every(e=>e.message_id===138&&e.media_type==='photo'));assert.equal(r.rollback,'PASS');
- const c=r.crash_resume_matrix;assert.equal(c.rows.length,56);assert.equal(c.status,'PASS_FOR_BOUND_EXECUTORS');assert.equal(c.tested_bound_stages,13);assert.equal(c.rows.filter(r=>r.stage==='TTS').length,4);assert.ok(c.rows.every(r=>r.duplicate_side_effects===0));assert.equal(c.duplicate_provider_calls,0);
+ const c=r.crash_resume_matrix;assert.equal(c.rows.length,56);assert.equal(c.status,'PASS_FOR_BOUND_EXECUTORS');assert.equal(c.tested_bound_stages,14);assert.equal(c.rows.filter(r=>r.stage==='TTS').length,4);assert.ok(c.rows.every(r=>r.duplicate_side_effects===0));assert.equal(c.duplicate_provider_calls,0);
 });
 test('reserve exhausts budget before claiming or calling executor',async()=>{
  const f=await createRealExecutorDryFixture();try{

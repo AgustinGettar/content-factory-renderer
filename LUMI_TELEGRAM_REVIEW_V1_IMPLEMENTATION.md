@@ -1,6 +1,6 @@
 # Lumi Telegram review V1
 
-Status: IMPLEMENTED_PARTIAL_INTEGRATION; NOT READY FOR HUMAN VALIDATION.
+Status: STAGING_IMPLEMENTED_OFF; LIVE_INTEGRATION_BLOCKED; NOT READY FOR HUMAN VALIDATION.
 Feature flag defaults OFF and is additionally restricted to LUMI_RUNTIME_ENV=staging.
 
 Existing master verified on 2026-10-06: 30,709,796 bytes; SHA-256
@@ -53,19 +53,25 @@ bytes to approved private storage, then repeat hash/probe/decode in staging.
 Reuse an existing approved canonical image as LUMI_MENU_COVER; do not call imagegen.
 No media or episode session has been registered in live review storage.
 
-Production continuation controls remain unavailable until a real authorized
-Recovery Manager dispatcher is wired. Review rejection never invokes generation.
-The current module therefore omits Continue/Resume buttons. Do not claim that
-pipeline resume, automatic continuation, or all future provider paths are wired.
-The completion hook covers the ordinary V2 executor and directed steps that
-delegate to it. Generic master completion and alternate executor paths need
-explicit integration before activation.
+Production continuation is capability-driven through ProductionReviewController.
+It supports idempotent canonical resume/cancel adapters, authorization and budget
+checks, supervised pause, automatic continuation only on PASS, and generic
+shot/master completion events. No adapter is enabled for the completed Third
+Short, whose only next action is final human review. It therefore never displays
+a misleading Continue button for this existing master. Any future episode must
+register its canonical pipeline adapter before presenting Continue/Resume.
+The ordinary and directed V2 shot paths consult the opt-in review gate; generic
+completion events additionally accept artifact-verified shot/master registrations.
+
+The current 30.7 MB original needs no proxy. Oversize masters fail closed until a
+separate verified proxy and authenticated download route are supplied; automatic
+recompression is intentionally unavailable.
 
 ## Required activation sequence
 
 1. Recover an active panel and authoritative message ID, without guessing an ID.
 2. Configure secure Telegram transport and authenticated Make forwarding.
-3. Complete async notification and canonical production action wiring.
+3. Connect all synchronous and asynchronous Make writers to the staging shell.
 4. Register original artifacts/cover and bind the existing private session.
 5. Pass CI plus existing-artifact dry run in staging.
 6. Enable only controlled staging review, edit original master into same message,

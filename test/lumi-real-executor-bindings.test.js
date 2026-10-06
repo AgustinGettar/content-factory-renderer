@@ -58,10 +58,11 @@ test('canonical signed dry operation requires HMAC, scope and replay protection 
  const routes=new Map(),app={get:(p,h)=>routes.set(p,h),post:(p,h)=>routes.set(p,h)},secret='dry-fixture-secret'.repeat(3);
  const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:secret};
  mountMakeTransportEndpoint(app,{store,env,loadBytes:async()=>{throw Error('NO_MEDIA_LOAD');},validateOwner:async()=>true,production:new ProductionReviewController({store})});
- const path='/lumi/telegram-review/make/v1',body={op:'real_executor_dry_run',user_id:'1',chat_id:'1',message_id:138},rawBody=Buffer.from(JSON.stringify(body)),timestamp=String(Math.floor(Date.now()/1000)),requestId='new-dry-request';
+ const path='/lumi/telegram-review/make/v1',body={op:'real_executor_dry_run',user_id:'1',chat_id:'1',message_id:138,summary_only:true},rawBody=Buffer.from(JSON.stringify(body)),timestamp=String(Math.floor(Date.now()/1000)),requestId='new-dry-request';
  const req={path,body,rawBody,headers:{'x-lumi-timestamp':timestamp,'x-lumi-request-id':requestId,'x-lumi-signature':signRequest(secret,{timestamp,requestId,path,body:rawBody})}};
  const call=async r=>{const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};await routes.get(path)(r,res);return res;};
  assert.equal((await call({...req,headers:{...req.headers,'x-lumi-signature':'bad'}})).code,401);
  const response=await call(req);assert.equal(response.code,200);assert.equal(response.value.binding.bound,13);assert.equal(response.value.canonical_message_id,138);assert.deepEqual(response.value.actions,[]);assert.deepEqual(response.value.commands,[]);
+ assert.match(response.value.dry_result_sha256,/^[a-f0-9]{64}$/);assert.ok(JSON.stringify(response.value).length<7000);assert.deepEqual(response.value.progress.message_ids,[138]);
  assert.equal((await call(req)).code,409);assert.equal((await call({...req,body:{...body,user_id:'2',chat_id:'2'}})).code,404);assert.deepEqual((await store.get('1')).state.reviews,[]);
 });

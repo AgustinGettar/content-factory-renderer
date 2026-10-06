@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MemoryReviewStore,ReviewService,newSession,sha256} from '../lib/telegram-review-v1/core.js';
+import {MemoryReviewStore,ReviewService,newSession,sha256,buildScreen} from '../lib/telegram-review-v1/core.js';
 import {MakeTransport,signRequest,verifyRequest,claimRequest,acknowledgeCommand,scopedEnabled} from '../lib/telegram-review-v1/make-transport.js';
 const secret='fixture-secret-'.repeat(5),now=1791288000000;
 const request={timestamp:String(now/1000),requestId:'fixture-1',path:'/lumi/telegram-review/make/v1',body:Buffer.from('{"op":"show"}')};
@@ -47,4 +47,19 @@ test('master approval remains SHA bound and duplicate approve does not mutate tw
  const cb={id:'callback-1',from:{id:1},message:f.message(c),data:button.callback_data};
  for(let i=0;i<2;i++){const result=await f.svc.callback({...cb,id:`callback-${i}`});await f.ack(result.commands[0]);}
  const state=(await f.store.get('1')).state;assert.equal(state.reviews.length,1);assert.equal(state.reviews[0].human_status,'MASTER_HUMAN_APPROVED');assert.equal(state.reviews[0].artifact_sha,master.sha256);
+});
+test('all progress stages render from fixtures without starting an episode',async()=>{
+ const f=await setup();const s=(await f.store.get('1')).state;
+ for(const stage of ['PLAN','SOURCES','VIDEO','AUDIO','ASSEMBLY','MASTER','READY','PAUSED']){
+  const fixture=structuredClone(s);fixture.episodes.ep.current_stage=stage;
+  const before=JSON.stringify(fixture);const view=buildScreen(fixture,{kind:'progress',episode_id:'ep'});
+  assert.ok(view.caption.includes(stage));assert.equal(JSON.stringify(fixture),before);
+ }
+});
+test('historical q31 review simulation renders isolated state and preserves human evidence',async()=>{
+ const f=await setup();const s=(await f.store.get('1')).state;
+ const historical={...master,artifact_id:'q31-PRO2',sha256:'ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307',bucket:'av2-generative-video-benchmarks',path:'lumi-series-v2/ep_lumi_flores_003/q31-PRO2/video/ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307/original.mp4'};
+ s.episodes.ep.shots=[{shot_id:'q31',artifact:historical,technical_qa:'PASS',creative_qa:'HUMAN_APPROVED'}];
+ const before=JSON.stringify(s);const view=buildScreen(s,{kind:'shot',episode_id:'ep',index:0});
+ assert.equal(view.artifact.sha256,historical.sha256);assert.ok(view.reply_markup.inline_keyboard.flat().some(b=>b.text.includes('Aprobar')));assert.equal(JSON.stringify(s),before);
 });

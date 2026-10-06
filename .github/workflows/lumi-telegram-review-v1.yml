@@ -1,7 +1,7 @@
 name: Lumi Telegram review V1
 on:
   push:
-    branches: [lumi-telegram-review-v1, lumi-app-recovery-manager-v1]
+    branches: [lumi-telegram-review-v1, lumi-app-recovery-manager-v1, lumi-telegram-make-transport-v1]
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +21,7 @@ jobs:
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
           test/lumi-telegram-review-v1.test.js
+          test/lumi-make-transport.test.js
           test/lumi-recovery-incident-manager-v1.test.js
           test/lumi-recovery-server-integration.test.js
           test/lumi-controlled-episode-action.test.js

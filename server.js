@@ -211,7 +211,9 @@ const av2Integration = supabase ? new Av2PipelineIntegration({
 const assetV2Store = supabase ? new SupabaseAssetV2Store(supabase) : null;
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "1mb", verify(req,res,bytes) {
+  if(req.originalUrl==='/lumi/telegram-review/make/v1')req.rawBody=Buffer.from(bytes);
+} }));
 mountTelegramReview(app, { db: supabase, authorized });
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";

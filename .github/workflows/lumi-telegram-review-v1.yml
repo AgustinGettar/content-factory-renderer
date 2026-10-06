@@ -1,0 +1,30 @@
+name: Lumi Telegram review V1
+on:
+  push:
+    branches: [lumi-telegram-review-v1, lumi-app-recovery-manager-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  zero-provider-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --check server.js
+      - name: Telegram, Recovery Manager and director regression with network disabled
+        run: >-
+          node --import ./scripts/director-offline-guard.mjs --test
+          test/lumi-telegram-review-v1.test.js
+          test/lumi-recovery-incident-manager-v1.test.js
+          test/lumi-recovery-server-integration.test.js
+          test/lumi-controlled-episode-action.test.js
+          test/lumi-series-v2-gates.test.js
+          test/lumi-cinematic-director*.test.js
+          test/lumi-topology-calibration-integration.test.js
+          test/lumi-six-shot-audio.test.js

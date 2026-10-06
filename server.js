@@ -1,3 +1,4 @@
+import { mountTelegramReview } from './lib/telegram-review-v1/runtime.js';
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import { promises as fs } from "node:fs";
@@ -211,6 +212,7 @@ const assetV2Store = supabase ? new SupabaseAssetV2Store(supabase) : null;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
+mountTelegramReview(app, { db: supabase, authorized });
 
 const FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf";
 
@@ -754,6 +756,7 @@ app.get("/health", (_req, res) => {
       lumi_pipeline_preset_baseline: "1.1.2",
       lumi_pipeline_autorun: LUMI_PIPELINE_AUTORUN,
       lumi_recovery_runners: "OFF",
+      lumi_telegram_review_v1: process.env.LUMI_RUNTIME_ENV === "staging" && process.env.LUMI_TELEGRAM_REVIEW_V1 === "true",
     },
   });
 });

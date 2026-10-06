@@ -1,93 +1,92 @@
-# Lumi Production Readiness V2 — blocked
+# Lumi media-first panel and generic V2 adapter
 
-The original Third Short is human approved. Its master SHA is
-`b6f9fe837d000a924608ed4bda13034ff30560ac48b5a085f7cb0a90f35a2624`.
-The persisted review keeps timestamp `2026-10-06T13:52:56.472Z`, review version 1,
-callback query `8241490267754384475`, update `830558911`, Make execution
-`84c55d84a12b4220a131266d5fbfa692`, and panel 138. No approval was impersonated.
+HOME is now a photo-backed representation. The live panel stayed at message 138
+through VIDEO → PHOTO HOME → VIDEO MASTER → PHOTO HOME. The existing, owned
+`assets/lumi-canonical-wand.png` is reused as LUMI_TELEGRAM_HOME_V1; exact SHA
+`77d1b42c07a3de6a3845ae7674bc3637b79d9d1c373959c736ed984656646b17`.
+Initial photo registration was Make execution `84bd3df93a3a41c4bc64b0027e42198a`.
+Master reopening was `520cbe251e964f1e9b8ef3fc501cc209`, final HOME restoration
+`c6f3c39bddf441e1b939609cba70c660`. Both media edits reuse cached file_id.
+No send/delete method is used; no master upload, regeneration, approval or publication.
 
-## Exact Telegram constraint
+The existing authentic approval remains bound to
+`LUMI_SHORT_TRES_FLORES_COLORES_V1.mp4`, SHA
+`b6f9fe837d000a924608ed4bda13034ff30560ac48b5a085f7cb0a90f35a2624`,
+episode ep_lumi_flores_003, review version 1,
+2026-10-06T13:52:56.472Z, callback 8241490267754384475,
+update 830558911, execution 84c55d84a12b4220a131266d5fbfa692.
+Navigation does not create another approval.
 
-On 2026-10-06, two real Bot API calls through the existing Telegram connection
-11003632 attempted `editMessageText` on the video in message 138:
+## Renderer and transport
 
-- text: Make execution `4ce172fbaba2442988be170e44ed324f`;
-- rich_message HTML: execution `50f90a48f261451dba406be121e1ab3f`.
+The canonical renderer owns media type/file_id, full caption, keyboard, state ID,
+review version and artifact binding. All operational states use editMessageMedia.
+HOME, progress, details, incident, approval success and publication previews reuse
+one static photo; shot/master/download use their exact video binding. Approval
+success offers VER VIDEO explicitly and otherwise removes the active player.
+Server-side logical history is bounded to 32 states; BACK re-renders the complete
+prior representation, while HOME clears history. Legacy menu actions are retained.
 
-Both returned HTTP 400: `Bad Request: there is no text in the message to edit`.
-Telegram documents editMessageText for text/rich/game messages and editMessageMedia
-for replacing text with media; it does not provide the inverse video-to-text
-operation in those methods. Official source: https://core.telegram.org/bots/api.
-This is an observed constraint of this bot/API route, not a guessed message age
-restriction. Neither probe succeeded, created a message, deleted a message, nor
-uploaded the master. HOME was NOT restored, and cannot be marked PASS.
+Make acknowledgement modules 21/22 now carry both photo and video identities and
+hash the exact same serialized body that is sent. This also fixes the earlier
+text_sha body/signature drift. HMAC, expiry, replay, ownership, stale SHA/version
+checks and approval idempotence remain intact. Secrets are not stored in this repo.
 
-The canonical renderer distinguishes text and media, owns complete content,
-keyboard, artifact binding and versioned review tokens, and preserves BACK
-return representations. A known unsupported media-to-text transition fails before
-recording a pending callback or dispatching an edit. It never silently renders the
-master behind HOME and never silently replaces panel 138. A menu with an approved
-static cover could remove the video using editMessageMedia while keeping 138;
-that changes the requested text HOME representation and needs a user UX decision.
+## Generic adapter scope
 
-Text-capable scenarios are regression-tested with explicit capability fixtures;
-those tests DO NOT assert Telegram supports media-to-text. Historical renderer V1
-compatibility tests remain labeled separately. Make acknowledgements now include
-text_sha for review deliveries only; legacy payloads and connections are retained.
+`lib/lumi-generic-v2-adapter.js` reuses the actual AV2 plan validator/canonicalizer,
+frozen profiles, Director compiler, source gate, Recovery Manager and emission
+journal. Episode/scene/shot identities, durations, sources, plans and action keys
+come from inputs. There are no q31–q36 branches or third-short IDs in this adapter.
+Director policy scopes are derived per episode. The frozen shot contract admits
+3–5 seconds; larger scene timings remain assembly concerns, not a silent expansion
+of Director capability. Source QA and a Director packet are required before video.
+Serial durable claims precede workers, and a claimed stage cannot be redispatched
+on restart. Provider actions require quote/budget, exactly one journaled transport,
+and explicit action-bound authorization. No automatic paid retry exists.
 
-## Frozen profile and activation
+The adapter is registered only in staging, with activation closed and concrete
+workers unbound. Signed CREATE V2 routing is prepared; legacy remains the default,
+and existing episodes cannot be rerouted. Missing workers fail before episode
+creation or dispatch. No real future episode is created during this work.
 
-`qa/LUMI_PRODUCTION_PROFILE_V2.json` freezes the approved source SHA, Pro endpoint,
-Director/topology/source gates, calibrated temporal QA, component file hashes,
-Annie/ElevenLabs voice ID, editorial constraints, master settings and recovery
-policy. Exact approved voice configuration is in `qa/LUMI_VOICE_PROFILE_V2.json`.
+## Remaining production blocker
 
-The prepared creation selector requires a readiness PASS and explicit authorization
-bound to PROFILE_SHA. Its rollback selects legacy without data migration and
-refuses rerouting existing episodes. Global defaults remain legacy. No adapter is
-activated. Existing execution modules are episode-specific: a generic new-episode
-V2 CREATE adapter is still needed before activation; the dry-run adapter is a
-fixture and is not presented as a live production adapter.
+The contract adapter and two full fictitious episode simulations PASS. A real
+paid-production adapter is not yet ready: concrete generic workers must be bound.
+The historical image/video execution (`lumi-series-v2-execution.js`,
+`cinematic-director-v1/episode-step.js`) assumes the Third Short, fixed ledger IDs,
+source paths, shot aliases and authorization records. Audio/assembly helpers
+(`episode-completion-audio.js`, `lumi-third-short-master-v1.js`) similarly require
+that episode's six-shot proof and storage layout. Attaching those executors as
+"generic" would bypass their identity and evidence gates.
 
-## Readiness and dry run
+Minimum remaining work is to extract parameterized worker bindings for the
+existing provider/storage/QA/audio/assembly operations; retain exact quotes,
+source/character checks, durable journal claims, calibrated QA, TTS storage proof,
+master profile and Human Review waits. Then run this adapter through the signed
+Telegram CREATE path with those bindings in dry-run mode. This turn does not
+activate paid execution or claim fixtures certify those live workers.
 
-The offline dry run uses the actual Director, source evidence gate, calibrated QA,
-Recovery Manager, budget gate, journal and renderer with synthetic plan/media/
-request fixtures. It exercises claim collision after restart, exactly-once
-simulated transport, TTS request shape, editorial exclusion/pause, assembly/master
-profile, master review and publication preview. All ten requested generic incident
-classes are registered and exercised. The pre-existing five recovery simulations
-are reused, including artifact decode and TTS storage gates.
+Validation: 338 offline regression tests PASS, including nine explicit photo/video
+transitions, file_id reuse, logical BACK, approval idempotence, callback auth and
+four generic-adapter tests. `scripts/lumi-production-readiness-v2.mjs` exercises
+real Director compilation with new fictional IDs, 19 simulated emissions per
+future episode, zero real provider/publication calls and immediate legacy routing.
+Readiness therefore remains BLOCKED by GENERIC_V2_WORKER_BINDINGS_REQUIRED.
 
-No new live episode, media generation, real approval, master encode, publication,
-or social account mutation occurs. Passing a synthetic dry run does not close the
-live Telegram limitation or certify new generic paid-provider orchestration.
-Readiness remains BLOCKED.
+## Repository, staging and publication scope
 
-## Existing publication inventory
+The tree of local e1b30ee was uploaded exactly to lumi-telegram-review-v1. GitHub's
+connected commit API assigned remote ff4e79c; tree
+2259c9f426c8cfccc4dca84f1de94d1ff06d01d6 is identical, diff empty.
+Initial CI 37510326661 is GREEN. Main remains
+5fe5556395829e78817771f96d33cce3f692965d. Staging source branch alone was changed
+from lumi-app-recovery-manager-v1 to lumi-telegram-review-v1; AutoDeploy remains OFF.
+Final feature commit/deploy are recorded in the delivery report.
 
-| Platform | Implementation | Connection | Missing authorization | Dry run |
-|---|---|---|---|---|
-| YouTube Shorts | Direct OAuth/upload code and existing approval gate; queue/menu available | No social_connections row; integrations=not_connected | OAuth application setup and user channel consent; OAuth not configured in inspected staging | Metadata and preview fixtures; no upload |
-| Instagram Reels | Menu, channel_platforms and scheduling queue scaffolding; no publisher/Make executor found | No social_connections row; integrations=not_connected | Publisher integration first; account consent is not the only missing item | Queue/preview only |
-| TikTok | Menu, channel_platforms and scheduling queue scaffolding; no publisher/Make executor found | No social_connections row; integrations=not_connected | Publisher integration first; account consent is not the only missing item | Queue/preview only |
-
-Make team inventory has 14 Lumi scenarios plus the temporary API probe shell; no
-social publication executor was found. The project's sole deployed Edge Function
-is content-factory-bot and exposes menu/completion handling, not a publisher.
-There are no existing publications for channel 1. No Facebook requirement is
-invented. Existing YouTube upload validation binds legacy video revision approval;
-the new SHA-bound review needs an explicit adapter before using that publisher.
-
-Publication states are prepared as complete panels and require SHA-bound master
-approval. Confirmation is closed and never calls a publisher or queue.
-
-## Outstanding work
-
-- User UX choice for HOME: allow a canonical static-cover HOME on the same panel,
-  or another explicit representation compatible with Telegram. No new message is
-  silently authorized.
-- Engineering: wire generic V2 creation and a SHA/revision adapter to the existing
-  publisher before re-running readiness and requesting controlled activation.
-- External: configure YouTube OAuth and authorize the intended channel when ready.
-  Instagram/TikTok are not labeled CONNECT-only requirements.
+Publication architecture is untouched. YouTube upload/OAuth code exists; OAuth
+setup/channel consent and SHA-bound review adaptation remain pending. Instagram
+and TikTok still have menu/queue scaffolding and need publisher implementation.
+No social connection, publication, main change, production deployment, global
+activation or public.characters RLS change is made.

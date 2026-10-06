@@ -24,6 +24,7 @@ jobs:
           test/lumi-make-transport.test.js
           test/lumi-panel-renderer-v2.test.js
           test/lumi-production-profile-v2.test.js
+          test/lumi-generic-v2-adapter.test.js
           test/provider-emission-journal-v1.test.js
           test/higgsfield-usd-budget-v1.test.js
           test/lumi-editorial-readiness-v1.test.js

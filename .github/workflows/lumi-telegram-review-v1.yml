@@ -30,6 +30,7 @@ jobs:
           test/lumi-real-executor-bindings.test.js
           test/lumi-tts-stage-v2.test.js
           test/lumi-elevenlabs-discovery-v3.test.js
+          test/lumi-elevenlabs-direct-v3.test.js
           test/lumi-stage-result-v2.test.js
           test/lumi-materialization-v2.test.js
           test/lumi-audio-review-v2.test.js

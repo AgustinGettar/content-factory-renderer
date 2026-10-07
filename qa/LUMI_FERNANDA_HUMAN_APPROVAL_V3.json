@@ -1,0 +1,14 @@
+{
+  "provider": "ElevenLabs",
+  "source_voice_id": "NyQ87MpRGbszyh7rZLXM",
+  "voice_name": "Fernanda — Warm & Natural",
+  "review_version": 1,
+  "preview_artifact_id": "441d62befb96a3d42aab1e18876d8e066698fa6f24283c5a6f4a4dae396dc7bd",
+  "preview_sha256": "b0d9d9f211f6c5d4447e235b570a058eb28069f843c70bcb186ca6162a5201d9",
+  "timestamp": "2026-10-07T18:17:41Z",
+  "HUMAN_APPROVED": true,
+  "human_status": "APPROVED",
+  "human_review_source": "EXPLICIT_USER_SELECTION",
+  "review_statement": "User heard Fernanda before interruption and explicitly selected her as Lumi's definitive voice.",
+  "VOICE_A": "NOT_SELECTED"
+}

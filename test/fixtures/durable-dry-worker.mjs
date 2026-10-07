@@ -20,7 +20,9 @@ class DiskCheckpointFixture extends MemoryLumiRecoveryStore {
 const store=new DiskCheckpointFixture(),reviewStore=new MemoryReviewStore();
 await reviewStore.create('1',newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET}));
 const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',RENDER_GIT_COMMIT:'a'.repeat(40)};
-const pause=async()=>{process.stdout.write('KILL_NOW\n');await new Promise(()=>{});};
+// Keep the child alive until the parent delivers SIGKILL. An unresolved promise
+// alone lets Node exit with unsettled top-level await before the signal arrives.
+const pause=async()=>{process.stdout.write('KILL_NOW\n');await new Promise(()=>{setInterval(()=>{},1000);});};
 const diagnostics=new DurableDryRun({store,reviewStore,env,clock:()=>Number(time),validateOwner:async()=>true,logger:{info(){},warn(){}},
   inject:async point=>{
     if(mode==='kill-before-execution'&&point==='CLAIMED'||mode==='kill-after-result'&&point==='RESULT_PERSISTED')await pause();

@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {materializeStageArtifact} from '../lib/lumi-artifact-materialization-v2.js';
+import {materializeStageArtifact,createArtifactStorage} from '../lib/lumi-artifact-materialization-v2.js';
+import {createClient} from '@supabase/supabase-js';
 import {MemoryStageReceiptStore,LumiV2ExecutionOrchestrator} from '../lib/lumi-v2-execution-orchestrator.js';
 import {MemoryLumiRecoveryStore,LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {sha256} from '../lib/telegram-review-v1/core.js';
@@ -13,6 +14,13 @@ const cases=[['IMAGE',new URL('../assets/lumi-canonical-wand.png',import.meta.ur
   ...Object.entries({VIDEO:process.env.LUMI_TEST_VIDEO_PATH,TTS:process.env.LUMI_TEST_AUDIO_PATH}).filter(([,path])=>path)];
 const points=['PROVIDER_COMPLETED_ARTIFACT_NOT_PERSISTED','ARTIFACT_DOWNLOADED_HASH_NOT_PERSISTED',
   'ARTIFACT_PERSISTED_QA_NOT_PERSISTED','QA_PERSISTED_CHECKPOINT_NOT_ADVANCED'];
+test('real storage SDK missing-key envelope permits recovery; auth and outages stay blocked',async()=>{
+ let status=400,body={statusCode:'404',error:'not_found',message:'Object not found',code:'NoSuchKey'};
+ const db=createClient('https://storage.example.test','fixture-key',{auth:{persistSession:false},global:{fetch:async()=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}})}});
+ const storage=createArtifactStorage(db);
+ assert.equal(await storage.download('fixture','original.mp3'),null);
+ for(const next of [403,404,500]){status=next;body={message:'unavailable'};await assert.rejects(storage.download('fixture','original.mp3'),/ARTIFACT_STORAGE_READ_FAILED/);}
+});
 for(const [stage,path]of cases)test(stage+' canonical SHA reuses existing bytes without upload, including recovery',async()=>{
  const bytes=await readFile(path),sha=sha256(bytes),receipts=new MemoryStageReceiptStore();let uploads=0,recoveries=0;
  const existing={artifact_id:sha,sha256:sha,size:bytes.length,bucket:'existing',path:'original/media',mime:stage==='IMAGE'?'image/png':stage==='VIDEO'?'video/mp4':'audio/mpeg'};

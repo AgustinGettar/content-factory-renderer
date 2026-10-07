@@ -1,8 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MemoryReviewStore,newSession,ReviewService,sha256,renderTelegramPanel} from '../lib/telegram-review-v1/core.js';
-import {MakeTransport,acknowledgeCommand} from '../lib/telegram-review-v1/make-transport.js';
+import {MakeTransport,acknowledgeCommand,isRecoverablePreviewAudioAck} from '../lib/telegram-review-v1/make-transport.js';
 import {HOME_ASSET} from '../lib/telegram-review-v1/home-asset.js';
+test('missing legacy audio ACK is recoverable only for exact cached previews in staging panel 138',()=>{
+ const sha='b'.repeat(64),c={idempotency_key:'cmd',method:'editMessageMedia',artifact_sha:sha,artifact:{artifact_id:'b'},body:{media:{type:'audio',media:'fernanda-file',caption:'Fernanda'}}};
+ const state={user_id:'6213838779',chat_id:'6213838779',message_id:138,delivery:{status:'EMITTING',command:c},deliveries:{[sha]:{telegram_file_id:'fernanda-file',telegram_file_unique_id:'b-unique'}},voice_preview_review:{candidates:[{VOICE_ID:'NyQ87MpRGbszyh7rZLXM',artifact:{sha256:sha,artifact_id:'b'}}]}};
+ const body={op:'ack',command_id:'cmd',telegram_result:{message_id:138,chat:{id:6213838779},caption_sha:sha256('Fernanda')}};
+ const snapshot=JSON.stringify(state);assert.equal(isRecoverablePreviewAudioAck(state,body),true);assert.equal(JSON.stringify(state),snapshot);
+ for(const mutate of [s=>s.user_id='other',s=>s.message_id=139,s=>s.delivery.status='DELIVERED',s=>s.delivery.command.body.media.media='Lucia-file',s=>s.voice_preview_review.candidates[0].VOICE_ID='different']){const s=structuredClone(state);mutate(s);assert.equal(isRecoverablePreviewAudioAck(s,body),false);}
+ assert.equal(isRecoverablePreviewAudioAck(state,{...body,telegram_result:{...body.telegram_result,audio:{file_id:'wrong',file_size:1}}}),false);
+ assert.equal(isRecoverablePreviewAudioAck(state,{...body,telegram_result:{...body.telegram_result,caption_sha:'a'.repeat(64)}}),false);
+});
+test('a pending preview requires real audio callback metadata before B to HOME recovery',async()=>{
+ const bytes=Buffer.from('EXISTING_PREVIEW_TEST_FIXTURE'),a={artifact_id:'b',sha256:sha256(bytes),size:bytes.length,mime:'audio/mpeg',bucket:'fixtures',path:'b.mp3',duration:2};
+ const s=newSession({user_id:'6213838779',chat_id:'6213838779',message_id:138,cover:HOME_ASSET});
+ s.deliveries[HOME_ASSET.sha256]={telegram_file_id:'home'};s.deliveries[a.sha256]={telegram_file_id:'fernanda-file',telegram_file_unique_id:'b-unique'};
+ s.episodes.ep={episode_id:'ep',review_mode:'SUPERVISED',shots:[],artifacts:{b:a},review_requests:{r:{review_request_id:'r',artifact_id:'b',artifact_sha:a.sha256,stage_id:'TTS',review_version:1,status:'TRANSPORT_ONLY',transport_only:true,preview_voice:{letter:'B',name:'Fernanda — Warm & Natural',voice_id:'NyQ87MpRGbszyh7rZLXM'}}}};
+ s.voice_preview_review={episode_id:'ep',candidates:[{letter:'B',VOICE_ID:'NyQ87MpRGbszyh7rZLXM',artifact:a,review_request_id:'r'},{letter:'A',VOICE_ID:'akOBlaKhFd59YlK6xz9u',review_request_id:'other'}],profile_status:'VOICE_SELECTION_PENDING'};
+ const store=new MemoryReviewStore();await store.create('6213838779',s);const svc=new ReviewService({store,telegram:new MakeTransport(),loadBytes:async()=>{throw Error('cached');}});
+ const shown=await svc.show(s.user_id,s.chat_id,{kind:'audio',episode_id:'ep',request_id:'r'}),c=shown.commands[0];
+ const stale={message_id:138,chat:{id:6213838779},caption_sha:sha256(c.body.media.caption)};
+ await assert.rejects(acknowledgeCommand(store,s.user_id,s.chat_id,c.idempotency_key,stale),/audio_metadata/);
+ assert.equal((await store.get(s.user_id)).state.delivery.status,'EMITTING');
+ const b=c.body.reply_markup.inline_keyboard.flat().find(b=>b.text==='🏠 VOLVER');
+ const cb={id:'navigation-test-only',from:{id:6213838779},data:b.callback_data,message:{message_id:138,chat:{id:6213838779},caption:c.body.media.caption,audio:{file_id:'fernanda-file',file_unique_id:'b-unique',file_size:bytes.length}}};
+ await assert.rejects(svc.reconcile({...cb,message:{...cb.message,audio:{...cb.message.audio,file_size:1}}}),/audio_mismatch/);
+ assert.equal(await svc.reconcile(cb),true);assert.equal((await store.get(s.user_id)).state.delivery.status,'DELIVERED');
+ const home=await svc.callback(cb);assert.equal(home.commands[0].body.media.type,'photo');assert.equal(home.commands[0].message_id,138);
+ assert.equal((await store.get(s.user_id)).state.voice_preview_review.human_selection,undefined);
+});
 test('existing Spanish A/B previews remain audio in panel 138; HOME retains comparison and choice only records human decision',async()=>{
  const s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET});s.deliveries[HOME_ASSET.sha256]={telegram_file_id:'home'};
  s.episodes.ep={episode_id:'ep',review_mode:'SUPERVISED',shots:[],artifacts:{},review_requests:{},master:{sha256:'c'.repeat(64)}};

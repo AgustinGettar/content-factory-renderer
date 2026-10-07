@@ -5,7 +5,6 @@ import {executeLumiTtsStage,prepareLumiTtsInput,createTtsStorageProbe,inspectLum
 import {MemoryStageReceiptStore,ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
 import {MemoryReviewStore,newSession} from '../lib/telegram-review-v1/core.js';
 import {HOME_ASSET} from '../lib/telegram-review-v1/home-asset.js';
-import {createHiggsfieldTtsCliClient} from '../lib/lumi-higgsfield-tts-cli.js';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 function fixture(overrides={}){
   const input={episode_id:'ep_future_004',stage_id:'TTS',narration_unit_id:'intro',text:'¡Hola! Escuchemos el jardín.',voice_profile_id:'LUMI_VOICE_PROFILE_V2',output_artifact_target:{bucket:'generated-audio',prefix:'episodes/ep_future_004'}};
@@ -78,10 +77,12 @@ test('real ffmpeg probe is decodable but silence is not valid narration',async()
   const bytes=await createTtsStorageProbe();assert.equal((await inspectLumiAudio(bytes,hash(bytes),{storageProbe:true})).ok,true);
   assert.equal((await inspectLumiAudio(bytes,hash(bytes))).ok,false);assert.equal((await inspectLumiAudio(bytes,'a'.repeat(64))).ok,false);
 });
-test('official CLI wrapper uses argv, selected engine, no wait/retry and same job polling',async()=>{
-  const args=[];const client=createHiggsfieldTtsCliClient({run:async(executable,argv)=>{args.push(argv);return {stdout:JSON.stringify({results:[{id:'same-job',status:argv[1]==='create'?'pending':'completed',results:{rawUrl:'https://fixture.invalid/audio'}}]})};}});
-  const f=fixture();assert.equal((await client.submit(f.p.request)).job_id,'same-job');assert.equal((await client.poll('same-job')).job_id,'same-job');
-  assert.ok(args[0].includes('elevenlabs'));assert.ok(!args[0].includes('--wait'));assert.deepEqual(args[1],['generate','get','same-job','--json']);
+test('TTS requires an explicitly bound transport and distinguishes missing credentials from an unverified contract',async()=>{
+  const f=fixture();
+  for(const reason of ['HIGGSFIELD_STAGING_CREDENTIAL_MISSING','HIGGSFIELD_TTS_API_CONTRACT_UNVERIFIED']){
+    await assert.rejects(executeLumiTtsStage({...f.input,dry_run:true,require_preflight:true},{...f.deps,client:null,binding_error:reason}),new RegExp(reason));
+    assert.equal(f.calls.submit,0);assert.equal(f.deps.receipts.rows.size,0);
+  }
 });
 test('strict TTS dry preflight uses transport quote, storage, credit budget and never submits',async()=>{
   const f=fixture();let quotes=0;f.deps.client.preflight=async request=>{quotes++;assert.equal(request.variant,'elevenlabs');return {authenticated:true,currency:'CREDITS',units:2.5,provenance:'EXPLICIT_TEST_QUOTE'};};

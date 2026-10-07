@@ -26,3 +26,11 @@ test('AUDIO → HOME → AUDIO uses panel 138, SHA file cache and exact ACK meta
  const approve=Object.values(panel.tokens).find(t=>t.action==='approve_stage');assert.equal(approve.artifact_sha,a.sha256);assert.equal(approve.generic_review_version,3);
  final.episodes.ep.artifacts.narration.sha256='a'.repeat(64);assert.throws(()=>renderTelegramPanel(final,{kind:'audio',episode_id:'ep',request_id:'r'}),/stale/);
 });
+test('historical transport-only audio cannot create approval and returns to HOME',()=>{
+ const a={artifact_id:'stem',sha256:'a'.repeat(64),mime:'audio/mpeg',size:100,bucket:'existing',path:'stem.mp3',duration:3,sample_rate:44100,channels:1};
+ const s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET});
+ s.episodes.ep={episode_id:'ep',title:'Existing',review_mode:'SUPERVISED',shots:[],artifacts:{stem:a},review_requests:{r:{review_request_id:'r',artifact_id:'stem',artifact_sha:a.sha256,review_version:1,stage_id:'TTS',status:'TRANSPORT_ONLY',transport_only:true,allowed_actions:[]}}};
+ const p=renderTelegramPanel(s,{kind:'audio',episode_id:'ep',request_id:'r'}),actions=Object.values(p.tokens).map(t=>t.action);
+ assert.deepEqual(actions,['audio','audio_details','menu']);assert.ok(p.caption.includes('Revisión de audio'));assert.equal(p.state_id,'AUDIO_REVIEW');
+ assert.equal(renderTelegramPanel(s,{kind:'menu'}).media_type,'photo');assert.equal(s.reviews.length,0);
+});

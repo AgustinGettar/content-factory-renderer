@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import {MemoryReviewStore,newSession,ReviewService,sha256,renderTelegramPanel} from '../lib/telegram-review-v1/core.js';
 import {MakeTransport,acknowledgeCommand} from '../lib/telegram-review-v1/make-transport.js';
 import {HOME_ASSET} from '../lib/telegram-review-v1/home-asset.js';
+test('existing Spanish A/B previews remain audio in panel 138; HOME retains comparison and choice only records human decision',async()=>{
+ const s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET});s.deliveries[HOME_ASSET.sha256]={telegram_file_id:'home'};
+ s.episodes.ep={episode_id:'ep',review_mode:'SUPERVISED',shots:[],artifacts:{},review_requests:{},master:{sha256:'c'.repeat(64)}};
+ const e=s.episodes.ep;const candidates=['A','B'].map(letter=>{
+  const a={artifact_id:letter,sha256:(letter==='A'?'a':'b').repeat(64),size:100,mime:'audio/mpeg',bucket:'existing',path:letter+'.mp3',duration:3};e.artifacts[letter]=a;s.deliveries[a.sha256]={telegram_file_id:'file'+letter};
+  e.review_requests[letter]={review_request_id:letter,artifact_id:letter,artifact_sha:a.sha256,stage_id:'TTS',review_version:1,transport_only:true,status:'TRANSPORT_ONLY',preview_voice:{letter,voice_id:letter,name:letter==='A'?'Lucia — Warm Conversational':'Fernanda — Warm & Natural'}};
+  return {letter,VOICE_ID:letter,review_request_id:letter,artifact:a};
+ });s.voice_preview_review={episode_id:'ep',candidates,profile_status:'VOICE_SELECTION_PENDING'};
+ for(const letter of ['A','B']){const p=renderTelegramPanel(s,{kind:'audio',episode_id:'ep',request_id:letter});assert.equal(p.state_id,'AUDIO_REVIEW');assert.equal(p.media_type,'audio');assert.match(p.caption,/Español verificado/);assert.deepEqual(Object.values(p.tokens).map(t=>t.action),['audio','audio','choose_preview','menu']);}
+ const home=renderTelegramPanel(s,{kind:'menu'});assert.equal(home.media_type,'photo');assert.ok(Object.values(home.tokens).find(t=>t.action==='audio'&&t.request_id==='A'));
+ const p=renderTelegramPanel(s,{kind:'audio',episode_id:'ep',request_id:'B'});s.tokens=p.tokens;const token=Object.entries(p.tokens).find(([,t])=>t.action==='choose_preview')[0];
+ const store=new MemoryReviewStore();await store.create('1',s);let productionCalls=0;
+ const svc=new ReviewService({store,telegram:new MakeTransport(),loadBytes:async()=>{throw Error('cached');},production:{reviewed:()=>{productionCalls++;}}});
+ await svc.callback({id:'actual-human-fixture',from:{id:1},message:{message_id:138,chat:{id:1}},data:'lr:'+token});
+ const final=(await store.get('1')).state;assert.equal(final.voice_preview_review.human_selection.letter,'B');assert.equal(final.voice_preview_review.profile_status,'VOICE_SELECTION_PENDING');assert.equal(productionCalls,0);assert.equal(final.reviews.length,0);assert.equal(final.episodes.ep.master.sha256,'c'.repeat(64));
+});
 test('AUDIO → HOME → AUDIO uses panel 138, SHA file cache and exact ACK metadata',async()=>{
  const bytes=Buffer.from('EXPLICIT_TRANSPORT_FIXTURE'),a={artifact_id:'narration',sha256:sha256(bytes),size:bytes.length,mime:'audio/mpeg',bucket:'fixtures',path:'narration.mp3',duration:2,sample_rate:44100,channels:1};
  const s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET});s.deliveries[HOME_ASSET.sha256]={telegram_file_id:'home',telegram_file_unique_id:'home-unique'};

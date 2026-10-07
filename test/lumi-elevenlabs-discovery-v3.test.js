@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createElevenLabsDiscoveryClient,discoverElevenLabsSpanishVoices,elevenLabsReadiness,subscriptionMetadata} from '../lib/lumi-elevenlabs-discovery-v3.js';
+import {VOICE_PREVIEW_CANDIDATES,discoverElevenLabsVoicePreviews} from '../lib/lumi-elevenlabs-discovery-v3.js';
+import {recoverSpanishPreview} from '../lib/lumi-elevenlabs-preview-review-v3.js';
 const env={LUMI_RUNTIME_ENV:'staging',ELEVENLABS_API_KEY:'TEST_ONLY_NEVER_VALID_CREDENTIAL'};
 const response=value=>({ok:true,status:200,json:async()=>value});
 const model={model_id:'eleven_multilingual_v2',can_do_text_to_speech:true,requires_alpha_access:false,languages:[{language_id:'es'}],maximum_text_length_per_request:10000,model_rates:{character_cost_multiplier:1}};
@@ -14,6 +16,29 @@ const fetchCatalog=handler=>async(raw,options)=>{
  if(url.pathname==='/v1/models')return response([model]);
  assert.equal(url.pathname,'/v1/shared-voices');return handler(url);
 };
+test('preview recovery reads quota then only exact owners and preserves both IDs',async()=>{
+ const owners=[];const r=await discoverElevenLabsVoicePreviews({env,fetchImpl:async(raw,options)=>{
+  const u=new URL(raw);assert.equal(options.method,'GET');
+  if(u.pathname==='/v1/user/subscription')return response(subscription);
+  assert.equal(u.pathname,'/v1/shared-voices');const owner=u.searchParams.get('owner_id');owners.push(owner);
+  const c=VOICE_PREVIEW_CANDIDATES.find(c=>c.owner_id===owner);assert.ok(c);
+  return response({voices:[{...voice,voice_id:c.voice_id,public_owner_id:c.owner_id}],has_more:false});
+ }});
+ assert.equal(r.status,'PREVIEWS_IDENTIFIED');assert.deepEqual(owners,VOICE_PREVIEW_CANDIDATES.map(c=>c.owner_id));
+ assert.deepEqual(r.candidates.map(c=>c.VOICE_ID),VOICE_PREVIEW_CANDIDATES.map(c=>c.voice_id));assert.equal(r.provider_generation_calls,0);
+ await assert.rejects(createElevenLabsDiscoveryClient({env}).exactVoice('different'),/FORBIDDEN/);
+});
+test('inaccessible quota stops before any voice read and strips billing details',async()=>{
+ let calls=0;const r=await discoverElevenLabsVoicePreviews({env,fetchImpl:async()=>{calls++;return {ok:false,status:401,json:async()=>({detail:{status:'missing_permissions',message:'user_read '+env.ELEVENLABS_API_KEY}})};}});
+ assert.equal(calls,1);assert.equal(r.status,'QUOTA_OBSERVABILITY_BLOCKER');assert.equal(JSON.stringify(r).includes(env.ELEVENLABS_API_KEY),false);
+});
+test('expired preview refreshes exact metadata once; GET is unauthenticated and never synthesizes',async()=>{
+ const c={letter:'A',VOICE_ID:VOICE_PREVIEW_CANDIDATES[0].voice_id,PREVIEW:'https://storage.googleapis.com/eleven-public-prod/voices/'+VOICE_PREVIEW_CANDIDATES[0].voice_id+'/old.mp3'};
+ let reads=0,refresh=0;const r=await recoverSpanishPreview(c,{client:{exactVoice:async id=>{assert.equal(id,c.VOICE_ID);refresh++;return {...c,PREVIEW:c.PREVIEW.replace('old','new')};}},fetchImpl:async(url,options)=>{assert.equal(options.method,'GET');assert.equal(options.headers,undefined);reads++;return {ok:reads===2,status:reads===1?404:200,headers:new Headers(),arrayBuffer:async()=>Buffer.from('existing')};}});
+ assert.equal(reads,2);assert.equal(refresh,1);assert.equal(r.refreshed,true);
+ reads=0;refresh=0;await assert.rejects(recoverSpanishPreview(c,{client:{exactVoice:async()=>{refresh++;return c;}},fetchImpl:async()=>{reads++;return {ok:false,status:404};}}),/PREVIEW_BLOCKED_A/);
+ assert.equal(reads,2);assert.equal(refresh,1);
+});
 test('missing secret and production make zero provider requests; readiness exposes boolean only',async()=>{
  let calls=0;const fetchImpl=async()=>{calls++;throw Error('should not request');};
  await assert.rejects(discoverElevenLabsSpanishVoices({env:{LUMI_RUNTIME_ENV:'staging'},fetchImpl}),/SECRET_REQUIRED/);

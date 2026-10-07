@@ -1,0 +1,31 @@
+{
+  "version": "LUMI_VOICE_PROFILE_V3",
+  "profile_version": 3,
+  "provider": "ElevenLabs Direct API",
+  "language": "Spanish",
+  "language_code": "es",
+  "status": "VOICE_SELECTION_PENDING",
+  "voice_id": null,
+  "voice_name": null,
+  "model_id": null,
+  "pace": "natural_1x",
+  "output_format": null,
+  "human_status": "PENDING",
+  "HUMAN_APPROVED": false,
+  "frozen": false,
+  "maximum_generated_benchmark_samples": 2,
+  "automatic_retries": 0,
+  "variants": 0,
+  "resubmits": 0,
+  "previous_profile": "LUMI_VOICE_PROFILE_V2",
+  "previous_profile_history": {
+    "provider": "Higgsfield",
+    "model": "text2speech_v2",
+    "variant": "elevenlabs",
+    "voice": "Annie",
+    "status": "HUMAN_APPROVED_FOR_EPISODE",
+    "deployable_server_api": false
+  },
+  "higgsfield_voice_id_reusable": false,
+  "deployable_executor_bound": false
+}

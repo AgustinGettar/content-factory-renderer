@@ -27,6 +27,19 @@ test('warning policy, immutable result and cost replay do not double account',as
   assert.equal((await f.manager.store.getEpisode(episodeId)).current_cost_usd,.2);
   await assert.rejects(handleStageResult({...args,result:{...f.result,actual_cost:{currency:'USD',usd:.3}}}),/IMMUTABLE/);
 });
+test('JSONB key reordering preserves exact StageResult content while changed QA stays rejected',async()=>{
+ const f=await fixture();await handleStageResult(f.args);
+ const reorder=v=>Array.isArray(v)?v.map(reorder):v&&typeof v==='object'?Object.fromEntries(Object.entries(v).reverse().map(([k,x])=>[k,reorder(x)])):v;
+ const persisted=reorder(JSON.parse(JSON.stringify(f.result)));
+ assert.equal((await handleStageResult({...f.args,result:persisted})).status,'STAGE_COMPLETE');
+ const state=await f.manager.store.getEpisode(episodeId),prior=state.metadata.stage_results.tts;
+ // Records written before canonical hashing retain their exact persisted content.
+ prior.sha256=sha256(JSON.stringify(f.result));delete prior.hash_version;prior.result=persisted;
+ await f.manager.store.putEpisode(state);
+ assert.equal((await handleStageResult({...f.args,result:persisted})).status,'STAGE_COMPLETE');
+ await assert.rejects(handleStageResult({...f.args,result:{...persisted,qa:{...persisted.qa,ok:false}}}),/IMMUTABLE/);
+ assert.equal((await f.manager.store.getEpisode(episodeId)).current_cost_usd,.2);
+});
 test('hash tampering and QA failure cannot advance even with succeeded status',async()=>{
   const f=await fixture();await assert.rejects(handleStageResult({...f.args,artifactStorage:{download:async()=>Buffer.from('tampered')}}),/HASH/);
   assert.equal((await f.manager.store.getEpisode(episodeId)).first_pending_action,'tts');

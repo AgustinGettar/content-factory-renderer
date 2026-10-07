@@ -59,7 +59,10 @@ for(const [stage,path]of cases)for(const point of points)test('real '+stage+' ma
 for(const [stage,path]of cases)for(const crash of [null,'QA_PERSISTED_BEFORE_CHECKPOINT','CHECKPOINT_PERSISTED_BEFORE_NEXT_DISPATCH'])test(stage+' accepted result reaches existing orchestrator checkpoint exactly once: '+crash,async()=>{
  const bytes=await readFile(path),episodeId='ep_generic_result',binding='fixture-binding',action={key:stage.toLowerCase()+':scene_17',stage},
   next={key:'next',stage:stage==='IMAGE'?'SOURCE_QA':stage==='VIDEO'?'TEMPORAL_QA':'ASSEMBLY'};
- const manager=new LumiRecoveryIncidentManager({store:new MemoryLumiRecoveryStore()}),receipts=new MemoryStageReceiptStore(),objects=new Map();
+ const durable=v=>JSON.parse(JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x));
+ class JsonbRecoveryStore extends MemoryLumiRecoveryStore {async putEpisode(v){return super.putEpisode(durable(v));}}
+ class JsonbReceipts extends MemoryStageReceiptStore {async record(id,v){return super.record(id,durable(v));}async transition(id,from,v){return super.transition(id,from,durable(v));}}
+ const manager=new LumiRecoveryIncidentManager({store:new JsonbRecoveryStore()}),receipts=new JsonbReceipts(),objects=new Map();
  const storage={download:async(b,p)=>objects.get(p)??null,upload:async(b,p,v)=>objects.set(p,Buffer.from(v))};
  await manager.startEpisode({episodeId,actions:[action,next],authorizedCeilingUsd:0,metadata:{generic_v2:{episode_id:episodeId,binding_sha:binding}}});
  const id=sha256(episodeId+':'+binding+':'+action.key);await receipts.claim(id,{status:'STARTED'});

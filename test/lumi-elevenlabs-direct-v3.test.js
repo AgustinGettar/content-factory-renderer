@@ -1,6 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createElevenLabsDirectClient,bindApprovedFernanda,FERNANDA_SOURCE_ID,FERNANDA_OWNER_ID,FERNANDA_HUMAN_APPROVAL} from '../lib/lumi-elevenlabs-direct-v3.js';
 import {MemoryStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
+import {executeLumiTtsStage,ttsBudgetDecision} from '../lib/lumi-tts-stage-v2.js';
+import {runElevenLabsTtsRecoveryMatrix} from '../lib/lumi-elevenlabs-recovery-v3.js';
+import {LUMI_VOICE_PROFILE_V3,resolveLumiVoiceProfile,buildFutureVoiceRequest} from '../lib/lumi-production-profile-v2.js';
 const env={LUMI_RUNTIME_ENV:'staging',ELEVENLABS_API_KEY:'OFFLINE_SYNTHETIC_CREDENTIAL'};
 const model={model_id:'eleven_multilingual_v2',name:'Multilingual v2',can_do_text_to_speech:true,languages:[{language_id:'es'}],maximum_text_length_per_request:10000,token_cost_factor:1};
 const account={voice_id:FERNANDA_SOURCE_ID,name:'Fernanda',category:'professional',fine_tuning:{state:{eleven_multilingual_v2:'fine_tuned'}},available_for_tiers:['starter']};
@@ -46,4 +49,35 @@ test('acknowledgement precedes reading synchronous audio and history recovery ne
  }throw Error('unexpected GET');}});
  const r=await client.submit({voice_id:FERNANDA_SOURCE_ID,model_id:model.model_id,text:'fixture'},{onAcknowledged:async m=>{assert.equal(m.character_cost,9);order.push('receipt');}});
  assert.deepEqual(order,['receipt','bytes']);assert.deepEqual(await client.recoverOriginal(r.job_id),audio);assert.equal(calls,1);
+});
+test('future voice resolves Fernanda while V2 stays available as historical profile',()=>{
+ assert.equal(resolveLumiVoiceProfile().voice_id,FERNANDA_SOURCE_ID);assert.equal(buildFutureVoiceRequest('Hola').model_id,model.model_id);
+ assert.equal(resolveLumiVoiceProfile('LUMI_VOICE_PROFILE_V2').voice,'Annie');assert.equal(LUMI_VOICE_PROFILE_V3.human_review_source,'EXPLICIT_USER_SELECTION');
+ assert.throws(()=>resolveLumiVoiceProfile('other'),/APPROVED_VOICE/);
+});
+test('quota includes configured reserve, is fingerprint-bound and never accepts a USD ceiling',()=>{
+ const quote={currency:'ELEVENLABS_CHARACTER_QUOTA',units:20,character_count:20,quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:1020},request_fingerprint:'bound',provenance:'SIMULATED_QUOTA'};
+ assert.equal(ttsBudgetDecision({quota_reserve_characters:1000,ceiling_usd:999},quote,'bound').status,'PASS');
+ assert.equal(ttsBudgetDecision({quota_reserve_characters:1001},quote,'bound').status,'BUDGET_EXHAUSTED');
+ assert.throws(()=>ttsBudgetDecision({},quote,'other'),/BOUND_TTS_QUOTE/);
+});
+test('real V3 dry executor journals prepared request and stops before POST',async()=>{
+ const {client,requests}=runtime(),objects=new Map(),receipts=new MemoryStageReceiptStore(),bytes=Buffer.from('EXPLICIT_LOCAL_PROBE_FIXTURE');
+ const input={episode_id:'existing_generic_dry',stage_id:'TTS',narration_unit_id:'dry',text:'Hola, Lumi.',voice_profile_id:LUMI_VOICE_PROFILE_V3.version,dry_run:true,require_preflight:true,
+  output_artifact_target:{bucket:'generated-audio',prefix:'dry'},budget_context:{quota_reserve_characters:1000}};
+ const r=await executeLumiTtsStage(input,{client,receipts,probeBytes:bytes,inspectAudio:async()=>({ok:true,status:'PASS'}),
+  storage:{upload:async(b,p,v)=>objects.set(p,v),download:async(b,p)=>objects.get(p),remove:async(b,p)=>objects.delete(p)}});
+ assert.equal(r.status,'DRY_PROVIDER_BOUNDARY');assert.equal(r.emission_journal.state,'DRY_PROVIDER_BOUNDARY');assert.equal(requests.some(r=>r.method==='POST'),false);
+ const journal=await receipts.get(r.emission_journal.key);assert.equal(journal.model_id,model.model_id);assert.equal(journal.voice_id,FERNANDA_SOURCE_ID);assert.equal(journal.budget_decision.status,'PASS');
+ assert.match(journal.text_hash,/^[a-f0-9]{64}$/);assert.equal(objects.size,0);
+});
+test('model Spanish/TTS and professional fine-tuning compatibility are enforced',async()=>{
+ for(const wrong of ['language','tts','fine_tuning']){
+  const {client}=runtime({fetch:async url=>{const path=new URL(url).pathname;return Response.json(path==='/v1/models'?[{...model,...(wrong==='language'?{languages:[]}:{}) ,...(wrong==='tts'?{can_do_text_to_speech:false}:{})}]:path==='/v1/user/subscription'?quota:{...account,...(wrong==='fine_tuning'?{fine_tuning:{state:{}}}:{})});}});
+  await assert.rejects(client.validation(FERNANDA_SOURCE_ID),/INCOMPATIBLE/);
+ }
+});
+test('six native transport recovery cases never resubmit a proven or ambiguous request',async()=>{
+ const r=await runElevenLabsTtsRecoveryMatrix();assert.equal(r.status,'PASS');assert.equal(r.rows.length,6);assert.equal(r.DUPLICATE_TTS_CALLS,0);
+ assert.equal(r.provider_generation_calls,0);assert.ok(r.rows.every(r=>r.pass));
 });

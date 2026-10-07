@@ -109,10 +109,10 @@ test('error paths never expose arbitrary provider body, transport URL, key or he
  const client=createElevenLabsDiscoveryClient({env,fetchImpl:async()=>response([{name:env.ELEVENLABS_API_KEY}])});
  assert.equal((await client.models())[0].name,'[REDACTED]');for(const name of ['submit','add','clone'])assert.equal(name in client,false);
 });
-test('V3 remains pending and V2 approval is preserved',()=>{
+test('V3 freezes explicit Fernanda approval and V2 approval is preserved',()=>{
  const v3=JSON.parse(readFileSync(new URL('../qa/LUMI_VOICE_PROFILE_V3.json',import.meta.url)));
  const v2=JSON.parse(readFileSync(new URL('../qa/LUMI_VOICE_PROFILE_V2.json',import.meta.url)));
- assert.equal(v3.status,'VOICE_SELECTION_PENDING');assert.equal(v3.voice_id,null);assert.equal(v3.model_id,null);
- assert.equal(v3.HUMAN_APPROVED,false);assert.equal(v3.deployable_executor_bound,false);
+ assert.equal(v3.status,'HUMAN_APPROVED_FROZEN');assert.equal(v3.voice_id,'NyQ87MpRGbszyh7rZLXM');assert.equal(v3.model_id,'eleven_multilingual_v2');
+ assert.equal(v3.HUMAN_APPROVED,true);assert.equal(v3.deployable_executor_bound,true);assert.equal(v3.previous_profile_history.status,'HUMAN_APPROVED_HISTORICAL');
  assert.equal(v2.HUMAN_APPROVED,true);assert.equal(v2.provider,'Higgsfield');assert.equal(v2.voice,'Annie');
 });

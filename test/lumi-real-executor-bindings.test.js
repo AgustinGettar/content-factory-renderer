@@ -53,7 +53,7 @@ test('generic runtime and new topic fixture contain no historical episode/shot/m
   const s=await readFile(new URL('../'+p,import.meta.url),'utf8');assert.doesNotMatch(s,/ep_lumi_flores_003|\bq3[1-6]\b|b6f9fe837d000a924608ed4bda13034ff30560ac48b5a085f7cb0a90f35a2624/);
  }
 });
-test('canonical signed dry operation requires HMAC, scope and replay protection without media delivery',async()=>{
+test('historical synchronous signed dry operation cannot silently start new work',async()=>{
  const store=new MemoryReviewStore();await store.create('1',newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET}));
  const routes=new Map(),app={get:(p,h)=>routes.set(p,h),post:(p,h)=>routes.set(p,h)},secret='dry-fixture-secret'.repeat(3);
  const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:secret};
@@ -62,7 +62,7 @@ test('canonical signed dry operation requires HMAC, scope and replay protection 
  const req={path,body,rawBody,headers:{'x-lumi-timestamp':timestamp,'x-lumi-request-id':requestId,'x-lumi-signature':signRequest(secret,{timestamp,requestId,path,body:rawBody})}};
  const call=async r=>{const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};await routes.get(path)(r,res);return res;};
  assert.equal((await call({...req,headers:{...req.headers,'x-lumi-signature':'bad'}})).code,401);
- const response=await call(req);assert.equal(response.code,200);assert.equal(response.value.binding.bound,14);assert.equal(response.value.canonical_message_id,138);assert.deepEqual(response.value.actions,[]);assert.deepEqual(response.value.commands,[]);
- assert.match(response.value.dry_result_sha256,/^[a-f0-9]{64}$/);assert.ok(JSON.stringify(response.value).length<7000);assert.deepEqual(response.value.progress.message_ids,[138]);
+ const response=await call(req);assert.equal(response.code,409);assert.equal(response.value.error,'DURABLE_DRY_RUN_REQUIRED');
+ assert.equal((await store.get('1')).state.make_requests,undefined);
  assert.equal((await call(req)).code,409);assert.equal((await call({...req,body:{...body,user_id:'2',chat_id:'2'}})).code,404);assert.deepEqual((await store.get('1')).state.reviews,[]);
 });

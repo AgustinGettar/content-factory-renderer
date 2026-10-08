@@ -1,0 +1,97 @@
+LUMI ISOLATED TTS PREFLIGHT V1
+
+Local integration only. No remote execution, deployment, provider generation,
+Telegram mutation or production activation is authorized by this change.
+
+Preserved evidence
+The completed five-gate operation remains immutable:
+diag_v2_557bb91889aace97ac8a3b443b67b6f3ee898b14d2132a964e30f1d4ac69aea9
+Its authorization expired. Do not renew it, change its revision, append a new
+execution or repeat CREATE/RESUME/REVIEW to obtain TTS evidence.
+The previous staging acceptance report remains the authority for those gates.
+
+Minimal contract extension
+Use the existing ISOLATED_V2_VALIDATION HMAC endpoint with the new exclusive
+scope LUMI_V2_TTS_PREFLIGHT_DRY_RUN. Only CONTEXT, TTS_PREFLIGHT and STATUS are
+accepted in this scope. CREATE, RESUME, REVIEW, RESULT and all generation
+operations are rejected. The five-gate scope cannot execute TTS_PREFLIGHT.
+Existing five-gate operation IDs and grants are unchanged.
+
+After explicit deployment/execution authorization, create a fresh TTS-only
+context with a new idempotency key, its scope-bound operation ID, a fresh HMAC
+nonce and an expiry at most 15 minutes ahead. This is not another complete
+five-gate diagnostic. CONTEXT takes no request body overrides for narration,
+profile, destination, budget or previous evidence. Input is server-owned.
+Compute the operation ID using diagnosticOperationId(user,key,
+DIAGNOSTIC_TTS_SCOPE); the existing two-argument function retains its old hash.
+Use the exact same operation, scope, key and expiry for TTS_PREFLIGHT and STATUS.
+Every request requires the existing HMAC, staging allowlist and active owner.
+Required flags: dry_run=true, provider_generation=false, publication=false,
+telegram_mutation=false; audience=staging. No Telegram message_id is accepted.
+
+Execution and scope
+TTS_PREFLIGHT uses executeStage(TTS) -> executeLumiTtsStage -> preflightLumiTts,
+the frozen LUMI_VOICE_PROFILE_V3, Fernanda, ElevenLabs Direct API and
+eleven_multilingual_v2. It constructs and fingerprints a bounded fixed request.
+The real Direct API transport receives only these permitted GET paths:
+/v1/models
+/v1/user/subscription
+/v1/voices/NyQ87MpRGbszyh7rZLXM
+No submit, poll, voice-add or artifact-recovery capability reaches the executor.
+A transport guard rejects every non-GET and every other host/path before I/O.
+The existing model/voice/quota validation and quota reserve budget gate run.
+No POST /text-to-speech, audio generation, audio decode or ffmpeg probe runs in
+the isolated preflight. No stage is dispatched after DRY_PROVIDER_BOUNDARY.
+
+Storage evidence limits
+The existing TTS storage gate has an explicit DIAGNOSTIC_BYTES probe mode.
+It uploads, reads and verifies SHA using a fixed small NON-MEDIA byte marker,
+application/octet-stream and .bin, entirely in the existing diagnostic row's
+objects namespace. One immutable object is retained for recovery; no object
+is overwritten or deleted. This mode never invokes createTtsStorageProbe or
+inspectLumiAudio. The receipt uses the existing row's journal namespace and CAS.
+No second journal/table, production bucket or Telegram receipt store is used.
+Evidence is labelled DIAGNOSTIC_STORAGE_ROUNDTRIP_ONLY and audio_decode=NOT_RUN.
+It proves isolated durable byte storage, not production bucket permissions,
+audio MIME acceptance, audio decoding, media quality or pronunciation.
+Ordinary assertTtsStorageGate rejects diagnostic-only evidence. Production
+audio validation retains its existing default path and decode requirement.
+The diagnostic probe is rejected by the TTS executor outside V3 strict dry
+preflight, the diagnostic episode prefix and the isolated storage destination.
+
+Durability and recovery
+The existing diagnostic CAS revision, phase lease, nonce anti-replay, immutable
+HTTP events and persistence-before-response contract apply unchanged.
+results.TTS_PREFLIGHT contains operation/request identity, profile version,
+voice/model, auth, callable voice, model, quota, budget, storage, dry boundary,
+safe error code, timestamp and status. No credentials, signatures, headers,
+raw provider payloads or signed URLs are stored. HTTP evidence contains the
+current request ID even when a prior immutable phase result is returned.
+Successful and blocked phase results are idempotent: later fresh signed
+requests recover the same result without provider reads or executor replay.
+Missing credentials, rejected auth, insufficient quota/budget and storage
+failures remain explicit durable errors, never PASS. Failed HTTP persistence
+returns 503; a stored phase result alone does not prove response delivery.
+Use existing authenticated read-only GET by operation/request ID to recover
+HTTP evidence, including after expiry. GET performs no phase, nonce or lease
+mutation. STATUS returns the phase result only with a still-valid scope.
+Do not retry an ambiguous mutation automatically or renew an expired grant.
+
+Local validation
+Tests use the real Generic TTS executor and Direct API client with an explicit
+in-process authenticated HTTP simulation and the offline network guard.
+These tests prove local integration only. They do not prove current ElevenLabs
+credentials, Fernanda access or account quota in staging. Those remain
+UNVERIFIED_CURRENT_TREE until separately authorized authenticated validation.
+The completed five gates must not be rerun as part of that TTS-only validation.
+
+Validated local revision
+Base commit: 8ba2eb86813e2c9d90666a3766507f33cbeb8c92
+Focused isolated TTS tests: 33/33 PASS.
+Relevant offline regression, including those 33 tests: 528/528 PASS.
+Existing process restart/SIGKILL recovery suite: 21/21 PASS.
+Full diff and secret-pattern review: PASS. Existing HMAC verifier, production
+activation authority, RESUME dispatch, Direct API transport, generative TTS
+execution branch and legacy integration remain unchanged.
+Duplicate operations: 0. Provider generation calls: 0. Publication calls: 0.
+Telegram 138 and production: untouched; no remote actions in this task.

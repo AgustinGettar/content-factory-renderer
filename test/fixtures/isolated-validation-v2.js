@@ -2,21 +2,21 @@ import {randomUUID} from 'node:crypto';
 import {genericFixture} from './generic-v2.js';
 import {MemoryLumiRecoveryStore} from '../../lib/lumi-recovery-incident-manager-v1.js';
 import {IsolatedV2Validation} from '../../lib/lumi-v2-isolated-validation.js';
-import {DIAGNOSTIC_OP,DIAGNOSTIC_SCOPE,diagnosticOperationId} from '../../lib/lumi-v2-activation-context.js';
+import {DIAGNOSTIC_OP,DIAGNOSTIC_SCOPE,DIAGNOSTIC_TTS_SCOPE,diagnosticOperationId} from '../../lib/lumi-v2-activation-context.js';
 import {signRequest} from '../../lib/telegram-review-v1/make-transport.js';
 import {mountMakeTransportEndpoint} from '../../lib/telegram-review-v1/make-endpoint.js';
 
 export const secret='ISOLATED_LOCAL_TEST_ONLY_HMAC_NOT_A_CREDENTIAL_0123456789';
-export async function isolatedFixture({store=new MemoryLumiRecoveryStore(),request,base,inject,clock,leaseMs,validateOwner=async u=>u==='local-operator',envPatch={}}={}){
-  const key='isolated-local-validation',operation_id=diagnosticOperationId('local-operator',key);
-  const input=request?null:await genericFixture('diag_ep_'+operation_id.slice(8,64));
-  request||=input.request;
+export async function isolatedFixture({store=new MemoryLumiRecoveryStore(),request,base,inject,clock,leaseMs,validateOwner=async u=>u==='local-operator',envPatch={},scope=DIAGNOSTIC_SCOPE,ttsFetch}={}){
+  const key='isolated-local-validation',operation_id=diagnosticOperationId('local-operator',key,scope);
+  const input=request||scope===DIAGNOSTIC_TTS_SCOPE?null:await genericFixture('diag_ep_'+operation_id.slice(8,64));
+  request||=input?.request;
   base||={op:DIAGNOSTIC_OP,user_id:'local-operator',chat_id:'local-operator',operation_id,idempotency_key:key,
-    scope:DIAGNOSTIC_SCOPE,audience:'staging',expires_at:new Date(Date.now()+10*60000).toISOString(),
+    scope,audience:'staging',expires_at:new Date(Date.now()+10*60000).toISOString(),
     dry_run:true,provider_generation:false,publication:false,telegram_mutation:false};
   const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'local-operator',
     LUMI_TELEGRAM_CALLBACK_SECRET:secret,RENDER_GIT_COMMIT:'d3783b19bd45c39b2806a84882cfaed74288bd4f',...envPatch};
-  const events=[],isolatedValidation=new IsolatedV2Validation({store,env,clock,leaseMs,validateOwner,
+  const events=[],isolatedValidation=new IsolatedV2Validation({store,env,clock,leaseMs,validateOwner,ttsFetch,
     inject:async e=>{events.push(e);await inject?.(e);}});
   const forbidden=[];
   const forbiddenCall=name=>()=>{forbidden.push(name);throw Error('PRODUCTION_ACCESS_FORBIDDEN:'+name);};

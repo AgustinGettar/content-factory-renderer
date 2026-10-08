@@ -29,6 +29,7 @@ jobs:
           test/lumi-generic-v2-adapter.test.js
           test/lumi-generic-runtime-integration.test.js
           test/lumi-isolated-validation.test.js
+          test/lumi-isolated-tts-preflight.test.js
           test/lumi-diagnostic-http.test.js
           test/lumi-real-executor-bindings.test.js
           test/lumi-durable-dry-run.test.js

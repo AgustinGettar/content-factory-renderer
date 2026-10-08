@@ -1,0 +1,110 @@
+LUMI HTTP OBSERVABILITY V1 — LOCAL IMPLEMENTATION
+
+Base: ab8ca70598efb3c7f14ddd88cb4d692626cd8625
+Branch: lumi-telegram-review-v1
+Staging reported by operator: 304670192908f2ad4b7f5bdfab1c81da2eda87bb
+Remote state has not been queried or changed by this work.
+
+Scope
+The signed ISOLATED_V2_VALIDATION POST persists bounded HTTP evidence in
+metadata.isolated_validation.http_records of the existing diagnostic row.
+No new table, worker, provider journal, execution grant or Make change.
+The RESUME dispatch body and Recovery Manager are unchanged.
+
+Persistence contract
+New contexts atomically include a RECEIVED event with context creation.
+Existing instrumented contexts append RECEIVED via diagnostic_revision CAS
+before dispatch. The HTTP_RESULT event is appended before the endpoint sends
+HTTP. Up to six CAS attempts reread the row; a successful stale CAS is impossible.
+Every event has request_id, operation_id, request_phase, stage_id, timestamp,
+http_status, error_code, sanitized_error_message, checkpoint_version,
+runtime_revision, lease_state, result_status and evidence_reference.
+http_attempt_id distinguishes repeated HTTP deliveries of the same request ID.
+checkpoint_version is the embedded checkpoint runtime_revision (or null before
+creation); runtime_revision is the validated deployed Git SHA. A checkpoint
+SHA-256 and lease phase/deadline support exact snapshot comparison. Lease tokens
+are never recorded. stage_id is the stage at admission, before any transition.
+A signed request-body digest detects identity conflicts without storing bodies.
+
+Events are append-only. A repeated append of the same attempt/event is a no-op.
+Repeated request IDs cannot dispatch again; equal bodies return replayed_request,
+changed bodies return DIAGNOSTIC_REQUEST_ID_CONFLICT. The original result and all
+anti-replay records remain intact. Independent duplicate attempts each have an
+immutable HTTP_RESULT; they do not imply duplicate operations.
+The limit is 256 attempts, with one received and one terminal slot per attempt
+(maximum 512 events). No truncation or eviction. A full row rejects new work
+with DIAGNOSTIC_HTTP_CAPACITY and explicitly reports no persisted HTTP result.
+
+HTTP mapping
+200: complete synchronous diagnostic response or read-only evidence query.
+202: stage completed with continuation_required; another explicitly signed
+request is required. No asynchronous worker or automatic continuation starts.
+400: invalid diagnostic payload/operation identity.
+401: invalid HMAC; protected writes require a previously established identity.
+403: scope, owner or expired diagnostic authorization rejection.
+409: replay, stale/conflicting state, lease contention, ordering or capacity.
+422: invalid/missing stage evidence or incomplete diagnostic gates.
+500: unexpected exception, using a closed static error-code dictionary.
+503: storage/result-persistence or lease-release failure; never hidden as PASS.
+Existing non-diagnostic endpoint behavior is unchanged.
+
+Recovery API
+GET /lumi/telegram-review/make/diagnostic/:user/:operationId
+GET /lumi/telegram-review/make/diagnostic/:user/:operationId/:requestId
+GET /lumi/telegram-review/make/diagnostic/:user/:operationId/request/:requestIdHex
+The third route accepts the UTF-8 hexadecimal request ID, including IDs with
+colons that the existing HMAC path grammar cannot represent literally.
+Use the existing HMAC headers, a fresh signature over GET and the exact full
+path, and an empty body. The authenticated active owner and staging allowlist
+must match the row. Results may be read after diagnostic expiration, without
+renewing the grant. GET does not claim a nonce, change a lease, write any row,
+repair a checkpoint or execute a stage. Query responses themselves are not
+journaled because GET is strictly read-only.
+
+Security and observability limits
+No raw exceptions, causes, headers, signatures, HMAC secrets, API keys, cookies,
+request/response bodies or URLs enter HTTP records. Error text is selected from
+a fixed dictionary. No authority can be supplied through an HTTP result.
+Rejections before a trusted active owner and operation binding use only the
+existing safe HTTP response. Invalid signatures cannot create diagnostic rows.
+Malformed JSON rejected by the HTTP parser is outside protected observability.
+A request authenticated at admission whose signature expires before execution
+is recorded as 401; no execution authority is granted.
+
+Uninstrumented historical diagnostics are read-only: no schema backfill and no
+HTTP writes. POST rejects with DIAGNOSTIC_HTTP_OBSERVABILITY_REQUIRED. The
+original diag_v2_df01a024b9985526a1d5b62633ff9434d892ded6958e58ae3b476344f84aef23
+and its historical 409 remain immutable and unrecoverable with existing evidence.
+
+An HTTP_RESULT proves the server's durable response intent, not client receipt.
+A killed process cannot persist facts after death. SIGKILL before RECEIVED leaves
+no durable request evidence; after RECEIVED but before HTTP_RESULT leaves
+OUTCOME_UNKNOWN with http_status=null. GET never invents a status or restarts work.
+After HTTP_RESULT, restart GET recovers the exact persisted status/error/stage.
+A client timeout does not cancel persistence in a still-running process.
+If storage fails, the endpoint returns a safe explicit error, preserves the last
+durable checkpoint and does not run another stage. Storage commit acknowledgement
+can itself be ambiguous; the client must inspect existing evidence through GET,
+not repeat a mutation. No atomic transaction can include both storage and client
+receipt. Lease release failures are explicit and preserve the fenced lease when
+release could not be committed.
+
+Local verification
+Final local regression: 495/495 PASS (473 existing + 22 HTTP tests).
+Restart regression: 21/21 PASS (16 existing + 5 HTTP crash/timeout tests).
+Duplicate operations: 0. Provider generation calls: 0. Remote actions: 0.
+Full diff reviewed; secret-pattern scan and git diff --check PASS.
+RESUME dispatch is byte-identical to the base. HMAC, activation, Recovery
+Manager and real provider binding source files have no changes.
+The workflow includes the new focused and crash suites, but no remote CI was run.
+The existing 45-second simulated serial-storage latency limit is unchanged.
+Tests use the existing mounted adapters with mock PostgREST, local CAS stores and
+atomic disk fixtures across real SIGKILL/restart. The timeout test uses a loopback
+HTTP client and an offline-guarded child process. No external endpoint is called.
+Security checks cover negative auth with zero protected writes, static sanitation,
+immutable historic rows/grants/results, duplicates, competing CAS writers, held
+leases, storage failures and GET with zero mutations. Production/provider access
+is blocked in fixtures and outbound network/provider imports are denied.
+
+Deployment remains pending authorization. This commit does not certify staging
+acceptance or overall Production Readiness. Next action: AUTHORIZE_PUSH_CI_STAGING.

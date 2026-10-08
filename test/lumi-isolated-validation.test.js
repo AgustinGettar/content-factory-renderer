@@ -22,7 +22,7 @@ test('RESUME bounds each HTTP phase under serial storage latency and persists th
     assert.equal((await f.call('CONTEXT')).code,200);assert.equal((await f.call('CREATE')).code,200);
     for(const expected of ['source-planning','image:take_01','shot_review:take_01']){
       calls=0;enabled=true;const response=await f.call('RESUME');enabled=false;
-      assert.equal(response.code,200,JSON.stringify(response.value));
+      assert.equal(response.code,expected==='shot_review:take_01'?200:202,JSON.stringify(response.value));
       assert.equal(response.value.first_pending_action,expected);
       assert.ok(calls*750<45000,'one HTTP request exceeded the isolated 45s latency budget');
       if(expected!=='shot_review:take_01'){
@@ -44,7 +44,7 @@ for(const [fault,code] of [['missing_bytes','ARTIFACT_MISSING'],['missing_regist
   ['qa_pending','QA_NOT_ELIGIBLE'],['inconsistent_checkpoint','CHECKPOINT_CONSISTENCY_FAILURE']])
 test('RESUME fails bounded before review dispatch and persists '+fault,async()=>{
   const f=await isolatedFixture();try{
-    for(const phase of ['CONTEXT','CREATE','RESUME','RESUME'])assert.equal((await f.call(phase)).code,200);
+    for(const phase of ['CONTEXT','CREATE','RESUME','RESUME'])assert.equal((await f.call(phase)).code,phase==='RESUME'?202:200);
     const {command:c}=authenticateDiagnosticCommand({env:f.env,...f.envelope('RESUME')});
     await f.isolatedValidation.mutate(c,v=>{v.lease={token:'isolated-input-setup',until:Date.now()+60000};});
     await f.isolatedValidation.loadReviewInput(c,f.isolatedValidation.namespace(c,'isolated-input-setup'));
@@ -60,7 +60,7 @@ test('RESUME fails bounded before review dispatch and persists '+fault,async()=>
     });
     for(let i=0;i<2;i++){
       const start=performance.now(),r=await f.call('RESUME');
-      assert.equal(r.code,409);assert.equal(r.value.error,'DIAGNOSTIC_'+code);assert.ok(performance.now()-start<3000);
+      assert.equal(r.code,code==='CHECKPOINT_CONSISTENCY_FAILURE'?409:422);assert.equal(r.value.error,'DIAGNOSTIC_'+code);assert.ok(performance.now()-start<3000);
     }
     const v=await f.read();assert.equal(v.last_event.error_code,code);assert.equal(v.last_event.status,'BLOCKED');
     assert.equal(v.results.RESUME,undefined);assert.equal(v.lease,null);
@@ -133,7 +133,13 @@ test('server refuses revoked owner, different staging revision, expired context 
     f.env.RENDER_GIT_COMMIT='0'.repeat(40);assert.equal((await f.call('CREATE')).value.error,'DIAGNOSTIC_BINDING_MISMATCH');
     f.env.RENDER_GIT_COMMIT=original.metadata.isolated_validation.staging_revision;
     now=Date.parse(f.base.expires_at);assert.equal((await f.call('CREATE')).value.error,'DIAGNOSTIC_EXPIRED');
-    assert.deepEqual(await f.store.getEpisode(f.base.operation_id),original);
+    const current=await f.store.getEpisode(f.base.operation_id);
+    // HTTP evidence is now append-only even for expired contexts; execution
+    // state, original events, grant and replay records remain immutable.
+    const before=original.metadata.isolated_validation,after=current.metadata.isolated_validation;
+    assert.deepEqual(after.http_records.slice(0,before.http_records.length),before.http_records);
+    for(const key of Object.keys(before).filter(k=>k!=='http_records'))assert.deepEqual(after[key],before[key]);
+    assert.deepEqual(after.http_records.filter(e=>e.event_kind==='HTTP_RESULT').slice(-2).map(e=>e.http_status),[409,403]);
     f.env.LUMI_RUNTIME_ENV='production';assert.equal((await f.call('CONTEXT')).code,404);
   }finally{await f.cleanup();}
 });
@@ -263,7 +269,7 @@ test('real mounted Supabase adapters use only existing diagnostic CAS row and ow
       const e=f.envelope(phase),res={code:200,status(n){this.code=n;return this;},json(v){this.value=v;return this;}};
       await routes.get(e.signed.path)({body:e.body,rawBody:e.signed.body,path:e.signed.path,
         headers:{'x-lumi-timestamp':e.signed.timestamp,'x-lumi-request-id':e.signed.requestId,'x-lumi-signature':e.signature}},res);
-      assert.equal(res.code,200,JSON.stringify(res.value));if(phase==='RESULT')assert.equal(res.value.status,'PASS');
+      assert.equal(res.code,res.value.continuation_required?202:200,JSON.stringify(res.value));if(phase==='RESULT')assert.equal(res.value.status,'PASS');
     }
     assert.equal(rows.length,1);assert.equal(rows[0].status,'VALIDATION_CONTEXT');
     assert.ok(access.some(a=>a.method==='PATCH'));assert.equal(f.env.LUMI_TELEGRAM_REVIEW_V1,undefined);

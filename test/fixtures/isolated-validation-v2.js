@@ -39,10 +39,10 @@ export async function isolatedFixture({store=new MemoryLumiRecoveryStore(),reque
   const runPhase=async phase=>{
     for(let i=0;i<3;i++){
       const response=await call(phase);
-      if(response.code!==200||!response.value.continuation_required)return response;
+      if(![200,202].includes(response.code)||!response.value.continuation_required)return response;
     }
     throw Error('ISOLATED_TEST_CONTINUATION_LIMIT');
   };
   const read=async()=>(await store.getEpisode(base.operation_id))?.metadata.isolated_validation;
-  return {store,request,base,env,isolatedValidation,events,forbidden,envelope,send,call,runPhase,read,cleanup:async()=>input?.cleanup()};
+  return {store,request,base,env,isolatedValidation,events,forbidden,routes,envelope,send,call,runPhase,read,cleanup:async()=>input?.cleanup()};
 }

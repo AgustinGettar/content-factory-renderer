@@ -1,0 +1,120 @@
+LUMI V2 ISOLATED VALIDATION CONTEXT V1
+
+Purpose
+Exercise the five existing V2 routes in staging without a Telegram session,
+provider generation, a new episode for production, or publication. This extends
+ControlledV2Authorization and the existing durable diagnostic CAS store. It does
+not add a user registry, database table, migration, public activation endpoint,
+worker, Make scenario, global flag or provider credential.
+
+Transport
+POST /lumi/telegram-review/make/v1 using the existing HMAC-SHA256 envelope:
+x-lumi-timestamp, x-lumi-request-id, x-lumi-signature. The original 120-second
+signature window and staging/MAKE/test-user allowlist remain required.
+The server checks the existing active owner record; it never reads, writes or
+claims a nonce in a Telegram review session for this operation. The transport
+user identifies the authorized requester, not the diagnostic principal.
+
+Exact payload fields for every phase
+op = ISOLATED_V2_VALIDATION
+user_id, chat_id = existing authorized transport owner
+operation_id = diagnosticOperationId(user_id, idempotency_key)
+idempotency_key = string matching [a-z][a-zA-Z0-9_.:-]{7,95}
+scope = LUMI_V2_FIVE_GATES_DRY_RUN
+audience = staging
+expires_at = ISO timestamp strictly in the future, at most 15 minutes away
+dry_run = true
+provider_generation = false
+publication = false
+telegram_mutation = false
+phase = CONTEXT, CREATE, RESUME, REVIEW, RESULT, or STATUS
+
+CONTEXT additionally accepts request: the existing Generic V2 input contract
+(episodePlan, shotPlans, characterProfile, qualityProfile). Its episode ID must
+equal diag_ep_ plus the first 56 hex characters of operation_id after diag_v2_.
+All director episode IDs must match. The real AV2 validator checks the plan.
+Use test inputs and preserve their explicit diagnostic provenance.
+REVIEW additionally requires decision = APPROVED or REJECTED.
+All other extra top-level fields are rejected. The client cannot supply a
+diagnostic identity, grant, profile override, message ID, stage executor,
+checkpoint, artifact bytes, provider request, callback or Telegram command.
+
+Server authority
+Identity diagnostic:<full operation digest> and the grant are derived only
+after valid HMAC, allowlist, active owner and exact safety constraints.
+The existing activation authority brands the command and execution capability
+in process. A JSON copy is not authenticated. Persisted v2_authorizations use
+the same grant contract with diagnostic=true, diagnostic-only readiness, zero
+budget and scopes CREATE/RESUME/REVIEW. Ordinary production stores reject this
+grant. Every later phase reauthenticates and checks expiry, requester, operation,
+idempotency key, request hash and exact deployed revision. Expiry cannot be
+extended on the existing operation; an expired grant confers no permission.
+
+Persistence
+One row in the existing lumi_pipeline_checkpoints diagnostic namespace owns
+metadata.isolated_validation. It contains the grant, nested checkpoint, review
+state, tiny inline input bytes, diagnostic journal/incident records, HMAC nonce
+claims, materializer provenance, phase results and phase lease. Its status is
+VALIDATION_CONTEXT, excluded from pendingDiagnostics. No production checkpoint,
+review, artifact, provider journal or incident is written. chat_id and
+message_id in the diagnostic review state are null. No fake Telegram user or
+session is created. The existing session and panel 138 are untouched.
+
+Functional path and evidence limits
+CREATE calls ProductionReviewController -> GenericLumiV2Adapter -> the existing
+controlled orchestrator and Recovery Manager.
+RESUME runs the real PLANNING and SOURCE_PLANNING executors. It then installs
+fixed, explicitly labelled synthetic persisted input records inside the same
+diagnostic row, and invokes the real SHOT_REVIEW executor through the real
+input materializer. The materializer verifies original text bytes, size/SHA,
+checkpoint/plan/profile, synthetic input QA and isolated journal bindings.
+REVIEW uses the same persistStageDecision as the canonical Telegram callback,
+including immutable decision persistence, strict artifact validation and real
+Recovery Manager reconciliation. Decisions are labelled diagnostic and have
+no Telegram callback ID. They are not real human approvals of generated media.
+RESULT derives the five gate statuses from persisted route, materializer and
+review evidence. Synthetic input completion/QA is never evidence that a paid
+executor ran or that generated media passed visual/technical QA.
+
+Capability limits
+Only PLANNING, SOURCE_PLANNING and SHOT_REVIEW can execute in this context.
+IMAGE, VIDEO/Kling, TTS, DIRECTOR, decode, storage probes, assembly and master
+stages are denied. Provider submit/journal writes and artifact upload/delete
+transports are denied. No provider or Telegram credentials are passed to the
+isolated runtime. Responses always contain empty actions and commands.
+Global V2 activation, publication, runners and autorun are not changed.
+
+Recovery
+Each phase is sequential, operation-bound and guarded by existing CAS plus a
+60-second lease. A replacement request can claim only an expired lease; stale
+process accesses are fenced. A new HMAC nonce is required for each request;
+reuse of the same signed request is blocked. A new nonce with the same operation
+and phase recovers/caches the same result. Conflicting review decisions or
+changed inputs are denied. A missing executor receipt remains ambiguous and
+does not authorize a retry. No polling or renewal endpoint is added.
+
+Local verification
+test/lumi-isolated-validation.test.js covers authentication, safety flags,
+expiry and revocation, immutability, concurrent claims, isolation, forbidden
+capabilities, materializer corruption, both review decisions and canonical
+runtime mounting with the real Supabase adapters over local PostgREST input.
+test/lumi-isolated-validation-restart.test.js kills separate processes at eight
+boundaries from context creation through final result persistence. All child
+processes deny network/provider access. The existing regression/restart suites
+remain required. New tests are added to the existing workflow, without running
+remote CI during implementation.
+
+Implementation evidence (local, 2026-10-08)
+463/463 offline regression tests PASS, including 10 focused diagnostic tests.
+16/16 process-restart tests PASS, including 8 new isolated-context SIGKILL cases.
+One operation row and one review-history entry survive recovery and replay.
+Duplicate operations, duplicate review rows and duplicate provider calls: zero.
+Provider generation, publication and Telegram mutations: zero.
+Security review: complete diff inspected, secret-pattern scan clear, legacy
+source and SQL unchanged. The workflow change only adds tests to existing CI.
+No remote CI, push, deployment or authenticated staging validation was executed.
+
+Deployment boundary
+Implementation and tests are local only. No push, remote CI, deployment or
+signed staging validation is authorized by this change. The next action is
+AUTHORIZE_PUSH_CI_STAGING_AND_FIVE_GATES_VALIDATION.

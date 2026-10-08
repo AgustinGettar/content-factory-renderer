@@ -1,0 +1,166 @@
+{
+  "result": "LUMI APP — RESUME/REVIEW FIX READY FOR DEPLOYMENT APPROVAL",
+  "scope": "LOCAL_FIX_ONLY; NO_REMOTE_MUTATIONS",
+  "base_local_head": "eacd9a51f86973d9f1c32e07d95426a51dffe423",
+  "branch": "lumi-telegram-review-v1",
+  "reported_remote_and_staging_head": "a2a2beff7d9e19a07ff01de62dd486968674616a",
+  "diagnostic_operation_id": "diag_v2_95ac63ec8ee96fed534af140f48ee400ce0fa7e7ca8c25d6b11f460762f3eb75",
+  "reconciliation": {
+    "source": "Read-only SELECT of existing lumi_pipeline_checkpoints row; prior Library acceptance report version 1",
+    "observed_at_utc": "2026-10-08T11:13:45.282322Z",
+    "row_updated_at_utc": "2026-10-08T05:33:10.841Z",
+    "diagnostic_revision": 22,
+    "outer_status": "VALIDATION_CONTEXT",
+    "checkpoint_status": "RUNNING",
+    "checkpoint_updated_at_utc": "2026-10-08T05:32:52.476Z",
+    "last_completed_real_executor": "source-planning",
+    "last_completed_checkpoint_action": "temporal_qa:take_01",
+    "checkpoint_action_scope": "DIAGNOSTIC_INPUT_FIXTURE_ONLY; not actual video QA",
+    "first_pending_action": "shot_review:take_01",
+    "dispatch_state": "NOT_DISPATCHED",
+    "last_event": "NOT_PERSISTED_IN_DEPLOYED_TREE",
+    "completed_phase_results": [
+      "CONTEXT",
+      "CREATE"
+    ],
+    "last_completed_phase": "CREATE",
+    "lease": null,
+    "review_requests": 0,
+    "review_decisions": 0,
+    "complete_claims": 2,
+    "materialization_receipts": [
+      "planning",
+      "source-planning"
+    ],
+    "review_version": null,
+    "allowed_review_actions": null,
+    "human_pause_checkpoint": false,
+    "artifact": {
+      "artifact_id": "diagnostic_video_input",
+      "bucket": "lumi-diagnostic-inline",
+      "path": "diag_v2_95ac63ec8ee96fed534af140f48ee400ce0fa7e7ca8c25d6b11f460762f3eb75/input.txt",
+      "sha256": "3346b5b338b9e6e61e1d5dd46844ed5d724f8dfbd2460c898871ee9405d56fa9",
+      "size_bytes": 69,
+      "bytes_and_sha_verified": true,
+      "scope": "SYNTHETIC_TEXT_BYTES_NOT_MEDIA"
+    },
+    "historical_http_started_at_utc": "2026-10-08T05:32:07.426Z",
+    "historical_http_duration_ms": 60133,
+    "historical_error": "ModuleTimeoutError",
+    "context_expired_at_utc": "2026-10-08T05:45:12.711Z",
+    "render_logs_in_incident_window": 0,
+    "remote_outcome": "OUTCOME_AMBIGUOUS_PRESERVED; operation not re-executed"
+  },
+  "timeout_root_cause": {
+    "demonstrated_defect": "RESUME aggregates PLANNING, SOURCE_PLANNING and SHOT_REVIEW into one HTTP request / 60s lease with 93 reads and 26 CAS writes.",
+    "category": "B/D: accumulated persistence round trips before SHOT_REVIEW; no wait loop for a human approval",
+    "baseline_read_calls": 93,
+    "baseline_cas_calls": 26,
+    "isolated_latency_model_ms_per_call": 750,
+    "baseline_failure": {
+      "error": "DIAGNOSTIC_LEASE_LOST",
+      "elapsed_model_ms": 63750,
+      "reads": 69,
+      "cas_writes": 16,
+      "revision": 22,
+      "claims": 2,
+      "requests": 0,
+      "objects": 1,
+      "checkpoint_status": "RUNNING",
+      "first_pending_action": "shot_review:take_01",
+      "materializations": [
+        "planning",
+        "source-planning"
+      ],
+      "lease": null
+    },
+    "historical_attribution": "Strongly consistent with the identical persisted failure signature; exact historical per-call latency / server exception was not persisted and cannot be asserted as directly observed.",
+    "review_request_absence": "No SHOT_REVIEW dispatch claim or materialization receipt existed. The executor and request persistence path had not been reached.",
+    "missing_artifact_hypothesis": "Not supported: inline bytes recovered and size/SHA verified."
+  },
+  "fix": {
+    "diagnostic_resume": "One existing real stage per separately signed request in the same diagnostic context; persist progress and return continuation_required after planning. No automatic retry, loop, scheduler, operation creation or timeout increase.",
+    "human_review": "Persist existing ReviewRequest and stage checkpoint; return HUMAN_REVIEW_REQUIRED with first_pending_action and bound review request. Episode is not marked SUCCEEDED.",
+    "duplicate_resume": "Canonical generic route authenticates RESUME scope then returns persisted PENDING review without dispatch or mutation.",
+    "error_evidence": "Persist bounded last_event/error_code under the owning phase lease; expose sanitized diagnostic errors for missing artifacts, ineligible QA and inconsistent checkpoint.",
+    "materializer": "Existing real materializer reused unchanged; verifies durable checkpoint, registry bytes/SHA, QA and journal; no replacement executors.",
+    "review_handler": "Existing decision persistence/reconciliation retained; SHA, version, owner/scope and idempotence validated by tests.",
+    "latency_model_after_ms": [
+      30000,
+      30000,
+      42000
+    ],
+    "io_calls_after": [
+      40,
+      40,
+      56
+    ],
+    "latency_limit": "Deterministic isolated storage latency model only, not measured live staging performance or an unconditional network deadline."
+  },
+  "tests": {
+    "regression": {
+      "passed": 473,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Existing CI regression command executed locally with offline network/provider guard; 10 additional cases"
+    },
+    "restart_unique_cases": 16,
+    "matrix": {
+      "RESUME_PENDING_REVIEW": "PASS",
+      "RESUME_MISSING_ARTIFACT": "PASS",
+      "RESUME_QA_PENDING": "PASS",
+      "RESUME_EXISTING_APPROVAL": "PASS",
+      "RESUME_DUPLICATE": "PASS",
+      "REVIEW_APPROVED": "PASS",
+      "REVIEW_REJECTED": "PASS",
+      "REVIEW_BAD_SHA": "PASS",
+      "REVIEW_STALE_VERSION": "PASS",
+      "RECOVERY_AFTER_PROCESS_RESTART": "PASS",
+      "RESUME_INCONSISTENT_CHECKPOINT": "PASS",
+      "PENDING_REVIEW_AUTH_SCOPE_TTL_AND_IDENTITY": "PASS"
+    },
+    "NO_HTTP_WAIT_FOR_HUMAN_REVIEW": "PASS_LOCAL",
+    "RESUME_RETURNS_BOUNDED": "PASS_LOCAL_UNDER_EXPLICIT_LATENCY_MODEL",
+    "REVIEW_REQUEST_PERSISTED": "PASS_LOCAL",
+    "DUPLICATE_OPERATIONS": 0,
+    "DUPLICATE_REVIEW_ROWS": 0,
+    "DUPLICATE_PROVIDER_CALLS": 0
+  },
+  "security_review": {
+    "full_diff": "REVIEWED",
+    "added_secret_pattern_matches": 0,
+    "syntax_and_diff_check": "PASS",
+    "hmac_scope_ttl_owner_and_artifact_binding": "PRESERVED",
+    "changes_to_auth_make_config_schema_env_ci_or_global_activation": 0,
+    "new_scheduler": false,
+    "new_review_system": false,
+    "permanent_permissions": false,
+    "live_telegram_138_mutations": 0,
+    "historical_approval_mutations": 0,
+    "provider_generation_calls": 0,
+    "publication_calls": 0,
+    "staging_operations_started_or_replayed": 0,
+    "remote_pushes": 0,
+    "remote_ci_runs": 0,
+    "deploys": 0,
+    "production_mutations": 0
+  },
+  "production_status": "INTACTA; no mutation performed",
+  "open_blockers": [
+    "FIX_NOT_PUBLISHED_OR_DEPLOYED",
+    "RESUME_REVIEW_AND_MATERIALIZER_NOT_YET_ACCEPTED_ON_FIXED_STAGING_TREE",
+    "TTS_GATES_UNVERIFIED_CURRENT_TREE",
+    "HISTORICAL_PER_CALL_TRACE_UNAVAILABLE",
+    "ORIGINAL_DIAGNOSTIC_CONTEXT_EXPIRED_DO_NOT_RESUBMIT"
+  ],
+  "next_validation_after_separate_authorization": [
+    "Review this local commit; authorize push, remote CI and staging-only deployment separately.",
+    "Preserve the original ambiguous operation. Do not renew its TTL, rewrite its grant or resubmit it.",
+    "Only with explicit authorization, create a new isolated validation context on the fixed staging SHA.",
+    "Use CONTEXT then CREATE; issue each signed RESUME separately and inspect STAGE_COMPLETE / first_pending_action before explicit continuation. Three RESUME requests from a fresh checkpoint; no Make configuration change.",
+    "At HUMAN_REVIEW_REQUIRED recover the durable request, artifact identity/SHA, review version, allowed actions and pause checkpoint before any decision.",
+    "Submit only an explicitly authorized isolated synthetic REVIEW decision; no real take approval and no Telegram panel 138.",
+    "Recover RESULT and evaluate remaining TTS evidence on that exact tree without generation."
+  ],
+  "stop": true
+}

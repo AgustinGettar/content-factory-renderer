@@ -35,6 +35,14 @@ export async function isolatedFixture({store=new MemoryLumiRecoveryStore(),reque
       'x-lumi-request-id':e.signed.requestId,'x-lumi-signature':e.signature}},res);return res;
   };
   const call=(phase,patch)=>send(envelope(phase,patch));
+  // Test driver only: each continuation is a separate authenticated HTTP call.
+  const runPhase=async phase=>{
+    for(let i=0;i<3;i++){
+      const response=await call(phase);
+      if(response.code!==200||!response.value.continuation_required)return response;
+    }
+    throw Error('ISOLATED_TEST_CONTINUATION_LIMIT');
+  };
   const read=async()=>(await store.getEpisode(base.operation_id))?.metadata.isolated_validation;
-  return {store,request,base,env,isolatedValidation,events,forbidden,envelope,send,call,read,cleanup:async()=>input?.cleanup()};
+  return {store,request,base,env,isolatedValidation,events,forbidden,envelope,send,call,runPhase,read,cleanup:async()=>input?.cleanup()};
 }

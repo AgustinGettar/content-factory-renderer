@@ -10,6 +10,36 @@ import {isGenericV2Runtime} from '../lib/lumi-v2-telegram-runtime.js';
 import {createClient} from '@supabase/supabase-js';
 import {sha256} from '../lib/telegram-review-v1/core.js';
 
+test('canonical duplicate RESUME reports the persisted pending human review without execution or a new decision',async()=>{
+ const f=await runtimeFixture();try{
+  await f.create();await seedPersistedVideos(f);
+  assert.equal((await f.production.resume({user:'1',episodeId:f.episodeId})).status,'HUMAN_REVIEW_REQUIRED');
+  const before=await f.store.getEpisode(f.episodeId),reviewBefore=await f.reviewStore.get('1');
+  const result=await f.production.resume({user:'1',episodeId:f.episodeId});
+  assert.equal(result.status,'HUMAN_REVIEW_REQUIRED');assert.equal(result.first_pending_action,before.first_pending_action);
+  assert.equal(result.review_request.status,'PENDING');
+  assert.deepEqual(await f.store.getEpisode(f.episodeId),before);
+  assert.deepEqual(await f.reviewStore.get('1'),reviewBefore);assert.deepEqual(f.counters(),{providerCalls:0,uploads:0});
+ }finally{await f.cleanup();}
+});
+
+for(const fault of ['revoked_owner','expired_grant','missing_resume_scope','stale_request'])
+test('pending review status does not bypass '+fault,async()=>{
+ let active=true;const f=await runtimeFixture({validateOwner:async()=>active});try{
+  await f.create();await seedPersistedVideos(f);await f.production.resume({user:'1',episodeId:f.episodeId});
+  const row=await f.reviewStore.get('1');
+  if(fault==='revoked_owner')active=false;
+  if(fault==='expired_grant')row.state.v2_authorizations.controlled.expires_at='2000-01-01T00:00:00Z';
+  if(fault==='missing_resume_scope')row.state.v2_authorizations.controlled.scopes=['CREATE'];
+  if(fault==='stale_request')Object.values(row.state.episodes[f.episodeId].review_requests).find(r=>r.status==='PENDING').review_version++;
+  await f.reviewStore.cas('1',row.revision,row.state);
+  const before=await f.store.getEpisode(f.episodeId),reviewBefore=await f.reviewStore.get('1');
+  await assert.rejects(f.production.resume({user:'1',episodeId:f.episodeId}),/ACTIVATION|STALE_GENERIC_REVIEW/);
+  assert.deepEqual(await f.store.getEpisode(f.episodeId),before);assert.deepEqual(await f.reviewStore.get('1'),reviewBefore);
+  assert.deepEqual(f.counters(),{providerCalls:0,uploads:0});
+ }finally{await f.cleanup();}
+});
+
 test('canonical HMAC CREATE propagates server grant through adapter to orchestrator; repeat is immutable',async()=>{
  const f=await runtimeFixture();try{
   const routes=new Map(),app={get:(p,h)=>routes.set(p,h),post:(p,h)=>routes.set(p,h)};

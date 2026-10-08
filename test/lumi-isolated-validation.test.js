@@ -2,18 +2,78 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isolatedFixture,secret} from './fixtures/isolated-validation-v2.js';
 import {signRequest} from '../lib/telegram-review-v1/make-transport.js';
-import {ControlledV2Authorization,diagnosticGrant,bindDiagnosticAuthorizationStore,authenticateDiagnosticCommand} from '../lib/lumi-v2-activation-context.js';
+import {ControlledV2Authorization,diagnosticGrant,bindDiagnosticAuthorizationStore,authenticateDiagnosticCommand,inputDigest} from '../lib/lumi-v2-activation-context.js';
 import {createGenericV2Runtime} from '../lib/lumi-v2-telegram-runtime.js';
 import {LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {createV2InputMaterializer,checkpointIdentity} from '../lib/lumi-v2-input-materializer.js';
 import {PROFILE_SHA} from '../lib/lumi-production-profile-v2.js';
 import {mountTelegramReview} from '../lib/telegram-review-v1/runtime.js';
 import {createClient} from '@supabase/supabase-js';
+import {MemoryLumiRecoveryStore} from '../lib/lumi-recovery-incident-manager-v1.js';
+
+test('RESUME bounds each HTTP phase under serial storage latency and persists the human pause',async()=>{
+  let now=Date.now(),enabled=false,calls=0;
+  class LatencyStore extends MemoryLumiRecoveryStore {
+    async getEpisode(id){if(enabled){calls++;now+=750;}return super.getEpisode(id);}
+    async casDiagnostic(v,r){if(enabled){calls++;now+=750;}return super.casDiagnostic(v,r);}
+  }
+  const f=await isolatedFixture({store:new LatencyStore(),clock:()=>now});
+  try{
+    assert.equal((await f.call('CONTEXT')).code,200);assert.equal((await f.call('CREATE')).code,200);
+    for(const expected of ['source-planning','image:take_01','shot_review:take_01']){
+      calls=0;enabled=true;const response=await f.call('RESUME');enabled=false;
+      assert.equal(response.code,200,JSON.stringify(response.value));
+      assert.equal(response.value.first_pending_action,expected);
+      assert.ok(calls*750<45000,'one HTTP request exceeded the isolated 45s latency budget');
+      if(expected!=='shot_review:take_01'){
+        assert.equal(response.value.status,'STAGE_COMPLETE');
+        assert.equal((await f.read()).results.RESUME,undefined);
+        assert.equal((await f.call('REVIEW')).value.error,'DIAGNOSTIC_PHASE_ORDER');
+      }else assert.equal(response.value.status,'HUMAN_REVIEW_REQUIRED');
+    }
+    const v=await f.read(),r=Object.values(v.checkpoint.metadata.review_requests);
+    assert.equal(r.length,1);assert.equal(r[0].status,'PENDING');assert.equal(v.checkpoint.status,'PAUSED_INCIDENT');
+    assert.equal(v.review.state.reviews.length,0);assert.equal(v.lease,null);
+    assert.equal((await f.call('RESUME')).value.already_applied,true);
+    assert.equal(f.store.episodes.size,1);assert.equal(Object.keys(v.review.state.production_commands).length,3);
+    assert.deepEqual(f.forbidden,[]);assert.deepEqual(globalThis.LUMI_OFFLINE_GUARD.attempts,[]);
+  }finally{await f.cleanup();}
+});
+
+for(const [fault,code] of [['missing_bytes','ARTIFACT_MISSING'],['missing_registry','ARTIFACT_MISSING'],
+  ['qa_pending','QA_NOT_ELIGIBLE'],['inconsistent_checkpoint','CHECKPOINT_CONSISTENCY_FAILURE']])
+test('RESUME fails bounded before review dispatch and persists '+fault,async()=>{
+  const f=await isolatedFixture();try{
+    for(const phase of ['CONTEXT','CREATE','RESUME','RESUME'])assert.equal((await f.call(phase)).code,200);
+    const {command:c}=authenticateDiagnosticCommand({env:f.env,...f.envelope('RESUME')});
+    await f.isolatedValidation.mutate(c,v=>{v.lease={token:'isolated-input-setup',until:Date.now()+60000};});
+    await f.isolatedValidation.loadReviewInput(c,f.isolatedValidation.namespace(c,'isolated-input-setup'));
+    await f.isolatedValidation.mutate(c,v=>{
+      v.lease=null;
+      if(fault==='missing_bytes')v.objects={};
+      if(fault==='missing_registry')v.checkpoint.metadata.artifacts={};
+      if(fault==='qa_pending'){
+        const r=v.checkpoint.metadata.stage_results['video:take_01'];r.result.qa={ok:false,status:'PENDING'};
+        r.sha256=inputDigest(r.result);v.checkpoint.metadata.stage_qa['video:take_01']=r.result.qa;
+      }
+      if(fault==='inconsistent_checkpoint')v.checkpoint.actions[0].evidence={};
+    });
+    for(let i=0;i<2;i++){
+      const start=performance.now(),r=await f.call('RESUME');
+      assert.equal(r.code,409);assert.equal(r.value.error,'DIAGNOSTIC_'+code);assert.ok(performance.now()-start<3000);
+    }
+    const v=await f.read();assert.equal(v.last_event.error_code,code);assert.equal(v.last_event.status,'BLOCKED');
+    assert.equal(v.results.RESUME,undefined);assert.equal(v.lease,null);
+    assert.equal(Object.keys(v.review.state.production_commands).length,2);
+    assert.equal(Object.keys(v.review.state.episodes[c.episode_id].review_requests).length,0);
+    assert.equal(v.review.state.reviews.length,0);assert.equal(f.store.episodes.size,1);assert.deepEqual(f.forbidden,[]);
+  }finally{await f.cleanup();}
+});
 
 test('five real canonical routes, immutable review, independent identity and zero production access',async()=>{
   const f=await isolatedFixture();try{
     for(const phase of ['CONTEXT','CREATE','RESUME','REVIEW','RESULT']){
-      const response=await f.call(phase);assert.equal(response.code,200,JSON.stringify(response.value));
+      const response=await f.runPhase(phase);assert.equal(response.code,200,JSON.stringify(response.value));
       assert.deepEqual(response.value.actions,[]);assert.deepEqual(response.value.commands,[]);
     }
     const v=await f.read();assert.equal(v.results.RESULT.status,'PASS');
@@ -98,7 +158,7 @@ test('diagnostic grant cannot authorize a production store or historical episode
 
 test('rejection persists exactly once and Recovery Manager requires repair without dispatch',async()=>{
   const f=await isolatedFixture();try{
-    for(const phase of ['CONTEXT','CREATE','RESUME'])assert.equal((await f.call(phase)).code,200);
+    for(const phase of ['CONTEXT','CREATE','RESUME'])assert.equal((await f.runPhase(phase)).code,200);
     assert.equal((await f.call('REVIEW',{decision:'REJECTED'})).value.status,'REPAIR_PLAN_REQUIRED');
     assert.equal((await f.call('REVIEW',{decision:'REJECTED'})).value.already_applied,true);
     const v=await f.read();assert.equal(v.checkpoint.status,'PAUSED_INCIDENT');assert.equal(v.checkpoint.metadata.repair_plan_required,true);
@@ -139,7 +199,7 @@ test('namespace forbids historical data, artifact writes, provider journals and 
 
 test('isolated real materializer verifies original bytes, QA and journal before accepting review inputs',async()=>{
   const f=await isolatedFixture();try{
-    for(const phase of ['CONTEXT','CREATE','RESUME'])assert.equal((await f.call(phase)).code,200);
+    for(const phase of ['CONTEXT','CREATE','RESUME'])assert.equal((await f.runPhase(phase)).code,200);
     const {command:c}=authenticateDiagnosticCommand({env:f.env,...f.envelope('RESUME')});
     await f.isolatedValidation.mutate(c,v=>{v.lease={token:'materializer-test',until:Date.now()+60000};});
     const ns=f.isolatedValidation.namespace(c,'materializer-test'),state=await ns.checkpointStore.getEpisode(c.episode_id);
@@ -199,7 +259,7 @@ test('real mounted Supabase adapters use only existing diagnostic CAS row and ow
     }}});
     const routes=new Map(),app={get:(p,...h)=>routes.set(p,h.at(-1)),post:(p,...h)=>routes.set(p,h.at(-1))};
     mounted=mountTelegramReview(app,{db,env:f.env,authorized:()=>false});mounted.stopDiagnostics();
-    for(const phase of ['CONTEXT','CREATE','RESUME','REVIEW','RESULT']){
+    for(const phase of ['CONTEXT','CREATE','RESUME','RESUME','RESUME','REVIEW','RESULT']){
       const e=f.envelope(phase),res={code:200,status(n){this.code=n;return this;},json(v){this.value=v;return this;}};
       await routes.get(e.signed.path)({body:e.body,rawBody:e.signed.body,path:e.signed.path,
         headers:{'x-lumi-timestamp':e.signed.timestamp,'x-lumi-request-id':e.signed.requestId,'x-lumi-signature':e.signature}},res);

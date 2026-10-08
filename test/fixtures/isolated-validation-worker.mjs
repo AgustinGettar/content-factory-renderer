@@ -20,9 +20,9 @@ const f=await isolatedFixture({store:new DiskStore(),request:read('request.json'
   inject:async e=>{if(mode==='crash'&&e.point===point){process.stdout.write('KILL_NOW\n');await new Promise(()=>{setInterval(()=>{},1000);});}}});
 if(mode==='prepare'){
   save('request.json',f.request);save('base.json',f.base);
-  for(const phase of phases.slice(0,phases.indexOf(target))){const r=await f.call(phase);if(r.code!==200)throw Error(JSON.stringify(r.value));}
+  for(const phase of phases.slice(0,phases.indexOf(target))){const r=await f.runPhase(phase);if(r.code!==200)throw Error(JSON.stringify(r.value));}
 }else{
-  for(const phase of phases.slice(phases.indexOf(target))){const r=await f.call(phase);if(r.code!==200)throw Error(JSON.stringify(r.value));}
+  for(const phase of phases.slice(phases.indexOf(target))){const r=await f.runPhase(phase);if(r.code!==200)throw Error(JSON.stringify(r.value));}
   const v=await f.read();
   process.stdout.write(JSON.stringify({operation_rows:f.store.episodes.size,review_rows:v.review.state.reviews.length,
     result:v.results.RESULT,provider_generation_calls:0,production_access:f.forbidden,

@@ -1,0 +1,146 @@
+LUMI EP004 FIRST TELEGRAM IMAGE — LOCAL ACCEPTANCE
+2026-10-11. Local implementation only; no push, deploy or multimedia generation.
+
+RECOVERY AND STAGING
+Recovered worktree: /workspace/scratch/e456086ca953/repo.
+Recovered branch: local/ep004-q41-first-image.
+Recovered HEAD/base: 87c518dcb10a5bff2e8c36c3a714352e6d850002.
+Seven existing modified modules, 304 insertions and 9 deletions, were present.
+The retained initial-tests.log proves 42/42 prior regression tests passed.
+First pending test was DOUBLE_CLICK_IDEMPOTENCY, followed by the requested
+callback, payload, crash, artifact, human review and single-panel cases.
+The old local branch/check-out at 099512d was preserved under
+archive/lumi-pre-q41-first-image-099512d; its files were not overwritten.
+Final branch: lumi-telegram-review-v1, based on current origin.
+
+Render read-only list_deploys confirms deployment dep-db5tvu0473hc73cdjja0
+LIVE at 87c518dcb10a5bff2e8c36c3a714352e6d850002.
+9e7107e90f38b72a4e96939a42bfeb02ee0dded4 is the preceding deactivated deploy.
+Remote branch fetch confirms the same 87c518d head. Direct /health timed out;
+no successful direct health assertion is made. No production mutation occurred.
+
+IMPLEMENTED SCOPE
+EP004_Q41_FIRST_IMAGE only; target ep_lumi_granja_004_20261008_ee7ab4b3/q41.
+Existing canonical Telegram route: Crear video -> Lumi y los animales de la
+granja -> Primera imagen q41 -> Confirmar generacion -> image review.
+Actual confirmation is available only when runtime requirements pass.
+HOME remains a photo, message_id 138, edits only. Historical master and reviews
+remain intact. Missing evidence is shown as an exact Q41 blocker.
+
+ControlledV2Authorization verifies canonical HMAC callback provenance and
+issues a server-owned CAS grant bound to owner/chat/panel, episode, shot,
+immutable input/economic binding, expiry and one provider emission.
+GenericV2Runtime reuses the approved descriptor without prompt/model edits.
+The Recovery Manager checkpoint ep004_q41_first_image is a source preparation
+operation, not the productive EP004 episode. Its single action and durable
+reservation cannot be reset by a fresh callback, nonce, grant or runtime restart.
+Provider Emission Journal references that operation's existing checkpoint FK;
+immutable metadata binds its target episode and q41. No new schema/router.
+No global V2 activation, runner activation, autorun, provider change or boot job.
+
+ECONOMIC BOUNDARY — NOT LIVE SPENDING ACCEPTANCE
+USD 0.271 remains the recorded estimate, not a guaranteed price cap.
+Episode hard budget stays USD 5.00. User-reported prepaid balance USD 4.64
+and auto-recharge OFF are not treated as verified account evidence.
+The existing local implementation requires a sealed server-side record in
+q41_prepaid_evidence, bound to the active API credential fingerprint, account,
+episode/shot, approved descriptor, original source transport and expiry.
+No endpoint imports or signs an assertion supplied by a callback.
+Required evidence includes prepaid-only, recharge OFF, no credit/negative
+balance, bounded wallet exposure, available balance and applicable exact quote.
+It must be independently verified; setting booleans is not verification.
+The whole verified wallet exposure is reserved (up to the reported USD 4.64),
+not USD 0.271 represented as a maximum charge. Existing spend/reservations
+count against USD 5. Unknown charges retain the reservation, including after
+approval/rejection. No zero-cost reconciliation or automatic release.
+
+OPEN OPERATIONAL BLOCKERS
+The verified sealed account record has not been supplied or obtained here.
+This change does not implement an account-billing verifier or evidence importer.
+The historical q41 quote used a discarded, expired signed source URL. It
+cannot authorize a new payload or be made current by changing its timestamp.
+There is no automatic re-quote or new diagnostic key in this change. A future
+applicable quote/evidence path needs a separately authorized concrete action.
+Deployment of this commit alone will therefore show a blocked first-image
+screen under currently available evidence. It does not make live generation
+financially authorized or presently usable. No quote was repeated here.
+
+RESULT AND REVIEW
+The sole accepted job can be inspected/downloaded by GET on explicit status
+callbacks. Ambiguous submission or missing accepted identity is fail-closed.
+Original artifact storage, readback SHA, decoder and resolution inspection
+reuse existing materialization. No resizing to manufacture a quality pass.
+sourceGate checks available typed visual evidence; absent evidence remains
+REQUIRES_HUMAN_VISUAL_REVIEW, never automated PASS. Telegram presents the
+image and explicit visual checklist for approval/rejection; technical failure
+cannot be approved. Decisions bind original SHA/version and remain immutable.
+Both outcomes pause; no automatic Kling, other image, TTS, retry or resubmit.
+
+DEMONSTRATED DEFECTS FIXED AFTER RECOVERY
+1. Generic Recovery Manager resume could call continueAction after the reserved
+   pre-journal crash. Reproduced: 1 continuation vs expected 0. Fixed with a
+   scope-specific guard; only q41's authenticated GET-only recovery is allowed.
+2. Journal originally referenced the uncreated productive episode. Enforcing
+   the existing SQL FK in the offline journal reproduced 0 submissions vs
+   expected 1. Fixed to reference the source operation checkpoint. Target
+   episode stays bound in immutable checkpoint metadata and artifact identity.
+No SQL migration, provider modification or economic policy change in recovery.
+
+VALIDATION
+14/14 focused tests PASS, zero failures/skips/cancellations.
+312/312 relevant final-tree regression tests PASS, zero failures/skips/cancellations.
+The 312 includes the 14 focused tests; do not add them as disjoint counts.
+All transport/provider/account receipts in tests are explicitly synthetic.
+Canonical fixture bytes have approved SHA256
+5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.
+Test output raster is an in-memory flat-color decode fixture, not generated
+Lumi media, not a source replacement and not evidence of visual quality.
+No live database, paid provider or Telegram acceptance is claimed.
+
+Focused coverage: double-click race; restart replay; invalid HMAC, body,
+owner/chat/panel/scope; serialized capability rejection; URL/quote/evidence
+mutation; pre-submit crash; timeout/malformed response; immutable original
+artifact recovery after storage interruption; stale SHA/review; human pause;
+no automatic continuation/Kling; single-message HOME restoration; economic
+fail-closed; canonical HTTP replay rejection; CAS/journal persistence failures;
+accumulated budget exposure; failed original image dimensions.
+
+Regression command prefix:
+node --import ./scripts/director-offline-guard.mjs --test --test-isolation=none --test-reporter=tap
+Files:
+test/lumi-q41-first-image.test.js
+test/lumi-q41-source-bound-quote.test.js
+test/lumi-ep004-telegram-blocked.test.js
+test/lumi-telegram-review-v1.test.js
+test/lumi-make-transport.test.js
+test/lumi-panel-renderer-v2.test.js
+test/lumi-generic-v2-adapter.test.js
+test/lumi-generic-runtime-integration.test.js
+test/lumi-controlled-episode-action.test.js
+test/provider-emission-journal-v1.test.js
+test/higgsfield-usd-budget-v1.test.js
+test/lumi-recovery-incident-manager-v1.test.js
+test/lumi-recovery-server-integration.test.js
+test/lumi-materialization-v2.test.js
+test/lumi-stage-result-v2.test.js
+test/lumi-audio-review-v2.test.js
+test/lumi-isolated-validation.test.js
+test/lumi-isolated-usd-preflight.test.js
+test/lumi-isolated-tts-preflight.test.js
+test/lumi-diagnostic-http.test.js
+
+SECURITY REVIEW
+Complete local diff reviewed. HMAC and active owner validation preserved;
+client flags cannot create authority. CAS precedes journal, journal precedes
+POST. Fixed claim identity across restarts. Prior journal/claim and all
+ambiguous outcomes forbid resubmission. Source and result hashes bind review.
+Only the existing endpoint/provider functions/stores are used; no credentials
+in the commit, no new public API, RLS grant or schema changes. Offline journal
+enforces the documented checkpoint FK; live SQL was not exercised.
+node --check server.js and git diff --check PASS.
+
+PROVIDER_GENERATION_CALLS: 0 real.
+EPISODE_STATUS: PROPOSED_NOT_CREATED.
+PRODUCTION: untouched. No push, deployment or real Telegram edit.
+Local deployment review may proceed; real generation remains economically
+blocked until the separately verified requirements above are satisfied.

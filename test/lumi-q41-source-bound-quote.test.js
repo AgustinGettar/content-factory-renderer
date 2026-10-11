@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {isolatedFixture,secret} from './fixtures/isolated-validation-v2.js';
 import {DIAGNOSTIC_Q41_SCOPE as scope,DIAGNOSTIC_Q41_KEY,DIAGNOSTIC_SCOPE,DIAGNOSTIC_TTS_SCOPE,DIAGNOSTIC_USD_SCOPE,diagnosticOperationId} from '../lib/lumi-v2-activation-context.js';
-import {isolatedQ41Input} from '../lib/lumi-isolated-usd-preflight.js';
+import {isolatedQ41Input,runIsolatedQ41Quote} from '../lib/lumi-isolated-usd-preflight.js';
 import {IsolatedV2Validation} from '../lib/lumi-v2-isolated-validation.js';
 import {MemoryLumiRecoveryStore} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {verifiedSignedMediaTransport} from '../lib/telegram-review-v1/runtime.js';
@@ -34,6 +34,75 @@ async function recover(runtime,f){
     path:`/lumi/telegram-review/make/diagnostic/local-operator/${f.base.operation_id}`,body:Buffer.alloc(0)};
   return runtime.http.query({signed,signature:signRequest(secret,signed),user:'local-operator',operationId:f.base.operation_id});
 }
+
+function reorderKeys(value,compare){
+  if(Array.isArray(value))return value.map(v=>reorderKeys(v,compare));
+  if(!value||typeof value!=='object')return value;
+  return Object.fromEntries(Object.keys(value).sort(compare).map(k=>[k,reorderKeys(value[k],compare)]));
+}
+// Offline persistence double, not a live PostgreSQL test. JSONB does not retain
+// insertion order; this serializes keys by byte length then byte value, without
+// changing values or array order. The expected request order was seen in staging.
+const jsonbRoundTrip=value=>JSON.parse(JSON.stringify(reorderKeys(value,(a,b)=>
+  Buffer.byteLength(a)-Buffer.byteLength(b)||Buffer.compare(Buffer.from(a),Buffer.from(b)))));
+
+for(const [name,roundTrip] of [
+  ['original descriptor',v=>JSON.parse(JSON.stringify(v))],
+  ['REORDERED_KEYS',v=>reorderKeys(v,(a,b)=>b.localeCompare(a))],
+  ['JSONB_ROUNDTRIP (offline persistence double)',jsonbRoundTrip]])
+test('APPROVED_DESCRIPTOR_LOCK accepts '+name,async()=>{
+  class Persisted extends MemoryLumiRecoveryStore{
+    async putEpisode(value){return super.putEpisode(roundTrip(value));}
+  }
+  const f=await setup({store:new Persisted()});try{
+    const before=await f.read();assert.deepEqual(before.request,d);
+    if(name!=='original descriptor')assert.notEqual(JSON.stringify(before.request),JSON.stringify(d));
+    if(name.startsWith('JSONB_ROUNDTRIP')){
+      assert.deepEqual(Object.keys(before.request),['input','model','shot_id','episode_id','prompt_sha256',
+        'descriptor_sha256','canonical_artifact','image_profile_sha256','production_profile_sha256']);
+      assert.deepEqual(Object.keys(before.request.input),['prompt','quality','moderation','resolution','aspect_ratio','enhance_prompt']);
+    }
+    const r=await f.call(scope);assert.equal(r.code,200);assert.equal(r.value.status,'QUOTE_VERIFIED');
+    assert.equal(f.calls.length,1);assert.deepEqual(f.sources,[d.canonical_artifact]);
+    assert.deepEqual(JSON.parse(f.calls[0].body),{...d.input,image_urls:[signedUrl]});
+    const saved=await f.read(),got=await recover(restart(f),f);
+    assert.equal(got.status,200);assert.deepEqual(got.body.q41_quote,saved.results[scope]);
+    assert.deepEqual(saved.request,d);assert.deepEqual(saved.review,before.review);
+    assert.equal(r.value.first_image_budget_gate,'BLOCKED');assert.equal(r.value.episode_budget_gate,'BLOCKED');
+    assert.equal(r.value.provider_generation_calls,0);assert.equal(r.value.telegram_mutation_calls,0);
+    assert.equal(f.store.episodes.size,1);assert.equal(f.store.episodes.has(d.episode_id),false);
+    for(const s of [credential,token,signedUrl])assert.ok(!JSON.stringify([saved,r.value,got]).includes(s));
+    assert.deepEqual(f.forbidden,[]);assert.deepEqual(globalThis.LUMI_OFFLINE_GUARD.attempts,[]);
+  }finally{await f.cleanup();}
+});
+
+for(const [name,mutate] of [
+  ['content altered',v=>{v.input.quality='low';}],
+  ['field omitted',v=>{delete v.input.moderation;}],
+  ['model changed',v=>{v.model='other/image';}],
+  ['prompt modified even with matching prompt hash',v=>{v.input.prompt+=' changed';v.prompt_sha256=sha256(v.input.prompt);}],
+  ['source SHA changed',v=>{v.canonical_artifact.sha256='a'.repeat(64);}],
+  ['source path changed',v=>{v.canonical_artifact.path='different/source.png';}],
+  ['descriptor approval hash changed',v=>{v.descriptor_sha256='a'.repeat(64);}],
+  ['extra field',v=>{v.input.image_urls=[signedUrl];}]])
+test('SEMANTIC_MUTATION_REJECTED / APPROVED_DESCRIPTOR_LOCK: '+name,async()=>{
+  // Exercise the exact descriptor guard independently of the outer CAS request
+  // digest, so the test cannot pass merely because that earlier binding fails.
+  const request=jsonbRoundTrip(d);mutate(request);
+  const state={request},ns={read:async()=>structuredClone(state),write:async change=>change(state)};
+  let sources=0,estimates=0;
+  const args={command:{operation_id:'offline-q41-descriptor-lock',nonce:'offline-lock'},ns,clock:Date.now,
+    env:{LUMI_RUNTIME_ENV:'staging',HF_API_KEY:credential,SUPABASE_URL:origin},
+    sourceTransport:async()=>{sources++;assert.fail('MUTATED_DESCRIPTOR_SOURCE_FORBIDDEN');},
+    fetchImpl:async()=>{estimates++;assert.fail('MUTATED_DESCRIPTOR_ESTIMATE_FORBIDDEN');}};
+  const result=await runIsolatedQ41Quote(args);
+  assert.equal(result.status,'BLOCKED');assert.equal(result.quote_status,'Q41_APPROVED_DESCRIPTOR_REQUIRED');
+  assert.equal(result.quote_usd,null);assert.equal(result.first_image_budget_gate,'BLOCKED');
+  assert.equal(result.episode_budget_gate,'BLOCKED');assert.equal(result.provider_generation_calls,0);
+  assert.equal(result.telegram_mutation_calls,0);assert.deepEqual(state.q41_quote_attempt.result,result);
+  assert.deepEqual(await runIsolatedQ41Quote(args),result);
+  assert.equal(sources,0);assert.equal(estimates,0);
+});
 
 test('APPROVED_MODEL / 2K_HIGH / exact existing prompt plus canonical wand',()=>{
   assert.equal(d.model,'marketing-studio/image');assert.equal(d.input.resolution,'2k');assert.equal(d.input.quality,'high');

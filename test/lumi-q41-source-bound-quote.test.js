@@ -252,7 +252,9 @@ test('existing verified transport signs only after byte hash check and uses 300 
   const bytes=Buffer.from('SYNTHETIC_STORAGE_CONTRACT'),a={...d.canonical_artifact,size:bytes.length,sha256:sha256(bytes)};
   const events=[],db={storage:{from:()=>({download:async()=>{events.push('download');return {data:new Blob([bytes])};},
     createSignedUrl:async(path,ttl)=>{events.push('sign');assert.equal(path,a.path);assert.equal(ttl,300);return {data:{signedUrl}};}})}};
-  assert.deepEqual(await verifiedSignedMediaTransport(db)(a),{url:signedUrl,sha256:a.sha256});
+  const before=Date.now(),result=await verifiedSignedMediaTransport(db)(a);
+  assert.deepEqual({url:result.url,sha256:result.sha256},{url:signedUrl,sha256:a.sha256});
+  assert.ok(Date.parse(result.expires_at)>=before+300000&&Date.parse(result.expires_at)<=Date.now()+300000);
   assert.deepEqual(events,['download','sign']);
 });
 

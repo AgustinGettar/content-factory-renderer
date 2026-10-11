@@ -27,17 +27,21 @@ function raster(width=1152,height=2048){
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(Buffer.alloc((width*3+1)*height))),chunk('IEND',Buffer.alloc(0))]);
 }
 const image=raster();
-async function fixture({inject,mode='complete',imageBytes=image}={}){
+async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.271,estimateMode='success',transportPatch={}}={}){
   const reviewStore=new MemoryReviewStore(),store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store});
   const objects=new Map([[d.canonical_artifact.bucket+'/'+d.canonical_artifact.path,canonical]]),journalRows=new Map(),calls=[],telegramCalls=[];
   const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_CALLBACK_SECRET:secret,LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',
     LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',HF_API_KEY:'OFFLINE_KEY',SUPABASE_URL:'https://q41-offline.supabase.co'};
   const cover={artifact_id:'home',sha256:sha256(canonical),size:canonical.length,bucket:d.canonical_artifact.bucket,path:d.canonical_artifact.path,mime:'image/png'};
   await reviewStore.create('1',newSession({user_id:'1',chat_id:'1',message_id:138,cover}));
-  const now=Date.now(),evidence={source:'VERIFIED_SAME_API_ACCOUNT',proof_reference:'OFFLINE_TEST_ONLY',account_id:'fixture-account',
+  const proofBytes=raster(1,1),proof={artifact_id:'OFFLINE_BILLING_PROOF',bucket:cover.bucket,path:'offline/proof.png',
+    mime:'image/png',size:proofBytes.length,sha256:sha256(proofBytes)};
+  objects.set(proof.bucket+'/'+proof.path,proofBytes);
+  const now=Date.now(),evidence={source:'VERIFIED_SAME_API_ACCOUNT',proof_reference:proof.sha256,account_id:'fixture-account',
+    verification_method:'BILLING_REVIEW',billing_origin:'https://open.higgsfield.ai',reviewed_by:'OFFLINE_REVIEWER',proof_artifact:proof,
     user_id:'1',episode_id:episode,shot_id:'q41',descriptor_sha256:d.descriptor_sha256,api_key_sha256:sha256(env.HF_API_KEY),
-    checked_at:new Date(now).toISOString(),expires_at:new Date(now+59000).toISOString(),payload_expires_at:new Date(now+59000).toISOString(),
-    prepaid_only:true,auto_recharge:false,credit_billing:false,negative_balance_allowed:false,external_funding_locked:true,balance_usd:4.64,source_url:sourceUrl};
+    checked_at:new Date(now).toISOString(),expires_at:new Date(now+59000).toISOString(),
+    prepaid_only:true,auto_recharge:false,credit_billing:false,negative_balance_allowed:false,external_funding_locked:true,balance_usd:4.64};
   const quote={episode_id:episode,shot_id:'q41',model:d.model,canonical_source_verified:true,canonical_source_sha256:d.canonical_artifact.sha256,
     descriptor_sha256:d.descriptor_sha256,prompt_sha256:d.prompt_sha256,status:'QUOTE_VERIFIED',http_status:200,
     payload_sha256:sha256(JSON.stringify({...d.input,image_urls:[sourceUrl]})),quote_usd:0.271,quote_timestamp:new Date(now).toISOString(),quote_expiration:null};
@@ -52,7 +56,17 @@ async function fixture({inject,mode='complete',imageBytes=image}={}){
     if(journalRows.has(row.attempt_id))throw Error('DUPLICATE');journalRows.set(row.attempt_id,structuredClone(row));},
     transition:async(id,from,patch)=>{const row=journalRows.get(id);assert.equal(row.state,from);Object.assign(row,structuredClone(patch));return structuredClone(row);}};
   const fetchImpl=async(url,options={})=>{
-    calls.push({url,method:options.method||'GET'});assert.equal(options.redirect,'error');
+    calls.push({url,method:options.method||'GET',body:options.body});assert.equal(options.redirect,'error');
+    if(url==='https://api.higgsfield.ai/estimate/marketing-studio/image'){
+      assert.equal(options.method,'POST');assert.equal(journalRows.size,0);
+      assert.equal((await store.getEpisode(operation)).metadata.first_image.state,'ESTIMATING');
+      assert.equal((await reviewStore.get('1')).state.v2_authorizations[operation].status,'PREFLIGHT_CLAIMED');
+      if(estimateMode==='timeout')throw Error('OFFLINE_ESTIMATE_TIMEOUT');
+      if(estimateMode==='malformed')return new Response('{');
+      if(estimateMode==='non-usd')return Response.json({credits:1});
+      if(estimateMode==='http-error')return Response.json({error:'OFFLINE'}, {status:503});
+      return Response.json({usd:estimateUsd,expires_at:estimateMode==='expired'?'2026-01-01T00:00:00Z':undefined});
+    }
     if(options.method==='POST'){
       assert.equal(url,'https://api.higgsfield.ai/marketing-studio/image');
       const cp=await store.getEpisode(operation);assert.equal(cp.metadata.first_image.state,'EMITTING');
@@ -65,7 +79,9 @@ async function fixture({inject,mode='complete',imageBytes=image}={}){
     if(url==='https://api.higgsfield.ai/requests/offline-job')return Response.json({request_id:'offline-job',status:mode==='pending'?'processing':'completed',images:[{url:'https://media.example.test/offline.png'}]});
     assert.equal(url,'https://media.example.test/offline.png');return new Response(imageBytes);
   };
-  const makeAdapter=()=>createGenericV2Runtime({manager,reviewStore,artifactStorage:storage,journal,validateOwner:async(u,c)=>u==='1'&&c==='1',env,fetchImpl,inject});
+  const sourceCalls=[];
+  const makeAdapter=()=>createGenericV2Runtime({manager,reviewStore,artifactStorage:storage,journal,validateOwner:async(u,c)=>u==='1'&&c==='1',env,fetchImpl,inject,
+    mediaTransport:async a=>{sourceCalls.push(a);return {url:sourceUrl,sha256:a.sha256,expires_at:new Date(Date.now()+300000).toISOString(),...transportPatch};}});
   let adapter=makeAdapter();
   const production=new ProductionReviewController({store:reviewStore,adapters:{LUMI_PRODUCTION_PROFILE_V2:adapter}});
   const svc=new ReviewService({store:reviewStore,production,validateOwner:async(u,c)=>u==='1'&&c==='1',loadBytes:a=>storage.download(a.bucket,a.path),
@@ -85,14 +101,14 @@ async function fixture({inject,mode='complete',imageBytes=image}={}){
   const click=async action=>{const cb=await callback(action);return svc.callback(cb,{firstImageCommand:action==='q41_prepare'?null:command(cb)});};
   const prepare=async()=>{await svc.show('1','1',{kind:'menu'});await click('create_v2_ideas');await click('create_v2_budget');await click('q41_prepare');};
   const restart=()=>{adapter=makeAdapter();production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;};
-  return {store,manager,reviewStore,storage,objects,journal,journalRows,calls,telegramCalls,env,evidence,quote,diag,edit,callback,envelope,command,click,prepare,svc,production,restart,get adapter(){return adapter;},setMode:v=>{mode=v;}};
+  return {store,manager,reviewStore,storage,objects,journal,journalRows,calls,sourceCalls,telegramCalls,env,evidence,quote,diag,edit,callback,envelope,command,click,prepare,svc,production,restart,get adapter(){return adapter;},setMode:v=>{mode=v;}};
 }
 
 test('DOUBLE_CLICK_IDEMPOTENCY: concurrent confirmation and restarted replay emit once',async()=>{
   const f=await fixture();await f.prepare();const cb=await f.callback('q41_confirm'),command=f.command(cb);
   await Promise.allSettled([f.adapter.firstImageAction({command}),f.adapter.firstImageAction({command})]);
   await f.restart().firstImageAction({command:f.command(cb)});
-  assert.equal(f.calls.filter(c=>c.method==='POST').length,1);assert.equal(f.journalRows.size,1);
+  assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);assert.equal(f.journalRows.size,1);
   assert.equal(await f.store.getEpisode(episode),null);assert.equal((await f.store.getEpisode(operation)).metadata.budget_reservations['image:q41'].amount_usd,4.64);
 });
 
@@ -104,15 +120,18 @@ test('FORGED_CALLBACK_REJECTION: HMAC, scope, owner, panel and serialized grants
   await assert.rejects(f.adapter.firstImageAction({command:{...f.command(cb)}}),/HMAC/);
   const tampered={...e.signed,body:Buffer.from(JSON.stringify({...e.body,authorized:true}))};
   assert.throws(()=>authenticateFirstImageCallback({env:f.env,signed:tampered,signature:e.signature}));
+  for(const k of ['prompt','image_urls','source_url','model','payload','input','api_key']){
+    const signed={...e.signed,body:Buffer.from(JSON.stringify({...e.body,[k]:'CLIENT_INPUT_FORBIDDEN'}))};
+    assert.throws(()=>authenticateFirstImageCallback({env:f.env,signed,signature:signRequest(secret,signed)}),/HMAC/);
+  }
   await f.edit(s=>{s.tokens[cb.data.slice(3)].proposal_id='other';});
   await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/SCOPE/);assert.equal(f.calls.length,0);
 });
 
-test('PAYLOAD_MUTATION_REJECTION: signed URL, quote and confirmed binding must remain exact',async()=>{
-  for(const kind of ['url','quote','evidence-seal','after-confirmation']){
+test('PAYLOAD_MUTATION_REJECTION: evidence and confirmed binding must remain exact',async()=>{
+  for(const kind of ['url','evidence-seal','after-confirmation']){
     const f=await fixture();await f.prepare();const cb=await f.callback('q41_confirm');
-    if(kind==='quote'){const cp=await f.store.getEpisode(f.diag);cp.metadata.isolated_validation.q41_quote_attempt.result.payload_sha256='a'.repeat(64);await f.store.putEpisode(cp);}
-    else await f.edit(s=>{
+    await f.edit(s=>{
       if(kind==='url'){const e={...f.evidence,source_url:sourceUrl+'changed'};s.q41_prepaid_evidence=seal(e);}
       if(kind==='evidence-seal')s.q41_prepaid_evidence.evidence.balance_usd=1;
       if(kind==='after-confirmation')s.q41_prepaid_evidence=seal({...f.evidence,proof_reference:'OTHER_OFFLINE_PROOF'});
@@ -124,7 +143,7 @@ test('PAYLOAD_MUTATION_REJECTION: signed URL, quote and confirmed binding must r
 test('RESERVATION_BEFORE_SUBMISSION_CRASH: restart retains reservation and never dispatches',async()=>{
   const f=await fixture({inject:async({point})=>{if(point==='Q41_RESERVED_BEFORE_JOURNAL')throw Error('OFFLINE_CRASH');}});
   await f.prepare();const cb=await f.callback('q41_confirm');await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/CRASH/);
-  await f.restart().firstImageAction({command:f.command(cb)});assert.equal(f.calls.length,0);
+  await f.restart().firstImageAction({command:f.command(cb)});assert.equal(f.calls.length,1);
   const cp=await f.store.getEpisode(operation);assert.equal(cp.metadata.budget_reservations['image:q41'].amount_usd,4.64);assert.equal(cp.metadata.first_image.state,'EMITTING');
   let continued=0;
   const recovered=await f.manager.resume(operation,{continueAction:async()=>{continued++;return {};}});
@@ -133,8 +152,8 @@ test('RESERVATION_BEFORE_SUBMISSION_CRASH: restart retains reservation and never
 
 test('SUBMISSION_OUTCOME_UNKNOWN: timeout or malformed JSON consumes the only attempt',async()=>{
   for(const mode of ['timeout','malformed']){const f=await fixture({mode});await f.prepare();await f.click('q41_confirm');
-    assert.equal(f.calls.filter(c=>c.method==='POST').length,1);await f.restart();await f.click('q41_status');await f.click('q41_status');
-    assert.equal(f.calls.length,1);assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_EMISSION_OUTCOME_UNKNOWN_NO_RESUBMIT');
+    assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);await f.restart();await f.click('q41_status');await f.click('q41_status');
+    assert.equal(f.calls.length,2);assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_EMISSION_OUTCOME_UNKNOWN_NO_RESUBMIT');
   }
 });
 
@@ -142,7 +161,7 @@ test('ARTIFACT_RECOVERY: pending original and storage crash recover via GET with
   let crashed=false;const f=await fixture({mode:'pending',inject:async({point})=>{if(point==='Q41:ARTIFACT_PERSISTED_QA_NOT_PERSISTED'&&!crashed){crashed=true;throw Error('OFFLINE_CRASH');}}});
   await f.prepare();await f.click('q41_confirm');f.setMode('complete');await f.click('q41_status');await f.restart();await f.click('q41_status');
   const s=(await f.reviewStore.get('1')).state;assert.equal(s.q41_first_image.artifact.sha256,sha256(image));assert.equal(s.q41_first_image.technical_qa.ok,true);
-  assert.equal(s.q41_first_image.visual_qa,'REQUIRES_HUMAN_VISUAL_REVIEW');assert.equal(f.objects.size,2);assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
+  assert.equal(s.q41_first_image.visual_qa,'REQUIRES_HUMAN_VISUAL_REVIEW');assert.equal(f.objects.size,3);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
 });
 
 test('SAME_ARTIFACT_SHA_BINDING: stale review and corrupted storage cannot approve',async()=>{
@@ -151,7 +170,7 @@ test('SAME_ARTIFACT_SHA_BINDING: stale review and corrupted storage cannot appro
   await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/REVIEW_STALE/);
   await f.edit(s=>{s.tokens[cb.data.slice(3)].artifact_sha=sha256(image);});
   const a=(await f.reviewStore.get('1')).state.q41_first_image.artifact;f.objects.set(a.bucket+'/'+a.path,Buffer.from('corrupt'));
-  await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/SHA_MISMATCH/);assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
+  await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/SHA_MISMATCH/);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
 });
 
 test('HUMAN_REVIEW_GATE and NO_AUTOMATIC_KLING: approve/reject are immutable pauses',async()=>{
@@ -160,7 +179,7 @@ test('HUMAN_REVIEW_GATE and NO_AUTOMATIC_KLING: approve/reject are immutable pau
     await f.click(action);await f.adapter.firstImageAction({command:f.command(cb)});
     await assert.rejects(f.adapter.firstImageAction({command:f.command(other)}),/IMMUTABLE/);
     const cp=await f.store.getEpisode(operation);assert.equal(cp.actions.length,1);assert.match(cp.metadata.first_image.state,/_PAUSED$/);
-    assert.equal(cp.runner_enabled,false);assert.equal(cp.autorun,false);assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
+    assert.equal(cp.runner_enabled,false);assert.equal(cp.autorun,false);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
     assert.equal(await f.store.getEpisode(episode),null);
   }
 });
@@ -176,7 +195,7 @@ test('SINGLE_MESSAGE_TELEGRAM: HOME photo, image, return HOME preserve panel 138
 
 test('budget fail-closed: unverified account, credit, stale quote and insufficient balance never authorize',async()=>{
   for(const change of [{source:'USER_REPORTED'},{api_key_sha256:'wrong'},{auto_recharge:true},{credit_billing:true},
-    {negative_balance_allowed:true},{external_funding_locked:false},{balance_usd:0.2},{balance_usd:5},{checked_at:'2026-01-01T00:00:00Z'}]){
+    {negative_balance_allowed:true},{external_funding_locked:false},{balance_usd:0},{balance_usd:5},{checked_at:'2026-01-01T00:00:00Z'}]){
     const f=await fixture();await f.edit(s=>{s.q41_prepaid_evidence=seal({...f.evidence,...change});});await f.prepare();
     const s=(await f.reviewStore.get('1')).state;assert.equal(s.q41_first_image.status,'BLOCKED');assert.equal(s.v2_authorizations,undefined);assert.equal(f.calls.length,0);
   }
@@ -191,8 +210,8 @@ test('canonical HMAC endpoint rejects forged raw bytes and carries genuine callb
       'x-lumi-request-id':e.signed.requestId,'x-lumi-signature':signature}},res);return {body,status};};
   assert.equal((await run('0'.repeat(64))).status,401);assert.equal(f.calls.length,0);
   // Use pending result so the existing cached HOME photo needs no new upload.
-  f.setMode('pending');const result=await run(e.signature);assert.equal(result.status,200);assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
-  assert.equal((await run(e.signature)).status,409);assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
+  f.setMode('pending');const result=await run(e.signature);assert.equal(result.status,200);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
+  assert.equal((await run(e.signature)).status,409);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
 });
 
 test('CAS and journal persistence failures occur before the provider boundary',async()=>{
@@ -203,15 +222,15 @@ test('CAS and journal persistence failures occur before the provider boundary',a
     if(fault==='reservation')f.store.casGenericEpisode=async()=>null;
     if(fault==='journal-prepare')f.journal.prepare=async()=>{throw Error('OFFLINE_STORAGE_FAILURE');};
     if(fault==='journal-emitting')f.journal.transition=async()=>{throw Error('OFFLINE_STORAGE_FAILURE');};
-    await f.adapter.firstImageAction({command:f.command(cb)}).catch(()=>null);assert.equal(f.calls.length,0,fault);
+    await f.adapter.firstImageAction({command:f.command(cb)}).catch(()=>null);assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image').length,0,fault);
   }
 });
 
 test('budget records reject missing evidence, expired quote and accumulated exposure above USD 5',async()=>{
   const absent=await fixture();await absent.edit(s=>{delete s.q41_prepaid_evidence;});await absent.prepare();
   assert.equal((await absent.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_VERIFIED_PREPAID_EVIDENCE_REQUIRED');
-  const stale=await fixture(),q=await stale.store.getEpisode(stale.diag);q.metadata.isolated_validation.q41_quote_attempt.result.quote_timestamp='2026-01-01T00:00:00Z';
-  await stale.store.putEpisode(q);await stale.prepare();assert.equal((await stale.reviewStore.get('1')).state.q41_first_image.status,'BLOCKED');
+  const stale=await fixture({estimateMode:'expired'});await stale.prepare();await stale.click('q41_confirm');
+  assert.equal((await stale.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_CURRENT_EXACT_PAYLOAD_QUOTE_REQUIRED');
   const f=await fixture();await f.manager.startEpisode({episodeId:operation,actions:[{key:'image:q41',stage:'IMAGE'}],authorizedCeilingUsd:5,
     metadata:{operation_type:scope,runtime_revision:0,first_image:{state:'PREPARED',binding:'fixture'},budget_reservations:{other:{amount_usd:0.2}}}});
   await f.manager.checkpoint(operation,s=>{s.current_cost_usd=0.2;});
@@ -219,10 +238,103 @@ test('budget records reject missing evidence, expired quote and accumulated expo
   assert.equal(f.calls.length,0);
 });
 
+test('JIT quote follows delivered human confirmation; historical quote remains immutable',async()=>{
+  const f=await fixture({estimateUsd:0.312}),historical=await f.store.getEpisode(f.diag);
+  historical.metadata.isolated_validation.q41_quote_attempt.result.quote_timestamp='2026-01-01T00:00:00Z';
+  historical.metadata.isolated_validation.q41_quote_attempt.result.payload_sha256='0'.repeat(64);
+  await f.store.putEpisode(historical);await f.prepare();
+  assert.equal(f.calls.length,0);assert.equal(f.sourceCalls.length,0);assert.equal(await f.store.getEpisode(operation),null);
+  await f.click('q41_confirm');
+  const cp=await f.store.getEpisode(operation),fstate=cp.metadata.first_image;
+  assert.deepEqual(await f.store.getEpisode(f.diag),historical);
+  assert.equal(f.calls.filter(c=>c.url.includes('/estimate/')).length,1);assert.equal(f.sourceCalls.length,1);
+  assert.deepEqual(Buffer.from(f.calls[1].body),Buffer.from(f.calls[0].body));
+  assert.equal(sha256(f.calls[0].body),fstate.quote.payload_sha256);
+  assert.equal(fstate.estimated_cost_usd,0.312);assert.equal(fstate.reserve_usd,4.64);assert.equal(fstate.actual_cost_usd,null);
+  assert.equal(fstate.authorization.status,'AUTHORIZED');assert.equal(fstate.authorization.request_sha,fstate.binding);
+  assert.equal(fstate.authorization.confirmation_sha,fstate.confirmation_binding);
+  assert.ok(Date.parse(fstate.quote_valid_until)<=Date.parse(fstate.quote.quote_timestamp)+60000);
+  assert.equal(cp.metadata.budget_reservations['image:q41'].amount_usd,4.64);
+  assert.equal(JSON.stringify(cp).includes('token=OFFLINE'),false);
+});
+
+test('JIT estimate errors, missing USD, expiry and unaffordable estimate block without retries',async()=>{
+  for(const options of [{estimateMode:'timeout'},{estimateMode:'malformed'},{estimateMode:'non-usd'},
+    {estimateMode:'http-error'},{estimateMode:'expired'},{estimateUsd:4.65}]){
+    const f=await fixture(options);await f.prepare();const cb=await f.callback('q41_confirm');await f.click('q41_confirm');
+    await f.restart().firstImageAction({command:f.command(cb)});await f.click('q41_status');
+    assert.equal(f.calls.length,1);assert.ok(f.calls[0].url.includes('/estimate/'));assert.equal(f.journalRows.size,0);
+    const cp=await f.store.getEpisode(operation);assert.equal(cp.metadata.first_image.state,'PREFLIGHT_BLOCKED');
+    assert.equal(cp.metadata.budget_reservations,undefined);assert.equal(cp.metadata.first_image.actual_cost_usd,null);
+    assert.equal((await f.reviewStore.get('1')).state.v2_authorizations[operation].status,'PREFLIGHT_CLAIMED');
+  }
+});
+
+test('JIT crash at confirmation, estimate intent or response cannot requote or submit on restart',async()=>{
+  for(const crash of ['Q41_CONFIRMATION_CLAIMED_BEFORE_CHECKPOINT','Q41_ESTIMATE_INTENT_PERSISTED','Q41_ESTIMATE_RETURNED_BEFORE_PERSISTENCE']){
+    const f=await fixture({inject:async({point})=>{if(point===crash)throw Error('OFFLINE_CRASH');}});
+    await f.prepare();const cb=await f.callback('q41_confirm');await f.adapter.firstImageAction({command:f.command(cb)}).catch(()=>null);
+    const calls=f.calls.length;await f.restart().firstImageAction({command:f.command(cb)}).catch(()=>null);
+    assert.equal(f.calls.length,calls);assert.equal(calls,crash==='Q41_ESTIMATE_RETURNED_BEFORE_PERSISTENCE'?1:0);
+    assert.equal(f.journalRows.size,0);
+    const view=await f.adapter.firstImageStatus({user:'1'});assert.notEqual(view.status,'AWAITING_CONFIRMATION');
+  }
+});
+
+test('JIT final boundary rejects quote, evidence and authorization expiry after reservation',async()=>{
+  for(const mutation of ['quote','evidence','expiry','reservation','api-key','accumulated','grant']){
+    let f;f=await fixture({inject:async({point})=>{if(point!=='Q41_RESERVED_BEFORE_JOURNAL')return;
+      if(mutation==='api-key')f.env.HF_API_KEY='OTHER_OFFLINE_KEY';
+      else if(mutation==='grant')await f.edit(s=>{s.v2_authorizations[operation].status='REVOKED';});
+      else if(mutation==='evidence'||mutation==='expiry')await f.edit(s=>{s.q41_prepaid_evidence=seal({...f.evidence,
+        ...(mutation==='expiry'?{expires_at:'2026-01-01T00:00:00Z'}:{account_id:'OTHER_ACCOUNT'})});});
+      else await f.manager.checkpoint(operation,s=>{
+        if(mutation==='quote')s.metadata.first_image.quote.payload_sha256='a'.repeat(64);
+        else if(mutation==='accumulated')s.current_cost_usd=0.5;
+        else s.metadata.budget_reservations['image:q41'].amount_usd=0.271;
+      });
+    }});await f.prepare();await f.click('q41_confirm');
+    assert.equal(f.calls.length,1);assert.ok(f.calls[0].url.includes('/estimate/'));
+    assert.equal(f.journalRows.get(operation).state,'EMISSION_UNKNOWN');
+    await f.restart();await f.click('q41_status');assert.equal(f.calls.length,1);
+  }
+});
+
+test('JIT canonical bytes and signed source must be verified before estimator',async()=>{
+  for(const patch of [{url:'https://attacker.test/source.png'},{sha256:'bad'},
+    {expires_at:'2026-01-01T00:00:00Z'},{expires_at:new Date(Date.now()+600000).toISOString()}]){
+    const f=await fixture({transportPatch:patch});await f.prepare();await f.click('q41_confirm');
+    assert.equal(f.calls.length,0);assert.equal(f.journalRows.size,0);
+  }
+  const f=await fixture();await f.prepare();f.objects.set(d.canonical_artifact.bucket+'/'+d.canonical_artifact.path,Buffer.from('corrupt'));
+  await f.click('q41_confirm');assert.equal(f.calls.length,0);assert.equal(f.sourceCalls.length,0);
+  assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_CANONICAL_SHA_REQUIRED');
+});
+
+test('Billing proof is bound to sealed review, retained bytes and a maximum sixty-second window',async()=>{
+  for(const change of [{verification_method:'USER_REPORTED'},{billing_origin:'https://higgsfield.ai'},
+    {reviewed_by:null},{proof_reference:'not-the-proof-sha'},{proof_artifact:null},
+    {expires_at:new Date(Date.now()+300000).toISOString()}]){
+    const f=await fixture();await f.edit(s=>{s.q41_prepaid_evidence=seal({...f.evidence,...change});});await f.prepare();
+    assert.equal((await f.reviewStore.get('1')).state.q41_first_image.status,'BLOCKED');assert.equal(f.calls.length,0);
+  }
+  const f=await fixture();f.objects.set(f.evidence.proof_artifact.bucket+'/'+f.evidence.proof_artifact.path,Buffer.from('forged'));
+  await f.prepare();assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_BILLING_PROOF_SHA_MISMATCH');
+  assert.equal(f.calls.length,0);
+});
+
+test('Orphan journal prevents any quote or new authorization; insufficient fresh balance cannot emit',async()=>{
+  const f=await fixture();f.journalRows.set(operation,{state:'EMISSION_UNKNOWN'});await f.prepare();
+  assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_PRIOR_EMISSION_NO_RESUBMIT');assert.equal(f.calls.length,0);
+  const low=await fixture();await low.edit(s=>{s.q41_prepaid_evidence=seal({...low.evidence,balance_usd:0.2});});
+  await low.prepare();await low.click('q41_confirm');assert.equal(low.calls.length,1);assert.equal(low.journalRows.size,0);
+  assert.equal((await low.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_INSUFFICIENT_PREPAID_BALANCE');
+});
+
 test('human review cannot turn an undersized original into a technically approved 2K source',async()=>{
   const f=await fixture({imageBytes:canonical});await f.prepare();await f.click('q41_confirm');
   const s=(await f.reviewStore.get('1')).state;assert.equal(s.q41_first_image.technical_qa.ok,false);
   assert.equal(s.q41_first_image.blocker,'Q41_IMAGE_TECHNICAL_QA_FAILED');
   const active=s.delivery.tokens.map(t=>s.tokens[t]);assert.equal(active.some(t=>t.action==='q41_approve'),false);
-  await f.click('q41_reject');assert.equal(f.calls.filter(c=>c.method==='POST').length,1);
+  await f.click('q41_reject');assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
 });

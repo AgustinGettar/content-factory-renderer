@@ -1,3 +1,165 @@
+LUMI Q41 JUST-IN-TIME CONNECTION — CURRENT LOCAL ADDENDUM
+2026-10-11. Base: 6fc1d18f875a75378446a2ea2b016cbaec6a600d.
+This addendum supersedes the quote/evidence operational limitations described
+in the historical local acceptance record retained below. It does not claim
+that real Billing evidence has been obtained or that live spending is enabled.
+
+LOCAL CHANGE
+Only existing modules, tests and this existing document are modified.
+No new endpoint, diagnostic key, budget system, provider implementation,
+module, schema, global activation, runner or boot action is introduced.
+The old q41 diagnostic v2 and its historical USD 0.271 estimate remain intact.
+No quote or provider request was made to a real account during this work.
+
+Canonical route: Crear video -> EP004 -> Primera imagen q41 -> Confirmar
+generacion -> just-in-time checks -> one emission -> human review.
+Before confirmation, only verified account evidence is read. The UI labels
+USD 0.271 as an expired historical reference and the wallet reservation as
+planned, not already reserved. It discloses one image and no retries.
+An HMAC-authenticated delivered confirmation is claimed by session CAS as
+PREFLIGHT_CLAIMED. It is not yet a provider authorization. The existing source
+operation checkpoint then records canonical byte SHA verification, an
+original-source URL signed for at most 300 seconds, and estimate intent.
+The exact server-owned approved prompt, marketing-studio/image, 2k/high/9:16
+and source URL are sent to estimateHiggsfieldUsd exactly once. Telegram
+cannot supply prompt, model, input, payload or source URL. No historical
+quote or fixed diagnostic operation is read to authorize this request.
+
+The quote timestamp, USD estimate, exact payload SHA and applicable validity
+are checkpointed. The validity is the earliest of sixty seconds from the
+quote, provider expiry if returned, source expiry and verified account expiry.
+Only then does ControlledV2Authorization issue a capability binding the human
+confirmation, exact quote/payload and verified full wallet exposure.
+The same payload bytes, credential fingerprint, signed evidence, quote,
+authorization, accumulated budget and durable reservation are checked again
+at the journal-protected generation boundary. Signed URLs stay in memory;
+only their payload hash/expiry are checkpointed. No automatic quote renewal.
+
+Estimated cost, reserved cost and actual cost are distinct. Actual cost stays
+null until proven; reservations are not released on success, human review or
+an ambiguous charge. The existing gate reserves the whole verified wallet
+(up to the already authorized USD 4.64), within the USD 5 episode budget after
+all recorded spend/reservations. The estimate is never a guaranteed charge
+maximum. Exactly-once here means at most one local provider submission; a
+lost response cannot prove provider execution, so it blocks resubmission.
+
+ECONOMIC EVIDENCE — REQUIRED PRIVILEGED BILLING PROCEDURE
+No documented public API covering account identity, current prepaid USD,
+auto-recharge, credit terms and enforceable funding limits was identified in
+the official index, supplementary OpenAPI, authentication and billing pages.
+This is a documentation limitation, not proof that no private API exists.
+No guessed endpoints, connector-plan credit balances or fake receipts are used.
+
+A trusted operator must directly inspect the authenticated API console at
+open.higgsfield.ai, using the existing account. Do not request an API key,
+secret, bank/card data or a key-revealing screenshot from the user.
+
+1. In the same authenticated workspace, inspect Billing and API-key metadata.
+Bind its stable account/workspace ID to the credential already stored on the
+server. Compare non-secret key metadata only when the console makes that
+link unambiguous; derive SHA256(HF_API_KEY) on the server without exporting
+or logging the credential. If that link cannot be established, stop with
+Q41_SAME_API_ACCOUNT_UNVERIFIED. A successful estimate alone is not proof.
+
+2. Directly verify available prepaid USD, auto-recharge OFF, no invoice/credit
+agreement and no negative balance. The general API terms have an exception
+for invoiced Order Forms, so the public prepaid description alone is
+insufficient for an individual account. Verify an effective provider-side
+funding restriction or spending control that bounds the wallet exposure
+through the entire short validity window. A snapshot of auto-recharge OFF
+does not prove that funding cannot change. Do not set external_funding_locked
+unless the effective restriction is independently evidenced. If Billing does
+not show adequate proof, obtain provider confirmation through the account's
+normal support process; do not invent a cap or proceed on a user assertion.
+No support message, funding change or payment action is authorized by this
+runbook alone.
+
+3. Retain a redacted image record of the directly reviewed Billing evidence
+in existing access-controlled storage, with byte size and SHA256. Include
+workspace/key-metadata linkage, observed balance, billing controls, observer,
+observation time and the evidence of the effective spending/funding bound.
+Never retain secrets, payment-card details or a public signed download link.
+User-supplied screenshots alone do not authenticate account state; a trusted
+operator must independently verify provenance and the actual control.
+
+4. The trusted server operator uses the existing SupabaseReviewStore CAS to
+place q41_prepaid_evidence in the existing owner session, preserving every
+other field. This is a privileged maintenance action, not a Telegram callback
+or a new public importer. Verify there is no first-image claim, source
+checkpoint or journal emission before enrollment. Never clear a consumed
+claim or attempt to make a new record authorize a second emission.
+
+Record shape: {evidence, seal}. Required evidence fields:
+source = VERIFIED_SAME_API_ACCOUNT
+verification_method = BILLING_REVIEW
+billing_origin = https://open.higgsfield.ai
+reviewed_by = identity of the trusted reviewer
+account_id = directly verified API account/workspace ID
+api_key_sha256 = server-derived fingerprint of the existing credential
+user_id = existing owner, episode_id = ep_lumi_granja_004_20261008_ee7ab4b3
+shot_id = q41, descriptor_sha256 = isolatedQ41Input().descriptor_sha256
+checked_at = actual observation time, expires_at <= checked_at + 60 seconds
+balance_usd = verified numeric available USD, > 0 and <= 4.64
+prepaid_only = true, auto_recharge = false, credit_billing = false
+negative_balance_allowed = false, external_funding_locked = true
+proof_artifact = existing validateArtifact descriptor for the retained proof
+proof_reference = proof_artifact.sha256
+
+Each assertion must already be proved; these values are not defaults to copy.
+Seal on the trusted server with the existing callback secret using
+HMAC-SHA256(secret, FIRST_IMAGE_SCOPE + newline + inputDigest(evidence)),
+encoded as lowercase hex, and persist {evidence, seal} atomically by CAS.
+The operator must finish capture/enrollment early enough for human navigation,
+confirmation and preflight to complete inside the original 60-second window.
+Never extend checked_at without another actual observation. If an enforceable
+bound or timely evidence cannot be obtained, keep the gate closed.
+
+The runtime validates the seal, scope, credential fingerprint, reviewer/proof
+metadata, retained proof byte SHA, freshness and every economic requirement.
+The seal and hash authenticate a trusted attestation and its retained bytes;
+they do not automatically establish the truth of a financial screenshot.
+No economic evidence is accepted through Telegram. No source URL or prompt
+belongs in the economic record; both are constructed server-side just in time.
+This work does not create or enroll a real economic record.
+
+FAILURE AND RECOVERY
+Duplicate clicks/nonces and restarts cannot claim again. A failure after
+confirmation, estimate intent, quote receipt, authorization or reservation
+stays blocked; no implicit retry, variant, resubmit or new diagnostic key.
+Missing journal/accepted identity never enables a new generation. Only the
+already accepted original request can be recovered by GET, stored once,
+checked by SHA/resolution and reviewed in panel 138. Human approve/reject
+pauses the workflow. Neither Kling nor another image is enabled.
+HOME photo, canonical router, previous master and reviews are preserved.
+
+OFFICIAL REFERENCES CONSULTED 2026-10-11
+https://docs.higgsfield.ai/docs/llms.txt
+https://docs.higgsfield.ai/docs/openapi.json
+https://docs.higgsfield.ai/docs/authentication
+https://docs.higgsfield.ai/docs/concepts/billing-and-retention
+https://open.higgsfield.ai/terms-of-service (sections 2 and 9)
+https://higgsfield.ai/creator-hub/help-center/integrations/what-is-the-higgsfield-api
+
+CURRENT VALIDATION
+21/21 focused tests PASS. Final relevant regression: 319/319 PASS, including
+the 21 focused tests; zero failures, skips or cancellations. The same 20 test
+files listed in the historical record were executed with the offline guard,
+Node 24, --test --test-reporter=tap and default process isolation.
+node --check for server/runtime/authorization and git diff --check PASS.
+Complete local diff/security review PASS: no credential material added, no
+client economic enrollment or provider payload accepted, no retry path,
+credential/account/proof/quote/grant/reservation revalidated before emission,
+accumulated exposure checked again at the final boundary. Existing recovery,
+artifact SHA binding, human review and single-panel tests remain green.
+All billing proof/estimate/provider responses in tests are explicit offline
+fixtures and cannot be used as real economic evidence.
+Economic acceptance remains BLOCKED: no real reviewed Billing record or
+effective provider-side funding bound has been supplied/verified in this task.
+No live evidence enrollment, quote, generation, Telegram mutation, productive
+episode creation, push or deploy. Production remains untouched.
+
+HISTORICAL ACCEPTANCE RECORD — RETAINED FOR TRACEABILITY
+
 LUMI EP004 FIRST TELEGRAM IMAGE — LOCAL ACCEPTANCE
 2026-10-11. Local implementation only; no push, deploy or multimedia generation.
 

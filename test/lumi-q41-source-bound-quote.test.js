@@ -35,6 +35,111 @@ async function recover(runtime,f){
   return runtime.http.query({signed,signature:signRequest(secret,signed),user:'local-operator',operationId:f.base.operation_id});
 }
 
+test('Q41_KEY_V2: only the fixed v2 key creates a new operation',async()=>{
+  assert.equal(DIAGNOSTIC_Q41_KEY,'ep004:q41:source-bound-quote:v2');
+  const f=await setup();try{
+    assert.equal(f.base.operation_id,diagnosticOperationId('local-operator',DIAGNOSTIC_Q41_KEY,scope));
+    const before=await f.read();
+    assert.equal((await f.call('CONTEXT')).code,200); // Same key, fresh nonce: same context.
+    const r=await f.call(scope);assert.equal(r.code,200);assert.equal(r.value.status,'QUOTE_VERIFIED');
+    assert.equal((await f.call(scope)).value.already_applied,true);
+    assert.equal(f.calls.length,1);assert.equal(f.sources.length,1);assert.equal(f.store.episodes.size,1);
+    const v=await f.read();assert.deepEqual(v.grant,before.grant);assert.deepEqual(v.review,before.review);
+    assert.equal(v.checkpoint,null);assert.deepEqual(v.objects,{});assert.deepEqual(v.journal,{});
+    assert.equal(r.value.provider_generation_calls,0);assert.equal(r.value.telegram_mutation_calls,0);
+    assert.equal(r.value.publication_calls,0);assert.equal(r.value.episode_created,false);
+    assert.deepEqual(f.forbidden,[]);assert.deepEqual(globalThis.LUMI_OFFLINE_GUARD.attempts,[]);
+  }finally{await f.cleanup();}
+});
+
+test('Q41_KEY_V2: v1 stays immutable even on rejected POST; signed GET still recovers its result',async()=>{
+  const f=await setup();try{
+    const key='ep004:q41:source-bound-quote:v1',id=diagnosticOperationId('local-operator',key,scope);
+    const historical=await f.store.getEpisode(f.base.operation_id),v=historical.metadata.isolated_validation;
+    historical.episode_id=id;v.operation_id=id;v.idempotency_key=key;
+    v.expires_at='2026-10-11T18:10:25.247Z';v.staging_revision='d73e4c099d4861be5debe6740e919d7c21b6e463';
+    v.grant={...v.grant,operation_id:id,expires_at:v.expires_at,request_sha:v.request_sha,
+      user_id:'diagnostic:'+id.slice(8),episode_id:'diag_ep_'+id.slice(8,64)};
+    v.nonces={'offline-historical-v1-nonce':'a'.repeat(64)};
+    const blocked={operation_id:id,status:'BLOCKED',quote_status:'Q41_APPROVED_DESCRIPTOR_REQUIRED',
+      quote_usd:null,provider_generation_calls:0,telegram_mutation_calls:0};
+    v.results={[scope]:blocked};v.q41_quote_attempt={started_at:'2026-10-11T17:59:02.595Z',
+      request_id:'offline-historical-v1-nonce',prepared:null,result:blocked};
+    v.http_records=[];await f.store.putEpisode(historical);
+    const original=JSON.stringify(await f.store.getEpisode(id));
+    for(const phase of ['CONTEXT',scope,'STATUS']){
+      const r=await f.call(phase,{idempotency_key:key,operation_id:id});
+      assert.equal(r.code,400);assert.equal(r.value.error,'DIAGNOSTIC_OPERATION_MISMATCH');
+      assert.equal(JSON.stringify(await f.store.getEpisode(id)),original);
+    }
+    const read=await recover(restart(f),{base:{operation_id:id}});
+    assert.equal(read.status,200);assert.deepEqual(read.body.q41_quote,blocked);
+    assert.equal(JSON.stringify(await f.store.getEpisode(id)),original);
+    assert.notEqual(f.base.operation_id,id);
+    const current=await f.read();assert.notDeepEqual(current.grant,v.grant);
+    assert.equal(current.nonces['offline-historical-v1-nonce'],undefined);
+    assert.equal((await f.call(scope)).value.status,'QUOTE_VERIFIED');
+    assert.equal(f.calls.length,1);assert.equal(f.store.episodes.size,2);
+    assert.equal(JSON.stringify(await f.store.getEpisode(id)),original);assert.deepEqual(f.forbidden,[]);
+  }finally{await f.cleanup();}
+});
+
+for(const key of ['ep004:q41:source-bound-quote:v1','ep004:q41:source-bound-quote:v3','arbitrary-quote-key'])
+test('Q41_KEY_V2: rejected key cannot create a diagnostic '+key,async()=>{
+  const f=await isolatedFixture({scope});try{
+    const r=await f.call('CONTEXT',{idempotency_key:key,operation_id:diagnosticOperationId('local-operator',key,scope)});
+    assert.equal(r.code,400);assert.equal(r.value.error,'DIAGNOSTIC_OPERATION_MISMATCH');
+    assert.equal(f.store.episodes.size,0);assert.deepEqual(f.forbidden,[]);
+  }finally{await f.cleanup();}
+});
+
+test('Q41_KEY_V2: mismatched v1 identity cannot be used with v2 key',async()=>{
+  const f=await isolatedFixture({scope});try{
+    const r=await f.call('CONTEXT',{operation_id:diagnosticOperationId('local-operator','ep004:q41:source-bound-quote:v1',scope)});
+    assert.equal(r.code,400);assert.equal(r.value.error,'DIAGNOSTIC_OPERATION_MISMATCH');
+    assert.equal(f.store.episodes.size,0);
+  }finally{await f.cleanup();}
+});
+
+test('Q41_KEY_V2: repeated nonce rejects replay; new nonce recovers without a second estimate',async()=>{
+  const f=await setup();try{
+    const e=f.envelope(scope,{},'offline-v2-quote-nonce');assert.equal((await f.send(e)).code,200);
+    const r=await f.send(e);assert.equal(r.code,409);assert.equal(r.value.error,'replayed_request');
+    const saved=(await f.read()).q41_quote_attempt;
+    const runtime=restart(f);assert.equal((await runtime.http.run(e)).body.error,'replayed_request');
+    assert.equal((await runtime.http.run(f.envelope(scope))).body.already_applied,true);
+    assert.deepEqual((await recover(runtime,f)).body.q41_quote,saved.result);
+    assert.deepEqual((await f.read()).q41_quote_attempt,saved);assert.equal(f.calls.length,1);assert.equal(f.sources.length,1);
+  }finally{await f.cleanup();}
+});
+
+test('Q41_KEY_V2: changing signed key bytes cannot create a trusted v2 context',async()=>{
+  const f=await isolatedFixture({scope});try{
+    const oldKey='ep004:q41:source-bound-quote:v1';
+    const e=f.envelope('CONTEXT',{idempotency_key:oldKey,operation_id:diagnosticOperationId('local-operator',oldKey,scope)});
+    e.body={...e.body,idempotency_key:DIAGNOSTIC_Q41_KEY,operation_id:f.base.operation_id};
+    e.signed.body=Buffer.from(JSON.stringify(e.body));
+    assert.equal((await f.send(e)).code,401);assert.equal(f.store.episodes.size,0);
+    assert.deepEqual(f.forbidden,[]);
+  }finally{await f.cleanup();}
+});
+
+for(const fault of ['expired authorization','historical grant','production runtime','unsigned v2 key'])
+test('Q41_KEY_V2: '+fault+' cannot authorize a quote',async()=>{
+  const f=await setup();try{
+    if(fault==='historical grant'){
+      const row=await f.store.getEpisode(f.base.operation_id);
+      row.metadata.isolated_validation.grant.operation_id=diagnosticOperationId('local-operator','ep004:q41:source-bound-quote:v1',scope);
+      await f.store.putEpisode(row);
+    }
+    if(fault==='production runtime')f.env.LUMI_RUNTIME_ENV='production';
+    const e=f.envelope(scope,fault==='expired authorization'?{expires_at:'2000-01-01T00:00:00Z'}:{});
+    if(fault==='unsigned v2 key')e.signature='0'.repeat(64);
+    const r=await f.send(e);assert.ok(r.code>=400);assert.equal(f.calls.length,0);assert.equal(f.sources.length,0);
+    assert.equal((await f.read()).q41_quote_attempt,undefined);assert.deepEqual(f.forbidden,[]);
+  }finally{await f.cleanup();}
+});
+
 function reorderKeys(value,compare){
   if(Array.isArray(value))return value.map(v=>reorderKeys(v,compare));
   if(!value||typeof value!=='object')return value;
@@ -162,7 +267,7 @@ test('source binding rejects '+name,async()=>{const f=await setup({source});try{
 for(const [name,patch] of [
   ['NO_CLIENT_SUPPLIED_URL',{image_urls:[signedUrl]}],['NO_CLIENT_SUPPLIED_PROMPT',{prompt:'override'}],
   ['client request',{request:{input:d.input}}],['NO_GENERATION',{provider_generation:true}],
-  ['NO_TELEGRAM_MUTATION',{telegram_mutation:true}],['CREATE',{phase:'CREATE'}],['RESUME',{phase:'RESUME'}],
+  ['NO_TELEGRAM_MUTATION',{telegram_mutation:true}],['NO_PUBLICATION',{publication:true}],['CREATE',{phase:'CREATE'}],['RESUME',{phase:'RESUME'}],
   ['batch quote',{phase:'USD_PREFLIGHT'}],['price',{quote_usd:0}]])
 test(name+' rejected at HMAC boundary',async()=>{const f=await setup();try{
   assert.ok((await f.call(scope,patch)).code>=400);assert.equal(f.calls.length,0);assert.equal(f.sources.length,0);

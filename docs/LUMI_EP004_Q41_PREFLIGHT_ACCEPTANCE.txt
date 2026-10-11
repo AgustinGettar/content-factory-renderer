@@ -3,7 +3,20 @@ LUMI EP004 Q41 SOURCE-BOUND PREFLIGHT — LOCAL ACCEPTANCE
 Authoritative staging at task start: f598912c4707c1b639ffc9ca27c86fbc1d55c96d.
 No push, deployment, live quote, media generation, Telegram/Make mutation or production episode creation performed.
 
-IMPLEMENTED SCOPE
+OPERATION KEY RECOVERY — 2026-10-11, LOCAL ONLY
+Current POST key: ep004:q41:source-bound-quote:v2. All other q41 keys are rejected.
+The historical v1 record is unchanged and remains recoverable through signed GET only.
+Retired/arbitrary keys are rejected before HTTP observability can append to a CAS row.
+Existing diagnosticOperationId derives a distinct v2 identity; a fresh staging HMAC
+context issues its own bounded grant. Historical grants cannot authorize v2.
+Nonce replay, CAS leases, one durable estimate intent and fail-closed recovery remain unchanged.
+No push, deploy or live quote in this recovery change. No source/prompt/model/budget changes.
+Validation: 133/133 offline tests in q41, isolated USD/TTS, diagnostic HTTP and blocked EP004 UI.
+Security review: HMAC, staging/owner scope, historical immutability, tampered key bytes,
+grant expiry/identity, concurrency, no retry, no generation and no production writes PASS.
+The existing CI test list now includes the q41 suite. The original v1 acceptance follows.
+
+ORIGINAL IMPLEMENTED SCOPE (v1)
 Extend the existing POST /lumi/telegram-review/make/v1 diagnostic only.
 op: ISOLATED_V2_VALIDATION
 scope: EP004_Q41_IMAGE_QUOTE

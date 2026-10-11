@@ -32,6 +32,7 @@ jobs:
           test/lumi-isolated-tts-preflight.test.js
           test/lumi-fourth-episode-usd-preflight.test.js
           test/lumi-isolated-usd-preflight.test.js
+          test/lumi-q41-source-bound-quote.test.js
           test/lumi-ep004-telegram-blocked.test.js
           test/lumi-diagnostic-http.test.js
           test/lumi-real-executor-bindings.test.js

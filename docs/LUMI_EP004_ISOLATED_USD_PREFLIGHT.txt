@@ -1,0 +1,67 @@
+EP004 ISOLATED USD PREFLIGHT
+
+Base: 4c3a3946ca6e0c40176604ddb5bb04ec78ddf710.
+The recovered ZIP and patch match the supplied SHA256 hashes. The ZIP contains
+exactly the remote base plus the offline quote helper, its test and its historical
+documentation. No prior HMAC integration was present or reconstructed.
+
+Contract
+Use the existing POST /lumi/telegram-review/make/v1 and existing HMAC transport.
+op=ISOLATED_V2_VALIDATION, scope=LUMI_EP004_USD_PREFLIGHT_DRY_RUN.
+Only CONTEXT, USD_PREFLIGHT, STATUS are permitted. CONTEXT accepts no request.
+The existing owner allowlist, active-owner check, nonce, 15-minute TTL, staging
+revision binding, phase lease and CAS apply. One operation owns all evidence.
+Required flags: audience=staging, dry_run=true, provider_generation=false,
+publication=false, telegram_mutation=false. No message_id or prices are accepted.
+
+Pricing scope
+The server constructs five IMAGE and five VIDEO CONFIGURATION_QUOTE envelopes:
+marketing-studio/image; high; 2k; 9:16.
+kling-video/v3.0/pro/image-to-video; 4,5,5,5,5 seconds; sound off.
+These inputs are explicitly configuration estimates, not a recovered production
+plan. No fake image URL, canonical-image substitution or historical episode
+source is sent. Source fields are omitted. If the provider requires a source,
+its HTTP rejection is persisted and no substitute or retry is attempted.
+The source-bound helper retains its strict source requirements by default.
+
+The only outbound capability is POST https://api.higgsfield.ai/estimate/{model}.
+Redirects are forbidden. HF_API_KEY stays in the request closure. No generation,
+TTS synthesis, storage upload, Telegram call, episode creation or publication.
+Only explicit API USD is accepted. Connector credits are never converted.
+The USD quote response does not certify that 2K High was honored.
+HTTP success records authenticated-estimate acceptance, separately from key
+presence, USD validity, quality support and budget approval.
+
+Recovery
+Intent is durably stored before outbound I/O. Each safe quote summary is stored
+in the same diagnostic CAS row before the next estimate. No raw provider body,
+credential, HMAC, source URL or prompt is included in the result summary.
+Errors stop the operation, with sanitized codes and numeric HTTP status.
+A repeated phase returns its immutable result. If a process/lease dies before
+the final result, a later explicit phase returns QUOTE_ATTEMPT_OUTCOME_UNPROVEN
+with the already persisted partial quotes; it performs zero provider calls.
+No generic timeout increase, new worker, queue, budget system or table is added.
+
+Budget and production
+CONFIGURATION_QUOTE always leaves budget_gate=BLOCKED. Final source binding,
+provider evidence of 2K High support, a verifiable Fernanda USD upper bound and
+the same API billing identity/balance are still required. Existing ElevenLabs
+preflight reports character quota with usd=null; quota is not a USD quote.
+TTS estimate remains 371 characters; no narration is invented or synthesized.
+No generation grant is issued. Generic V2 Adapter and production grants remain
+unchanged. legacy remains default; V2 global, runners and autorun stay off.
+
+Telegram inspection
+The durable session for message 138 is HOME with the existing ideas menu and no
+v2_authorizations. Legacy idea selection still enters the legacy production
+path. The server-side V2 authorization validator exists; a budget-bound grant
+issuer and create/confirm flow must be connected after verifiable budget input
+is available. This change does not claim that Telegram CREATE V2 is ready.
+
+Execution
+After CI and staging deploy, create one fresh scope-bound operation using
+diagnosticOperationId(owner, newIdempotencyKey, DIAGNOSTIC_USD_SCOPE).
+Run CONTEXT, then exactly one USD_PREFLIGHT with the same key and expiry and a
+fresh HMAC nonce. Recover results.USD_PREFLIGHT plus HTTP records by read-only
+SELECT of that operation, or use STATUS while its grant remains valid.
+Do not replay an ambiguous operation. Generation needs separate human approval.

@@ -10,6 +10,7 @@ const inputs=()=>[
   prompt:'Premium Lumi CGI animation',image_url:'https://example.test/source.png',duration,sound:'off',multi_shots:false,cfg_scale:0.5}}))
 ];
 const env={LUMI_RUNTIME_ENV:'staging',HF_API_KEY:'LOCAL_FAKE_KEY'};
+// All transport in this suite is simulated; example.test is never submitted.
 const fake=(quote='0.30')=>async(url,options)=>{
  assert.match(url,/^https:\/\/api\.higgsfield\.ai\/estimate\//);
  assert.equal(options.method,'POST');assert.equal(options.headers.Authorization,'Key LOCAL_FAKE_KEY');
@@ -75,4 +76,50 @@ test('failed estimate does not call next endpoint',async()=>{
 test('rejects superseded Flare model even if image quality is high',()=>{
  const x=inputs();x[0].model='marketing-studio/image/flare';
  assert.throws(()=>validateQuoteEnvelopes(x),/IMAGE_2K_HIGH_SOURCE_REQUIRED/);
+});
+
+test('documented Kling Pro estimate parameters: source mandatory, sound off, 4/5 seconds, prompt <=2500',()=>{
+ for(const edit of [x=>delete x[5].input.image_url,x=>x[5].input.audio=false,
+  x=>x[5].input.resolution='1080p',x=>x[5].input.aspect_ratio='9:16',
+  x=>x[5].input.multi_shots=true,x=>x[5].input.prompt='a'.repeat(2501)]){
+  const x=inputs();edit(x);assert.throws(()=>validateQuoteEnvelopes(x),/KLING_PRO_SOURCE_REQUIRED/);
+ }
+ const x=inputs();x[5].input.prompt='a'.repeat(2500);assert.equal(validateQuoteEnvelopes(x).length,10);
+});
+
+test('image quote request preserves the approved 2k/high/9:16 parameters',async()=>{
+ let images=0;
+ await quoteFourthEpisodeUsd({env,envelopes:inputs(),fetchImpl:async(url,opts)=>{
+  if(url.endsWith('/marketing-studio/image')){
+   const x=JSON.parse(opts.body);assert.equal(x.quality,'high');assert.equal(x.resolution,'2k');
+   assert.equal(x.aspect_ratio,'9:16');assert.equal(x.enhance_prompt,false);images++;
+  }
+  return Response.json({usd:'0.248'});
+ }});
+ assert.equal(images,5); // Request fidelity, not proof of provider rendering quality.
+});
+
+test('Marketing Studio image estimate respects the documented 5000-character prompt limit before I/O',async()=>{
+ const atLimit=inputs();atLimit[0].input.prompt='a'.repeat(5000);
+ assert.equal(validateQuoteEnvelopes(atLimit).length,10);
+ for(const length of [5001,12000]){
+  const envelopes=inputs();envelopes[0].input.prompt='a'.repeat(length);
+  const r=await quoteFourthEpisodeUsd({env,envelopes,fetchImpl:()=>assert.fail('over-limit input reached transport')});
+  assert.equal(r.quote_status,'IMAGE_2K_HIGH_SOURCE_REQUIRED');assert.equal(r.budget_gate,'BLOCKED');
+  assert.deepEqual(r.quotes,[]);
+ }
+});
+
+test('371 included-quota characters are not automatically a verified USD quote',async()=>{
+ const {ttsBudgetDecision}=await import('../lib/lumi-tts-stage-v2.js');
+ const snapshot={currency:'ELEVENLABS_CHARACTER_QUOTA',units:371,character_count:371,
+  quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:39931},request_fingerprint:'offline',provenance:'HISTORICAL_SNAPSHOT_SIMULATION'};
+ const q=ttsBudgetDecision({quota_reserve_characters:1000},snapshot,'offline');
+ assert.equal(q.status,'PASS');assert.equal(q.usd,null);
+ const r=await quoteFourthEpisodeUsd({env,envelopes:inputs(),fetchImpl:fake(),
+  verifiedApiBalanceUsd:5,balanceAccountVerified:true,imageQualityVerified:true,
+  ttsUpperBoundUsd:q.usd,ttsContractVerified:false});
+ assert.equal(r.budget_gate,'BLOCKED');assert.equal(r.total_projected_usd,null);
+ snapshot.quota.REMAINING_CHARACTERS=1370;
+ assert.equal(ttsBudgetDecision({quota_reserve_characters:1000},snapshot,'offline').status,'BUDGET_EXHAUSTED');
 });

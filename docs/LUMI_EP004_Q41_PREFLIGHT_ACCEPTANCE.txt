@@ -1,0 +1,74 @@
+LUMI EP004 Q41 SOURCE-BOUND PREFLIGHT — LOCAL ACCEPTANCE
+2026-10-11. Base: 543ba8a36f0c9e7677352c925f02a19d379cab7a.
+Authoritative staging at task start: f598912c4707c1b639ffc9ca27c86fbc1d55c96d.
+No push, deployment, live quote, media generation, Telegram/Make mutation or production episode creation performed.
+
+IMPLEMENTED SCOPE
+Extend the existing POST /lumi/telegram-review/make/v1 diagnostic only.
+op: ISOLATED_V2_VALIDATION
+scope: EP004_Q41_IMAGE_QUOTE
+phases: CONTEXT, then EP004_Q41_IMAGE_QUOTE. STATUS reads the completed phase while the context is valid.
+idempotency_key: ep004:q41:source-bound-quote:v1 (fixed, not caller-selectable).
+operation_id: diagnosticOperationId(authorized_user_id, idempotency_key, scope).
+Existing HMAC envelope, requester allowlist, active owner, staging audience, TTL and CAS lease remain mandatory.
+The request must have dry_run=true, provider_generation=false, publication=false, telegram_mutation=false.
+Do not send request, prompt, URL, model, source, price or approval overrides. They are rejected.
+No new route, Higgsfield client, estimator, schema, table, queue, worker or generation authority.
+
+Q41 DESCRIPTOR
+Recovered docs/LUMI_EP004_FIRST_SOURCE_PROPOSAL.json, with its original prompt preserved verbatim and only this sentence appended:
+Lumi holds her canonical wand with a visible star, without duplication, disappearance or transformation.
+Prompt SHA256: 5375de4f309192b1e963bef8623330e34ae8e4385c832d85d7b68e2b0a414360.
+2201 characters. Approval scope: quote only, from the current user instruction. No generation approval or episode-plan validation is implied.
+Model: marketing-studio/image; resolution: 2k; quality: high; aspect_ratio: 9:16; moderation: auto; enhance_prompt: false.
+The runtime checks the frozen production and image profiles and the pinned descriptor prompt and canonical SHA. No other shot changed.
+The pre-existing local 5000-character limit fix and its regression test are retained in the same commit.
+
+CANONICAL SOURCE AND EPHEMERAL TRANSPORT
+Canonical SHA256: 5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.
+The recovered local source bytes match that SHA and size 2282010. Remote bytes were NOT re-read in this execution.
+At execution in staging, the existing storageLoader downloads the original private object and checks exact size and SHA.
+Mismatch stops before signing or estimating. The existing signedMediaTransport then signs the source server-side for 300 seconds.
+The quote flow accepts only that object's signed path at the configured Supabase origin. No signed URL is persisted, logged or returned.
+Only the exact input JSON SHA (including transient image_urls), canonical SHA, descriptor/profile/prompt hashes and safe receipt fields enter CAS.
+The URL expires and is discarded. This quote is historical evidence for that exact payload, not a reusable generation grant.
+Re-signing changes the payload and would require separately authorized re-quotation; the fixed v1 operation cannot be reset with a new client key.
+
+SINGLE ESTIMATE AND RECOVERY
+Uses estimateHiggsfieldUsd once, restricted to POST https://api.higgsfield.ai/estimate/marketing-studio/image, authenticated with the server's HF_API_KEY.
+Durable intent precedes source access; prepared payload SHA precedes estimator dispatch; sanitized receipt precedes phase/HTTP completion.
+No automatic retry. Timeout, malformed data, interruption, failed persistence and concurrent calls cannot repeat the estimate in this operation.
+The existing signed GET /lumi/telegram-review/make/diagnostic/:user/:operationId returns q41_quote from the saved phase, saved receipt, or prepared evidence.
+This GET remains read-only after context expiration or runtime restart and never signs a new URL or calls the estimator.
+If only intent/prepared evidence exists, the quote outcome is unproven. Do not treat that as a quote or resend it.
+Receipt fields: http_status, provider_request_id, model, payload_sha256, quote_usd, quote_timestamp, quote_expiration, provider_units.
+Provider request ID and expiration remain null when absent; diagnostic_request_id is separately identified. Units are never treated as wallet USD.
+CAS and observability use the existing diagnostic row; the target EP004 production episode remains PROPOSED_NOT_CREATED.
+
+BUDGET
+Q41_QUOTE_USD: not obtained live.
+Historical USD 0.248 is CONFIGURATION_QUOTE only. Offline tests use synthetic USD values and are not live quotes.
+Q41_COST_CEILING: unverified/null. An estimate is not a contractual maximum charge.
+EPISODE_TOTAL_BUDGET_USD: 5.00.
+FIRST_IMAGE_BUDGET_GATE: BLOCKED. EPISODE_BUDGET_GATE: BLOCKED, including when the single USD quote succeeds.
+
+LOCAL VALIDATION
+32 q41 focused tests passed, then 140/140 relevant regression tests passed with the hard offline network guard active.
+Zero failures, skips or cancellations. Offline source/provider fakes are explicitly identified; no live-source or provider-success claim.
+Verified: CANONICAL_SHA_REQUIRED, SERVER_SIDE_SIGNED_SOURCE, NO_CLIENT_SUPPLIED_URL, NO_CLIENT_SUPPLIED_PROMPT,
+APPROVED_MODEL, 2K_HIGH, HMAC_REQUIRED, USD_REQUIRED, CREDITS_ONLY_REJECTED, DURABLE_RESULT_RECOVERY,
+NO_GENERATION, NO_TELEGRAM_MUTATION, concurrency, CAS failures, malformed response, timeout and no resubmit.
+Regression files: test/higgsfield-usd-budget-v1.test.js, test/lumi-fourth-episode-usd-preflight.test.js,
+test/lumi-isolated-usd-preflight.test.js, test/lumi-isolated-validation.test.js, test/lumi-isolated-tts-preflight.test.js,
+test/lumi-diagnostic-http.test.js, test/lumi-ep004-telegram-blocked.test.js, test/lumi-q41-source-bound-quote.test.js.
+Command prefix: node --import ./scripts/director-offline-guard.mjs --test --test-isolation=none --test-reporter=tap
+
+OPEN BLOCKERS AND APPROVAL BOUNDARY
+This runtime has no HF_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or LUMI_TELEGRAM_CALLBACK_SECRET.
+The deployed diagnostic cannot execute the new q41-only scope. Remote SHA verification, signing and the single live quote therefore await deployment.
+User phase 7 requires specific authorization before publication. Prepare one local commit, then stop.
+Requested next authorization: publish the reviewed commit to AgustinGettar/content-factory-renderer, lumi-telegram-review-v1,
+run CI, deploy exclusively staging and invoke one authenticated non-generative q41 estimate, then retrieve durable evidence and stop.
+That authorization must not be interpreted as permission to generate an image, create the episode, enable production or modify Make.
+
+LUMI APP — Q41 PREFLIGHT READY FOR DEPLOYMENT APPROVAL

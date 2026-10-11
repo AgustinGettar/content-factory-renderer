@@ -1,0 +1,96 @@
+{
+  "status": "READY_FOR_QUOTE_ONLY",
+  "purpose": "Server-owned q41 quote descriptor; no generation or episode creation authorization",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "title": "Lumi y los animales de la granja",
+  "educational_objective": "Reconocer vaca, oveja y gallina y relacionarlas con sus sonidos.",
+  "shot_id": "q41",
+  "creative_approval": "APPROVED_FOR_QUOTE_ONLY",
+  "episode_shot_contract": "DRAFT_PENDING_EXISTING_AV2_SCENE_AND_SHOT_VALIDATION; no future source SHA may be fabricated",
+  "proposed_shot_role": "Opening greeting and farm establishment; no animal identification answer is requested in this opening shot",
+  "later_video_duration_seconds": 4,
+  "canonical_reference": {
+    "id": "LUMI_CANONICAL_SOURCE_V2",
+    "sha256": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+    "scope": "IDENTITY_AND_STYLE_ONLY_NOT_EP004_FIRST_FRAME",
+    "bytes_verified_locally": true,
+    "storage_bucket": "av2-generative-video-benchmarks",
+    "storage_path": "lumi-series-v2/ep_lumi_flores_003/q31-PRO2/source/5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33.png",
+    "runtime_storage_bytes_reverification_required": true,
+    "size_bytes": 2282010
+  },
+  "frozen_profiles": {
+    "production": "LUMI_PRODUCTION_PROFILE_V2",
+    "character": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+    "image": "LUMI_IMAGE_QUALITY_PROFILE_V2",
+    "video": "LUMI_VIDEO_QUALITY_PROFILE_V2",
+    "director": "LUMI_CINEMATIC_DIRECTOR_V1",
+    "style": "PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI; not photorealistic"
+  },
+  "image_model": "marketing-studio/image",
+  "provider_parameters_without_transport": {
+    "prompt": "Create the actual first frame for q41 of Lumi y los animales de la granja. Use the supplied canonical Lumi image ONLY for character identity, proportions, clothing, materials and premium render style; replace its garden with a welcoming preschool farm. PREMIUM FEATURE-FILM-QUALITY STYLIZED 3D CGI, not photographic realism. One warm-yellow rounded Lumi, large turquoise eyes with rich catchlights, pink cheeks, two violet-tipped antennae, yellow tuft, light-blue denim overalls and white/light-blue sneakers. Exactly one head and torso, two arms, two legs and two translucent blue wing assemblies attached to the upper back. Below the wings show only the canonical torso/overalls silhouette: no bee abdomen, stripes, stinger, rear bulb, second torso, independent extra wings or extra limbs. Do not reproduce an ambiguous posterior crescent from the reference as added anatomy. Vertical 9:16 full-body composition, feet grounded, front or fixed gentle three-quarter orientation, all extremities inside frame, clear space above antennae and below shoes. Lumi is the welcoming focal subject, smiling toward the viewer, one hand resting in a small open greeting pose suitable for a later restrained four-second greeting. Behind and beside her, three clearly separated farm animals: one friendly cow on the left, one sheep on the right, one hen in the lower-right farmyard, with natural preschool-friendly proportions and unobstructed silhouettes. No extra animals, eggs, flowers as teaching objects, hybrids or duplicate limbs. Keep every animal separate from Lumi's face, hands, wings and feet. A small distant barn, a low wooden fence, textured grass and a clear morning sky establish the farm without clutter. Rich dimensional materials, soft cinematic daylight, warm key light, natural depth, subtle contact shadows, gentle depth of field with every teaching animal recognizable. No flat cartoon, 2D, anime, plastic toy look, costume changes or character redesign. No text, captions, letters, logos or watermark. One still image, 2K High, preserve Lumi's approved identity and cinematic quality. Lumi holds her canonical wand with a visible star, without duplication, disappearance or transformation.",
+    "quality": "high",
+    "resolution": "2k",
+    "aspect_ratio": "9:16",
+    "moderation": "auto",
+    "enhance_prompt": false
+  },
+  "transport_binding": "At quote preparation, the existing media transport must resolve the SHA-verified canonical reference into image_urls[0]. No URL or placeholder is supplied here. Quote and emit exactly the same bound input; any transport or payload change invalidates its quote.",
+  "source_output": {
+    "artifact_sha256": null,
+    "artifact_url": null,
+    "source_qa": "NOT_RUN",
+    "human_review": "NOT_REQUESTED",
+    "status": "NOT_CREATED"
+  },
+  "budget": {
+    "episode_hard_limit_usd": 5,
+    "historical_configuration_estimate_usd": 0.248,
+    "exact_q41_bound_input_quote_usd": null,
+    "first_image_provider_cost_ceiling_usd": null,
+    "remaining_episode_cost_ceiling_usd": null,
+    "episode_budget_gate": "BLOCKED",
+    "first_image_limited_authorization": "NOT_READY"
+  },
+  "proposed_authorization_scope": {
+    "action": "GENERATE_FIRST_SOURCE_ONLY",
+    "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "shot_id": "q41",
+    "stage": "IMAGE",
+    "model": "marketing-studio/image",
+    "max_provider_submissions": 1,
+    "automatic_retries": 0,
+    "variants": 0,
+    "resubmits": 0,
+    "allowed_followup": "GET_SAME_REQUEST_AND_RECOVER_ORIGINAL_ARTIFACT_ONLY",
+    "kling_authorized": false,
+    "other_images_authorized": false,
+    "tts_authorized": false,
+    "episode_creation_authorized": false,
+    "publication_authorized": false,
+    "grant_issued": false
+  },
+  "pre_dispatch_requirements": [
+    "Human approval of this q41 creative proposal; freeze prompt and shot hash",
+    "Verify canonical storage bytes against the approved SHA",
+    "Compile exact real provider input with canonical reference transport",
+    "Fresh authenticated USD quote plus a verifiable maximum charge basis",
+    "Specific human confirmation of that maximum for q41 only",
+    "Existing authorization authority issues a narrowly scoped server-side CAS grant",
+    "Reserve cost and claim the immutable first-source operation before submission"
+  ],
+  "post_dispatch_requirements": [
+    "Persist request identifier before response handoff; ambiguous outcome blocks all resubmission",
+    "Recover only the original request, store original bytes and compute SHA",
+    "Existing source QA checks identity, anatomy, educational semantics, color, cinematic quality and video readiness",
+    "Human review bound to q41 artifact SHA in the existing panel 138",
+    "Remain paused even after approval; no automatic Kling, q42 or TTS",
+    "Later source-bound Kling quote and new authorization required"
+  ],
+  "quote_approval": {
+    "scope": "EP004_Q41_IMAGE_QUOTE_ONLY",
+    "provenance": "User instruction EP004 Q41 FINAL SOURCE BINDING AND SINGLE QUOTE; retain existing descriptor and add only the missing wand declaration",
+    "prompt_sha256": "5375de4f309192b1e963bef8623330e34ae8e4385c832d85d7b68e2b0a414360"
+  }
+}

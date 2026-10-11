@@ -1,0 +1,172 @@
+LUMI EP004 — LOCAL CONTRACT REPAIR AND BLOCKED TELEGRAM PREVIEW
+Evidence inspected 2026-10-11. Decision B: source-bound quote dependency.
+
+BASE
+Repository: AgustinGettar/content-factory-renderer
+Remote branch: lumi-telegram-review-v1
+Remote/staging SHA: f598912c4707c1b639ffc9ca27c86fbc1d55c96d
+Local parent: 4e406796a2b3abdccc097fd23e956b3459b399a6
+Parent tree equivalence: 552d3091dfa9507eb7dc41306bab8bc14b86e24d
+Historical CI: 38144067441 GREEN; not evidence for this new local commit.
+Episode: ep_lumi_granja_004_20261008_ee7ab4b3, PROPOSED_NOT_CREATED
+
+Q41 EVIDENCE — NO REPLAY
+Durable operation:
+diag_v2_7c119db1a419da07aae1e1a399e5e3cc7db69cb098ff329202adeb89a2a413d6
+REQUEST_ID: 88c6a6c076af407da560f8a744464578 (Lumi USD operation request)
+PROVIDER_REQUEST_ID: NOT_RECORDED
+HTTP_STATUS: 400 (provider estimate; outer authenticated HTTP result was 200)
+ERROR_CODE: ESTIMATE_HTTP_ERROR (Lumi classification)
+PROVIDER_ERROR_CODE: NOT_RECORDED
+SANITIZED_ERROR_MESSAGE: ERROR_DETAIL_UNAVAILABLE
+MODEL: kling-video/v3.0/pro/image-to-video
+ENDPOINT: POST https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video
+ENDPOINT_BASIS: deployed estimateHiggsfieldUsd implementation plus durable model.
+PAYLOAD_HASH: NOT_RECORDED_FOR_FAILED_QUOTE
+PARAMETER_NAMES: prompt, duration, sound, multi_shots, cfg_scale
+QUOTE_TYPE: CONFIGURATION_QUOTE
+TIMESTAMP: 2026-10-11T13:42:40.675Z (durable operation result, not a per-q41 timestamp)
+PER_REQUEST_TIMESTAMP: NOT_RECORDED
+The request configuration had duration 4, sound off, multi_shots false,
+cfg_scale 0.5, and a nonempty prompt. image_url was absent. aspect_ratio,
+resolution and an audio parameter were absent.
+The durable outer HMAC body hash is not the provider payload hash.
+The estimator throws on non-2xx before reading the response body. Therefore
+the stored record cannot identify the provider's exact rejected field.
+No cause is inferred from HTTP 400 alone; missing source is independently
+demonstrated as a mismatch with the documented contract below.
+
+OFFICIAL CONTRACTS CONSULTED
+https://docs.higgsfield.ai/docs/concepts/billing-and-retention
+The estimator is documented with the same model parameters. Its authenticated
+USD response is the pricing evidence; illustrative prices are not quotations.
+https://docs.higgsfield.ai/docs/models/kling-3/pro-image-to-video
+Kling 3.0 Pro image-to-video requires a real public image_url. Duration is an
+integer, 3–15 seconds. sound accepts on/off. multi_shots defaults false.
+Usage notes require a nonempty top-level prompt up to 2,500 characters.
+cfg_scale accepts 0–1. No aspect_ratio or resolution input is documented
+for this endpoint. There is no documented source-free estimator exemption.
+The existing V2 executor supplies the reviewed, verified source as image_url
+and uses the frozen Pro endpoint. Its generative contract was not modified.
+This proves a source dependency, not the historical provider's error detail.
+
+https://docs.higgsfield.ai/docs/models/marketing-studio-image/generate-and-edit
+The approved marketing-studio/image endpoint explicitly accepts resolution
+2k, quality high, aspect_ratio 9:16 and enhance_prompt false. No Flare switch.
+The estimator serializes the supplied input without removing quality.
+The response does not attest rendered quality or a future source-bound price.
+
+RETAINED IMAGE QUOTES — NOT REQUESTED AGAIN
+q41: USD 0.248 at 2026-10-11T13:42:34.878Z
+q42: USD 0.248 at 2026-10-11T13:42:36.134Z
+q43: USD 0.248 at 2026-10-11T13:42:37.103Z
+q44: USD 0.248 at 2026-10-11T13:42:38.053Z
+q45: USD 0.248 at 2026-10-11T13:42:39.354Z
+Sum: USD 1.240, CONFIGURATION_QUOTE, not a final charge or a binding ceiling.
+Each durable image payload hash:
+5e4449b9cc2ce7a39c18c6314708d9c20e72bf16f9464dd5d8654c14445ae946
+The persisted result's aggregate fields were null because the ten-quote
+operation stopped at Kling q41. USD 1.240 is the sum of the five durable items.
+No Kling dollar amount is available; no promotional price or credit conversion
+is substituted. Remaining allowance before voice/reserve is USD 3.760.
+
+ELEVENLABS ECONOMIC COVERAGE
+https://elevenlabs.io/docs/overview/administration/billing
+Subscriptions include a monthly quota. Additional usage may use prepaid PAYG
+on new subscriptions or optional usage billing on eligible legacy plans.
+Legacy Starter is distinguished from new Starter. Subscription tier alone
+does not establish current overage/PAYG settings.
+The authenticated account binding retained from 2026-10-07T18:48:08.792Z shows:
+tier starter; status active; consumed 69; limit 40000; remaining 39931;
+current_overage amount 0 USD; can_extend false; max extension 0.
+The frozen Fernanda model and voice multipliers are both 1. At those rates,
+371 characters need 371 quota units; with the existing 1000-unit reserve,
+1371 units would fit the historical 39931 available units.
+TTS_QUOTA_GATE: HISTORICALLY_SUFFICIENT; CURRENT_QUOTA_UNVERIFIED
+TTS_MARGINAL_COST_BASIS: included subscription quota, conditionally no incremental
+charge while usage remains entirely within the included quota. Subscription
+fees are sunk costs, not a fabricated per-character rate. This is a conditional
+billing conclusion, not a current authenticated USD quotation.
+TTS_COST_USD: UNKNOWN for this future emission
+TTS_BUDGET_COVERAGE: BLOCKED until a current read confirms the same account,
+rates, remaining quota, concurrent reservations and absence of additional
+charge for the planned request. Restricted API-key quota was not evidenced.
+No audio was generated; no remote preflight was performed in this execution.
+
+BUDGET REVIEW
+HARD_BUDGET_USD: 5.00
+TOTAL_PROJECTED_USD: UNKNOWN; only the image subtotal is known.
+BUDGET_GATE: BLOCKED
+The existing runtime checks quote currency, episode/action identity and expiry,
+uses the existing Budget Gate and a CAS stage receipt, and blocks ambiguous
+redispatch. Stage-result reconciliation sums actual costs or reserved estimates
+into current_cost_usd. Waiting receipts prevent a new dispatch for that action.
+The gate adds the next cost plus an optional reserve. The materializer does not
+populate required_remaining_reserve_usd for requests pending before a result;
+that value defaults to zero. This review does not establish complete coverage
+of every outstanding reservation under the requested ceiling. The reviewed
+path also does not compare the stored quote payload hash to the final emitted
+payload. No production-grade ceiling guarantee is asserted from these checks.
+These existing runtime paths were not changed under the narrow estimate repair.
+The UI does not activate them. No proof shows that five videos exceed USD 5,
+so no duration reduction or creative change has been prepared or applied.
+
+LOCAL CHANGES
+1. Reject configuration-only Kling quote envelopes before any provider I/O,
+including image re-quotes; return KLING_SOURCE_BOUND_QUOTE_REQUIRED. Constrain
+the estimate prompt to the documented 2500-character bound. No fake URL.
+The isolated proposal remains available as configuration evidence, never a
+generative request. Previously completed diagnostic results remain immutable.
+2. Extend the existing Telegram ReviewService menu/callback router with
+Create video -> EP004 -> budget blocked. Navigation retains the HOME photo,
+existing legacy entries and the existing message identifier. The start button
+only acknowledges the block and returns provider_calls=0, episode_created=false
+and authorization_created=false. Budget confirmation is not offered prematurely.
+3. Focused tests and one CI test-list entry; no dependencies changed.
+
+EXACT TELEGRAM ACTIVATION STATUS
+Real panel 138: UNMODIFIED. No Telegram API calls in this execution.
+Local preview: PREPARED_BLOCKED, tested on message_id 138.
+ControlledV2Authorization already validates server-side CAS grants and HMAC
+commands. GenericV2Runtime is already composed with the existing adapter.
+There is no production grant issuer connecting the menu confirmation to those
+components, and no validated EP004 production plan/budget proof was recovered.
+This change does not claim that the final authorization/start path is ready.
+That connection remains pending verified financial evidence and a real bound
+plan. It must use the existing authority/CAS/HMAC, never callback booleans.
+Global legacy default, V2 global OFF, runners OFF and autorun false unchanged.
+
+VALIDATION
+Initial focused invocation omitted the repository offline guard; 31 passed,
+1 failed because the test expected the guard global. No production code was
+changed to suppress that check. Corrected invocation used the existing guard.
+Focused: 32/32 PASS, network disabled:
+node --import ./scripts/director-offline-guard.mjs --test test/lumi-fourth-episode-usd-preflight.test.js test/lumi-isolated-usd-preflight.test.js test/lumi-ep004-telegram-blocked.test.js
+Relevant regression: 113/113 PASS, network disabled:
+node --import ./scripts/director-offline-guard.mjs --test test/lumi-telegram-review-v1.test.js test/lumi-make-transport.test.js test/lumi-panel-renderer-v2.test.js test/lumi-production-profile-v2.test.js test/lumi-generic-runtime-integration.test.js test/lumi-elevenlabs-direct-v3.test.js test/lumi-elevenlabs-discovery-v3.test.js test/higgsfield-usd-budget-v1.test.js
+Coverage: source contract, image parameter preservation, unknown TTS USD,
+budget rejection, durable historical result reuse, CAS contention, HMAC/scope
+rejection, ownership, repeated start, process-instance restart and HOME recovery.
+These are local simulated tests, not staging evidence or five-gate reruns.
+Security review: no new external endpoint, grant issuer, provider path, secret,
+signed URL, global activation or publication path. Blocked callbacks perform
+no state write and no create/resume dispatch. Existing historical episodes and
+generative executors remain untouched. Real activation remains NOT_APPROVED.
+
+FIRST PENDING ACTION
+Resolve the source dependency with authentic images explicitly authorized for
+EP004, or obtain an official source-free estimate contract from the provider.
+The approved current estimator contract requires real sources. Do not bypass
+this by generating sources before economic controls and separate authorization.
+Then prepare a specifically authorized source-bound quote operation, preserving
+the historical configuration prices. Do not rerun the original ten-quote job.
+Read current ElevenLabs quota/billing evidence, establish reservations and
+bind each next-request quote before completing the grant issuer/start wiring.
+Any publication, deployment, quote request or generation needs the separate
+authorization required by the current user instruction.
+
+REMOTE WRITES: 0
+NEW REMOTE PREFLIGHTS: 0
+PROVIDER_GENERATION_CALLS: 0
+EPISODE_CREATED: false
+PRODUCTION/PANEL MUTATIONS: 0

@@ -27,7 +27,7 @@ function raster(width=1152,height=2048){
   return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(Buffer.alloc((width*3+1)*height))),chunk('IEND',Buffer.alloc(0))]);
 }
 const image=raster();
-async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.271,estimateMode='success',transportPatch={}}={}){
+async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.271,estimateMode='success',transportPatch={},supervised=false,readProviderBalance=null,actualCostUsd=null}={}){
   const reviewStore=new MemoryReviewStore(),store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store});
   const objects=new Map([[d.canonical_artifact.bucket+'/'+d.canonical_artifact.path,canonical]]),journalRows=new Map(),calls=[],telegramCalls=[];
   const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_CALLBACK_SECRET:secret,LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',
@@ -48,7 +48,7 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
   const diag=diagnosticOperationId('1',DIAGNOSTIC_Q41_KEY,DIAGNOSTIC_Q41_SCOPE);
   await store.putEpisode({episode_id:diag,metadata:{isolated_validation:{q41_quote_attempt:{result:quote}}}});
   const edit=async fn=>{const row=await reviewStore.get('1');fn(row.state);await reviewStore.cas('1',row.revision,row.state);};
-  await edit(s=>{s.q41_prepaid_evidence=seal(evidence);s.episodes.historical={episode_id:'historical',master:{...cover,mime:'video/mp4'},reviews:{approved:{status:'APPROVED'}}};});
+  await edit(s=>{if(!supervised)s.q41_prepaid_evidence=seal(evidence);s.episodes.historical={episode_id:'historical',master:{...cover,mime:'video/mp4'},reviews:{approved:{status:'APPROVED'}}};});
   const storage={download:async(b,p)=>objects.get(b+'/'+p)??null,upload:async(b,p,bytes)=>{assert.ok(!objects.has(b+'/'+p));objects.set(b+'/'+p,Buffer.from(bytes));}};
   // Mirror the existing SQL FK/admission contract, not only the JS interface.
   const journal={get:async id=>structuredClone(journalRows.get(id)||null),prepare:async row=>{
@@ -58,7 +58,7 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
   const fetchImpl=async(url,options={})=>{
     calls.push({url,method:options.method||'GET',body:options.body});assert.equal(options.redirect,'error');
     if(url==='https://api.higgsfield.ai/estimate/marketing-studio/image'){
-      assert.equal(options.method,'POST');assert.equal(journalRows.size,0);
+      assert.equal(options.method,'POST');assert.ok([...journalRows.values()].every(j=>j.incident_classification==='INSUFFICIENT_PROVIDER_BALANCE'));
       assert.equal((await store.getEpisode(operation)).metadata.first_image.state,'ESTIMATING');
       assert.equal((await reviewStore.get('1')).state.v2_authorizations[operation].status,'PREFLIGHT_CLAIMED');
       if(estimateMode==='timeout')throw Error('OFFLINE_ESTIMATE_TIMEOUT');
@@ -70,17 +70,21 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
     if(options.method==='POST'){
       assert.equal(url,'https://api.higgsfield.ai/marketing-studio/image');
       const cp=await store.getEpisode(operation);assert.equal(cp.metadata.first_image.state,'EMITTING');
-      assert.equal(cp.metadata.budget_reservations['image:q41'].amount_usd,4.64);assert.equal(journalRows.get(operation).state,'EMITTING');
+      assert.equal(cp.metadata.budget_reservations['image:q41'].amount_usd,supervised?Math.ceil(estimateUsd*1.25*1e6)/1e6:4.64);assert.equal(journalRows.get(cp.metadata.first_image.attempt_id??operation).state,'EMITTING');
       assert.equal(sha256(options.body),quote.payload_sha256);
+      if(mode==='insufficient')return Response.json({error:{code:'insufficient_balance'}},{status:402,headers:{'x-request-id':'billing-denial'}});
+      if(mode==='generic-402')return Response.json({error:{code:'payment_required'}},{status:402});
+      if(mode==='queued-error')return Response.json({error:{code:'insufficient_balance'},status:'queued'},{status:402});
+      if(mode==='accepted-error')return Response.json({error:{code:'insufficient_balance'},request_id:'maybe-job'},{status:402});
       if(mode==='timeout')throw Error('OFFLINE_TIMEOUT');
       if(mode==='malformed')return new Response('{');
       return Response.json({request_id:'offline-job',status_url:'https://api.higgsfield.ai/requests/offline-job'});
     }
-    if(url==='https://api.higgsfield.ai/requests/offline-job')return Response.json({request_id:'offline-job',status:mode==='pending'?'processing':'completed',images:[{url:'https://media.example.test/offline.png'}]});
+    if(url==='https://api.higgsfield.ai/requests/offline-job')return Response.json({request_id:'offline-job',status:mode==='pending'?'processing':'completed',cost:actualCostUsd===null?undefined:{usd:actualCostUsd},images:[{url:'https://media.example.test/offline.png'}]});
     assert.equal(url,'https://media.example.test/offline.png');return new Response(imageBytes);
   };
   const sourceCalls=[];
-  const makeAdapter=()=>createGenericV2Runtime({manager,reviewStore,artifactStorage:storage,journal,validateOwner:async(u,c)=>u==='1'&&c==='1',env,fetchImpl,inject,
+  const makeAdapter=()=>createGenericV2Runtime({manager,reviewStore,artifactStorage:storage,journal,validateOwner:async(u,c)=>u==='1'&&c==='1',env,fetchImpl,inject,readProviderBalance,
     mediaTransport:async a=>{sourceCalls.push(a);return {url:sourceUrl,sha256:a.sha256,expires_at:new Date(Date.now()+300000).toISOString(),...transportPatch};}});
   let adapter=makeAdapter();
   const production=new ProductionReviewController({store:reviewStore,adapters:{LUMI_PRODUCTION_PROFILE_V2:adapter}});
@@ -99,7 +103,7 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
     timestamp:String(Math.floor(Date.now()/1000)),requestId:'offline-request-'+(++count),body:Buffer.from(JSON.stringify(body))};return {body,signed,signature:signRequest(secret,signed)};};
   const command=cb=>authenticateFirstImageCallback({env,...envelope(cb)});
   const click=async action=>{const cb=await callback(action);return svc.callback(cb,{firstImageCommand:action==='q41_prepare'?null:command(cb)});};
-  const prepare=async()=>{await svc.show('1','1',{kind:'menu'});await click('create_v2_ideas');await click('create_v2_budget');await click('q41_prepare');};
+  const prepare=async()=>{await svc.show('1','1',{kind:'menu'});await click('create_v2_ideas');await click('create_v2_budget');await click('q41_prepare');if(supervised)await click('q41_budget');};
   const restart=()=>{adapter=makeAdapter();production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;};
   return {store,manager,reviewStore,storage,objects,journal,journalRows,calls,sourceCalls,telegramCalls,env,evidence,quote,diag,edit,callback,envelope,command,click,prepare,svc,production,restart,get adapter(){return adapter;},setMode:v=>{mode=v;}};
 }
@@ -337,4 +341,136 @@ test('human review cannot turn an undersized original into a technically approve
   assert.equal(s.q41_first_image.blocker,'Q41_IMAGE_TECHNICAL_QA_FAILED');
   const active=s.delivery.tokens.map(t=>s.tokens[t]);assert.equal(active.some(t=>t.action==='q41_approve'),false);
   await f.click('q41_reject');assert.equal(f.calls.filter(c=>c.url==='https://api.higgsfield.ai/marketing-studio/image'&&c.method==='POST').length,1);
+});
+
+// All balances, denials and cost receipts below are OFFLINE fixtures only.
+test('supervised policy requires delivered consent and keeps Billing unverified',async()=>{
+  const f=await fixture({supervised:true});
+  await f.svc.show('1','1',{kind:'menu'});await f.click('create_v2_ideas');await f.click('create_v2_budget');await f.click('q41_prepare');
+  assert.equal(f.calls.length,0);
+  assert.equal((await f.reviewStore.get('1')).state.q41_first_image.status,'BLOCKED');
+  await f.click('q41_budget');assert.equal(f.calls.length,0);
+  const policy=(await f.reviewStore.get('1')).state.q41_supervised_policy.policy;
+  assert.equal(policy.billing_verified,false);assert.equal(policy.provider_charge_guaranteed,false);assert.equal(policy.hard_episode_budget_usd,5);
+  await f.click('q41_confirm');const cp=await f.store.getEpisode(operation);
+  assert.equal(cp.metadata.first_image.estimated_cost_usd,0.271);assert.equal(cp.metadata.first_image.reserve_usd,0.33875);
+  assert.equal(cp.metadata.first_image.actual_cost_usd,null);assert.equal(cp.current_cost_usd,0);
+  assert.equal(cp.metadata.balance_revalidation.provider_balance_usd,null);
+  assert.equal((await f.reviewStore.get('1')).state.q41_prepaid_evidence,undefined);
+});
+
+test('insufficient balance pauses once with durable evidence and contextual SALDO RECARGADO',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient'});await f.prepare();await f.click('q41_confirm');
+  const cp=await f.store.getEpisode(operation),p=cp.metadata.balance_pause;
+  assert.equal(cp.status,'PAUSED_INSUFFICIENT_BALANCE');assert.equal(p.episode_id,episode);assert.equal(p.stage,'IMAGE');
+  assert.equal(p.provider_request_id,'billing-denial');assert.equal(p.error_code,'insufficient_balance');assert.equal(p.checkpoint,null);
+  assert.equal(p.last_known_cost.actual_usd,null);assert.equal(p.last_known_cost.reserved_usd,0.33875);
+  assert.equal(cp.first_pending_action,'image:q41');assert.equal(f.calls.length,2);
+  const s=(await f.reviewStore.get('1')).state;
+  assert.ok(s.delivery.tokens.some(t=>s.tokens[t].action==='q41_refill'));
+  assert.ok(f.telegramCalls.some(c=>JSON.stringify(c).includes('SALDO RECARGADO')));
+  assert.equal(await f.store.getEpisode(episode),null);
+});
+
+test('refill revalidates then resumes only first pending action, preserving history and reservations',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient'});await f.prepare();await f.click('q41_confirm');
+  const original=await f.journal.get(operation),historical=(await f.reviewStore.get('1')).state.episodes.historical;
+  f.setMode('complete');await f.click('q41_refill');
+  const cp=await f.store.getEpisode(operation);
+  assert.equal(cp.metadata.first_image.state,'HUMAN_REVIEW_REQUIRED');assert.equal(cp.actions.length,1);
+  assert.deepEqual(await f.journal.get(operation),original);assert.equal(f.journalRows.size,2);
+  assert.equal(cp.metadata.budget_reservations['rejected:'+operation].amount_usd,0.33875);
+  assert.equal(cp.metadata.budget_reservations['image:q41'].amount_usd,0.33875);assert.equal(cp.authorized_ceiling_usd,5);
+  assert.equal(cp.metadata.balance_revalidation.continuation_basis,'EXPLICIT_SUPERVISED_AUTHORIZATION');
+  await f.click('q41_approve');await f.click('menu');
+  assert.deepEqual((await f.reviewStore.get('1')).state.episodes.historical,historical);
+  assert.ok(f.telegramCalls.every(c=>c.method==='answerCallbackQuery'||c.method==='editMessageMedia'&&c.body.message_id===138));
+  assert.equal(f.calls.filter(c=>c.method==='POST'&&!c.url.includes('/estimate/')).length,2);
+});
+
+test('refill double click, fresh nonce replay and restart never duplicate the successor',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient'});await f.prepare();await f.click('q41_confirm');
+  const cb=await f.callback('q41_refill');f.setMode('pending');
+  await Promise.allSettled([f.adapter.firstImageAction({command:f.command(cb)}),f.adapter.firstImageAction({command:f.command(cb)})]);
+  await f.restart().firstImageAction({command:f.command(cb)});
+  assert.equal(f.journalRows.size,2);assert.equal(f.calls.filter(c=>c.method==='POST'&&!c.url.includes('/estimate/')).length,2);
+});
+
+test('generic errors and ambiguous provider requests never enable balance recovery',async()=>{
+  for(const mode of ['timeout','malformed','generic-402','accepted-error','queued-error']){
+    const f=await fixture({supervised:true,mode});await f.prepare();await f.click('q41_confirm');
+    const s=(await f.reviewStore.get('1')).state;
+    assert.ok(s.delivery.tokens.every(t=>s.tokens[t].action!=='q41_refill'),mode);
+    const cb=await f.callback('q41_status');await f.edit(s=>{s.tokens[cb.data.slice(3)].action='q41_refill';s.tokens[cb.data.slice(3)].attempt_id=operation;});
+    await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/CONFIRMED_BALANCE/);
+    assert.equal(f.calls.length,2);
+  }
+});
+
+test('refill verifies owner, HMAC, active delivered token and approved policy seal',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient'});await f.prepare();await f.click('q41_confirm');
+  const cb=await f.callback('q41_refill'),signed=f.envelope(cb);
+  assert.throws(()=>authenticateFirstImageCallback({env:f.env,...signed,signature:'0'.repeat(64)}));
+  await assert.rejects(f.adapter.firstImageAction({command:{...f.command(cb)}}),/HMAC/);
+  await f.edit(s=>{s.q41_supervised_policy.policy.hard_episode_budget_usd=6;});
+  await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/POLICY_INVALID/);assert.equal(f.calls.length,2);
+});
+
+test('an official same-credential balance is queried; low balance keeps pause; top-up never raises cap',async()=>{
+  let balance=1,reads=0;
+  const f=await fixture({supervised:true,mode:'insufficient',readProviderBalance:async()=>{reads++;return {
+    source:'OFFICIAL_API',currency:'USD',api_key_sha256:sha256('OFFLINE_KEY'),account_id:'offline-account',balance_usd:balance,checked_at:new Date().toISOString()};}});
+  await f.prepare();await f.click('q41_confirm');balance=0;await f.click('q41_refill');
+  assert.equal(f.calls.length,2);assert.equal((await f.store.getEpisode(operation)).status,'PAUSED_INSUFFICIENT_BALANCE');
+  balance=50;f.setMode('pending');await f.click('q41_refill');
+  assert.equal(reads,3);assert.equal((await f.store.getEpisode(operation)).authorized_ceiling_usd,5);
+  assert.equal((await f.store.getEpisode(operation)).metadata.balance_revalidation.provider_balance_usd,50);
+});
+
+test('exhausted episode budget remains paused after top-up and does not renew quote',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient'});await f.prepare();await f.click('q41_confirm');
+  await f.manager.checkpoint(operation,s=>{s.current_cost_usd=4.5;});
+  await f.click('q41_refill');const cp=await f.store.getEpisode(operation);
+  assert.equal(cp.metadata.first_image.state,'PAUSED_BUDGET_EXHAUSTED');assert.equal(cp.authorized_ceiling_usd,5);assert.equal(f.calls.length,2);
+  const s=(await f.reviewStore.get('1')).state;assert.ok(s.delivery.tokens.every(t=>s.tokens[t].action!=='q41_refill'));
+});
+
+test('crash after durable rejection before checkpoint restores pause without another submission',async()=>{
+  const f=await fixture({supervised:true,mode:'insufficient',inject:async({point})=>{if(point==='Q41_BALANCE_REJECTION_BEFORE_CHECKPOINT')throw Error('CRASH');}});
+  await f.prepare();await f.click('q41_confirm');await f.restart().firstImageStatus({user:'1'});
+  assert.equal((await f.store.getEpisode(operation)).status,'PAUSED_INSUFFICIENT_BALANCE');assert.equal(f.calls.length,2);
+});
+
+test('crash after refill consent does not recreate the consumed authorization',async()=>{
+  let crash=false;
+  const f=await fixture({supervised:true,mode:'insufficient',inject:async({point})=>{if(crash&&point==='Q41_CONFIRMATION_CLAIMED_BEFORE_CHECKPOINT')throw Error('CRASH');}});
+  await f.prepare();await f.click('q41_confirm');const cb=await f.callback('q41_refill');crash=true;
+  await assert.rejects(f.adapter.firstImageAction({command:f.command(cb)}),/CRASH/);
+  await assert.rejects(f.restart().firstImageAction({command:f.command(cb)}));assert.equal(f.calls.length,2);
+});
+
+test('verified actual USD cost reconciles once; overrun pauses and cannot be hidden by recarga',async()=>{
+  for(const actualCostUsd of [0.30,5.5]){
+    const f=await fixture({supervised:true,actualCostUsd});await f.prepare();await f.click('q41_confirm');await f.manager.reconcileRequestCost({episodeId:operation,actionKey:'image:q41',attemptId:operation,providerRequestId:'offline-job',actualCostUsd});
+    const cp=await f.store.getEpisode(operation);assert.equal(cp.current_cost_usd,actualCostUsd);
+    assert.equal(cp.metadata.first_image.actual_cost_usd,actualCostUsd);assert.deepEqual(cp.metadata.budget_reservations,{});
+    if(actualCostUsd>5){assert.equal(cp.metadata.budget_exhausted,true);assert.equal(cp.status,'PAUSED_INCIDENT');}
+    assert.equal(f.calls.filter(c=>c.method==='POST'&&!c.url.includes('/estimate/')).length,1);
+  }
+});
+
+test('approved q41 exposes explicit continuation but never creates an episode or launches Kling',async()=>{
+ const f=await fixture({supervised:true});await f.prepare();await f.click('q41_confirm');await f.click('q41_approve');
+ const count=f.calls.length;await f.click('q41_continue');
+ assert.equal(f.calls.length,count);assert.equal(await f.store.getEpisode(episode),null);
+ assert.equal((await f.reviewStore.get('1')).state.q41_first_image.blocker,'Q41_EPISODE_CONTINUATION_NOT_AUTHORIZED');
+ assert.equal((await f.store.getEpisode(operation)).metadata.first_image.review.status,'APPROVED');
+});
+
+test('unofficial or malformed balance responses cannot be promoted into verified USD',async()=>{
+ for(const balance of [{source:'USER_REPORTED',balance_usd:4.60},{source:'OFFICIAL_API',currency:'credits',balance_usd:10},
+   {source:'OFFICIAL_API',currency:'USD',balance_usd:-1}]){
+  const f=await fixture({supervised:true,readProviderBalance:async()=>balance});await f.prepare();
+  await f.click('q41_confirm');assert.equal(f.calls.length,0);assert.equal(await f.store.getEpisode(operation),null);
+ }
 });

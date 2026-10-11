@@ -229,7 +229,9 @@ test('signature expiring after trusted admission persists 401, never authorizes 
   let now=Date.now(),expire=false;
   const f=await setup({clock:()=>now,validateOwner:async()=>{if(expire)now+=121000;return true;}});
   try{
-    const before=await f.read();expire=true;const r=await f.call('CREATE'),v=await f.read();
+    const before=await f.read(),envelope=f.envelope('CREATE');
+    // Anchor the injected clock to the signed timestamp, independent of fixture setup latency.
+    now=Number(envelope.signed.timestamp)*1000;expire=true;const r=await f.send(envelope),v=await f.read();
     assert.equal(r.code,401);assert.equal(r.value.error,'DIAGNOSTIC_AUTH_REQUIRED');assert.equal(r.value.http_result_persisted,true);
     assert.equal(results(v).at(-1).http_status,401);assert.deepEqual(v.checkpoint,before.checkpoint);
     assert.deepEqual(v.nonces,before.nonces);assert.deepEqual(v.results,before.results);

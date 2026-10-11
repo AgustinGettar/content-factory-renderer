@@ -24,7 +24,8 @@ for(const status of ['SUCCEEDED','SUCCEEDED_WITH_WARNING','HUMAN_REVIEW_REQUIRED
 test('warning policy, immutable result and cost replay do not double account',async()=>{
   const f=await fixture('SUCCEEDED_WITH_WARNING');const args={...f.args,policy:{advance_with_warning:true}};
   assert.equal((await handleStageResult(args)).status,'STAGE_COMPLETE');await handleStageResult(args);
-  assert.equal((await f.manager.store.getEpisode(episodeId)).current_cost_usd,.2);
+  const budgetState=await f.manager.store.getEpisode(episodeId);
+  assert.equal(budgetState.current_cost_usd,0);assert.equal(budgetState.metadata.budget_reservations.tts.amount_usd,.2);
   await assert.rejects(handleStageResult({...args,result:{...f.result,actual_cost:{currency:'USD',usd:.3}}}),/IMMUTABLE/);
 });
 test('JSONB key reordering preserves exact StageResult content while changed QA stays rejected',async()=>{
@@ -38,7 +39,8 @@ test('JSONB key reordering preserves exact StageResult content while changed QA 
  await f.manager.store.putEpisode(state);
  assert.equal((await handleStageResult({...f.args,result:persisted})).status,'STAGE_COMPLETE');
  await assert.rejects(handleStageResult({...f.args,result:{...persisted,qa:{...persisted.qa,ok:false}}}),/IMMUTABLE/);
- assert.equal((await f.manager.store.getEpisode(episodeId)).current_cost_usd,.2);
+ const budgetState=await f.manager.store.getEpisode(episodeId);
+  assert.equal(budgetState.current_cost_usd,0);assert.equal(budgetState.metadata.budget_reservations.tts.amount_usd,.2);
 });
 test('hash tampering and QA failure cannot advance even with succeeded status',async()=>{
   const f=await fixture();await assert.rejects(handleStageResult({...f.args,artifactStorage:{download:async()=>Buffer.from('tampered')}}),/HASH/);
@@ -80,4 +82,12 @@ test('rejection preserves artifacts, creates repair plan requirement and never d
   r.status='REJECTED';r.human_decision={callback_query_id:'TEST_ONLY'};await f.reviewStore.cas('1',row.revision,row.state);
   assert.equal((await reconcileStageReview({manager:f.manager,reviewStore:f.reviewStore,user:'1',episodeId,requestId:r.review_request_id})).status,'REPAIR_PLAN_REQUIRED');
   const s=await f.manager.store.getEpisode(episodeId);assert.equal(s.status,'PAUSED_INCIDENT');assert.equal(s.first_pending_action,'tts');assert.equal(s.metadata.repair_plan_required,true);
+});
+
+test('actual charge replaces estimate; a provider overrun preserves the charge and pauses',async()=>{
+ const f=await fixture();f.result.actual_cost={currency:'USD',usd:1.1};
+ await handleStageResult(f.args);await handleStageResult(f.args);
+ const s=await f.manager.store.getEpisode(episodeId);
+ assert.equal(s.current_cost_usd,1.1);assert.deepEqual(s.metadata.budget_reservations,{});
+ assert.equal(s.metadata.budget_exhausted,true);assert.equal(s.status,'PAUSED_INCIDENT');assert.equal(s.authorized_ceiling_usd,1);
 });

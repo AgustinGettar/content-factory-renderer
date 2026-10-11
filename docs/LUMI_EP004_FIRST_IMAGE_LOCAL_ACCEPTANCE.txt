@@ -1,3 +1,131 @@
+LUMI PRACTICAL BUDGET AND BALANCE RECOVERY — LOCAL CHANGE
+Base staging/source: 693c689bb89b89e614d458c497ba0392b8e6e6ab.
+Base tree: 573e1380659d5582854b57f8b0c085a78e743000.
+This addendum supersedes only the mandatory external-wallet-bound admission
+policy for users who explicitly approve the supervised alternative. The old
+strict verified-prepaid path stays available. No real policy was enrolled.
+
+POLICY
+Existing Budget Gate, Provider Emission Journal, checkpoint CAS, Recovery
+Manager and ControlledV2Authorization are extended in place.
+HARD_EPISODE_BUDGET_USD = 5. Provider USD balance is separate and nullable.
+The user's USD 4.60 and auto-recharge OFF are declarations, not verified
+Billing/account/no-credit evidence. Connector credits are never converted.
+The new opt-in policy is SUPERVISED_QUOTE_RESERVE_RECONCILE_V1. A delivered,
+owner-bound HMAC callback records a sealed consent in the existing session.
+Consent binds the account credential fingerprint, EP004, panel 138 and one-hour
+expiry. It is not an account-ownership or Billing attestation.
+An explicit q41 confirmation permits a current exact-payload USD quote and a
+reservation of estimate +25%, at most USD 0.50 for that first-image request.
+Subsequent explicitly authorized recovery requests use the same 25% reserve
+and the remaining USD 5 episode budget. Only the next request is quoted.
+No quote from the historical USD 0.271 diagnostic is reused.
+The UI discloses that estimates, the reserve and the internal admission ceiling
+are NOT a guaranteed provider charge cap. A provider price overrun or external
+billing arrangement can exceed them. Unobserved actual cost remains null.
+
+BALANCE AND JOURNAL
+Only a parsed official Higgsfield HTTP 400/402/403 rejection with an allowlisted
+machine code (insufficient_balance, insufficient_funds, credit_balance_exhausted)
+and an error-only body is classified as insufficient funds. Generic 402/403,
+429 rate limits, 5xx, timeouts, accepted/queued jobs and malformed/unknown
+responses do not enable recovery. No real provider rejection was observed in
+this implementation; tests supply explicit offline responses.
+The journal first persists headers and then the parsed rejection. Checkpoint
+recovery reconstructs PAUSED_INSUFFICIENT_BALANCE after a crash, without POST.
+The durable pause contains target episode, stage, attempt, diagnostic request
+ID when supplied, error code, checkpoint, reservation status and last-known
+estimated/reserved/actual costs. Rejected-attempt reservations are preserved:
+rejection does not manufacture a verified zero-dollar charge.
+SALDO RECARGADO is contextual and routed through the existing canonical HMAC
+endpoint, owner validation, delivered opaque token and CAS. It authorizes one
+successor of that exact rejected attempt. Double clicks, fresh nonces and
+restarts cannot authorize another successor. Ambiguous requests never qualify.
+The original journal row, payload, review decisions and cost exposure remain.
+
+OFFICIAL BALANCE
+No official balance query is configured in the deployed integration's known
+capabilities. The runtime therefore records OFFICIAL_QUERY_UNAVAILABLE with
+provider_balance_usd = null. There is no guessed endpoint or login attempt.
+A server-injected official balance reader is supported and tested: provenance,
+USD, credential/account binding, nonnegative amount and <=60s freshness are
+required; failure does not fall back to a claimed successful verification.
+Without it, recovery requires the sealed supervised policy plus the explicit
+callback consent. A top-up never changes the episode ceiling. Budget exhaustion
+keeps the pause and asks for separate budget-increase authorization.
+
+DURABILITY AND SQL
+Migration: supabase/migrations/20261011215758_lumi_balance_recovery.sql.
+The original unique episode/scene/stage journal scope forbade even a second
+request after definitive rejection. The migration keeps one active emission
+per scope and one successor per rejected attempt. The existing locked prepare
+RPC validates the rejection, checkpoint, pending action, scoped authorization,
+expiry, reservation and ceiling before inserting a successor. The original
+rejection is immutable. Public/anon/authenticated still cannot call admission.
+No new tables, endpoints, provider, scheduler, budget subsystem or worker.
+The migration has only been tested in embedded local PostgreSQL, NOT applied
+to any Supabase project. PGlite is a pinned test-only development dependency.
+Deploying the code without the migration cannot submit a second request;
+the old unique scope rejects it. Apply the reviewed migration before enabling
+this feature in staging, with separate deployment authorization.
+
+COSTS AND RECOVERY
+The general IMAGE/VIDEO executor now reserves before submission. Estimates
+are no longer reported as confirmed spend in StageResult accounting. A bound
+provider result USD cost reconciles q41 once; actual StageResult USD replaces
+its reservation. Unknown costs remain reserved, including rejected attempts.
+Overruns are recorded without clamping and pause further production.
+The existing gate includes source-operation cost/reservations when evaluating
+the corresponding EP004 episode, so q41 does not receive a second USD 5 wallet.
+Generic IMAGE/Kling recovery runs only FIRST_PENDING_ACTION, with a fresh
+payload-bound quote, prior attempt link and fresh authorization checks at the
+provider boundary. Completed IMAGE/VIDEO/TTS receipts and ReviewRequests are
+not reset. Fernanda / ElevenLabs Direct, models and historical master unchanged.
+
+TELEGRAM AND REMAINING PRODUCTION GATE
+Crear video -> Animales de la granja -> Primera imagen q41 -> Confirmar
+presupuesto supervisado -> Confirmar generacion -> Revisar/aprobar.
+Failure: PAUSED_INSUFFICIENT_BALANCE -> SALDO RECARGADO -> revalidate -> one
+pending request. All navigation uses panel 138; no sendMessage/navigation copy.
+Approval alone never submits Kling. Continuar produccion is explicit navigation
+and only opens an already authorized episode that has adopted the same q41
+artifact/request. This patch does NOT create EP004 or silently import a source
+into a new plan. The deployed proposal's full-episode start gate is still
+blocked; live episode authorization/adoption and subsequent voice/video gates
+remain required. Balance recovery readiness does not mean the entire first
+production is now activated. No such activation was tested on the real account.
+
+VALIDATION AND SECURITY
+Tests are offline; provider generation calls, real estimates, balance queries,
+episode creation, Telegram writes, Make writes, push and deployment: zero.
+Final relevant regression: 355/355 PASS across 23 files, hard offline network
+ guard loaded before application imports (default test process isolation).
+Restart suite: 4/4 PASS with real SIGKILL/reload and the same offline guard in
+all child workers. Total distinct regression tests: 359; zero failures/skips.
+The 355 include local PostgreSQL admission/trigger/privilege checks, image and
+Kling recovery, double-click/replay, forged callbacks, exhausted budget, stale
+quotes, ambiguous outcomes, crash repair, preserved human decisions/master,
+TTS quota and recovery, and panel 138. node --check and git diff --check PASS.
+A pre-existing diagnostic expiry test mixed fixture and wall clocks and failed
+under parallel load. Its test clock now derives from the signed timestamp;
+401 rejection and durable evidence assertions remain unchanged. Focused
+HMAC suite: 22/22 PASS (also included in the final 355).
+Reproduce the prior 20-file regression listed later in this document plus:
+test/lumi-balance-journal-sql.test.js
+test/lumi-generic-balance-recovery.test.js
+test/lumi-tts-stage-v2.test.js
+Use node --import ./scripts/director-offline-guard.mjs --test --test-reporter=tap
+with those files. Run the restart harness separately with node --test
+--test-reporter=tap test/lumi-generic-runtime-restart.test.js; it starts guarded
+child workers itself. All database evidence here is LOCAL, not remote proof.
+Security review: HMAC/WeakSet authority, owner/chat/panel, active consent token,
+policy seals, CAS, immutable rejection evidence, one-successor uniqueness,
+quote/payload/source expiry, accumulated reserves and ledger replay verified.
+No API keys, secrets, payment details or signed source URLs added to source.
+V2 global OFF, runners OFF, autorun=false and production unchanged.
+
+HISTORICAL RECORD FOLLOWS — ECONOMIC POLICY SUPERSEDED ONLY AS DESCRIBED ABOVE
+
 LUMI Q41 JUST-IN-TIME CONNECTION — CURRENT LOCAL ADDENDUM
 2026-10-11. Base: 6fc1d18f875a75378446a2ea2b016cbaec6a600d.
 This addendum supersedes the quote/evidence operational limitations described

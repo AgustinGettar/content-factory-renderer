@@ -1,0 +1,18 @@
+DEPLOYED RECOVERY ATTEMPT — 2026-10-13T23:06Z
+Approved local d7efed7e9e0ef79a3b5e239e51bcc307292d70a1 published as remote039ba8b11a6638da124fe74cbe86c436ceb9e34d with exact tree964aaf45814ebb650d01d8b44fe21c8dfcabe6bd.
+CI38481865013 GREEN. Render deployment dep-db7binij9qps73bqgbe0 LIVE.
+Only module21 guarded ACK body/signature changes applied, lastEdit2026-10-13T23:04:11.316Z.
+
+One operator-authorized control input was submitted to the existing6224860 webhook. This was not a human Telegram message or a visibility test. No automatic retry was made by the operator.
+Make execution591fd04a6fd444e89b18de12bf314469 failed in module8 with HTTP409. Module12 and21 did not run. State revision369: message_id138, deliveryDELIVERED, panel_recovery absent. No recovery emission was reserved.
+Actual module8 serialized input date: string2026-10-13T23:06:50.000Z. Telegram epoch seconds were normalized by WatchUpdates to ISO UTC before TransformToJSON. The approved freshness guard required a safe integer and rejected this legitimate fresh date.
+Render sanitized error was unexpected_backend_error, NONCE_CLAIMED. Local reproduction with the exact Make-normalized shape failed409 before the correction.
+
+LOCAL MINIMAL FIX — NOT PUBLISHED
+Existing command freshness check accepts integer epoch seconds or the observed strict UTC ISO format with milliseconds. Both use the same120000ms absolute freshness bound. Invalid, stale, future and numeric-string values remain rejected. The known expired-command error is now reported by its safe error code instead of unexpected_backend_error. No other routing, transport, authentication or economic change.
+Two additional tests verify the observed Make shape and the negative freshness boundaries. Relevant regression189/189 PASS, network disabled. No multimedia, new panel or episode was generated during testing.
+
+CONTINUATION REQUIRES SPECIFIC AUTHORIZATION
+Publish only this local corrective commit to the same staging branch, require CI GREEN and deploy only staging. Do not repeat module21 patch: already applied.
+Inspect current queue and identify the failed operator control event(update_id -2026101401, delivery1fcbe5510c45e9be35ea0f26b35c0c0a). Preserve backup. Obtain authority to discard exactly that old control event, not process it. If queue differs, stop before deletion.
+After clearing only an authorized exact queue and confirming no recovery claim exists, activate6224860 and issue one fresh recovery control input. Never replay the expired event or retry an ambiguous sendPhoto. Verify Telegram receipt, durable CAS binding, archive138, master preservation and ACTIVE. Ask only final human visibility confirmation after actual delivery.

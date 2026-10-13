@@ -144,3 +144,12 @@ test('new panel HOME, Create, Production, Review and library stay single-message
  }
  assert.equal(JSON.stringify((await f.store.get('1')).state.episodes),before);
 });
+test('Make WatchUpdates ISO date survives JSON normalization and authorizes fresh recovery',async()=>{
+ const f=await setup();const body={message:{from:{id:1},chat:{id:1,type:'private'},date:new Date().toISOString(),text:'/recuperar_panel',attachment:{type:'OtherOrNone'}},update_id:-2026101401,channel_post:null,inline_query:null,callback_query:null,edited_message:null,my_chat_member:null,business_message:null,pre_checkout_query:null,edited_channel_post:null};
+ const r=await f.call(body,'make-normalized');assert.equal(r.code,200);assert.equal(r.value.actions.length,1);assert.equal(r.value.actions[0].method,'sendPhoto');
+});
+test('Make ISO date normalization does not weaken the two-minute authorization window',async()=>{
+ for(const date of [new Date(Date.now()-300000).toISOString(),new Date(Date.now()+300000).toISOString(),'invalid','2026-01-01',null,{},String(Math.floor(Date.now()/1000))]){
+  const f=await setup();const r=await f.call({message:{from:{id:1},chat:{id:1},date,text:'/recuperar_panel'}},'expired');assert.equal(r.code,409);assert.equal(r.value.error,'panel_recovery_command_expired');assert.equal((await f.store.get('1')).state.panel_recovery,undefined);
+ }
+});

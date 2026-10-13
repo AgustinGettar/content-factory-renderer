@@ -25,12 +25,12 @@ test('a pending preview requires real audio callback metadata before B to HOME r
  assert.equal((await store.get(s.user_id)).state.delivery.status,'EMITTING');
  const b=c.body.reply_markup.inline_keyboard.flat().find(b=>b.text==='🏠 VOLVER');
  const cb={id:'navigation-test-only',from:{id:6213838779},data:b.callback_data,message:{message_id:138,chat:{id:6213838779},caption:c.body.media.caption,audio:{file_id:'fernanda-file',file_unique_id:'b-unique',file_size:bytes.length}}};
- await assert.rejects(svc.reconcile({...cb,message:{...cb.message,audio:{...cb.message.audio,file_size:1}}}),/audio_mismatch/);
+ await assert.rejects(svc.reconcile({...cb,message:{...cb.message,audio:{...cb.message.audio,file_size:1}}}),/audio_metadata_mismatch/);
  assert.equal(await svc.reconcile(cb),true);assert.equal((await store.get(s.user_id)).state.delivery.status,'DELIVERED');
  const home=await svc.callback(cb);assert.equal(home.commands[0].body.media.type,'photo');assert.equal(home.commands[0].message_id,138);
  assert.equal((await store.get(s.user_id)).state.voice_preview_review.human_selection,undefined);
 });
-test('existing Spanish A/B previews remain audio in panel 138; HOME retains comparison and choice only records human decision',async()=>{
+test('existing Spanish A/B previews remain audio in panel 138; Settings retains comparison and choice only records human decision',async()=>{
  const s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:HOME_ASSET});s.deliveries[HOME_ASSET.sha256]={telegram_file_id:'home'};
  s.episodes.ep={episode_id:'ep',review_mode:'SUPERVISED',shots:[],artifacts:{},review_requests:{},master:{sha256:'c'.repeat(64)}};
  const e=s.episodes.ep;const candidates=['A','B'].map(letter=>{
@@ -39,7 +39,7 @@ test('existing Spanish A/B previews remain audio in panel 138; HOME retains comp
   return {letter,VOICE_ID:letter,review_request_id:letter,artifact:a};
  });s.voice_preview_review={episode_id:'ep',candidates,profile_status:'VOICE_SELECTION_PENDING'};
  for(const letter of ['A','B']){const p=renderTelegramPanel(s,{kind:'audio',episode_id:'ep',request_id:letter});assert.equal(p.state_id,'AUDIO_REVIEW');assert.equal(p.media_type,'audio');assert.match(p.caption,/Español verificado/);assert.deepEqual(Object.values(p.tokens).map(t=>t.action),['audio','audio','choose_preview','menu']);}
- const home=renderTelegramPanel(s,{kind:'menu'});assert.equal(home.media_type,'photo');assert.ok(Object.values(home.tokens).find(t=>t.action==='audio'&&t.request_id==='A'));
+ const home=renderTelegramPanel(s,{kind:'menu'});assert.equal(home.media_type,'photo');assert.equal(Object.keys(home.tokens).length,4);const settings=renderTelegramPanel(s,{kind:'settings'});assert.ok(Object.values(settings.tokens).find(t=>t.action==='audio'&&t.request_id==='A'));
  const p=renderTelegramPanel(s,{kind:'audio',episode_id:'ep',request_id:'B'});s.tokens=p.tokens;const token=Object.entries(p.tokens).find(([,t])=>t.action==='choose_preview')[0];
  const store=new MemoryReviewStore();await store.create('1',s);let productionCalls=0;
  const svc=new ReviewService({store,telegram:new MakeTransport(),loadBytes:async()=>{throw Error('cached');},production:{reviewed:()=>{productionCalls++;}}});

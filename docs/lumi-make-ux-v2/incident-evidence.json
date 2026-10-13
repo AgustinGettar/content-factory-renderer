@@ -1,0 +1,39 @@
+{
+  "observed_at": "2026-10-12T00:18:04Z",
+  "baseline_local_head": "09db69523a282b940b5e6d89470876b1c24ad65f",
+  "staging_sha": "fc59612be36cba8fa7f06e92aaf3671118af73a7",
+  "scenario": 6224860,
+  "module_21": {
+    "execution_id": "09f49e47d959442197b1b0ca305f96ae",
+    "request_id": "09f49e47d959442197b1b0ca305f96ae:ack",
+    "http_status": 409,
+    "make_error": "Conflict",
+    "telegram_module_12_http_status": 200,
+    "telegram_ok": true,
+    "message_id": 138,
+    "command_id": "514159ae25a0ee0bc9b4c297b2eaab6d4997fcb02a1ab56e561044bde622a90f",
+    "idempotency_state": "NONCE_NOT_RECORDED",
+    "original_backend_error_code": "NOT_RETAINED",
+    "causal_attribution": "CAS claim contention reproduced locally; exact original server error not independently logged"
+  },
+  "module_8": {
+    "execution_id": "57169d6bbfb144f9a4bc225fe4171c1b",
+    "request_id": "57169d6bbfb144f9a4bc225fe4171c1b:update",
+    "http_status": 409,
+    "make_error": "Conflict",
+    "command": "/menu",
+    "idempotency_state": "NONCE_CLAIMED",
+    "telegram_edit_performed": false,
+    "state_explanation": "Existing delivery EMITTING prevents show; reproduced with captured snapshot"
+  },
+  "checkpoint_version": 356,
+  "delivery_state": "EMITTING",
+  "lease_state": "NO_LEASE_IN_TELEGRAM_SESSION_TRANSPORT",
+  "baseline_reproduction": {
+    "captured_ack_metadata_valid": true,
+    "forced_ack_claim_error": "concurrent_update",
+    "ack_nonce_recorded": false,
+    "next_menu_error": "telegram_delivery_reconciliation_required"
+  },
+  "remote_effects_this_resume": 0
+}

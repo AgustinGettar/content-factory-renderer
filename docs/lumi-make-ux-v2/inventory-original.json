@@ -1,0 +1,707 @@
+{
+  "source_revision": "4c3a3946ca6e0c40176604ddb5bb04ec78ddf710",
+  "scope": "READ_ONLY_CODE_INVENTORY",
+  "callback_format": "Core: lr:<opaque token> resolves to server-side action and artifact/review binding. Legacy: literal callback route.",
+  "runtime_limit": "Code inventory only. No Telegram buttons were pressed. Direct review feature remains disabled in staging; the isolated HMAC diagnostic route is separate.",
+  "notes": [
+    "No literal Crear video button was found on HOME. The existing creation path is Ideas de contenido -> proposal selection or manual idea -> generation confirmation.",
+    "The visible legacy creation callbacks choose/manualconfirm call legacy commands. The authenticated create_v2 endpoint exists separately; this inventory does not establish an end-to-end Telegram V2 creation.",
+    "Legacy screens do not consistently assign named state IDs; destination names below describe the route or persisted phase.",
+    "Back/home depends on stored navigation and media capability. The runtime rejects unsupported video-to-text conversion; panel 138 was not changed.",
+    "Publication controls are documented only where linked from master review. publish_commit is blocked with PUBLICATION_DISABLED.",
+    "Audio decode, generated speech quality and a complete new episode were not tested."
+  ],
+  "HOME_MENU_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "💡 Ideas de contenido",
+      "CALLBACK_ACTION": "ideas",
+      "DESTINATION_STATE": "ideas menu",
+      "USER_PURPOSE": "Elegir una idea para un video",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "🗓 Programación",
+      "CALLBACK_ACTION": "calendar",
+      "DESTINATION_STATE": "calendar menu",
+      "USER_PURPOSE": "Consultar o preparar programación",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Aprobar videos",
+      "CALLBACK_ACTION": "reviews:0",
+      "DESTINATION_STATE": "pending preview list",
+      "USER_PURPOSE": "Revisar vistas previas pendientes",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "✅ Contenidos publicados",
+      "CALLBACK_ACTION": "published:0",
+      "DESTINATION_STATE": "published list",
+      "USER_PURPOSE": "Consultar publicaciones",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "📊 Estadísticas",
+      "CALLBACK_ACTION": "stats:0",
+      "DESTINATION_STATE": "statistics list",
+      "USER_PURPOSE": "Consultar métricas registradas",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "🔎 Explorar nichos",
+      "CALLBACK_ACTION": "trends",
+      "DESTINATION_STATE": "AI proposal job",
+      "USER_PURPOSE": "Buscar propuestas con referencias",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "⚙️ Estado del sistema",
+      "CALLBACK_ACTION": "settings",
+      "DESTINATION_STATE": "settings menu",
+      "USER_PURPOSE": "Consultar estado e integraciones",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "✖️ Cerrar panel",
+      "CALLBACK_ACTION": "close",
+      "DESTINATION_STATE": "closed",
+      "USER_PURPOSE": "Cerrar panel actual",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:1-8;124-141;251-257"
+    },
+    {
+      "VISIBLE_LABEL": "🔎 Revisar producción",
+      "CALLBACK_ACTION": "current",
+      "DESTINATION_STATE": "PRODUCTION_PROGRESS (latest episode)",
+      "USER_PURPOSE": "Abrir producción más reciente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:82-87;297",
+      "CONDITION": "Requires existing episode"
+    },
+    {
+      "VISIBLE_LABEL": "📚 Mis videos",
+      "CALLBACK_ACTION": "library(page=0)",
+      "DESTINATION_STATE": "LIBRARY",
+      "USER_PURPOSE": "Elegir un master existente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/core.js:82-90"
+    },
+    {
+      "VISIBLE_LABEL": "🔊 Comparar voces de Lumi",
+      "CALLBACK_ACTION": "audio(request_id)",
+      "DESTINATION_STATE": "AUDIO_REVIEW",
+      "USER_PURPOSE": "Comparar previews existentes",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:86;98-109",
+      "CONDITION": "Exactly two stored voice previews"
+    }
+  ],
+  "CREATE_VIDEO_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "📚 Ideas anteriores",
+      "CALLBACK_ACTION": "history:0",
+      "DESTINATION_STATE": "history list",
+      "USER_PURPOSE": "Consultar ideas existentes",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "✨ Sugerirme 5 ideas nuevas",
+      "CALLBACK_ACTION": "new",
+      "DESTINATION_STATE": "AI job",
+      "USER_PURPOSE": "Pedir propuestas nuevas",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "✍️ Escribir una idea",
+      "CALLBACK_ACTION": "write",
+      "DESTINATION_STATE": "manual",
+      "USER_PURPOSE": "Ingresar tema propio",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "{n}. {proposal title}",
+      "CALLBACK_ACTION": "pick:{job_id}:{index}",
+      "DESTINATION_STATE": "proposal detail",
+      "USER_PURPOSE": "Ver objetivo y referencia de la propuesta",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Elegir y generar",
+      "CALLBACK_ACTION": "choose:{job_id}:{index}",
+      "DESTINATION_STATE": "production queued / confirmation",
+      "USER_PURPOSE": "Confirmar generación de la propuesta",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "⬅️ Otras propuestas",
+      "CALLBACK_ACTION": "job:{job_id}",
+      "DESTINATION_STATE": "proposal list",
+      "USER_PURPOSE": "Cambiar propuesta",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Generar video",
+      "CALLBACK_ACTION": "manualconfirm",
+      "DESTINATION_STATE": "home after production command",
+      "USER_PURPOSE": "Confirmar una idea manual",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "✏️ Cambiar idea",
+      "CALLBACK_ACTION": "write",
+      "DESTINATION_STATE": "manual",
+      "USER_PURPOSE": "Editar el tema antes de confirmar",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "Consultar resultado / Actualizar / Ver propuestas",
+      "CALLBACK_ACTION": "job:{job_id}",
+      "DESTINATION_STATE": "job status or proposal list",
+      "USER_PURPOSE": "Recuperar el resultado de ideas",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Ver producción",
+      "CALLBACK_ACTION": "production:0",
+      "DESTINATION_STATE": "production list",
+      "USER_PURPOSE": "Consultar producción solicitada",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:92-98;131-164;261-266",
+      "CONDITION": "Generation callbacks require generation_enabled; AI callbacks require ai_enabled; no callbacks executed"
+    }
+  ],
+  "EPISODE_SELECTION_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "Ver #{idea_id}",
+      "CALLBACK_ACTION": "idea:{idea_id}",
+      "DESTINATION_STATE": "idea detail",
+      "USER_PURPOSE": "Ver idea y videos asociados",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:134-141",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "Ver video #{video_id} / Ver #{video_id} · {title}",
+      "CALLBACK_ACTION": "video:{video_id}",
+      "DESTINATION_STATE": "watch_video",
+      "USER_PURPOSE": "Elegir video existente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:138-141;165-180",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "{episode.title}",
+      "CALLBACK_ACTION": "master(episode_id)",
+      "DESTINATION_STATE": "MASTER_REVIEW",
+      "USER_PURPOSE": "Abrir master de Mis videos",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:88-90",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "◀️ / ▶️",
+      "CALLBACK_ACTION": "library(page ± 1)",
+      "DESTINATION_STATE": "LIBRARY",
+      "USER_PURPOSE": "Paginar masters",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:88-90",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "◀️ Anteriores / Siguientes ▶️",
+      "CALLBACK_ACTION": "{history|reviews|approved|rejected|production}:{page}",
+      "DESTINATION_STATE": "same list route",
+      "USER_PURPOSE": "Paginar resultados",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:91;134-179",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "✅ Aprobados",
+      "CALLBACK_ACTION": "approved:0",
+      "DESTINATION_STATE": "approved list",
+      "USER_PURPOSE": "Ver videos aprobados",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:179",
+      "CONDITION": "Visible when matching records/page exist"
+    },
+    {
+      "VISIBLE_LABEL": "🗃 Rechazados",
+      "CALLBACK_ACTION": "rejected:0",
+      "DESTINATION_STATE": "rejected list",
+      "USER_PURPOSE": "Ver videos rechazados",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:179",
+      "CONDITION": "Visible when matching records/page exist"
+    }
+  ],
+  "PROGRESS_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "🎬 Revisar tomas",
+      "CALLBACK_ACTION": "shot(index=0)",
+      "DESTINATION_STATE": "SHOT_REVIEW",
+      "USER_PURPOSE": "Revisar clips disponibles",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "At least one shot artifact"
+    },
+    {
+      "VISIBLE_LABEL": "▶️ Ver master",
+      "CALLBACK_ACTION": "master",
+      "DESTINATION_STATE": "MASTER_REVIEW",
+      "USER_PURPOSE": "Ver master terminado",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "Master exists"
+    },
+    {
+      "VISIBLE_LABEL": "▶️ Continuar / Reanudar",
+      "CALLBACK_ACTION": "resume",
+      "DESTINATION_STATE": "PRODUCTION_PROGRESS",
+      "USER_PURPOSE": "Continuar mediante controlador canónico",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "resume_available and reviewGate READY_TO_CONTINUE; V2 next_action bound"
+    },
+    {
+      "VISIBLE_LABEL": "⚠️ Ver incidente",
+      "CALLBACK_ACTION": "incident",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Consultar bloqueo",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "Incident exists"
+    },
+    {
+      "VISIBLE_LABEL": "🛑 Cancelar",
+      "CALLBACK_ACTION": "cancel",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Cancelar conservando artefactos",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "No master and not already cancelled"
+    },
+    {
+      "VISIBLE_LABEL": "👀 Revisar {stage_id}",
+      "CALLBACK_ACTION": "review(request_id)",
+      "DESTINATION_STATE": "STAGE_REVIEW",
+      "USER_PURPOSE": "Abrir una revisión pendiente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:113-117;298-303",
+      "CONDITION": "ReviewRequest PENDING"
+    },
+    {
+      "VISIBLE_LABEL": "🔄 Actualizar estado / 🔄 Actualizar",
+      "CALLBACK_ACTION": "video:{video_id}",
+      "DESTINATION_STATE": "watch_video",
+      "USER_PURPOSE": "Consultar estado registrado",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:182-214",
+      "CONDITION": "Legacy video exists"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Ver estado del HD / 🎬 Ver estado",
+      "CALLBACK_ACTION": "video:{video_id}",
+      "DESTINATION_STATE": "watch_video",
+      "USER_PURPOSE": "Consultar render solicitado",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:182-214",
+      "CONDITION": "Legacy approval/retry response"
+    }
+  ],
+  "SHOT_REVIEW_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "✅ Aprobar toma",
+      "CALLBACK_ACTION": "approve_shot",
+      "DESTINATION_STATE": "SHOT_REVIEW",
+      "USER_PURPOSE": "Persistir aprobación ligada a SHA y versión",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:118-123;305-327",
+      "CONDITION": "Existing shot artifact and valid bound callback"
+    },
+    {
+      "VISIBLE_LABEL": "❌ Rechazar",
+      "CALLBACK_ACTION": "reject_menu",
+      "DESTINATION_STATE": "REJECT_MENU",
+      "USER_PURPOSE": "Elegir motivo de rechazo",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:118-123;305-327",
+      "CONDITION": "Existing shot artifact and valid bound callback"
+    },
+    {
+      "VISIBLE_LABEL": "◀️ Anterior",
+      "CALLBACK_ACTION": "shot(index-1)",
+      "DESTINATION_STATE": "SHOT_REVIEW",
+      "USER_PURPOSE": "Ver toma anterior",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:118-123;305-327",
+      "CONDITION": "Existing shot artifact and valid bound callback"
+    },
+    {
+      "VISIBLE_LABEL": "Siguiente ▶️",
+      "CALLBACK_ACTION": "shot(index+1)",
+      "DESTINATION_STATE": "SHOT_REVIEW",
+      "USER_PURPOSE": "Ver toma siguiente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:118-123;305-327",
+      "CONDITION": "Existing shot artifact and valid bound callback"
+    },
+    {
+      "VISIBLE_LABEL": "👤 Lumi / anatomía",
+      "CALLBACK_ACTION": "reject(reason=anatomy, final=false)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar motivo; reparación requiere autorización",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:66;140-144;312-325",
+      "CONDITION": "Reject menu with current artifact/review version"
+    },
+    {
+      "VISIBLE_LABEL": "🎨 Estilo / calidad",
+      "CALLBACK_ACTION": "reject(reason=style, final=false)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar motivo; reparación requiere autorización",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:66;140-144;312-325",
+      "CONDITION": "Reject menu with current artifact/review version"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Movimiento",
+      "CALLBACK_ACTION": "reject(reason=motion, final=false)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar motivo; reparación requiere autorización",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:66;140-144;312-325",
+      "CONDITION": "Reject menu with current artifact/review version"
+    },
+    {
+      "VISIBLE_LABEL": "🌸 Objeto educativo",
+      "CALLBACK_ACTION": "reject(reason=object, final=false)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar motivo; reparación requiere autorización",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:66;140-144;312-325",
+      "CONDITION": "Reject menu with current artifact/review version"
+    },
+    {
+      "VISIBLE_LABEL": "✏️ Otro",
+      "CALLBACK_ACTION": "reject(reason=other, final=false)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar motivo; reparación requiere autorización",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:66;140-144;312-325",
+      "CONDITION": "Reject menu with current artifact/review version"
+    },
+    {
+      "VISIBLE_LABEL": "✅ Aprobar",
+      "CALLBACK_ACTION": "approve_stage",
+      "DESTINATION_STATE": "HOME",
+      "USER_PURPOSE": "Persistir Human Review de etapa y continuar vía Recovery Manager",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:111;271-281",
+      "CONDITION": "Generic ReviewRequest PENDING, authorized action, current artifact SHA and review version"
+    },
+    {
+      "VISIBLE_LABEL": "❌ Rechazar",
+      "CALLBACK_ACTION": "reject_stage",
+      "DESTINATION_STATE": "HOME",
+      "USER_PURPOSE": "Persistir rechazo de etapa",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:111;271-281",
+      "CONDITION": "Generic ReviewRequest PENDING, authorized action, current artifact SHA and review version"
+    }
+  ],
+  "MASTER_REVIEW_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "✅ APROBAR VIDEO",
+      "CALLBACK_ACTION": "approve_final",
+      "DESTINATION_STATE": "MASTER_APPROVED (renderer v2) / MASTER_REVIEW",
+      "USER_PURPOSE": "Aprobar master exacto sin publicar",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-139;305-327",
+      "CONDITION": "Master not yet approved"
+    },
+    {
+      "VISIBLE_LABEL": "❌ RECHAZAR",
+      "CALLBACK_ACTION": "changes_menu",
+      "DESTINATION_STATE": "CHANGES_MENU",
+      "USER_PURPOSE": "Solicitar corrección del master",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-139;305-327",
+      "CONDITION": "Master not yet approved"
+    },
+    {
+      "VISIBLE_LABEL": "ℹ️ Detalles / 📊 Detalles",
+      "CALLBACK_ACTION": "details",
+      "DESTINATION_STATE": "DETAILS",
+      "USER_PURPOSE": "Consultar voz, audio y costo",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-139;305-327",
+      "CONDITION": "Master exists"
+    },
+    {
+      "VISIBLE_LABEL": "▶️ VER VIDEO",
+      "CALLBACK_ACTION": "master",
+      "DESTINATION_STATE": "MASTER_REVIEW",
+      "USER_PURPOSE": "Volver al master aprobado",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-139;305-327",
+      "CONDITION": "Approved master"
+    },
+    {
+      "VISIBLE_LABEL": "📤 PUBLICAR",
+      "CALLBACK_ACTION": "publish",
+      "DESTINATION_STATE": "PUBLISH_REVIEW",
+      "USER_PURPOSE": "Abrir vista previa de publicación",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-139;305-327",
+      "CONDITION": "Approved master and publication_preview_available; no dispatch"
+    },
+    {
+      "VISIBLE_LABEL": "✅ Aprobar y generar HD",
+      "CALLBACK_ACTION": "approve:{video_id}:{revision}",
+      "DESTINATION_STATE": "render_wait",
+      "USER_PURPOSE": "Autorizar render HD legacy de la versión revisada",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:192-207",
+      "CONDITION": "Legacy preview current; not a generic V2 master action"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Una toma",
+      "CALLBACK_ACTION": "reject(reason=shot, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    },
+    {
+      "VISIBLE_LABEL": "🔊 Voz/audio",
+      "CALLBACK_ACTION": "reject(reason=audio, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    },
+    {
+      "VISIBLE_LABEL": "💬 Subtítulos",
+      "CALLBACK_ACTION": "reject(reason=captions, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    },
+    {
+      "VISIBLE_LABEL": "🎵 Música/SFX",
+      "CALLBACK_ACTION": "reject(reason=music, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    },
+    {
+      "VISIBLE_LABEL": "⏱ Ritmo",
+      "CALLBACK_ACTION": "reject(reason=pacing, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    },
+    {
+      "VISIBLE_LABEL": "✏️ Otro",
+      "CALLBACK_ACTION": "reject(reason=other, final=true)",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Registrar corrección requerida sin generar multimedia",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:67;140-144;312-325",
+      "CONDITION": "Current master SHA/review version"
+    }
+  ],
+  "DOWNLOAD_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "⬇️ Descargar",
+      "CALLBACK_ACTION": "download",
+      "DESTINATION_STATE": "DOWNLOAD",
+      "USER_PURPOSE": "Mostrar MP4 original e indicación de Guardar/Descargar en Telegram",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_IN_CODE",
+      "SOURCE": "lib/telegram-review-v1/core.js:124-135",
+      "CONDITION": "Reuses canonical artifact; no rebuild or new synthesis"
+    },
+    {
+      "VISIBLE_LABEL": "Guardar / Descargar (control nativo Telegram)",
+      "CALLBACK_ACTION": "TELEGRAM_NATIVE_SAVE",
+      "DESTINATION_STATE": "Client download",
+      "USER_PURPOSE": "Guardar el MP4 mostrado",
+      "IMPLEMENTATION_STATUS": "TELEGRAM_NATIVE_CONTROL",
+      "SOURCE": "lib/telegram-review-v1/core.js:128",
+      "CONDITION": "Not a server callback or a separate app button"
+    }
+  ],
+  "BACK_HOME_NAVIGATION": [
+    {
+      "VISIBLE_LABEL": "🏠 Menú principal",
+      "CALLBACK_ACTION": "menu",
+      "DESTINATION_STATE": "HOME",
+      "USER_PURPOSE": "Volver al inicio",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:73;327",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "⬅️ Volver",
+      "CALLBACK_ACTION": "back(return_screen)",
+      "DESTINATION_STATE": "stored prior screen / HOME",
+      "USER_PURPOSE": "Volver por navegación registrada",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:75;296",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "📊 Ver producción",
+      "CALLBACK_ACTION": "progress",
+      "DESTINATION_STATE": "PRODUCTION_PROGRESS",
+      "USER_PURPOSE": "Regresar al progreso",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:74",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "◀️ Volver",
+      "CALLBACK_ACTION": "shot(index) / master",
+      "DESTINATION_STATE": "SHOT_REVIEW / MASTER_REVIEW",
+      "USER_PURPOSE": "Salir del selector de corrección",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:144",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "⬅️ Menú principal",
+      "CALLBACK_ACTION": "home",
+      "DESTINATION_STATE": "home",
+      "USER_PURPOSE": "Volver al menú legacy",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:8;124-129",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "⬅️ VOLVER / 🏠 VOLVER",
+      "CALLBACK_ACTION": "menu",
+      "DESTINATION_STATE": "HOME",
+      "USER_PURPOSE": "Salir de reproducción/comparación de voz",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:108-109",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    },
+    {
+      "VISIBLE_LABEL": "◀️ / ▶️",
+      "CALLBACK_ACTION": "legacy(page ± 1)",
+      "DESTINATION_STATE": "LEGACY",
+      "USER_PURPOSE": "Paginar texto legacy",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:77-81",
+      "CONDITION": "Requires valid panel/session and compatible media transition"
+    }
+  ],
+  "ERROR_RECOVERY_BUTTONS": [
+    {
+      "VISIBLE_LABEL": "▶️ REANUDAR",
+      "CALLBACK_ACTION": "resume",
+      "DESTINATION_STATE": "PRODUCTION_PROGRESS",
+      "USER_PURPOSE": "Reanudar acción pendiente vía controlador canónico",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:145-147;298-303",
+      "CONDITION": "resume_available and no master; no automatic re-submit"
+    },
+    {
+      "VISIBLE_LABEL": "🔍 DETALLE",
+      "CALLBACK_ACTION": "incident_details",
+      "DESTINATION_STATE": "INCIDENT_DETAILS",
+      "USER_PURPOSE": "Ver incidente y acción pendiente",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:145-149",
+      "CONDITION": "Incident screen"
+    },
+    {
+      "VISIBLE_LABEL": "💰 COSTO",
+      "CALLBACK_ACTION": "cost",
+      "DESTINATION_STATE": "COST",
+      "USER_PURPOSE": "Ver costo registrado",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:145-149",
+      "CONDITION": "Incident screen"
+    },
+    {
+      "VISIBLE_LABEL": "❌ CANCELAR",
+      "CALLBACK_ACTION": "cancel",
+      "DESTINATION_STATE": "INCIDENT",
+      "USER_PURPOSE": "Cancelar preservando artefactos",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/core.js:145-147;308;324",
+      "CONDITION": "No master and not cancelled"
+    },
+    {
+      "VISIBLE_LABEL": "🔁 Reintentar HD / 🔁 Reintentar vista previa",
+      "CALLBACK_ACTION": "retry:{video_id}:{revision}",
+      "DESTINATION_STATE": "render_wait",
+      "USER_PURPOSE": "Solicitar retry legacy conservando recursos",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:184-214",
+      "CONDITION": "Legacy failed video only"
+    },
+    {
+      "VISIBLE_LABEL": "⚙️ Estado del sistema",
+      "CALLBACK_ACTION": "settings",
+      "DESTINATION_STATE": "settings menu",
+      "USER_PURPOSE": "Consultar por qué está pausada generación",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:155-161",
+      "CONDITION": "Generation disabled"
+    },
+    {
+      "VISIBLE_LABEL": "⬅️ Volver al video",
+      "CALLBACK_ACTION": "video:{video_id}",
+      "DESTINATION_STATE": "watch_video",
+      "USER_PURPOSE": "Salir del rechazo legacy",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:215-220",
+      "CONDITION": "Legacy rejection menu"
+    },
+    {
+      "VISIBLE_LABEL": "🎬 Seguir revisando",
+      "CALLBACK_ACTION": "reviews:0",
+      "DESTINATION_STATE": "pending review list",
+      "USER_PURPOSE": "Volver a revisiones después de decisión",
+      "IMPLEMENTATION_STATUS": "IMPLEMENTED_CONDITIONAL",
+      "SOURCE": "lib/telegram-review-v1/legacy-core.mjs:204-225",
+      "CONDITION": "Legacy approval/rejection"
+    }
+  ]
+}

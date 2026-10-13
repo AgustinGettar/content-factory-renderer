@@ -1,0 +1,32 @@
+{
+  "status": "PASS_LOCAL_ONLY",
+  "tests": 146,
+  "passed": 146,
+  "failed": 0,
+  "skipped": 0,
+  "offline_network_guard": true,
+  "provider_generation_calls_real": 0,
+  "remote_mutations": 0,
+  "ep004_created": false,
+  "new_tests": 22,
+  "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-make-ux-concurrency.test.js test/lumi-make-transport.test.js test/lumi-panel-renderer-v2.test.js test/lumi-ep004-telegram-blocked.test.js test/lumi-telegram-review-v1.test.js test/lumi-q41-first-image.test.js test/lumi-audio-review-v2.test.js test/lumi-generic-runtime-integration.test.js",
+  "scope": [
+    "CAS interleavings and exhausted retry",
+    "ACK duplicate and restart from stored snapshot",
+    "atomic outbox",
+    "old callback / repeated click / forged HMAC",
+    "expected pending vs unexpected HTTP409",
+    "UNKNOWN and callback crash fail closed",
+    "three repeated full navigation cycles through real endpoint handler with in-memory store",
+    "master approvals/file identity preserved",
+    "Make ACK IML evaluated offline for photo/video/audio",
+    "q41 budget/balance/recovery regression using mocked providers"
+  ],
+  "limitations": [
+    "No post-deploy Telegram acceptance",
+    "No new CI run or remote deployment",
+    "Supabase remains untouched; concurrency uses deterministic test-store interleavings",
+    "Original historical ACK internal error was not logged; CAS attribution is supported by reproduction, not live tracing",
+    "Make template evaluated with local subset interpreter, not executed remotely"
+  ]
+}

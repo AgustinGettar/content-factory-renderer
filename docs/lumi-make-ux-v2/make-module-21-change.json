@@ -1,0 +1,31 @@
+{
+  "scenario_id": 6224860,
+  "module_id": 21,
+  "remote_applied": false,
+  "reason": "Existing ACK omits actual Telegram audio metadata; needed before real audio review. Separate from reproduced CAS fault.",
+  "authorization_required": true,
+  "steps": [
+    {
+      "field": "mapper.jsonStringBodyContent",
+      "match": "decodeURL(\"%22%7D%5D%7D%7D\")",
+      "replacement": "decodeURL(\"%22%7D%5D%2C%22audio%22%3A%7B%22file_id%22%3A%22\"); ifempty(12.body.result.audio.file_id; emptystring); decodeURL(\"%22%2C%22file_unique_id%22%3A%22\"); ifempty(12.body.result.audio.file_unique_id; emptystring); decodeURL(\"%22%2C%22file_size%22%3A\"); ifempty(12.body.result.audio.file_size; 0); decodeURL(\"%7D%7D%7D\")",
+      "expected_occurrences": 1
+    },
+    {
+      "field": "mapper.headers[name=x-lumi-signature].value",
+      "match": "decodeURL(\"%22%7D%5D%7D%7D\")",
+      "replacement": "decodeURL(\"%22%7D%5D%2C%22audio%22%3A%7B%22file_id%22%3A%22\"); ifempty(12.body.result.audio.file_id; emptystring); decodeURL(\"%22%2C%22file_unique_id%22%3A%22\"); ifempty(12.body.result.audio.file_unique_id; emptystring); decodeURL(\"%22%2C%22file_size%22%3A\"); ifempty(12.body.result.audio.file_size; 0); decodeURL(\"%7D%7D%7D\")",
+      "expected_occurrences": 1
+    }
+  ],
+  "preserve": [
+    "HMAC key and envelope",
+    "original non-review branch",
+    "webhook",
+    "HTTP URL",
+    "message_id=138",
+    "stopOnHttpError=true",
+    "all other modules"
+  ],
+  "validation": "Guarded fragments match exactly once in current module21 body and signature. Complete body expression equals the HMAC body hash argument before and after patch. Offline photo/video/audio/non-review template evaluation and ACK validation PASS. Real Make execution pending approval."
+}

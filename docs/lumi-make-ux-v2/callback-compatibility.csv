@@ -1,0 +1,77 @@
+CURRENT_LABEL,CURRENT_CALLBACK,CURRENT_STATE,PROPOSED_LABEL,PROPOSED_LOCATION,ACTION_REQUIRED,COMPATIBILITY,SOURCE_GROUP
+💡 Ideas de contenido,ideas,ideas menu,🎬 Crear video,Crear video > Elegir idea,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+🗓 Programación,calendar,calendar menu,🗓 Programación,Ajustes (función histórica no habilitada),Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+🎬 Aprobar videos,reviews:0,pending preview list,🎬 Aprobar videos,Producción,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+✅ Contenidos publicados,published:0,published list,✅ Contenidos publicados,Ajustes (función histórica no habilitada),Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+📊 Estadísticas,stats:0,statistics list,📊 Estadísticas,Ajustes (función histórica no habilitada),Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+🔎 Explorar nichos,trends,AI proposal job,🔎 Explorar nichos,Ajustes (función histórica no habilitada),Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+⚙️ Estado del sistema,settings,settings menu,⚙️ Ajustes,Ajustes,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+✖️ Cerrar panel,close,closed,✖️ Cerrar panel,HOME,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,HOME_MENU_BUTTONS
+🔎 Revisar producción,current,PRODUCTION_PROGRESS (latest episode),📊 Producción,HOME,"Conservar identificador, binding y control de estado.",PRESERVED,HOME_MENU_BUTTONS
+📚 Mis videos,library(page=0),LIBRARY,📁 Mis videos,HOME,"Conservar identificador, binding y control de estado.",PRESERVED,HOME_MENU_BUTTONS
+🔊 Comparar voces de Lumi,audio(request_id),AUDIO_REVIEW,🔊 Escuchar voces,Ajustes > Escuchar voces,Mover fuera de HOME; conservar identidad y archivos existentes.,PRESERVED,HOME_MENU_BUTTONS
+📚 Ideas anteriores,history:0,history list,📚 Ideas anteriores,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+✨ Sugerirme 5 ideas nuevas,new,AI job,✨ Sugerirme 5 ideas nuevas,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+✍️ Escribir una idea,write,manual,✍️ Escribir una idea,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+{n}. {proposal title},pick:{job_id}:{index},proposal detail,{n}. {proposal title},Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+🎬 Elegir y generar,choose:{job_id}:{index},production queued / confirmation,🎬 Elegir y generar,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+⬅️ Otras propuestas,job:{job_id},proposal list,⬅️ Otras propuestas,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+🎬 Generar video,manualconfirm,home after production command,🎬 Generar video,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+✏️ Cambiar idea,write,manual,✏️ Cambiar idea,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+Consultar resultado / Actualizar / Ver propuestas,job:{job_id},job status or proposal list,Consultar resultado / Actualizar / Ver propuestas,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+🎬 Ver producción,production:0,production list,🎬 Ver producción,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,CREATE_VIDEO_BUTTONS
+Ver #{idea_id},idea:{idea_id},idea detail,Ver #{idea_id},Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,EPISODE_SELECTION_BUTTONS
+Ver video #{video_id} / Ver #{video_id} · {title},video:{video_id},watch_video,Ver video #{video_id} / Ver #{video_id} · {title},Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,EPISODE_SELECTION_BUTTONS
+{episode.title},master(episode_id),MASTER_REVIEW,{episode.title},Mis videos / Producción,"Conservar identificador, binding y control de estado.",PRESERVED,EPISODE_SELECTION_BUTTONS
+◀️ / ▶️,library(page ± 1),LIBRARY,◀️ / ▶️,Mis videos / Producción,"Conservar identificador, binding y control de estado.",PRESERVED,EPISODE_SELECTION_BUTTONS
+◀️ Anteriores / Siguientes ▶️,{history|reviews|approved|rejected|production}:{page},same list route,◀️ Anteriores / Siguientes ▶️,Menú histórico,reviews:<page> abre Producción; las otras rutas históricas notifican que debe abrir /menu.,MIXED_READ_ONLY_OR_STALE,EPISODE_SELECTION_BUTTONS
+✅ Aprobados,approved:0,approved list,✅ Aprobados,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,EPISODE_SELECTION_BUTTONS
+🗃 Rechazados,rejected:0,rejected list,🗃 Rechazados,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,EPISODE_SELECTION_BUTTONS
+🎬 Revisar tomas,shot(index=0),SHOT_REVIEW,🎬 Revisar tomas,Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+▶️ Ver master,master,MASTER_REVIEW,▶️ Ver master,Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+▶️ Continuar / Reanudar,resume,PRODUCTION_PROGRESS,▶️ Continuar producción,Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+⚠️ Ver incidente,incident,INCIDENT,⚠️ Ver incidente,Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+🛑 Cancelar,cancel,INCIDENT,🛑 Cancelar,Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+👀 Revisar {stage_id},review(request_id),STAGE_REVIEW,👀 Revisar {stage_id},Producción > episodio,"Conservar identificador, binding y control de estado.",PRESERVED,PROGRESS_BUTTONS
+🔄 Actualizar estado / 🔄 Actualizar,video:{video_id},watch_video,🔄 Actualizar estado / 🔄 Actualizar,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,PROGRESS_BUTTONS
+🎬 Ver estado del HD / 🎬 Ver estado,video:{video_id},watch_video,🎬 Ver estado del HD / 🎬 Ver estado,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,PROGRESS_BUTTONS
+✅ Aprobar toma,approve_shot,SHOT_REVIEW,✅ Aprobar toma,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+❌ Rechazar,reject_menu,REJECT_MENU,🔧 Solicitar corrección,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+◀️ Anterior,shot(index-1),SHOT_REVIEW,◀️ Anterior,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+Siguiente ▶️,shot(index+1),SHOT_REVIEW,Siguiente ▶️,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+👤 Lumi / anatomía,"reject(reason=anatomy, final=false)",INCIDENT,👤 Lumi / anatomía,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+🎨 Estilo / calidad,"reject(reason=style, final=false)",INCIDENT,🎨 Estilo / calidad,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+🎬 Movimiento,"reject(reason=motion, final=false)",INCIDENT,🎬 Movimiento,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+🌸 Objeto educativo,"reject(reason=object, final=false)",INCIDENT,🌸 Objeto educativo,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+✏️ Otro,"reject(reason=other, final=false)",INCIDENT,✏️ Otro,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+✅ Aprobar,approve_stage,HOME,✅ Aprobar,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+❌ Rechazar,reject_stage,HOME,🔧 Solicitar corrección,Producción > Revisar toma,"Conservar identificador, binding y control de estado.",PRESERVED,SHOT_REVIEW_BUTTONS
+✅ APROBAR VIDEO,approve_final,MASTER_APPROVED (renderer v2) / MASTER_REVIEW,✅ Aprobar master,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+❌ RECHAZAR,changes_menu,CHANGES_MENU,🔧 Solicitar corrección,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+ℹ️ Detalles / 📊 Detalles,details,DETAILS,ℹ️ Detalles / 📊 Detalles,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+▶️ VER VIDEO,master,MASTER_REVIEW,▶️ VER VIDEO,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+📤 PUBLICAR,publish,PUBLISH_REVIEW,📤 PUBLICAR,Mis videos > Ver master,Vista existente; publicar permanece bloqueado por PUBLICATION_DISABLED.,PRESERVED_DISABLED_COMMIT,MASTER_REVIEW_BUTTONS
+✅ Aprobar y generar HD,approve:{video_id}:{revision},render_wait,✅ Aprobar y generar HD,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,MASTER_REVIEW_BUTTONS
+🎬 Una toma,"reject(reason=shot, final=true)",INCIDENT,🎬 Una toma,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+🔊 Voz/audio,"reject(reason=audio, final=true)",INCIDENT,🔊 Voz/audio,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+💬 Subtítulos,"reject(reason=captions, final=true)",INCIDENT,💬 Subtítulos,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+🎵 Música/SFX,"reject(reason=music, final=true)",INCIDENT,🎵 Música/SFX,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+⏱ Ritmo,"reject(reason=pacing, final=true)",INCIDENT,⏱ Ritmo,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+✏️ Otro,"reject(reason=other, final=true)",INCIDENT,✏️ Otro,Mis videos > Ver master,"Conservar identificador, binding y control de estado.",PRESERVED,MASTER_REVIEW_BUTTONS
+⬇️ Descargar,download,DOWNLOAD,⬇️ Descargar MP4,Ver master > Descargar MP4,"Conservar identificador, binding y control de estado.",PRESERVED,DOWNLOAD_BUTTONS
+Guardar / Descargar (control nativo Telegram),TELEGRAM_NATIVE_SAVE,Client download,Guardar / Descargar (control nativo Telegram),Ver master > Descargar MP4,Descarga nativa del MP4; no enviar otro mensaje.,NATIVE_UNCHANGED,DOWNLOAD_BUTTONS
+🏠 Menú principal,menu,HOME,🏠 Volver al inicio,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+⬅️ Volver,back(return_screen),stored prior screen / HOME,⬅️ Volver,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+📊 Ver producción,progress,PRODUCTION_PROGRESS,📊 Ver progreso,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+◀️ Volver,shot(index) / master,SHOT_REVIEW / MASTER_REVIEW,◀️ Volver,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+⬅️ Menú principal,home,home,⬅️ Menú principal,HOME,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,BACK_HOME_NAVIGATION
+⬅️ VOLVER / 🏠 VOLVER,menu,HOME,🏠 Volver al inicio,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+◀️ / ▶️,legacy(page ± 1),LEGACY,◀️ / ▶️,Contextual,"Conservar identificador, binding y control de estado.",PRESERVED,BACK_HOME_NAVIGATION
+▶️ REANUDAR,resume,PRODUCTION_PROGRESS,▶️ Continuar producción,Producción > Recuperación,"Conservar identificador, binding y control de estado.",PRESERVED,ERROR_RECOVERY_BUTTONS
+🔍 DETALLE,incident_details,INCIDENT_DETAILS,🔍 DETALLE,Producción > Recuperación,"Conservar identificador, binding y control de estado.",PRESERVED,ERROR_RECOVERY_BUTTONS
+💰 COSTO,cost,COST,💰 COSTO,Producción > Recuperación,"Conservar identificador, binding y control de estado.",PRESERVED,ERROR_RECOVERY_BUTTONS
+❌ CANCELAR,cancel,INCIDENT,❌ CANCELAR,Producción > Recuperación,"Conservar identificador, binding y control de estado.",PRESERVED,ERROR_RECOVERY_BUTTONS
+🔁 Reintentar HD / 🔁 Reintentar vista previa,retry:{video_id}:{revision},render_wait,🔁 Reintentar HD / 🔁 Reintentar vista previa,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,ERROR_RECOVERY_BUTTONS
+⚙️ Estado del sistema,settings,settings menu,⚙️ Ajustes,Ajustes,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,ERROR_RECOVERY_BUTTONS
+⬅️ Volver al video,video:{video_id},watch_video,⬅️ Volver al video,Menú histórico,Avisar que debe abrir /menu; no ejecutar el callback histórico.,BLOCKED_STALE,ERROR_RECOVERY_BUTTONS
+🎬 Seguir revisando,reviews:0,pending review list,🎬 Seguir revisando,Producción,Resolver en router aislado; no RPC histórico ni generación.,READ_ONLY_ALIAS,ERROR_RECOVERY_BUTTONS

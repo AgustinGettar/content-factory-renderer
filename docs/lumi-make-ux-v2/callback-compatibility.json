@@ -1,0 +1,779 @@
+{
+  "source_revision": "4c3a3946ca6e0c40176604ddb5bb04ec78ddf710",
+  "inventory_entries": 76,
+  "scope": "Recovered original inventory, not a new count of current live buttons",
+  "home_before_live": 12,
+  "home_after": 4,
+  "rows": [
+    {
+      "CURRENT_LABEL": "💡 Ideas de contenido",
+      "CURRENT_CALLBACK": "ideas",
+      "CURRENT_STATE": "ideas menu",
+      "PROPOSED_LABEL": "🎬 Crear video",
+      "PROPOSED_LOCATION": "Crear video > Elegir idea",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🗓 Programación",
+      "CURRENT_CALLBACK": "calendar",
+      "CURRENT_STATE": "calendar menu",
+      "PROPOSED_LABEL": "🗓 Programación",
+      "PROPOSED_LOCATION": "Ajustes (función histórica no habilitada)",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Aprobar videos",
+      "CURRENT_CALLBACK": "reviews:0",
+      "CURRENT_STATE": "pending preview list",
+      "PROPOSED_LABEL": "🎬 Aprobar videos",
+      "PROPOSED_LOCATION": "Producción",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ Contenidos publicados",
+      "CURRENT_CALLBACK": "published:0",
+      "CURRENT_STATE": "published list",
+      "PROPOSED_LABEL": "✅ Contenidos publicados",
+      "PROPOSED_LOCATION": "Ajustes (función histórica no habilitada)",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "📊 Estadísticas",
+      "CURRENT_CALLBACK": "stats:0",
+      "CURRENT_STATE": "statistics list",
+      "PROPOSED_LABEL": "📊 Estadísticas",
+      "PROPOSED_LOCATION": "Ajustes (función histórica no habilitada)",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔎 Explorar nichos",
+      "CURRENT_CALLBACK": "trends",
+      "CURRENT_STATE": "AI proposal job",
+      "PROPOSED_LABEL": "🔎 Explorar nichos",
+      "PROPOSED_LOCATION": "Ajustes (función histórica no habilitada)",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⚙️ Estado del sistema",
+      "CURRENT_CALLBACK": "settings",
+      "CURRENT_STATE": "settings menu",
+      "PROPOSED_LABEL": "⚙️ Ajustes",
+      "PROPOSED_LOCATION": "Ajustes",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✖️ Cerrar panel",
+      "CURRENT_CALLBACK": "close",
+      "CURRENT_STATE": "closed",
+      "PROPOSED_LABEL": "✖️ Cerrar panel",
+      "PROPOSED_LOCATION": "HOME",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔎 Revisar producción",
+      "CURRENT_CALLBACK": "current",
+      "CURRENT_STATE": "PRODUCTION_PROGRESS (latest episode)",
+      "PROPOSED_LABEL": "📊 Producción",
+      "PROPOSED_LOCATION": "HOME",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "📚 Mis videos",
+      "CURRENT_CALLBACK": "library(page=0)",
+      "CURRENT_STATE": "LIBRARY",
+      "PROPOSED_LABEL": "📁 Mis videos",
+      "PROPOSED_LOCATION": "HOME",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔊 Comparar voces de Lumi",
+      "CURRENT_CALLBACK": "audio(request_id)",
+      "CURRENT_STATE": "AUDIO_REVIEW",
+      "PROPOSED_LABEL": "🔊 Escuchar voces",
+      "PROPOSED_LOCATION": "Ajustes > Escuchar voces",
+      "ACTION_REQUIRED": "Mover fuera de HOME; conservar identidad y archivos existentes.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "HOME_MENU_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "📚 Ideas anteriores",
+      "CURRENT_CALLBACK": "history:0",
+      "CURRENT_STATE": "history list",
+      "PROPOSED_LABEL": "📚 Ideas anteriores",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✨ Sugerirme 5 ideas nuevas",
+      "CURRENT_CALLBACK": "new",
+      "CURRENT_STATE": "AI job",
+      "PROPOSED_LABEL": "✨ Sugerirme 5 ideas nuevas",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✍️ Escribir una idea",
+      "CURRENT_CALLBACK": "write",
+      "CURRENT_STATE": "manual",
+      "PROPOSED_LABEL": "✍️ Escribir una idea",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "{n}. {proposal title}",
+      "CURRENT_CALLBACK": "pick:{job_id}:{index}",
+      "CURRENT_STATE": "proposal detail",
+      "PROPOSED_LABEL": "{n}. {proposal title}",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Elegir y generar",
+      "CURRENT_CALLBACK": "choose:{job_id}:{index}",
+      "CURRENT_STATE": "production queued / confirmation",
+      "PROPOSED_LABEL": "🎬 Elegir y generar",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⬅️ Otras propuestas",
+      "CURRENT_CALLBACK": "job:{job_id}",
+      "CURRENT_STATE": "proposal list",
+      "PROPOSED_LABEL": "⬅️ Otras propuestas",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Generar video",
+      "CURRENT_CALLBACK": "manualconfirm",
+      "CURRENT_STATE": "home after production command",
+      "PROPOSED_LABEL": "🎬 Generar video",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✏️ Cambiar idea",
+      "CURRENT_CALLBACK": "write",
+      "CURRENT_STATE": "manual",
+      "PROPOSED_LABEL": "✏️ Cambiar idea",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "Consultar resultado / Actualizar / Ver propuestas",
+      "CURRENT_CALLBACK": "job:{job_id}",
+      "CURRENT_STATE": "job status or proposal list",
+      "PROPOSED_LABEL": "Consultar resultado / Actualizar / Ver propuestas",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Ver producción",
+      "CURRENT_CALLBACK": "production:0",
+      "CURRENT_STATE": "production list",
+      "PROPOSED_LABEL": "🎬 Ver producción",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "CREATE_VIDEO_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "Ver #{idea_id}",
+      "CURRENT_CALLBACK": "idea:{idea_id}",
+      "CURRENT_STATE": "idea detail",
+      "PROPOSED_LABEL": "Ver #{idea_id}",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "Ver video #{video_id} / Ver #{video_id} · {title}",
+      "CURRENT_CALLBACK": "video:{video_id}",
+      "CURRENT_STATE": "watch_video",
+      "PROPOSED_LABEL": "Ver video #{video_id} / Ver #{video_id} · {title}",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "{episode.title}",
+      "CURRENT_CALLBACK": "master(episode_id)",
+      "CURRENT_STATE": "MASTER_REVIEW",
+      "PROPOSED_LABEL": "{episode.title}",
+      "PROPOSED_LOCATION": "Mis videos / Producción",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "◀️ / ▶️",
+      "CURRENT_CALLBACK": "library(page ± 1)",
+      "CURRENT_STATE": "LIBRARY",
+      "PROPOSED_LABEL": "◀️ / ▶️",
+      "PROPOSED_LOCATION": "Mis videos / Producción",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "◀️ Anteriores / Siguientes ▶️",
+      "CURRENT_CALLBACK": "{history|reviews|approved|rejected|production}:{page}",
+      "CURRENT_STATE": "same list route",
+      "PROPOSED_LABEL": "◀️ Anteriores / Siguientes ▶️",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "reviews:<page> abre Producción; las otras rutas históricas notifican que debe abrir /menu.",
+      "COMPATIBILITY": "MIXED_READ_ONLY_OR_STALE",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ Aprobados",
+      "CURRENT_CALLBACK": "approved:0",
+      "CURRENT_STATE": "approved list",
+      "PROPOSED_LABEL": "✅ Aprobados",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🗃 Rechazados",
+      "CURRENT_CALLBACK": "rejected:0",
+      "CURRENT_STATE": "rejected list",
+      "PROPOSED_LABEL": "🗃 Rechazados",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "EPISODE_SELECTION_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Revisar tomas",
+      "CURRENT_CALLBACK": "shot(index=0)",
+      "CURRENT_STATE": "SHOT_REVIEW",
+      "PROPOSED_LABEL": "🎬 Revisar tomas",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "▶️ Ver master",
+      "CURRENT_CALLBACK": "master",
+      "CURRENT_STATE": "MASTER_REVIEW",
+      "PROPOSED_LABEL": "▶️ Ver master",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "▶️ Continuar / Reanudar",
+      "CURRENT_CALLBACK": "resume",
+      "CURRENT_STATE": "PRODUCTION_PROGRESS",
+      "PROPOSED_LABEL": "▶️ Continuar producción",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⚠️ Ver incidente",
+      "CURRENT_CALLBACK": "incident",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "⚠️ Ver incidente",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🛑 Cancelar",
+      "CURRENT_CALLBACK": "cancel",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🛑 Cancelar",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "👀 Revisar {stage_id}",
+      "CURRENT_CALLBACK": "review(request_id)",
+      "CURRENT_STATE": "STAGE_REVIEW",
+      "PROPOSED_LABEL": "👀 Revisar {stage_id}",
+      "PROPOSED_LOCATION": "Producción > episodio",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔄 Actualizar estado / 🔄 Actualizar",
+      "CURRENT_CALLBACK": "video:{video_id}",
+      "CURRENT_STATE": "watch_video",
+      "PROPOSED_LABEL": "🔄 Actualizar estado / 🔄 Actualizar",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Ver estado del HD / 🎬 Ver estado",
+      "CURRENT_CALLBACK": "video:{video_id}",
+      "CURRENT_STATE": "watch_video",
+      "PROPOSED_LABEL": "🎬 Ver estado del HD / 🎬 Ver estado",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "PROGRESS_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ Aprobar toma",
+      "CURRENT_CALLBACK": "approve_shot",
+      "CURRENT_STATE": "SHOT_REVIEW",
+      "PROPOSED_LABEL": "✅ Aprobar toma",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "❌ Rechazar",
+      "CURRENT_CALLBACK": "reject_menu",
+      "CURRENT_STATE": "REJECT_MENU",
+      "PROPOSED_LABEL": "🔧 Solicitar corrección",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "◀️ Anterior",
+      "CURRENT_CALLBACK": "shot(index-1)",
+      "CURRENT_STATE": "SHOT_REVIEW",
+      "PROPOSED_LABEL": "◀️ Anterior",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "Siguiente ▶️",
+      "CURRENT_CALLBACK": "shot(index+1)",
+      "CURRENT_STATE": "SHOT_REVIEW",
+      "PROPOSED_LABEL": "Siguiente ▶️",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "👤 Lumi / anatomía",
+      "CURRENT_CALLBACK": "reject(reason=anatomy, final=false)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "👤 Lumi / anatomía",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎨 Estilo / calidad",
+      "CURRENT_CALLBACK": "reject(reason=style, final=false)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🎨 Estilo / calidad",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Movimiento",
+      "CURRENT_CALLBACK": "reject(reason=motion, final=false)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🎬 Movimiento",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🌸 Objeto educativo",
+      "CURRENT_CALLBACK": "reject(reason=object, final=false)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🌸 Objeto educativo",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✏️ Otro",
+      "CURRENT_CALLBACK": "reject(reason=other, final=false)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "✏️ Otro",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ Aprobar",
+      "CURRENT_CALLBACK": "approve_stage",
+      "CURRENT_STATE": "HOME",
+      "PROPOSED_LABEL": "✅ Aprobar",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "❌ Rechazar",
+      "CURRENT_CALLBACK": "reject_stage",
+      "CURRENT_STATE": "HOME",
+      "PROPOSED_LABEL": "🔧 Solicitar corrección",
+      "PROPOSED_LOCATION": "Producción > Revisar toma",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "SHOT_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ APROBAR VIDEO",
+      "CURRENT_CALLBACK": "approve_final",
+      "CURRENT_STATE": "MASTER_APPROVED (renderer v2) / MASTER_REVIEW",
+      "PROPOSED_LABEL": "✅ Aprobar master",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "❌ RECHAZAR",
+      "CURRENT_CALLBACK": "changes_menu",
+      "CURRENT_STATE": "CHANGES_MENU",
+      "PROPOSED_LABEL": "🔧 Solicitar corrección",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "ℹ️ Detalles / 📊 Detalles",
+      "CURRENT_CALLBACK": "details",
+      "CURRENT_STATE": "DETAILS",
+      "PROPOSED_LABEL": "ℹ️ Detalles / 📊 Detalles",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "▶️ VER VIDEO",
+      "CURRENT_CALLBACK": "master",
+      "CURRENT_STATE": "MASTER_REVIEW",
+      "PROPOSED_LABEL": "▶️ VER VIDEO",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "📤 PUBLICAR",
+      "CURRENT_CALLBACK": "publish",
+      "CURRENT_STATE": "PUBLISH_REVIEW",
+      "PROPOSED_LABEL": "📤 PUBLICAR",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Vista existente; publicar permanece bloqueado por PUBLICATION_DISABLED.",
+      "COMPATIBILITY": "PRESERVED_DISABLED_COMMIT",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✅ Aprobar y generar HD",
+      "CURRENT_CALLBACK": "approve:{video_id}:{revision}",
+      "CURRENT_STATE": "render_wait",
+      "PROPOSED_LABEL": "✅ Aprobar y generar HD",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Una toma",
+      "CURRENT_CALLBACK": "reject(reason=shot, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🎬 Una toma",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔊 Voz/audio",
+      "CURRENT_CALLBACK": "reject(reason=audio, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🔊 Voz/audio",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "💬 Subtítulos",
+      "CURRENT_CALLBACK": "reject(reason=captions, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "💬 Subtítulos",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎵 Música/SFX",
+      "CURRENT_CALLBACK": "reject(reason=music, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "🎵 Música/SFX",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⏱ Ritmo",
+      "CURRENT_CALLBACK": "reject(reason=pacing, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "⏱ Ritmo",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "✏️ Otro",
+      "CURRENT_CALLBACK": "reject(reason=other, final=true)",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "✏️ Otro",
+      "PROPOSED_LOCATION": "Mis videos > Ver master",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "MASTER_REVIEW_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⬇️ Descargar",
+      "CURRENT_CALLBACK": "download",
+      "CURRENT_STATE": "DOWNLOAD",
+      "PROPOSED_LABEL": "⬇️ Descargar MP4",
+      "PROPOSED_LOCATION": "Ver master > Descargar MP4",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "DOWNLOAD_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "Guardar / Descargar (control nativo Telegram)",
+      "CURRENT_CALLBACK": "TELEGRAM_NATIVE_SAVE",
+      "CURRENT_STATE": "Client download",
+      "PROPOSED_LABEL": "Guardar / Descargar (control nativo Telegram)",
+      "PROPOSED_LOCATION": "Ver master > Descargar MP4",
+      "ACTION_REQUIRED": "Descarga nativa del MP4; no enviar otro mensaje.",
+      "COMPATIBILITY": "NATIVE_UNCHANGED",
+      "SOURCE_GROUP": "DOWNLOAD_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🏠 Menú principal",
+      "CURRENT_CALLBACK": "menu",
+      "CURRENT_STATE": "HOME",
+      "PROPOSED_LABEL": "🏠 Volver al inicio",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "⬅️ Volver",
+      "CURRENT_CALLBACK": "back(return_screen)",
+      "CURRENT_STATE": "stored prior screen / HOME",
+      "PROPOSED_LABEL": "⬅️ Volver",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "📊 Ver producción",
+      "CURRENT_CALLBACK": "progress",
+      "CURRENT_STATE": "PRODUCTION_PROGRESS",
+      "PROPOSED_LABEL": "📊 Ver progreso",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "◀️ Volver",
+      "CURRENT_CALLBACK": "shot(index) / master",
+      "CURRENT_STATE": "SHOT_REVIEW / MASTER_REVIEW",
+      "PROPOSED_LABEL": "◀️ Volver",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "⬅️ Menú principal",
+      "CURRENT_CALLBACK": "home",
+      "CURRENT_STATE": "home",
+      "PROPOSED_LABEL": "⬅️ Menú principal",
+      "PROPOSED_LOCATION": "HOME",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "⬅️ VOLVER / 🏠 VOLVER",
+      "CURRENT_CALLBACK": "menu",
+      "CURRENT_STATE": "HOME",
+      "PROPOSED_LABEL": "🏠 Volver al inicio",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "◀️ / ▶️",
+      "CURRENT_CALLBACK": "legacy(page ± 1)",
+      "CURRENT_STATE": "LEGACY",
+      "PROPOSED_LABEL": "◀️ / ▶️",
+      "PROPOSED_LOCATION": "Contextual",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "BACK_HOME_NAVIGATION"
+    },
+    {
+      "CURRENT_LABEL": "▶️ REANUDAR",
+      "CURRENT_CALLBACK": "resume",
+      "CURRENT_STATE": "PRODUCTION_PROGRESS",
+      "PROPOSED_LABEL": "▶️ Continuar producción",
+      "PROPOSED_LOCATION": "Producción > Recuperación",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔍 DETALLE",
+      "CURRENT_CALLBACK": "incident_details",
+      "CURRENT_STATE": "INCIDENT_DETAILS",
+      "PROPOSED_LABEL": "🔍 DETALLE",
+      "PROPOSED_LOCATION": "Producción > Recuperación",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "💰 COSTO",
+      "CURRENT_CALLBACK": "cost",
+      "CURRENT_STATE": "COST",
+      "PROPOSED_LABEL": "💰 COSTO",
+      "PROPOSED_LOCATION": "Producción > Recuperación",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "❌ CANCELAR",
+      "CURRENT_CALLBACK": "cancel",
+      "CURRENT_STATE": "INCIDENT",
+      "PROPOSED_LABEL": "❌ CANCELAR",
+      "PROPOSED_LOCATION": "Producción > Recuperación",
+      "ACTION_REQUIRED": "Conservar identificador, binding y control de estado.",
+      "COMPATIBILITY": "PRESERVED",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🔁 Reintentar HD / 🔁 Reintentar vista previa",
+      "CURRENT_CALLBACK": "retry:{video_id}:{revision}",
+      "CURRENT_STATE": "render_wait",
+      "PROPOSED_LABEL": "🔁 Reintentar HD / 🔁 Reintentar vista previa",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⚙️ Estado del sistema",
+      "CURRENT_CALLBACK": "settings",
+      "CURRENT_STATE": "settings menu",
+      "PROPOSED_LABEL": "⚙️ Ajustes",
+      "PROPOSED_LOCATION": "Ajustes",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "⬅️ Volver al video",
+      "CURRENT_CALLBACK": "video:{video_id}",
+      "CURRENT_STATE": "watch_video",
+      "PROPOSED_LABEL": "⬅️ Volver al video",
+      "PROPOSED_LOCATION": "Menú histórico",
+      "ACTION_REQUIRED": "Avisar que debe abrir /menu; no ejecutar el callback histórico.",
+      "COMPATIBILITY": "BLOCKED_STALE",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    },
+    {
+      "CURRENT_LABEL": "🎬 Seguir revisando",
+      "CURRENT_CALLBACK": "reviews:0",
+      "CURRENT_STATE": "pending review list",
+      "PROPOSED_LABEL": "🎬 Seguir revisando",
+      "PROPOSED_LOCATION": "Producción",
+      "ACTION_REQUIRED": "Resolver en router aislado; no RPC histórico ni generación.",
+      "COMPATIBILITY": "READ_ONLY_ALIAS",
+      "SOURCE_GROUP": "ERROR_RECOVERY_BUTTONS"
+    }
+  ],
+  "post_inventory_additions": {
+    "create_v2_ideas": "HOME > Crear video",
+    "create_v2_budget": "Crear video > idea > presupuesto",
+    "create_v2_start": "Budget gate remains BLOCKED; never creates EP004",
+    "q41_prepare": "Preparar primera imagen",
+    "q41_confirm": "Existing explicit generation gate; not exercised",
+    "q41_refill": "Saldo recargado, only insufficient-balance state",
+    "balance_reloaded": "Contextual balance recovery; does not increase USD5",
+    "settings": "New screen in existing canonical router; old literal callback kept as alias"
+  }
+}

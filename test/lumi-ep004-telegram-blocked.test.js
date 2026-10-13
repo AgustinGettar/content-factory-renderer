@@ -23,9 +23,10 @@ async function fixture(){
  return {store,calls,svc,callback};
 }
 
-test('HOME -> Create -> EP004 budget -> HOME uses only panel 138 and retains legacy menu',async()=>{
+test('HOME -> Create -> EP004 budget -> HOME uses only panel 138 with four canonical HOME actions',async()=>{
  const f=await fixture();await f.svc.show('1','1',{kind:'menu'});
- assert.equal(f.calls.at(-1).body.reply_markup.inline_keyboard[0][0].callback_data,'ideas');
+ assert.deepEqual(f.calls.at(-1).body.reply_markup.inline_keyboard.flat().map(b=>b.text),['🎬 Crear video','📁 Mis videos','📊 Producción','⚙️ Ajustes']);
+ assert.equal((await f.store.get('1')).state.legacy_menu[0][0].callback_data,'ideas');
  await f.svc.callback(await f.callback('create_v2_ideas'));
  await f.svc.callback(await f.callback('create_v2_budget'));
  assert.match(f.calls.at(-1).body.media.caption,/USD 5,00/);

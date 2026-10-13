@@ -101,7 +101,7 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
   };
   const envelope=cb=>{const body={op:'callback',user_id:'1',chat_id:'1',callback_query:cb},signed={method:'POST',path:'/lumi/telegram-review/make/v1',
     timestamp:String(Math.floor(Date.now()/1000)),requestId:'offline-request-'+(++count),body:Buffer.from(JSON.stringify(body))};return {body,signed,signature:signRequest(secret,signed)};};
-  const command=cb=>authenticateFirstImageCallback({env,...envelope(cb)});
+  const command=cb=>authenticateFirstImageCallback({env,panelMessageId:138,...envelope(cb)});
   const click=async action=>{const cb=await callback(action);return svc.callback(cb,{firstImageCommand:action==='q41_prepare'?null:command(cb)});};
   const prepare=async()=>{await svc.show('1','1',{kind:'menu'});await click('create_v2_ideas');await click('create_v2_budget');await click('q41_prepare');if(supervised)await click('q41_budget');};
   const restart=()=>{adapter=makeAdapter();production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;};

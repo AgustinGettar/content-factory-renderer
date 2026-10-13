@@ -67,7 +67,7 @@ async function fixture({stage='IMAGE'}={}){
   const t=Object.entries(v.tokens).find(([,t])=>t.action==='balance_reloaded');assert.ok(t,'contextual button');
   const cb={id:'offline-refill-'+(++count),from:{id:1},message:{message_id:138,chat:{id:1}},data:'lr:'+t[0]};
   const signed={method:'POST',path:'/lumi/telegram-review/make/v1',timestamp:String(Math.floor(Date.now()/1000)),requestId:'offline-reload-'+count,body:Buffer.from(JSON.stringify({op:'callback',callback_query:cb}))};
-  return authenticateFirstImageCallback({env,signed,signature:signRequest(fixtureSecret,signed)});
+  return authenticateFirstImageCallback({env,panelMessageId:138,signed,signature:signRequest(fixtureSecret,signed)});
  };
  return {...f,journal,calls,refill,setMode:m=>mode=m,get adapter(){return adapter;},restart:()=>adapter=makeAdapter(),cleanup:g.cleanup};
 }

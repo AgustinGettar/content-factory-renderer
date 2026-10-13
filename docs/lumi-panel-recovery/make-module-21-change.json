@@ -1,0 +1,19 @@
+{
+  "scenario_id": 6224860,
+  "module_id": 21,
+  "remote_applied": false,
+  "steps": [
+    {
+      "field": "mapper.jsonStringBodyContent",
+      "match": "decodeURL(\"%22%2C%22message_id%22%3A138%2C%22command_id%22%3A%22\")",
+      "replacement": "decodeURL(\"%22%2C%22message_id%22%3A\"); 10.message_id; decodeURL(\"%2C%22command_id%22%3A%22\")",
+      "expected_occurrences": 1
+    },
+    {
+      "field": "mapper.headers[name=x-lumi-signature].value",
+      "match": "decodeURL(\"%22%2C%22message_id%22%3A138%2C%22command_id%22%3A%22\")",
+      "replacement": "decodeURL(\"%22%2C%22message_id%22%3A\"); 10.message_id; decodeURL(\"%2C%22command_id%22%3A%22\")",
+      "expected_occurrences": 1
+    }
+  ]
+}

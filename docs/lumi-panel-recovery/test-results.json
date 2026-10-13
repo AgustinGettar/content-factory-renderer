@@ -1,0 +1,9 @@
+{
+  "tests": 187,
+  "passed": 187,
+  "failed": 0,
+  "new_recovery_tests": 19,
+  "network": "disabled",
+  "provider_generation_calls": 0,
+  "remote_acceptance": "NOT_RUN"
+}

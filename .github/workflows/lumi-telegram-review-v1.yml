@@ -25,6 +25,7 @@ jobs:
           test/lumi-telegram-review-v1.test.js
           test/lumi-make-transport.test.js
           test/lumi-panel-recovery.test.js
+          test/lumi-multipart-delivery.test.js
           test/lumi-make-ux-concurrency.test.js
           test/lumi-panel-renderer-v2.test.js
           test/lumi-production-profile-v2.test.js

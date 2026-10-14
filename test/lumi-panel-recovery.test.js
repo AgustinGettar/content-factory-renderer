@@ -32,6 +32,60 @@ const recover={op:'RECOVER_TELEGRAM_PANEL',user_id:'1',chat_id:'1'};
 const receipt=(f,c,id=900)=>({...f.message(c),message_id:id});
 const prepare=async f=>{const r=await f.call(recover,'recover');assert.equal(r.code,200);return r.value.commands[0];};
 const finish=async(f,c,id=900)=>{const r=await f.call({op:'ack',user_id:'1',chat_id:'1',message_id:c.message_id,command_id:c.idempotency_key,telegram_result:receipt(f,c,id)},'ack:'+Math.floor(Math.random()*1e12));assert.equal(r.code,200);return r;};
+async function staleNavigation(){
+ const f=await setup();
+ const old=(await f.svc.show('1','1',{kind:'progress',episode_id:'ep'})).commands[0];await f.ack(old);
+ const cb=await f.click(old,'menu','stale-home');cb.message.edit_date=Math.floor(Date.now()/1000)-60;
+ const row=await f.store.get('1');row.state.episodes.ep.title='Updated progress';await f.store.cas('1',row.revision,row.state);
+ const pending=(await f.svc.show('1','1',{kind:'progress',episode_id:'ep'})).commands[0];
+ assert.notEqual(pending.body.media.caption,cb.message.caption);
+ return {...f,cb,pending,before:(await f.store.get('1')).state};
+}
+test('stale HOME recovers same panel caption without ACKing or resending ambiguous media',async()=>{
+ const f=await staleNavigation(),r=await f.call({update_id:101,callback_query:f.cb},'stale-home');
+ assert.equal(r.code,200);assert.equal(r.value.status,'NAVIGATION_RECOVERY_PENDING');
+ assert.equal(r.value.actions.length,1);assert.equal(r.value.actions[0].method,'editMessageCaption');
+ const wire=JSON.parse(r.value.actions[0].body_json);assert.equal(wire.message_id,138);assert.equal(wire.media,undefined);
+ const s=(await f.store.get('1')).state,h=s.delivery_history[f.pending.idempotency_key];
+ assert.deepEqual(h.command,f.pending);assert.equal(h.status,'EMITTING');assert.equal(h.ack_state,'UNVERIFIED');
+ assert.equal(h.observation.callback_query_id,f.cb.id);assert.deepEqual(s.episodes,f.before.episodes);assert.deepEqual(s.deliveries,f.before.deliveries);
+ assert.equal(s.delivery.status,'EMITTING');assert.equal(s.message_id,138);assert.equal(s.pending_callback,f.before.pending_callback);
+ const next=r.value.commands[0];await assert.rejects(f.ack(f.pending),/transport_ack_identity_mismatch/);
+ // A separate instance recovers only the exact new Telegram receipt.
+ await acknowledgeCommand(f.store,'1','1',next.idempotency_key,f.message(next));
+ assert.equal((await f.store.get('1')).state.delivery.status,'DELIVERED');
+ assert.equal((await f.store.get('1')).state.delivery_history[f.pending.idempotency_key].ack_state,'UNVERIFIED');
+ const current=await f.click(next,'current','new-current');const nav=await f.svc.callback(current);
+ assert.equal(nav.commands.length,1);assert.equal(nav.commands[0].message_id,138);
+});
+test('navigation recovery duplicate, concurrency and restart produce one new caption command',async()=>{
+ const f=await staleNavigation(),rs=await Promise.all([f.svc.recoverStaleNavigation(f.cb),f.svc.recoverStaleNavigation(f.cb)]);
+ assert.equal(rs.flatMap(r=>r.commands).length,1);
+ const restarted=new ReviewService({store:f.store,telegram:new MakeTransport(),production:{resume:()=>assert.fail('no production')}});
+ assert.equal((await restarted.recoverStaleNavigation(f.cb)).commands.length,0);
+});
+test('operator recovery requires owner HMAC, exact revision and exact pending command',async()=>{
+ const f=await staleNavigation(),row=await f.store.get('1');
+ const body={op:'RECOVER_STALE_PANEL_NAVIGATION',user_id:'1',chat_id:'1',expected_revision:row.revision,
+   command_id:f.pending.idempotency_key,callback_query:f.cb,evidence:{execution_id:'b'.repeat(32),update_id:101}};
+ assert.equal((await f.call(body,'forged','0'.repeat(64))).code,401);
+ const bad=await f.call({...body,command_id:'0'.repeat(64)},'wrong-command');assert.equal(bad.code,409);
+ body.expected_revision=(await f.store.get('1')).revision;
+ const ok=await f.call(body,'recovery');assert.equal(ok.value.status,'NAVIGATION_RECOVERY_PENDING');
+ assert.equal((await f.store.get('1')).state.delivery_history[f.pending.idempotency_key].observation.evidence.execution_id,'b'.repeat(32));
+});
+for(const [name,mutate] of [
+ ['economic callback',(f)=>{const key=f.cb.data.slice(3);f.before.tokens[key]={action:'q41_video_authorize'};}],
+ ['missing keyboard',f=>{delete f.cb.message.reply_markup;}],
+ ['different media',f=>{f.cb.message.photo[0].file_unique_id='OTHER';}],
+ ['newer remote edit',f=>{f.cb.message.edit_date=Math.floor(Date.now()/1000)+60;}],
+ ['production effect pending',f=>{f.before.pending_callback={id:'provider-dispatch'};}],
+ ['different pending artifact',f=>{f.before.delivery.command.artifact_sha='a'.repeat(64);}]
+])test('navigation recovery rejects '+name,async()=>{
+ const f=await staleNavigation();mutate(f);let row=await f.store.get('1');await f.store.cas('1',row.revision,f.before);
+ const before=await f.store.get('1');await assert.rejects(f.svc.recoverStaleNavigation(f.cb),/stale_navigation_evidence_required/);
+ assert.deepEqual(await f.store.get('1'),before);
+});
 test('invisible but editable panel: explicit authenticated recovery sends exactly one cached HOME',async()=>{
  const f=await setup(),before=(await f.store.get('1')).state;
  const r=await f.call(recover,'recover');assert.equal(r.code,200);assert.equal(r.value.actions.length,1);

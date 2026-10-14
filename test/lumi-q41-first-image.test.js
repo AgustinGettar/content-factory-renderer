@@ -560,7 +560,8 @@ test('EP004 local continuation skips imported IMAGE and paid action is blocked b
  for(const expectedAction of ['planning','source-planning'])await f.adapter.resume({user:'1',episodeId:episode,expectedAction});
  let cp=await f.store.getEpisode(episode);assert.equal(cp.first_pending_action,'source_qa:q41');
  // Missing detailed source QA must not be invented from the broad human approval.
- await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:cp.first_pending_action}),/v2_exact_source_visual_qa_required/);
+ const waiting=await f.adapter.resume({user:'1',episodeId:episode,expectedAction:cp.first_pending_action});
+ assert.equal(waiting.status,'SOURCE_REVIEW_REQUIRED');assert.equal((await f.reviewStore.get('1')).state.episodes[episode].resume_available,false);
  await f.manager.checkpoint(episode,d=>{for(const a of d.actions){if(a.key==='video:q41')break;a.status='COMPLETE';a.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};}});
  const blocked=await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'video:q41'});
  assert.equal(blocked.status,'SPECIFIC_PROVIDER_AUTHORIZATION_REQUIRED');assert.equal(f.calls.length,calls);
@@ -584,7 +585,11 @@ test('imported journal binding rejects a cross-episode or altered request before
   if(defect==='episode')f.journalRows.get(operation).episode_id='unrelated';
   if(defect==='request')f.journalRows.get(operation).provider_request_id='unrelated';
   if(defect==='review')await f.manager.checkpoint(operation,d=>{d.metadata.first_image.review.status='REJECTED';});
-  await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/PROVIDER_JOURNAL_MISMATCH/);
+  const {createV2InputMaterializer,checkpointIdentity}=await import('../lib/lumi-v2-input-materializer.js');
+  const {PROFILE_SHA,LUMI_PRODUCTION_PROFILE_V2}=await import('../lib/lumi-production-profile-v2.js');
+  const state=await f.store.getEpisode(episode),materialize=createV2InputMaterializer({store:f.store,storage:f.storage,reviewStore:f.reviewStore,journal:f.journal});
+  await assert.rejects(materialize({episode_id:episode,stage_id:'SOURCE_QA',checkpoint_id:checkpointIdentity(state),profile_version:LUMI_PRODUCTION_PROFILE_V2.version,
+   execution_context:{user:'1',profile_sha:PROFILE_SHA,action_key:'source_qa:q41'}}),/PROVIDER_JOURNAL_MISMATCH/);
  }
 });
 

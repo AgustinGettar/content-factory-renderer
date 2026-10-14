@@ -611,7 +611,8 @@ test('Make-native /produccion opens imported EP004 on the current panel with one
  await routes.get(signed.path)({body,rawBody:signed.body,path:signed.path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':signed.requestId,'x-lumi-signature':signRequest(secret,signed)}},res);
  assert.equal(status,200);assert.equal(result.actions.length,1);assert.equal(result.actions[0].method,'editMessageMedia');
  const telegram=JSON.parse(result.actions[0].body_json);assert.equal(telegram.message_id,138);assert.match(telegram.media.caption,/Episodio 004 creado/);
- assert.ok(telegram.reply_markup.inline_keyboard.flat().some(b=>b.text==='▶️ Continuar producción'));
+ const current=(await f.reviewStore.get('1')).state;
+ assert.ok(telegram.reply_markup.inline_keyboard.flat().some(b=>current.tokens[b.callback_data.slice(3)]?.action==='q41_local_continue'));
  assert.equal(f.calls.length,calls);assert.deepEqual(await f.store.getEpisode(episode),cp);
 });
 

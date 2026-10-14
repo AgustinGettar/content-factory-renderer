@@ -492,3 +492,98 @@ test('unofficial or malformed balance responses cannot be promoted into verified
   await f.click('q41_confirm');assert.equal(f.calls.length,0);assert.equal(await f.store.getEpisode(operation),null);
  }
 });
+
+// Import acceptance uses the existing isolated image fixture only in tests.
+// Production descriptors are read from episodes/ and no test path is reachable.
+const {authenticateEp004Import,EP004_IMPORT_OP,EP004_IMPORT_AUTH}=await import('../lib/lumi-v2-activation-context.js');
+const {acceptEpisodeGeneration}=await import('../lib/av2/creative-engine.js');
+const importCommand=(f,patch={})=>{
+ const body={op:EP004_IMPORT_OP,user_id:'1',chat_id:'1',authorization_reference:EP004_IMPORT_AUTH,provider_generation:false,...patch};
+ const signed={method:'POST',path:'/lumi/telegram-review/make/v1',timestamp:String(Math.floor(Date.now()/1000)),requestId:'import-'+crypto.randomUUID(),body:Buffer.from(JSON.stringify(body))};
+ return authenticateEp004Import({env:f.env,signed,signature:signRequest(secret,signed)});
+};
+async function approvedImportFixture(options={}){
+ const f=await fixture({supervised:true,...options});await f.prepare();await f.click('q41_confirm');await f.click('q41_approve');return f;
+}
+test('EP004 real AV2 contract, approved import, budget reference and duplicate recovery never emit',async()=>{
+ const f=await approvedImportFixture(),calls=f.calls.length,journal=structuredClone([...f.journalRows]);
+ const source=await f.store.getEpisode(operation),history=(await f.reviewStore.get('1')).state.episodes.historical;
+ const result=await f.adapter.createEp004FromApprovedQ41({command:importCommand(f)});assert.equal(result.status,'EP004_CREATED_Q41_IMPORTED');
+ const cp=await f.store.getEpisode(episode),e=(await f.reviewStore.get('1')).state.episodes[episode];
+ assert.equal(cp.first_pending_action,'planning');assert.equal(cp.metadata.generic_v2.shot_plans.length,7);
+ assert.equal(acceptEpisodeGeneration(cp.metadata.generic_v2.plan).episode_sha256,cp.metadata.generic_v2.plan_sha);
+ assert.equal(cp.metadata.generic_v2.plan.scenes[4].audio.pauses[0].duration_seconds,2.5);
+ assert.equal(cp.actions.find(a=>a.key==='image:q41').status,'COMPLETE');assert.equal(e.q41_import.artifact_sha,source.metadata.first_image.artifact.sha256);
+ assert.deepEqual(Object.values(e.review_requests)[0].human_decision,source.metadata.first_image.review);
+ assert.equal(cp.metadata.budget_reservations?.['image:q41'],undefined);assert.equal(e.q41_import.actual_usd,null);
+ const gate=await f.manager.budgetGate({episodeId:episode,actionKey:'planning',projectedCallCostUsd:0});
+ assert.equal(gate.status,'PASS');assert.equal(gate.required_total_usd,0.33875);
+ assert.equal(cp.metadata.activation_context.provider_generation,false);assert.equal(cp.runner_enabled,false);assert.equal(cp.autorun,false);
+ const again=await f.restart().createEp004FromApprovedQ41({command:importCommand(f)});assert.equal(again.already_applied,true);
+ assert.equal((await f.store.getEpisode(episode)).metadata.runtime_revision,cp.metadata.runtime_revision);
+ assert.deepEqual(await f.store.getEpisode(operation),source);assert.deepEqual([...f.journalRows],journal);assert.equal(f.calls.length,calls);
+ assert.deepEqual((await f.reviewStore.get('1')).state.episodes.historical,history);
+ const edits=f.telegramCalls.filter(c=>c.method==='editMessageMedia').length;await f.click('q41_continue');assert.equal(f.telegramCalls.filter(c=>c.method==='editMessageMedia').length,edits+1);
+ assert.match(f.telegramCalls.at(-1).body.media.caption,/Episodio 004 creado/);assert.equal(f.telegramCalls.at(-1).body.message_id,138);
+});
+test('EP004 import concurrent requests and both crash boundaries recover one checkpoint and one approval',async()=>{
+ for(const point of ['EP004_AFTER_CREATE','EP004_AFTER_IMPORT','CONCURRENT']){
+  let crash=true;const f=await approvedImportFixture({inject:async p=>{if(crash&&p.point===point){crash=false;throw Error('IMPORT_CRASH');}}});
+  const calls=f.calls.length;
+  if(point==='CONCURRENT'){
+   const results=await Promise.allSettled([1,2].map(()=>f.adapter.createEp004FromApprovedQ41({command:importCommand(f)})));
+   assert.ok(results.some(r=>r.status==='fulfilled'));
+  }else await assert.rejects(f.adapter.createEp004FromApprovedQ41({command:importCommand(f)}),/IMPORT_CRASH/);
+  await f.restart().createEp004FromApprovedQ41({command:importCommand(f)});
+  const cp=await f.store.getEpisode(episode);assert.equal(Object.keys(cp.metadata.imported_stage_sources).length,1);
+  assert.equal(Object.keys(cp.metadata.review_requests).length,1);assert.equal(f.journalRows.size,1);assert.equal(f.calls.length,calls);
+  assert.equal((await f.manager.budgetGate({episodeId:episode,actionKey:'planning',projectedCallCostUsd:0})).required_total_usd,.33875);
+ }
+});
+test('EP004 import rejects arbitrary inputs, serialized capabilities, missing ACK, altered bytes, review and journal',async()=>{
+ for(const defect of ['client-source','provider-generation','serialized','ack','bytes','review','journal']){
+  const f=await approvedImportFixture(),calls=f.calls.length;
+  if(defect==='client-source'){assert.throws(()=>importCommand(f,{message_id:148}),/AUTH_REQUIRED/);continue;}
+  if(defect==='provider-generation'){assert.throws(()=>importCommand(f,{provider_generation:true}),/AUTH_REQUIRED/);continue;}
+  let c=importCommand(f);
+  if(defect==='serialized')c=structuredClone(c);
+  if(defect==='ack')await f.edit(s=>{s.delivery.status='EMITTING';});
+  if(defect==='bytes'){const a=(await f.store.getEpisode(operation)).metadata.first_image.artifact;f.objects.set(a.bucket+'/'+a.path,Buffer.from('corrupt'));}
+  if(defect==='review')await f.manager.checkpoint(operation,s=>{s.metadata.first_image.review.status='REJECTED';});
+  if(defect==='journal')f.journalRows.get(operation).state='EMISSION_UNKNOWN';
+  await assert.rejects(f.adapter.createEp004FromApprovedQ41({command:c}),/REQUIRED|MISMATCH/);
+  assert.equal(await f.store.getEpisode(episode),null);assert.equal(f.calls.length,calls);
+ }
+});
+test('EP004 local continuation skips imported IMAGE and paid action is blocked before quote or dispatch',async()=>{
+ const f=await approvedImportFixture();await f.adapter.createEp004FromApprovedQ41({command:importCommand(f)});const calls=f.calls.length;
+ for(const expectedAction of ['planning','source-planning'])await f.adapter.resume({user:'1',episodeId:episode,expectedAction});
+ let cp=await f.store.getEpisode(episode);assert.equal(cp.first_pending_action,'source_qa:q41');
+ // Missing detailed source QA must not be invented from the broad human approval.
+ await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:cp.first_pending_action}),/v2_exact_source_visual_qa_required/);
+ await f.manager.checkpoint(episode,d=>{for(const a of d.actions){if(a.key==='video:q41')break;a.status='COMPLETE';a.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};}});
+ const blocked=await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'video:q41'});
+ assert.equal(blocked.status,'SPECIFIC_PROVIDER_AUTHORIZATION_REQUIRED');assert.equal(f.calls.length,calls);
+});
+
+test('EP004 canonical endpoint requires HMAC, consumes nonce once and returns no Telegram commands',async()=>{
+ const f=await approvedImportFixture(),routes=new Map(),calls=f.calls.length,edits=f.telegramCalls.length;
+ mountMakeTransportEndpoint({get:()=>{},post:(path,fn)=>routes.set(path,fn)}, {store:f.reviewStore,env:f.env,loadBytes:async()=>canonical,validateOwner:async()=>true,production:f.production});
+ const body={op:EP004_IMPORT_OP,user_id:'1',chat_id:'1',authorization_reference:EP004_IMPORT_AUTH,provider_generation:false};
+ const signed={timestamp:String(Math.floor(Date.now()/1000)),requestId:'ep004-http-'+crypto.randomUUID(),method:'POST',path:'/lumi/telegram-review/make/v1',body:Buffer.from(JSON.stringify(body))};
+ const run=async signature=>{let value,status=200;const res={status(n){status=n;return this;},json(v){value=v;return this;}};
+  await routes.get(signed.path)({body,rawBody:signed.body,path:signed.path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':signed.requestId,'x-lumi-signature':signature}},res);return {value,status};};
+ assert.equal((await run('0'.repeat(64))).status,401);assert.equal(await f.store.getEpisode(episode),null);
+ const accepted=await run(signRequest(secret,signed));assert.equal(accepted.status,200);assert.equal(accepted.value.status,'EP004_CREATED_Q41_IMPORTED');assert.deepEqual(accepted.value.actions,[]);
+ assert.equal((await run(signRequest(secret,signed))).status,409);assert.equal(f.calls.length,calls);assert.equal(f.telegramCalls.length,edits);
+});
+test('imported journal binding rejects a cross-episode or altered request before source QA',async()=>{
+ for(const defect of ['episode','request','review']){
+  const f=await approvedImportFixture();await f.adapter.createEp004FromApprovedQ41({command:importCommand(f)});
+  for(const expectedAction of ['planning','source-planning'])await f.adapter.resume({user:'1',episodeId:episode,expectedAction});
+  if(defect==='episode')f.journalRows.get(operation).episode_id='unrelated';
+  if(defect==='request')f.journalRows.get(operation).provider_request_id='unrelated';
+  if(defect==='review')await f.manager.checkpoint(operation,d=>{d.metadata.first_image.review.status='REJECTED';});
+  await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/PROVIDER_JOURNAL_MISMATCH/);
+ }
+});

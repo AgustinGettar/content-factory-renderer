@@ -1,0 +1,1994 @@
+{
+  "version": "cf-episode/2.0",
+  "episode": {
+    "id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "title": "Lumi y los animales de la granja",
+    "language": "es-419",
+    "category": "animales",
+    "age_range": {
+      "min_years": 3,
+      "max_years": 5
+    },
+    "learning": {
+      "objective_id": "obj_farm_animals_sounds",
+      "objective": "Reconocer vaca, oveja y gallina y asociarlas con sus sonidos.",
+      "success_test": "El niño señala o nombra la vaca al escuchar muu durante la pausa."
+    },
+    "story_premise": "Lumi invita al niño a conocer a una vaca, una oveja y una gallina, escuchar sus sonidos y reconocerlos con una pregunta y una pausa real.",
+    "world_ref": {
+      "id": "lumi_farm",
+      "version": "2.0"
+    },
+    "style_ref": {
+      "id": "lumi_series_v2",
+      "version": "2.0"
+    },
+    "character_lock_ref": {
+      "id": "lumi_series_v2",
+      "version": "2.0"
+    },
+    "voice_profile_ref": {
+      "id": "fernanda_elevenlabs",
+      "version": "2.0"
+    },
+    "duration_target": {
+      "min_seconds": 29,
+      "target_seconds": 29,
+      "max_seconds": 29
+    },
+    "story_beats": [
+      {
+        "id": "beat_welcome",
+        "function": "setup",
+        "summary": "Conocer a Lumi y la granja."
+      },
+      {
+        "id": "beat_cow",
+        "function": "discovery",
+        "summary": "Asociar vaca con muu."
+      },
+      {
+        "id": "beat_sheep",
+        "function": "discovery",
+        "summary": "Asociar oveja con bee."
+      },
+      {
+        "id": "beat_hen",
+        "function": "discovery",
+        "summary": "Asociar gallina con clo, clo."
+      },
+      {
+        "id": "beat_question",
+        "function": "question",
+        "summary": "Identificar la vaca durante una pausa real de 2,5 segundos."
+      },
+      {
+        "id": "beat_answer",
+        "function": "answer",
+        "summary": "Confirmar la respuesta y repasar los tres sonidos."
+      },
+      {
+        "id": "beat_close",
+        "function": "close",
+        "summary": "Cerrar positivamente y reconocer el esfuerzo."
+      }
+    ],
+    "music_direction": {
+      "motif_ref": {
+        "id": "lumi_farm_soft",
+        "version": "2.0"
+      },
+      "mood": "cálido y tranquilo",
+      "rules": [
+        "No cubrir la voz ni los sonidos de animales.",
+        "Silencio de voz durante la pausa de respuesta de 2,5 segundos."
+      ]
+    },
+    "continuity_initial": {
+      "narrative_state": "start",
+      "location": "farm",
+      "lumi_position": "left_foreground",
+      "props_state": {
+        "cow": "visible",
+        "sheep": "visible",
+        "hen": "visible"
+      },
+      "educational_progress": "none",
+      "secondary_characters": [
+        "cow",
+        "sheep",
+        "hen"
+      ],
+      "persistent_elements": {
+        "wand_visible": true
+      }
+    },
+    "requires": [],
+    "transitions": [
+      {
+        "id": "edge_1_2",
+        "from_scene": "s01",
+        "to_scene": "s02",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      },
+      {
+        "id": "edge_2_3",
+        "from_scene": "s02",
+        "to_scene": "s03",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      },
+      {
+        "id": "edge_3_4",
+        "from_scene": "s03",
+        "to_scene": "s04",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      },
+      {
+        "id": "edge_4_5",
+        "from_scene": "s04",
+        "to_scene": "s05",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      },
+      {
+        "id": "edge_5_6",
+        "from_scene": "s05",
+        "to_scene": "s06",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      },
+      {
+        "id": "edge_6_7",
+        "from_scene": "s06",
+        "to_scene": "s07",
+        "type": "cut",
+        "overlap_frames": 0,
+        "motivated_by": "learning_progress"
+      }
+    ]
+  },
+  "entities": [
+    {
+      "id": "lumi",
+      "kind": "character",
+      "asset_ref": {
+        "id": "lumi_asset",
+        "version": "2.0"
+      },
+      "tags": []
+    },
+    {
+      "id": "wand",
+      "kind": "prop",
+      "asset_ref": {
+        "id": "wand_asset",
+        "version": "2.0"
+      },
+      "tags": []
+    },
+    {
+      "id": "cow",
+      "kind": "animal",
+      "asset_ref": {
+        "id": "cow_asset",
+        "version": "2.0"
+      },
+      "tags": []
+    },
+    {
+      "id": "sheep",
+      "kind": "animal",
+      "asset_ref": {
+        "id": "sheep_asset",
+        "version": "2.0"
+      },
+      "tags": []
+    },
+    {
+      "id": "hen",
+      "kind": "animal",
+      "asset_ref": {
+        "id": "hen_asset",
+        "version": "2.0"
+      },
+      "tags": []
+    }
+  ],
+  "scenes": [
+    {
+      "id": "s01",
+      "beat_ref": "beat_welcome",
+      "educational_goal": "Conocer a Lumi y la granja.",
+      "duration_target_seconds": 4,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s01_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_viewer",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 4,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "viewer"
+        }
+      ],
+      "camera": {
+        "shot": "wide",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 4,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Conocer a Lumi y la granja."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s01_voice",
+            "speaker": "lumi",
+            "text": "¡Hola! Visitemos la granja.",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": null,
+      "transition_out": "edge_1_2",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "start"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "welcome"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s01_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s01_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s02",
+      "beat_ref": "beat_cow",
+      "educational_goal": "Asociar vaca con muu.",
+      "duration_target_seconds": 4,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s02_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_target",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 4,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "cow"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 4,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Asociar vaca con muu."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s02_voice",
+            "speaker": "lumi",
+            "text": "La vaca hace muu.",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_1_2",
+      "transition_out": "edge_2_3",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "welcome"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "cow"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s02_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s02_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s03",
+      "beat_ref": "beat_sheep",
+      "educational_goal": "Asociar oveja con bee.",
+      "duration_target_seconds": 4,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s03_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_target",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 4,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "sheep"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 4,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Asociar oveja con bee."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s03_voice",
+            "speaker": "lumi",
+            "text": "La oveja hace bee.",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_2_3",
+      "transition_out": "edge_3_4",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "cow"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "sheep"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s03_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s03_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s04",
+      "beat_ref": "beat_hen",
+      "educational_goal": "Asociar gallina con clo, clo.",
+      "duration_target_seconds": 4,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s04_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_target",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 4,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "hen"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 4,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Asociar gallina con clo, clo."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s04_voice",
+            "speaker": "lumi",
+            "text": "La gallina hace clo, clo.",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_3_4",
+      "transition_out": "edge_4_5",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "sheep"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "hen"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s04_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s04_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s05",
+      "beat_ref": "beat_question",
+      "educational_goal": "Identificar la vaca durante una pausa real de 2,5 segundos.",
+      "duration_target_seconds": 5,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s05_attention",
+          "entity_id": "lumi",
+          "action_id": "attentive_wait",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 5,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "viewer"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 5,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Identificar la vaca durante una pausa real de 2,5 segundos."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s05_voice",
+            "speaker": "lumi",
+            "text": "¿Quién hace muu?",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [
+          {
+            "id": "s05_response",
+            "after_utterance": "s05_voice",
+            "duration_seconds": 2.5,
+            "purpose": "child_response"
+          }
+        ],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_4_5",
+      "transition_out": "edge_5_6",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "hen"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "question"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s05_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s05_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s05_silence",
+          "type": "voice_silence",
+          "severity": "BLOCKER",
+          "window": {
+            "start": {
+              "anchor": "s05_response.start",
+              "offset_seconds": 0
+            },
+            "end": {
+              "anchor": "s05_response.end",
+              "offset_seconds": 0
+            }
+          },
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s06",
+      "beat_ref": "beat_answer",
+      "educational_goal": "Confirmar la respuesta y repasar los tres sonidos.",
+      "duration_target_seconds": 5,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s06_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_target",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 5,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "cow"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 5,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Confirmar la respuesta y repasar los tres sonidos."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s06_voice",
+            "speaker": "lumi",
+            "text": "¡La vaca! Muu, bee y clo, clo.",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_5_6",
+      "transition_out": "edge_6_7",
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "question"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "answer"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s06_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s06_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    },
+    {
+      "id": "s07",
+      "beat_ref": "beat_close",
+      "educational_goal": "Cerrar positivamente y reconocer el esfuerzo.",
+      "duration_target_seconds": 3,
+      "stage": {
+        "environment_ref": {
+          "id": "lumi_farm",
+          "version": "2.0"
+        },
+        "lighting_ref": {
+          "id": "farm_soft_day",
+          "version": "2.0"
+        },
+        "placements": [
+          {
+            "entity_id": "lumi",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.5,
+                0,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "wand",
+            "layer": "foreground",
+            "transform": {
+              "position_m": [
+                -0.3,
+                0.5,
+                1.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "cow",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                -1,
+                0,
+                2.4
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "sheep",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                0,
+                0,
+                2.5
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          },
+          {
+            "entity_id": "hen",
+            "layer": "midground",
+            "transform": {
+              "position_m": [
+                1,
+                0,
+                2.2
+              ],
+              "rotation_deg": [
+                0,
+                0,
+                0
+              ],
+              "scale": [
+                1,
+                1,
+                1
+              ]
+            },
+            "visible": true
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "s07_attention",
+          "entity_id": "lumi",
+          "action_id": "gaze_viewer",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "duration_seconds": 3,
+          "parameters": {
+            "body_motion": "preserve_initial",
+            "motion_amplitude": "small"
+          },
+          "expression": "warm",
+          "gaze_target": "viewer"
+        }
+      ],
+      "camera": {
+        "shot": "medium",
+        "subjects": [
+          "lumi",
+          "cow",
+          "sheep",
+          "hen"
+        ],
+        "move": "static",
+        "from": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "to": {
+          "position_m": [
+            0,
+            1.5,
+            4
+          ],
+          "target_m": [
+            0,
+            0.7,
+            1.8
+          ],
+          "fov_y_deg": 45
+        },
+        "start": {
+          "anchor": "scene.start",
+          "offset_seconds": 0
+        },
+        "duration_seconds": 3,
+        "easing": "hold",
+        "framing": {
+          "safe_region": "learning_safe",
+          "intent": "Cerrar positivamente y reconocer el esfuerzo."
+        }
+      },
+      "audio": {
+        "utterances": [
+          {
+            "id": "s07_voice",
+            "speaker": "lumi",
+            "text": "¡Muy bien! ¡Hasta pronto!",
+            "emotion": "warm",
+            "delivery": {
+              "pace": "natural",
+              "emphasis": []
+            },
+            "expected_voice": true
+          }
+        ],
+        "pauses": [],
+        "music_cues": [],
+        "sound_effects": []
+      },
+      "effects": [],
+      "text": [],
+      "transition_in": "edge_6_7",
+      "transition_out": null,
+      "continuity": {
+        "preconditions": [
+          {
+            "op": "equals",
+            "path": "narrative_state",
+            "value": "answer"
+          }
+        ],
+        "operations": [
+          {
+            "op": "set",
+            "path": "narrative_state",
+            "value": "close"
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "id": "s07_lumi",
+          "type": "character_present",
+          "severity": "BLOCKER",
+          "entities": [
+            "lumi"
+          ],
+          "expected": true
+        },
+        {
+          "id": "s07_animals",
+          "type": "entity_visible",
+          "severity": "BLOCKER",
+          "entities": [
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "expected": true
+        }
+      ]
+    }
+  ]
+}

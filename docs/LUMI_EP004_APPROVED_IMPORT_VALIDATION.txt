@@ -1,0 +1,10 @@
+EP004 approved-source integration — 2026-10-14
+
+Scope: staging only; explicit creation authorization; no provider generation, publication, autorun or runner enablement.
+AV2: seven authored production scenes/takes, farm animals and sounds, real 2.5-second child-response pause. Sources after q41 and detailed cinematic observations remain pending; no future SHA or visual QA is fabricated.
+Authority: HMAC and existing replay claim; owner/active panel/delivered ACK; server-authored EP004 request; ControlledV2Authorization grants local work only. Paid-stage guard executes before materialization, quote or provider dispatch.
+Import: original bytes/size/SHA, immutable human approval and ACKNOWLEDGED provider request; one existing Recovery Manager CAS checkpoint; original journal/reservation retained by reference. Original source checkpoint and historical approvals are not rewritten.
+Recovery: duplicate and concurrent requests, crashes after create/import, immutable mismatches, missing ACK, wrong journal, corrupt bytes and serialized capabilities tested. No Telegram emission inside import; panel refresh uses existing Make/outbox/ACK separately.
+Validation: 72 runtime/source tests and 106 Telegram/stage-result regression tests passed; two additional endpoint/reused-journal tests passed (180 distinct tests). Final six import tests rerun after provider/model/cost binding hardening. CI is required before staging deployment.
+Acceptance: inspect EP004 absence/source proof, invoke signed CREATE_EP004_FROM_APPROVED_Q41 once, inspect CAS state and journal/reservation counts, navigate existing panel to progress through Make, verify Telegram message ID and ACK. Do not run generators.
+Next preparation: PLANNING then SOURCE_PLANNING, followed by source QA. The broad image approval is preserved and does not fabricate detailed source/topology observations required before animation. Fresh quotes and specific authorization remain required for new provider emissions.

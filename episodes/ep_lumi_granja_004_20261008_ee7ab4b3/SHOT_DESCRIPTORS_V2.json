@@ -1,0 +1,134 @@
+{
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "style": "LUMI_SERIES_V2",
+  "character": {
+    "body": "amarillo cálido",
+    "eyes": "turquesas",
+    "cheeks": "rosadas",
+    "antennae": "violetas",
+    "wings": "exactamente dos, celestes",
+    "clothing": "overol celeste y zapatillas blancas",
+    "prop": "varita con estrella",
+    "forbidden": [
+      "abdomen de abeja",
+      "franjas",
+      "alas adicionales",
+      "cartoon drift",
+      "texto sobre Lumi"
+    ]
+  },
+  "first_frame_authority": true,
+  "motion_policy": {
+    "playback_rate": 1,
+    "automatic_retries": 0,
+    "automatic_resubmits": 0,
+    "provider_repair_budget": 0
+  },
+  "shots": [
+    {
+      "shot_id": "q41",
+      "scene_ids": [
+        "s01"
+      ],
+      "duration": 4,
+      "educational_goal": "Conocer a Lumi y la granja.",
+      "focus": "viewer",
+      "grammar": "GAZE_VIEWER",
+      "response_window_seconds": 0,
+      "source_status": "EXISTING_APPROVED_Q41",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q42",
+      "scene_ids": [
+        "s02"
+      ],
+      "duration": 4,
+      "educational_goal": "Asociar vaca con muu.",
+      "focus": "cow",
+      "grammar": "GAZE_TARGET",
+      "response_window_seconds": 0,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q43",
+      "scene_ids": [
+        "s03"
+      ],
+      "duration": 4,
+      "educational_goal": "Asociar oveja con bee.",
+      "focus": "sheep",
+      "grammar": "GAZE_TARGET",
+      "response_window_seconds": 0,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q44",
+      "scene_ids": [
+        "s04"
+      ],
+      "duration": 4,
+      "educational_goal": "Asociar gallina con clo, clo.",
+      "focus": "hen",
+      "grammar": "GAZE_TARGET",
+      "response_window_seconds": 0,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q45",
+      "scene_ids": [
+        "s05"
+      ],
+      "duration": 5,
+      "educational_goal": "Identificar la vaca durante una pausa real de 2,5 segundos.",
+      "focus": "viewer",
+      "grammar": "ATTENTIVE_WAIT",
+      "response_window_seconds": 2.5,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q46",
+      "scene_ids": [
+        "s06"
+      ],
+      "duration": 5,
+      "educational_goal": "Confirmar la respuesta y repasar los tres sonidos.",
+      "focus": "cow",
+      "grammar": "GAZE_TARGET",
+      "response_window_seconds": 0,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    },
+    {
+      "shot_id": "q47",
+      "scene_ids": [
+        "s07"
+      ],
+      "duration": 3,
+      "educational_goal": "Cerrar positivamente y reconocer el esfuerzo.",
+      "focus": "viewer",
+      "grammar": "FAREWELL",
+      "response_window_seconds": 0,
+      "source_status": "PENDING_HUMAN_AUTHORIZATION",
+      "camera": "STATIC",
+      "body_motion": "PRESERVE_INITIAL",
+      "no_generated_text": true
+    }
+  ]
+}

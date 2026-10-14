@@ -47,6 +47,7 @@ jobs:
           test/lumi-elevenlabs-direct-v3.test.js
           test/lumi-stage-result-v2.test.js
           test/lumi-materialization-v2.test.js
+          test/lumi-stabilization-assembly.test.js
           test/lumi-audio-review-v2.test.js
           test/provider-emission-journal-v1.test.js
           test/higgsfield-usd-budget-v1.test.js

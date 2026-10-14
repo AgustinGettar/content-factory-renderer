@@ -942,3 +942,45 @@ test('VIDEO_QUOTE operator requires HMAC, fresh nonce and fixed server-owned inp
  assert.equal((await call(body,'video-quote-good')).code,409);
  assert.equal((await call(body,'video-quote-recover')).code,200);assert.equal(f.quotes.length,1);
 });
+
+async function expireQuote(f,id){
+ await f.edit(s=>{const r=s.production_commands[id];r.result.expires_at='2000-01-01T00:00:00Z';r.result_sha=inputDigest(r.result);});
+}
+test('QUOTE_RENEWAL: immutable versioned history, restart, CAS and simultaneous renewal emit once',async()=>{
+ const f=await videoQuoteFixture(),q1=await f.quote(),cp=await f.store.getEpisode(episode),source=await f.store.getEpisode(operation);
+ await expireQuote(f,q1.quote_id);
+ const original=structuredClone((await f.reviewStore.get('1')).state.production_commands[q1.quote_id]);
+ const renew=()=>f.videoAdapter.prepareEp004VideoQuote({user:'1',chat:'1',renew:true,expectedQuoteId:q1.quote_id});
+ const outcomes=await Promise.allSettled([renew(),renew()]);assert.ok(outcomes.some(r=>r.status==='fulfilled'));
+ const q2=await f.quote();assert.equal(q2.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(q2.quote_version,2);
+ assert.notEqual(q2.quote_id,q1.quote_id);assert.equal(q2.previous_quote.operation_id,q1.quote_id);assert.equal(f.quotes.length,2);
+ assert.deepEqual((await f.reviewStore.get('1')).state.production_commands[q1.quote_id],original);
+ assert.equal((await f.restartQuote().prepareEp004VideoQuote({user:'1',chat:'1',renew:true})).quote_id,q2.quote_id);
+ assert.equal(f.quotes.length,2);assert.deepEqual(await f.store.getEpisode(episode),cp);assert.deepEqual(await f.store.getEpisode(operation),source);
+});
+test('QUOTE_RENEWAL: Telegram callback renews expired quote and stale double click cannot renew its successor',async()=>{
+ const f=await videoQuoteFixture(),q=await f.quote();await expireQuote(f,q.quote_id);
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ assert.ok(f.telegramCalls.at(-1).body.reply_markup.inline_keyboard.flat().some(b=>b.text==='Renovar cotización de video'));
+ const command=f.command(await f.callback('q41_video_quote'));
+ const result=await f.videoAdapter.firstImageAction({command});assert.equal(result.quote_version,2);assert.equal(f.quotes.length,2);
+ await expireQuote(f,result.quote_id);
+ const stale=await f.videoAdapter.firstImageAction({command});assert.equal(stale.status,'QUOTE_EXPIRED');assert.equal(f.quotes.length,2);
+});
+test('QUOTE_RENEWAL: unknown estimate, corrupted history and forged renewal cannot dispatch',async()=>{
+ for(const mode of ['timeout','malformed','credits']){
+  const f=await videoQuoteFixture({mode});await f.quote();await f.videoAdapter.prepareEp004VideoQuote({user:'1',chat:'1',renew:true});assert.equal(f.quotes.length,1);
+ }
+ const f=await videoQuoteFixture(),q=await f.quote();await expireQuote(f,q.quote_id);
+ await f.edit(s=>{s.production_commands[q.quote_id].result.quote_usd=0;});
+ await assert.rejects(f.videoAdapter.prepareEp004VideoQuote({user:'1',chat:'1',renew:true}),/INTEGRITY/);
+ assert.equal(f.quotes.length,1);
+});
+test('QUOTE_RENEWAL: prior spend approval never authorizes the renewed quote',async()=>{
+ const f=await videoQuoteFixture(),q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ const command=f.command(await f.callback('q41_video_authorize'));await f.videoAdapter.authorizeEp004VideoQuote({command});
+ await expireQuote(f,q.quote_id);const next=await f.videoAdapter.prepareEp004VideoQuote({user:'1',chat:'1',renew:true});
+ assert.equal(next.status,'AWAITING_HUMAN_AUTHORIZATION');
+ assert.equal((await f.reviewStore.get('1')).state.production_commands[next.quote_id].human_authorization,undefined);
+ await assert.rejects(f.videoAdapter.authorizeEp004VideoQuote({command}),/CURRENT_QUOTE/);assert.equal(f.quotes.length,2);
+});

@@ -75,6 +75,9 @@ for(const [stage,path]of cases)for(const crash of [null,'QA_PERSISTED_BEFORE_CHE
  if(crash)await assert.rejects(orchestrator.recoverResult(args),/CRASH/);
  const r=await orchestrator.recoverResult(args);assert.equal(r.first_pending_action,'next');assert.equal(r.provider_calls,0);
  await orchestrator.recoverResult(args);assert.equal(downloads,1);assert.equal((await manager.store.getEpisode(episodeId)).last_completed_action,action.key);
+ const persisted=(await manager.store.getEpisode(episodeId)).metadata.stage_results[action.key].result;
+ assert.equal(persisted.claims[0],id,'next stage must resolve the original emission journal row');
+ assert.ok(persisted.claims.some(key=>key.startsWith('materialize:')),'retain the independent storage receipt');
 });
 test('identity mismatch and storage outages cannot trigger provider recovery',async()=>{
   const input={episode_id:'ep_fixture',action_key:'image',stage_id:'IMAGE',provider_job_id:'job',result_id:'result',target:{bucket:'fixture',prefix:'artifacts'}};

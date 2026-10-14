@@ -31,6 +31,18 @@ test('distinct nonce claims recover CAS contention; same nonce remains rejected'
  await assert.rejects(claimRequest(f.store,'1',nonce('ack')),/replayed_request/);
 });
 
+test('HTTP_TIMEOUT: a cold-start request past the Make response window cannot leave an orphan outbox',async()=>{
+ const f=await setup(),routes=new Map(),body=f.menu(91),rawBody=Buffer.from(JSON.stringify(body));
+ mountMakeTransportEndpoint({get(){},post:(p,h)=>routes.set(p,h)},{store:f.store,production:f.production,
+  env:{LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:secret}});
+ const before=await f.store.get('1'),signed={method:'POST',path,body:rawBody,requestId:'late-cold-start',timestamp:String(Math.floor(Date.now()/1000)-41)};
+ const res={status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+ await routes.get(path)({body,rawBody,path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':signed.requestId,
+  'x-lumi-signature':signRequest(secret,signed)}},res);
+ assert.equal(res.value.status,'TRANSPORT_REQUEST_EXPIRED');assert.deepEqual(res.value.commands,[]);
+ assert.deepEqual(await f.store.get('1'),before);
+});
+
 async function approvedQ41Fixture({legacyTrailingSpace=false}={}){
  const f=await setup(),row=await f.store.get('1');row.state.message_id=148;
  row.state.q41_first_image={status:'APPROVED_PAUSED',artifact:{...photo,width:1520,height:2688},

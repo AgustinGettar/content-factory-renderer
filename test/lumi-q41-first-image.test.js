@@ -9,6 +9,8 @@ import {mountMakeTransportEndpoint} from '../lib/telegram-review-v1/make-endpoin
 import {MemoryLumiRecoveryStore,LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {createGenericV2Runtime} from '../lib/lumi-v2-telegram-runtime.js';
 import {ProductionReviewController} from '../lib/telegram-review-v1/production.js';
+import {renderTelegramPanel} from '../lib/telegram-review-v1/core.js';
+import {ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
 import {isolatedQ41Input} from '../lib/lumi-isolated-usd-preflight.js';
 import {authenticateFirstImageCallback,inputDigest,FIRST_IMAGE_SCOPE as scope,FIRST_IMAGE_EPISODE as episode,
   FIRST_IMAGE_OPERATION as operation,diagnosticOperationId,DIAGNOSTIC_Q41_KEY,DIAGNOSTIC_Q41_SCOPE} from '../lib/lumi-v2-activation-context.js';
@@ -759,4 +761,129 @@ test('director navigation respects expired non-generative authorization and expl
  await f.edit(s=>{Object.values(s.v2_authorizations).find(g=>g.operation_id===EP004_IMPORT_OP).expires_at='2000-01-01T00:00:00Z';});
  await f.svc.show('1','1',{kind:'progress',episode_id:episode});const view=f.telegramCalls.at(-1).body;
  assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>b.text.includes('Continuar producción')));assert.match(view.media.caption,/autorización/);
+});
+
+// Synthetic durable director evidence tests transport/authorization, not visual
+// quality or a live dollar price. The actual director/source are checked offline
+// separately; this fixture never reaches a provider.
+async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},transportPatch={}}={}){
+ const f=await sourceQaFixture();await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+ const cp=await f.store.getEpisode(episode),a=cp.metadata.source_artifacts.q41.artifact;
+ const packet={episode_id:episode,shot_id:'q41',gates:{SOURCE_EVIDENCE_READY:true,CAPABILITIES_VERIFIED:true},blockers:[],
+  DIRECTOR_PLAN:{contract:{SOURCE_ARTIFACT:{artifact_id:a.artifact_id,sha256:a.sha256},DURATION:4,CAMERA:{type:'STATIC'},
+   CHARACTER_STATE:{canonical_wings:2,wand_policy:'VISIBLE_PRESERVE_SOURCE'},REQUIRED_OBJECTS:['cow','hen','sheep'].map(id=>({id}))}},
+  PROVIDER_PROMPT:{text:'OFFLINE TRANSPORT FIXTURE: static camera; blink and natural settle.'},
+  PROVIDER_REQUEST_PREVIEW:{parameters:{duration:4,sound:'off',multi_shots:false,cfg_scale:.5}}};
+ const result={episode_id:episode,stage_id:'DIRECTOR',output:packet},id='offline-director-receipt';
+ const receipts=new ReviewStageReceiptStore({store:f.reviewStore,user:'1'});
+ await receipts.claim(id,{status:'STARTED'});await receipts.record(id,{status:'COMPLETE',result});
+ await f.manager.checkpoint(episode,s=>{s.metadata.stage_results['director:q41']={result,sha256:inputDigest(result),receipt_id:id,hash_version:'CANONICAL_JSON_V1'};
+  Object.assign(s.actions.find(a=>a.key==='director:q41'),{status:'COMPLETE',dispatch_state:'LOCAL_COMPLETE',
+   evidence:{provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true}});});
+ await f.edit(s=>{s.delivery.status='DELIVERED';s.pending_callback=null;});
+ const quotes=[];
+ const make=()=>createGenericV2Runtime({manager:f.manager,reviewStore:f.reviewStore,artifactStorage:f.storage,journal:f.journal,
+  validateOwner:async(u,c)=>u==='1'&&c==='1',env:f.env,inject,
+  mediaTransport:async artifact=>({url:f.env.SUPABASE_URL+'/storage/v1/object/sign/'+artifact.bucket+'/'+artifact.path+'?token=OFFLINE_VIDEO',
+   sha256:artifact.sha256,expires_at:new Date(Date.now()+290000).toISOString(),...transportPatch}),
+  fetchImpl:async(url,options)=>{quotes.push({url,options});assert.equal(url,'https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video');
+   assert.equal(options.method,'POST');assert.equal(options.redirect,'error');
+   if(mode==='timeout')throw Error('OFFLINE_TIMEOUT');if(mode==='credits')return Response.json({credits:12});
+   if(mode==='http409')return Response.json({error:'conflict'},{status:409});if(mode==='malformed')return new Response('{');
+   return Response.json({usd:quoteUsd,expires_at:mode==='expired'?'2000-01-01T00:00:00Z':undefined});}});
+ let adapter=make();f.production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;
+ return {...f,quotes,packet,source:a,get videoAdapter(){return adapter;},
+  quote:()=>adapter.prepareEp004VideoQuote({user:'1',chat:'1'}),restartQuote:()=>{adapter=make();f.production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;}};
+}
+test('VIDEO_QUOTE: exact endpoint, durable USD receipt, one source reservation and no emission',async()=>{
+ const f=await videoQuoteFixture(),before=await f.store.getEpisode(episode),original=await f.store.getEpisode(operation),journal=structuredClone([...f.journalRows]);
+ const q=await f.quote();assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(q.quote_usd,.4);
+ assert.equal(q.remaining_before_usd,4.66125);assert.equal(q.existing_exposure_usd,.33875);assert.equal(q.proposed_reserve_usd,.5);
+ assert.equal(q.remaining_after_usd,4.16125);assert.equal(q.actual_cost_usd,null);assert.equal(q.generation_authorized,false);
+ assert.equal(q.payload_sha256,sha256(f.quotes[0].options.body));const payload=JSON.parse(f.quotes[0].options.body);
+ assert.equal(payload.prompt,f.packet.PROVIDER_PROMPT.text);assert.equal(payload.duration,4);assert.equal(payload.sound,'off');
+ const receipt=(await f.reviewStore.get('1')).state.production_commands[q.quote_id];
+ assert.equal(receipt.result_sha,inputDigest(receipt.result));assert.doesNotMatch(JSON.stringify(receipt),/OFFLINE_VIDEO|OFFLINE_KEY|image_url/);
+ await f.restartQuote().prepareEp004VideoQuote({user:'1',chat:'1'});assert.equal(f.quotes.length,1);
+ assert.deepEqual(await f.store.getEpisode(episode),before);assert.deepEqual(await f.store.getEpisode(operation),original);assert.deepEqual([...f.journalRows],journal);
+});
+test('VIDEO_QUOTE: concurrent requests and nonce CAS merge estimate once',async()=>{
+ const parallel=await videoQuoteFixture();await Promise.allSettled([parallel.quote(),parallel.quote()]);assert.equal((await parallel.quote()).status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(parallel.quotes.length,1);
+ const f=await videoQuoteFixture();const cas=f.reviewStore.cas.bind(f.reviewStore);let raced=false;
+ f.reviewStore.cas=async(u,r,s)=>{if(!raced&&Object.values(s.production_commands||{}).some(x=>x.operation==='VIDEO_USD_QUOTE')){
+  raced=true;const row=await f.reviewStore.get(u);row.state.make_requests||={};row.state.make_requests.offline_quote_race={status:'COMPLETE'};await cas(u,row.revision,row.state);
+ }return cas(u,r,s);};
+ const q=await f.quote();await Promise.all([f.quote(),f.quote()]);assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION');
+ assert.equal(f.quotes.length,1);assert.equal(raced,true,'CAS race hook entered');assert.equal((await f.reviewStore.get('1')).state.make_requests?.offline_quote_race?.status,'COMPLETE');
+});
+test('VIDEO_QUOTE: crash before/after estimator is not automatically retried',async()=>{
+ for(const point of ['VIDEO_QUOTE_CLAIMED','VIDEO_QUOTE_RETURNED_BEFORE_RECEIPT']){
+  let once=true;const f=await videoQuoteFixture({inject:async p=>{if(once&&p.point===point){once=false;throw Error('QUOTE_CRASH');}}});
+  await assert.rejects(f.quote(),/QUOTE_CRASH/);const before=f.quotes.length;f.restartQuote();
+  assert.equal((await f.quote()).status,'QUOTE_RESULT_UNKNOWN');assert.equal(f.quotes.length,before);
+ }
+});
+test('VIDEO_QUOTE: credits, timeout, HTTP 409, malformed, expired and over-budget remain blocked',async()=>{
+ for(const mode of ['credits','timeout','http409','malformed','expired','over-budget']){
+  const f=await videoQuoteFixture({mode,quoteUsd:mode==='over-budget'?4:.4}),cp=await f.store.getEpisode(episode);
+  const q=await f.quote();assert.equal(q.budget_gate,'BLOCKED',mode);assert.equal(q.status,'BLOCKED',mode);
+  if(mode==='http409')assert.equal(q.error_code,'higgsfield_usd_estimate_http_409');
+  if(mode==='credits'){assert.equal(q.quote_usd,undefined);assert.equal(q.error_code,'higgsfield_api_usd_quote_required');}
+  await f.quote();assert.equal(f.quotes.length,1);assert.deepEqual(await f.store.getEpisode(episode),cp);
+  await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+  assert.ok(!f.telegramCalls.at(-1).body.reply_markup.inline_keyboard.flat().some(b=>b.text==='Autorizar gasto de video'));
+ }
+});
+test('VIDEO_QUOTE: source, journal, director, pending delivery, authorization and signed URL gates precede estimate',async()=>{
+ for(const defect of ['bytes','journal','director','delivery','scope','source-url','prior-emission']){
+  const f=await videoQuoteFixture({transportPatch:defect==='source-url'?{url:'https://example.test/other.png'}:{}});
+  if(defect==='bytes')f.objects.set(f.source.bucket+'/'+f.source.path,Buffer.from('CORRUPTED'));
+  if(defect==='journal')f.journalRows.clear();
+  if(defect==='director')await f.edit(s=>{s.production_commands['offline-director-receipt'].result.output.PROVIDER_PROMPT.text='MUTATED';});
+  if(defect==='delivery')await f.edit(s=>{s.delivery.status='UNKNOWN';});
+  if(defect==='scope')await f.edit(s=>{Object.values(s.v2_authorizations).find(g=>g.operation_id===EP004_IMPORT_OP).expires_at='2000-01-01T00:00:00Z';});
+  if(defect==='prior-emission'){const cp=await f.store.getEpisode(episode);f.journalRows.set(sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41'),{state:'EMITTING'});}
+  await assert.rejects(f.quote(),undefined,defect);assert.equal(f.quotes.length,0,defect);
+ }
+});
+test('VIDEO_QUOTE: confirmed human spend is quote-bound, CAS durable and cannot emit or reserve',async()=>{
+ const f=await videoQuoteFixture(),cp=await f.store.getEpisode(episode),historical=(await f.reviewStore.get('1')).state.episodes.historical;
+ const q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ const view=f.telegramCalls.at(-1).body;assert.equal(view.message_id,138);assert.ok(view.media.caption.length<1024);
+ assert.match(view.media.caption,/no inicia la generación/);assert.match(view.media.caption,/4.66125/);
+ const cb=await f.callback('q41_video_authorize'),command=f.command(cb);
+ await assert.rejects(f.videoAdapter.authorizeEp004VideoQuote({command:{...command}}),/HMAC/);
+ await Promise.allSettled([f.videoAdapter.authorizeEp004VideoQuote({command}),f.videoAdapter.authorizeEp004VideoQuote({command})]);
+ const repeated=await f.videoAdapter.authorizeEp004VideoQuote({command});assert.equal(repeated.already_applied,true);
+ const after=(await f.reviewStore.get('1')).state,receipt=after.production_commands[q.quote_id];
+ assert.equal(receipt.human_authorization.scope,'VIDEO_Q41_QUOTED_SPEND');assert.equal(receipt.human_authorization.max_reservation_usd,.5);
+ assert.equal(receipt.human_authorization.payload_sha256,q.payload_sha256);assert.equal(f.quotes.length,1);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.deepEqual(after.episodes.historical,historical);
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});assert.match(f.telegramCalls.at(-1).body.media.caption,/Gasto autorizado/);
+});
+test('VIDEO_QUOTE: callback expiry, checkpoint/budget changes and panel/token forgery fail closed',async()=>{
+ for(const mode of ['expired','checkpoint','budget','wrong-token','old-panel']){
+  const f=await videoQuoteFixture(),q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+  const cb=await f.callback('q41_video_authorize'),cmd=f.command(cb);
+  if(mode==='expired')await f.edit(s=>{const r=s.production_commands[q.quote_id];r.result.expires_at='2000-01-01T00:00:00Z';r.result_sha=inputDigest(r.result);s.tokens[cmd.token].quote_sha=r.result_sha;});
+  if(mode==='checkpoint')await f.manager.checkpoint(episode,s=>{s.metadata.offline_concurrent_change=true;});
+  if(mode==='budget')await f.manager.checkpoint(operation,s=>{s.metadata.budget_reservations['image:q41'].amount_usd=1;});
+  if(mode==='wrong-token')await f.edit(s=>{s.tokens[cmd.token].quote_id='wrong';});
+  if(mode==='old-panel')await f.edit(s=>{s.message_id=148;});
+  await assert.rejects(f.videoAdapter.authorizeEp004VideoQuote({command:cmd}));assert.equal(f.quotes.length,1);
+  assert.equal((await f.reviewStore.get('1')).state.production_commands[q.quote_id].human_authorization,undefined);
+ }
+});
+test('VIDEO_QUOTE operator requires HMAC, fresh nonce and fixed server-owned inputs',async()=>{
+ const f=await videoQuoteFixture(),routes=new Map(),path='/lumi/telegram-review/make/v1';
+ mountMakeTransportEndpoint({get:()=>{},post:(p,h)=>routes.set(p,h)},{store:f.reviewStore,production:f.production,validateOwner:async()=>true,env:f.env});
+ const call=async(body,id,bad=false)=>{const signed={method:'POST',path,timestamp:String(Math.floor(Date.now()/1000)),requestId:id,body:Buffer.from(JSON.stringify(body))};
+  const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+  await routes.get(path)({body,rawBody:signed.body,path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':id,'x-lumi-signature':bad?'bad':signRequest(secret,signed)}},res);return res;};
+ const body={op:'PREPARE_EP004_VIDEO_QUOTE',user_id:'1',chat_id:'1'};
+ assert.equal((await call(body,'video-quote-bad',true)).code,401);
+ for(const key of ['model','source_url','payload','message_id','quote_usd'])assert.equal((await call({...body,[key]:'FORGED'},'video-quote-'+key)).code,409);
+ const good=await call(body,'video-quote-good');assert.equal(good.code,200);assert.equal(good.value.status,'AWAITING_HUMAN_AUTHORIZATION');
+ assert.equal((await call(body,'video-quote-good')).code,409);
+ assert.equal((await call(body,'video-quote-recover')).code,200);assert.equal(f.quotes.length,1);
 });

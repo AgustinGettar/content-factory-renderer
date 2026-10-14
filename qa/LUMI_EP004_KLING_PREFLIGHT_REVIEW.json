@@ -1,0 +1,110 @@
+{
+  "task": "EP004_VIDEO_Q41_USD_PREFLIGHT_PREPARED_NOT_DEPLOYED",
+  "date_utc": "2026-10-14",
+  "baseline": {
+    "remote_and_staging_sha": "072daa4492b5cf68e32491589d87b2eb1b175b22",
+    "local_sha": "fa3818b6eaab456c7fa08da46e527d95a4170e1e",
+    "tree_sha": "e82d4c003ca475b927e46ec5c226cd7c15b54465"
+  },
+  "verified_durable_state": {
+    "checkpoint_version": 10,
+    "last_completed_action": "director:q41",
+    "first_pending_action": "video:q41",
+    "director_receipt": "3a6e1dd0335be7baf3d4e056f4914fd27a2a9b9d1642c2faabe94f00aafb071e",
+    "source_sha256": "c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b",
+    "source_bytes": 6045628,
+    "panel": 148,
+    "session_revision": 496,
+    "source_human_approval": "PRESERVED",
+    "provider_journal_rows": 1,
+    "new_video_emissions": 0
+  },
+  "root_cause": "The deployed VIDEO materializer requires a current quote, but no independent exact-payload video estimator operation or quote-bound human spend callback is exposed. Existing image and balance-recovery routes cannot safely be reused for this request.",
+  "changes": {
+    "operator_operation": "PREPARE_EP004_VIDEO_QUOTE",
+    "callback": "q41_video_authorize",
+    "estimator": "https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video",
+    "duration": 4,
+    "sound": "off",
+    "model": "kling-video/v3.0/pro/image-to-video",
+    "shared_payload_constructor": true,
+    "storage": "Existing CAS production_commands receipts; no new journal or schema",
+    "source_transport": "Server-signed private object URL, at most 300 seconds; URL not persisted",
+    "authorization": "Records approval of the exact quote only; does not reserve funds, enable a provider, renew the old supervised policy or submit a generation"
+  },
+  "budget": {
+    "ceiling_usd": 5,
+    "existing_image_estimated_usd": 0.271,
+    "existing_image_reserved_usd": 0.33875,
+    "image_actual_usd": null,
+    "available_before_video_usd": 4.66125,
+    "new_actual_usd": null,
+    "new_reservations": 0,
+    "quote_reserve_formula": "ceil(estimate_usd * 1.25 * 1e6) / 1e6",
+    "actual_video_quote_usd": null
+  },
+  "validation": {
+    "regression": {
+      "passed": 140,
+      "failed": 0,
+      "command": "node --import ./scripts/director-offline-guard.mjs --test --test-reporter=tap test/lumi-q41-first-image.test.js test/higgsfield-usd-budget-v1.test.js test/lumi-recovery-incident-manager-v1.test.js test/lumi-real-executor-bindings.test.js test/lumi-telegram-review-v1.test.js test/lumi-make-transport.test.js"
+    },
+    "real_checkpoint_offline_test": {
+      "status": "PASS",
+      "network_calls": 0,
+      "quote_response": "SYNTHETIC_NOT_LIVE",
+      "source_sha_verified": true,
+      "checkpoint_unchanged": true,
+      "panel": 148,
+      "caption_length": 665,
+      "historical_approvals_unchanged": true
+    },
+    "coverage": [
+      "exact payload and source bytes",
+      "credits-only rejection",
+      "HTTP 409 remains blocked",
+      "timeout and malformed response",
+      "expired quote",
+      "over-budget quote",
+      "duplicate and concurrent quote claims",
+      "CAS nonce merge",
+      "crash before/after estimator",
+      "no automatic retry",
+      "forged callback and stale panel",
+      "human spend binding and expiry",
+      "budget/checkpoint changes",
+      "master preservation",
+      "HMAC and consumed nonce rejection"
+    ]
+  },
+  "security_review": {
+    "status": "REVIEWED",
+    "hmac": "UNCHANGED",
+    "antireplay": "UNCHANGED",
+    "cas": "PRESERVED",
+    "input_scope": "Only server-owned EP004 video:q41, approved source and persisted director",
+    "generation": "No executor/submit path reachable from preflight or spend callback",
+    "secrets": "No keys or signed URLs in receipts/responses",
+    "budget": "Source operation reservation counted once; no reserve created before human approval",
+    "ambiguous_quote": "FAIL_CLOSED, existing receipt returned without replay",
+    "expiry": "Earliest of source URL expiry, provider expiry and existing 60-second quote policy; expired/ambiguous receipts never automatically re-estimated"
+  },
+  "remote_actions": {
+    "read_only": true,
+    "push": false,
+    "deploy": false,
+    "make_modification": false,
+    "telegram_edit": false,
+    "provider_estimate_calls": 0,
+    "provider_generation_calls": 0
+  },
+  "deployment_requires_new_authorization": true,
+  "acceptance_plan": [
+    "Publish this reviewed change only on lumi-telegram-review-v1 after approval; no force push, compare remote tree first.",
+    "Require CI GREEN, deploy only content-factory-av2-staging, verify SHA and isolated project.",
+    "Recheck CP10/director receipt, existing reservations, empty video journal and panel DELIVERED. Preserve a newer checkpoint instead of rewinding.",
+    "Use a fresh HMAC nonce for PREPARE_EP004_VIDEO_QUOTE. Recover its durable receipt; never repeat an ambiguous quote.",
+    "If official USD and budget gates pass, promptly render progress through the existing Make transport and ACK the edit of panel 148. Do not consume the human confirmation callback as an operator.",
+    "Verify Make ACTIVE, panel identity/ACK, zero generation calls and no new final reservation. Human authorization expires with the quote; no automatic refresh or emission."
+  ]
+}

@@ -1166,3 +1166,13 @@ test('INTERRUPTION_SAFETY: reservation-before-send and ambiguous send retain exp
   assert.equal(calls,point==='TRANSPORT_UNKNOWN'?1:0);
  }
 });
+
+test('LOCAL_IN_FLIGHT: progress never offers a second continuation while the claimed local stage is executing',async()=>{
+ const f=await sourceQaFixture();
+ await f.manager.checkpoint(episode,s=>{s.actions.find(a=>a.key===s.first_pending_action).dispatch_state='DISPATCHING';});
+ const before=await f.store.getEpisode(episode);
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ const s=(await f.reviewStore.get('1')).state,view=f.telegramCalls.at(-1).body;
+ assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>['q41_local_continue','resume'].includes(s.tokens[b.callback_data.slice(3)]?.action)));
+ assert.match(view.media.caption,/en curso/);assert.deepEqual(await f.store.getEpisode(episode),before);
+});

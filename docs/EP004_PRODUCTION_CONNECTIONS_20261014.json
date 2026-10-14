@@ -37,7 +37,7 @@
   "remaining_not_tested_real": [
     "real q42-q47 images and their human visual evidence",
     "real Kling output, quality, retrieval and human approval",
-    "current Fernanda quota and actual narrated durations; frozen approved binding exists, live quota rechecked before each segment",
+    "Actual Fernanda audio, retrieval and narrated durations; live voice/model/subscription quota validated 2026-10-14T23:26:25Z; API-key-specific quota unobservable and rechecked before each segment",
     "Full HD master resource use with actual provider media on Render free instance",
     "Telegram native video/audio transfer and master download",
     "full episode USD coverage: future USD quotes absent; hard budget gate pauses when reserve cannot fit"
@@ -57,5 +57,14 @@
     "lastEdit": "2026-10-14T23:20:18.147Z",
     "scope": "Only media type mapping; existing connection, webhook, routing and fallback photo preserved"
   },
-  "durable_resume": "docs/RESUME_STATE_EP004.json"
+  "durable_resume": "docs/RESUME_STATE_EP004.json",
+  "fernanda_current": {
+    "validated_at": "2026-10-14T23:26:25.286Z",
+    "voice_id": "NyQ87MpRGbszyh7rZLXM",
+    "model": "eleven_multilingual_v2",
+    "subscription_remaining_characters": 39931,
+    "api_key_remaining_quota": null,
+    "provider_generation_calls": 0,
+    "status": "PASS_REAL for voice/model/subscription quota; not generation"
+  }
 }

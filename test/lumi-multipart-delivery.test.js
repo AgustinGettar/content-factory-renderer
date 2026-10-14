@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MemoryReviewStore,ReviewService,newSession,sha256} from '../lib/telegram-review-v1/core.js';
 import {MakeTransport,signRequest,multipartBody,multipartPhotoAction,acknowledgeCommand} from '../lib/telegram-review-v1/make-transport.js';
-import {signedMediaTransport} from '../lib/telegram-review-v1/runtime.js';
+import {signedMediaTransport,verifiedSignedMediaTransport} from '../lib/telegram-review-v1/runtime.js';
 const bytes=Buffer.alloc(6045628,42),sha=sha256(bytes);
 const artifact={artifact_id:'q41',mime:'image/png',size:bytes.length,sha256:sha,bucket:'private',path:'q41.png',width:1520,height:2688};
 const evidence={http_status:400,description:'Bad Request: failed to get HTTP URL content',execution_id:'edb2c68e1c9c41819ac7d8b08be372f2'};
@@ -28,6 +28,29 @@ test('multipart read-only probe parses chat identity',async()=>{
 });
 test('oversize URL photo switches to binary without signing a URL',async()=>{
  assert.equal(await signedMediaTransport({storage:{from:()=>assert.fail('no URL')}})(artifact),null);
+});
+test('provider source signs the unchanged large PNG while Telegram still uses binary',async()=>{
+ const calls=[],url='https://storage.invalid/storage/v1/object/sign/private/q41.png?token=OFFLINE';
+ const db={storage:{from:bucket=>({createSignedUrl:async(path,ttl)=>{calls.push({bucket,path,ttl});return {data:{signedUrl:url}};}})}};
+ const before=structuredClone(artifact),start=Date.now();
+ assert.equal(await signedMediaTransport(db)(artifact),null);assert.equal(calls.length,0);
+ const signed=await signedMediaTransport(db,{purpose:'PROVIDER_SOURCE'})(artifact);
+ assert.deepEqual(calls,[{bucket:artifact.bucket,path:artifact.path,ttl:300}]);
+ assert.equal(signed.url,url);assert.equal(signed.sha256,sha);
+ assert.ok(Date.parse(signed.expires_at)>=start+300000&&Date.parse(signed.expires_at)<=Date.now()+300000);
+ assert.deepEqual(artifact,before);assert.throws(()=>signedMediaTransport(db,{purpose:'CLIENT_OVERRIDE'}),/purpose_invalid/);
+});
+test('verified provider transport rejects corrupt original bytes before signing',async()=>{
+ let downloaded=bytes,signs=0;
+ const db={storage:{from:()=>({download:async()=>({data:new Blob([downloaded])}),
+  createSignedUrl:async()=>{signs++;return {data:{signedUrl:'https://storage.invalid/original?token=OFFLINE'}};}})}};
+ assert.equal((await verifiedSignedMediaTransport(db)(artifact)).sha256,sha);assert.equal(signs,1);
+ downloaded=Buffer.from(bytes);downloaded[0]^=1;
+ await assert.rejects(verifiedSignedMediaTransport(db)(artifact),/artifact_bytes_mismatch/);assert.equal(signs,1);
+});
+test('provider signing failures remain errors and never fall back to public or modified media',async()=>{
+ const db={storage:{from:()=>({createSignedUrl:async()=>({error:new Error('unavailable')})})}};
+ await assert.rejects(signedMediaTransport(db,{purpose:'PROVIDER_SOURCE'})(artifact),/canonical_media_transport_unavailable/);
 });
 test('hash mismatch and unsupported multipart scope fail before emission',async()=>{
  const f=await setup();await assert.rejects(multipartPhotoAction(f.command,async()=>Buffer.from('wrong')),/artifact_bytes_mismatch/);

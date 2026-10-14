@@ -106,5 +106,95 @@
     "Use a fresh HMAC nonce for PREPARE_EP004_VIDEO_QUOTE. Recover its durable receipt; never repeat an ambiguous quote.",
     "If official USD and budget gates pass, promptly render progress through the existing Make transport and ACK the edit of panel 148. Do not consume the human confirmation callback as an operator.",
     "Verify Make ACTIVE, panel identity/ACK, zero generation calls and no new final reservation. Human authorization expires with the quote; no automatic refresh or emission."
-  ]
+  ],
+  "deployment_20261014": {
+    "authorized_local_commit": "babe843cb6ade4753d443c8062b5f7de6140d6f0",
+    "remote_head": "fac45115154ff91c4cb1747be51c4c805aa01d37",
+    "tree_sha": "eeba5f1e18bb6a05115db894d55455117e4e721c",
+    "tree_equivalence": "EXACT",
+    "ci": {
+      "run_id": 38600492036,
+      "conclusion": "success"
+    },
+    "staging": {
+      "service_id": "srv-dapgakqd0e5s73fottig",
+      "deploy_id": "dep-db7r4g8u01pc739qbqp0",
+      "status": "live",
+      "sha": "fac45115154ff91c4cb1747be51c4c805aa01d37"
+    },
+    "live_preflight": {
+      "request_id": "q41-transport-1489a61608624c269195ff7459b84036",
+      "http_status": 409,
+      "error_code": "unexpected_backend_error",
+      "classification": "UNEXPECTED_BACKEND_ERROR",
+      "idempotency_state": "NONCE_CLAIMED",
+      "session_revision": 497,
+      "delivery_state": "DELIVERED",
+      "pending_callback": null,
+      "quote_receipts": 0,
+      "estimator_calls": 0,
+      "estimator_evidence": "No quote receipt exists; the runtime claims a durable receipt before it can call the estimator.",
+      "retry_performed": false
+    },
+    "verified_preservation": {
+      "checkpoint_version": 10,
+      "last_completed_action": "director:q41",
+      "first_pending_action": "video:q41",
+      "panel": 148,
+      "q41_human_approved": true,
+      "source_sha256": "c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b",
+      "budget_remaining_usd": 4.66125,
+      "q41_actual_cost_usd": null,
+      "new_reservations": 0,
+      "provider_journal_rows": 1,
+      "new_generation_calls": 0,
+      "make_status": "active",
+      "make_queue_count": 0,
+      "make_incomplete_executions": 0,
+      "make_modified": false,
+      "telegram_edited": false
+    },
+    "new_blocker": "The production runtime passes the Telegram URL adapter to Higgsfield. It returns null for PNGs above 5000000 bytes. The approved original is 6045628 bytes, so preflight cannot obtain its source URL and fails before estimator claim.",
+    "additional_local_correction": {
+      "status": "VALIDATED_LOCAL_ONLY_NOT_PUBLISHED",
+      "files": [
+        "lib/telegram-review-v1/runtime.js",
+        "lib/lumi-v2-telegram-runtime.js",
+        "test/lumi-multipart-delivery.test.js",
+        "test/lumi-q41-first-image.test.js"
+      ],
+      "change": "Use explicit server-only PROVIDER_SOURCE purpose for private signing in the existing provider runtime. Keep Telegram large-PNG binary routing unchanged. Null source produces Q41_SIGNED_SOURCE_REQUIRED.",
+      "regression": {
+        "passed": 177,
+        "failed": 0,
+        "expanded_null_source_gate_test": "PASS"
+      },
+      "real_checkpoint_offline": {
+        "checkpoint_version": 10,
+        "original_bytes": 6045628,
+        "original_sha_verified": true,
+        "checkpoint_unchanged": true,
+        "panel": 148,
+        "quote_response": "SYNTHETIC_NOT_LIVE",
+        "network_calls": 0
+      },
+      "composition_test": "Actual mountTelegramReview and Supabase adapters over isolated storage sign the large PNG and estimate once; repeated quote recovers the same receipt. Checkpoints, provider journal and panel remain unchanged.",
+      "security_review": {
+        "server_only_purpose": true,
+        "private_bucket_preserved": true,
+        "signed_url_ttl_seconds": 300,
+        "source_bytes_unmodified": true,
+        "no_secrets_in_receipts": true,
+        "hmac_unchanged": true,
+        "cas_unchanged": true,
+        "antireplay_unchanged": true,
+        "budget_unchanged": true,
+        "no_new_generation_authority": true,
+        "telegram_binary_delivery_preserved": true,
+        "unexpected_failures_not_promoted_to_success": true
+      },
+      "publication_requires_additional_authorization": "Latest user instruction phase 7 explicitly forbids publishing additional unauthorized code."
+    },
+    "next_action": "Approve the single additional local transport correction for publish/CI/staging, then use a fresh HMAC nonce to prepare the first USD quote. Recover any existing receipt before calling the estimator. Never generate video or consume the human authorization button in this operation."
+  }
 }

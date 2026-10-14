@@ -6,6 +6,8 @@ import {deflateSync} from 'node:zlib';
 import {MemoryReviewStore,newSession,ReviewService,sha256} from '../lib/telegram-review-v1/core.js';
 import {signRequest} from '../lib/telegram-review-v1/make-transport.js';
 import {mountMakeTransportEndpoint} from '../lib/telegram-review-v1/make-endpoint.js';
+import {mountTelegramReview} from '../lib/telegram-review-v1/runtime.js';
+import {createClient} from '@supabase/supabase-js';
 import {MemoryLumiRecoveryStore,LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {createGenericV2Runtime} from '../lib/lumi-v2-telegram-runtime.js';
 import {ProductionReviewController} from '../lib/telegram-review-v1/production.js';
@@ -766,8 +768,8 @@ test('director navigation respects expired non-generative authorization and expl
 // Synthetic durable director evidence tests transport/authorization, not visual
 // quality or a live dollar price. The actual director/source are checked offline
 // separately; this fixture never reaches a provider.
-async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},transportPatch={}}={}){
- const f=await sourceQaFixture();await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},transportPatch={},imageBytes=image}={}){
+ const f=await sourceQaFixture({imageBytes});await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
  const cp=await f.store.getEpisode(episode),a=cp.metadata.source_artifacts.q41.artifact;
  const packet={episode_id:episode,shot_id:'q41',gates:{SOURCE_EVIDENCE_READY:true,CAPABILITIES_VERIFIED:true},blockers:[],
   DIRECTOR_PLAN:{contract:{SOURCE_ARTIFACT:{artifact_id:a.artifact_id,sha256:a.sha256},DURATION:4,CAMERA:{type:'STATIC'},
@@ -784,7 +786,7 @@ async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},tran
  const quotes=[];
  const make=()=>createGenericV2Runtime({manager:f.manager,reviewStore:f.reviewStore,artifactStorage:f.storage,journal:f.journal,
   validateOwner:async(u,c)=>u==='1'&&c==='1',env:f.env,inject,
-  mediaTransport:async artifact=>({url:f.env.SUPABASE_URL+'/storage/v1/object/sign/'+artifact.bucket+'/'+artifact.path+'?token=OFFLINE_VIDEO',
+  mediaTransport:async artifact=>transportPatch===null?null:({url:f.env.SUPABASE_URL+'/storage/v1/object/sign/'+artifact.bucket+'/'+artifact.path+'?token=OFFLINE_VIDEO',
    sha256:artifact.sha256,expires_at:new Date(Date.now()+290000).toISOString(),...transportPatch}),
   fetchImpl:async(url,options)=>{quotes.push({url,options});assert.equal(url,'https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video');
    assert.equal(options.method,'POST');assert.equal(options.redirect,'error');
@@ -795,6 +797,59 @@ async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},tran
  return {...f,quotes,packet,source:a,get videoAdapter(){return adapter;},
   quote:()=>adapter.prepareEp004VideoQuote({user:'1',chat:'1'}),restartQuote:()=>{adapter=make();f.production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;}};
 }
+test('VIDEO_QUOTE: actual runtime composition signs a large private PNG and preserves Telegram binary routing',async()=>{
+ // The existing decode fixture with inert trailing bytes tests the real size
+ // boundary only. It is never creative evidence or sent over the network.
+ const imageBytes=Buffer.concat([image,Buffer.alloc(6045628-image.length)]),f=await videoQuoteFixture({imageBytes});
+ await f.edit(s=>{s.panel_history={...s.panel_history,138:{message_id:138,status:'REPLACED'}};s.message_id=148;});
+ const row=await f.reviewStore.get('1'),cp=await f.store.getEpisode(episode),original=await f.store.getEpisode(operation);
+ const tables={cf_bot_admins:[{user_id:'1',chat_id:'1',active:true}],
+  lumi_telegram_review_sessions:[{user_id:'1',...row}],lumi_pipeline_checkpoints:[structuredClone(cp),structuredClone(original)],
+  lumi_provider_emission_journal:structuredClone([...f.journalRows.values()])},signed=[],estimates=[],writes=[];
+ const db=createClient(f.env.SUPABASE_URL,'OFFLINE_DB_KEY',{auth:{persistSession:false},global:{fetch:async(url,options={})=>{
+  const u=new URL(url),method=options.method||'GET';assert.equal(u.origin,f.env.SUPABASE_URL);
+  if(u.pathname.startsWith('/storage/v1/object/sign/')){
+   assert.equal(method,'POST');assert.deepEqual(JSON.parse(options.body),{expiresIn:300});
+   assert.equal(u.pathname,'/storage/v1/object/sign/'+f.source.bucket+'/'+f.source.path);signed.push(u.pathname);
+   return Response.json({signedURL:u.pathname.slice('/storage/v1'.length)+'?token=OFFLINE_MOUNT'});
+  }
+  if(u.pathname.startsWith('/storage/v1/object/')){
+   assert.equal(method,'GET');const key=u.pathname.slice('/storage/v1/object/'.length),bytes=f.objects.get(key);assert.ok(bytes);
+   return new Response(bytes);
+  }
+  const table=u.pathname.split('/').at(-1);assert.ok(tables[table],table);
+  let rows=tables[table].filter(r=>[...u.searchParams].every(([key,v])=>{
+   if(['select','order','limit'].includes(key))return true;
+   const actual=key.split(/->>?/).reduce((a,k)=>a?.[k],r);
+   return v.startsWith('eq.')?String(actual)===v.slice(3):v.startsWith('in.(')?v.slice(4,-1).split(',').includes(String(actual)):false;
+  }));
+  if(method==='PATCH'){
+   assert.equal(table,'lumi_telegram_review_sessions');assert.ok(u.searchParams.has('revision'));
+   const patch=JSON.parse(options.body);rows.forEach(r=>Object.assign(r,patch));writes.push(table);
+  }else assert.equal(method,'GET');
+  return Response.json(new Headers(options.headers).get('Accept')?.includes('object')?(rows[0]||null):rows);
+ }}});
+ const previousFetch=globalThis.fetch;let mounted;
+ try{
+  globalThis.fetch=async(url,options)=>{
+   assert.equal(url,'https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video');
+   assert.equal(options.method,'POST');assert.equal(options.redirect,'error');estimates.push(JSON.parse(options.body));
+   return Response.json({usd:.4});
+  };
+  mounted=mountTelegramReview({get(){},post(){}},{db,env:f.env,authorized:()=>true});mounted.stopDiagnostics();
+  const quote=await mounted.production.prepareEp004VideoQuote({user:'1',chat:'1'});
+  assert.equal(quote.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(quote.remaining_before_usd,4.66125);
+  await mounted.production.prepareEp004VideoQuote({user:'1',chat:'1'});
+  assert.equal(estimates.length,1);assert.equal(signed.length,1);assert.ok(writes.length>0);
+  assert.equal(estimates[0].prompt,f.packet.PROVIDER_PROMPT.text);assert.equal(estimates[0].duration,4);assert.equal(estimates[0].sound,'off');
+  assert.equal(tables.lumi_telegram_review_sessions[0].state.message_id,148);
+  assert.doesNotMatch(JSON.stringify(tables.lumi_telegram_review_sessions),/OFFLINE_MOUNT/);
+  assert.deepEqual(tables.lumi_pipeline_checkpoints,[cp,original]);
+  assert.deepEqual(tables.lumi_provider_emission_journal,[...f.journalRows.values()]);
+  const {signedMediaTransport}=await import('../lib/telegram-review-v1/runtime.js');
+  assert.equal(await signedMediaTransport(db)(f.source),null);assert.equal(signed.length,1);
+ }finally{mounted?.stopDiagnostics();globalThis.fetch=previousFetch;}
+});
 test('VIDEO_QUOTE: exact endpoint, durable USD receipt, one source reservation and no emission',async()=>{
  const f=await videoQuoteFixture(),before=await f.store.getEpisode(episode),original=await f.store.getEpisode(operation),journal=structuredClone([...f.journalRows]);
  const q=await f.quote();assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(q.quote_usd,.4);
@@ -835,15 +890,15 @@ test('VIDEO_QUOTE: credits, timeout, HTTP 409, malformed, expired and over-budge
  }
 });
 test('VIDEO_QUOTE: source, journal, director, pending delivery, authorization and signed URL gates precede estimate',async()=>{
- for(const defect of ['bytes','journal','director','delivery','scope','source-url','prior-emission']){
-  const f=await videoQuoteFixture({transportPatch:defect==='source-url'?{url:'https://example.test/other.png'}:{}});
+ for(const defect of ['bytes','journal','director','delivery','scope','source-url','source-null','prior-emission']){
+  const f=await videoQuoteFixture({transportPatch:defect==='source-null'?null:defect==='source-url'?{url:'https://example.test/other.png'}:{}});
   if(defect==='bytes')f.objects.set(f.source.bucket+'/'+f.source.path,Buffer.from('CORRUPTED'));
   if(defect==='journal')f.journalRows.clear();
   if(defect==='director')await f.edit(s=>{s.production_commands['offline-director-receipt'].result.output.PROVIDER_PROMPT.text='MUTATED';});
   if(defect==='delivery')await f.edit(s=>{s.delivery.status='UNKNOWN';});
   if(defect==='scope')await f.edit(s=>{Object.values(s.v2_authorizations).find(g=>g.operation_id===EP004_IMPORT_OP).expires_at='2000-01-01T00:00:00Z';});
   if(defect==='prior-emission'){const cp=await f.store.getEpisode(episode);f.journalRows.set(sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41'),{state:'EMITTING'});}
-  await assert.rejects(f.quote(),undefined,defect);assert.equal(f.quotes.length,0,defect);
+  await assert.rejects(f.quote(),defect==='source-null'?/Q41_SIGNED_SOURCE_REQUIRED/:undefined,defect);assert.equal(f.quotes.length,0,defect);
  }
 });
 test('VIDEO_QUOTE: confirmed human spend is quote-bound, CAS durable and cannot emit or reserve',async()=>{

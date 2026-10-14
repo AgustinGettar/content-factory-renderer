@@ -1,0 +1,66 @@
+{
+  "scenario_id": 6224860,
+  "workflow": "Exclusive native binary delivery through existing router9; no new scenario or generative path",
+  "restore_module12_mapper": {
+    "body": "{{10.body_json}}",
+    "method": "POST",
+    "headers": [
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      }
+    ],
+    "bodyType": "mapped_body",
+    "urlMethod": "{{10.method}}"
+  },
+  "native_media": {
+    "module": "telegram:EditMediaMessage",
+    "version": 1,
+    "parent": {
+      "moduleId": 9,
+      "kind": "route",
+      "index": 2
+    },
+    "filter": {
+      "name": "Only verified native binary photo",
+      "conditions": [
+        [
+          {
+            "a": "{{8.data.binary_delivery.binary_file_base64}}",
+            "o": "exist"
+          }
+        ]
+      ]
+    },
+    "config": {
+      "parameters": {
+        "__IMTCONN__": 11003632
+      },
+      "mapper": {
+        "chatId": "{{8.data.binary_delivery.chat}}",
+        "messageId": "{{8.data.binary_delivery.message_id}}",
+        "type": "photo",
+        "filename": "{{8.data.binary_delivery.filename}}",
+        "data": "{{toBinary(8.data.binary_delivery.binary_file_base64; \"base64\")}}",
+        "caption": "{{8.data.binary_delivery.caption}}",
+        "parseMode": "",
+        "replyMarkupAssembleType": "reply_markup_enter",
+        "replyMarkup": "{{8.data.binary_delivery.reply_markup_json}}"
+      }
+    }
+  },
+  "ack": {
+    "reuse_config_from": 21,
+    "follows": "ID_RETURNED_FOR_NATIVE_MEDIA",
+    "replace_action_references": "10. -> 8.data.binary_delivery.",
+    "replace_result_references": "12.body.result.X -> ifempty(NATIVE_ID.X; NATIVE_ID.body.result.X)",
+    "require_exact_signed_body": true,
+    "transport_endpoint_unchanged": true
+  },
+  "acceptance": {
+    "original_bytes": 6045628,
+    "sha256": "c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b",
+    "panel": 148,
+    "one_new_delivery_requires_authorization": true
+  }
+}

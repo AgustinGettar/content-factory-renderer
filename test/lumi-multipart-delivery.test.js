@@ -16,11 +16,12 @@ async function setup(){
  const authorize=async(overrides={})=>{const row=await store.get('1');return svc.authorizeRejectedDelivery('1','1',{expected_revision:row.revision-1,command_id:'old',evidence,...overrides});};
  return {store,svc,authorize,command};
 }
-test('multipart wire preserves every original byte, fields and same panel',async()=>{
+test('native media payload preserves every binary byte without a text body conversion',async()=>{
  const f=await setup(),a=await multipartPhotoAction(f.command,async()=>bytes);
- const form=await new Request('http://localhost',{method:'POST',headers:{'content-type':a.content_type},body:Buffer.from(a.multipart_base64,'base64')}).formData();
- assert.equal(form.get('message_id'),'148');assert.equal(JSON.parse(form.get('media')).media,'attach://lumi_file');
- assert.equal(sha256(Buffer.from(await form.get('lumi_file').arrayBuffer())),sha);
+ assert.equal(sha256(Buffer.from(a.binary_file_base64,'base64')),sha);
+ assert.equal(Buffer.from(a.binary_file_base64,'base64').length,6045628);
+ assert.equal(a.filename,'original.png');assert.equal(a.media_type,'photo');
+ assert.equal(a.multipart_base64,undefined);assert.equal(a.caption,f.command.body.media.caption);
 });
 test('multipart read-only probe parses chat identity',async()=>{
  const a=multipartBody({chat_id:'1'}),f=await new Request('http://localhost',{method:'POST',headers:{'content-type':a.content_type},body:Buffer.from(a.multipart_base64,'base64')}).formData();assert.equal(f.get('chat_id'),'1');
@@ -65,13 +66,23 @@ test('signed authorization and fresh Make ISO command emit one transient binary 
  const f=await setup(),call=await endpoint(f),revision=(await f.store.get('1')).revision;
  assert.equal((await call({op:'AUTHORIZE_REJECTED_DELIVERY',user_id:'1',chat_id:'1',command_id:'old',expected_revision:revision,evidence},'authorize')).code,200);
  const body={update_id:5,message:{from:{id:1},chat:{id:1},date:new Date().toISOString(),text:'/recuperar_entrega'}};
- const r=await call(body,'dispatch');assert.equal(r.code,200);assert.equal(r.value.actions.length,1);assert.ok(r.value.actions[0].multipart_base64);
- assert.equal(JSON.stringify((await f.store.get('1')).state).includes('multipart_base64'),false);
+ const r=await call(body,'dispatch');assert.equal(r.code,200);assert.equal(r.value.actions.length,0);assert.ok(r.value.binary_delivery.binary_file_base64);assert.equal(r.value.binary_delivery.message_id,148);
+ assert.equal(JSON.stringify((await f.store.get('1')).state).includes('binary_file_base64'),false);
  assert.equal((await call(body,'duplicate')).value.actions.length,0);
 });
 test('forged authorization and stale recovery command cannot claim emission',async()=>{
  const f=await setup(),call=await endpoint(f),revision=(await f.store.get('1')).revision;
  assert.equal((await call({op:'AUTHORIZE_REJECTED_DELIVERY',user_id:'1',chat_id:'1',command_id:'old',expected_revision:revision,evidence},'forged',true)).code,401);
  assert.equal((await call({message:{from:{id:1},chat:{id:1},date:'2020-01-01T00:00:00.000Z',text:'/recuperar_entrega'}},'expired')).code,409);
+ assert.equal((await f.store.get('1')).state.delivery.command.idempotency_key,'old');
+});
+
+test('observed generic API binary-to-text expansion reproduces Telegram oversize failure',()=>{
+ const binary=Buffer.from([0x89,0x50,0x4e,0x47,0xff,0x80]);
+ const corrupt=Buffer.from(binary.toString('utf8'),'utf8');assert.notDeepEqual(corrupt,binary);assert.ok(corrupt.length>binary.length);
+});
+test('new explicit operator authorization can acknowledge the exact second definitive rejection without auto retry',async()=>{
+ const f=await setup();await f.authorize({evidence:{...evidence,description:'Bad Request: file of size 10630462 bytes is too big for a photo; the maximum size is 10485760 bytes'}});
+ assert.equal((await f.store.get('1')).state.delivery_recovery.status,'AUTHORIZED');
  assert.equal((await f.store.get('1')).state.delivery.command.idempotency_key,'old');
 });

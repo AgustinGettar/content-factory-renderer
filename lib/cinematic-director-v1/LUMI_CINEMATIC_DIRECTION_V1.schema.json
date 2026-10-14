@@ -56,7 +56,8 @@
                   "PRESENT_FLOWER",
                   "ATTENTIVE_WAIT",
                   "GAZE_VIEWER",
-                  "FAREWELL"
+                  "FAREWELL",
+                  "GAZE_TARGET"
                 ]
               },
               "actor": {

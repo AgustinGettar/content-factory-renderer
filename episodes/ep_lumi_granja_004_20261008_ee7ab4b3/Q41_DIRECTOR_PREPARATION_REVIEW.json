@@ -1,0 +1,214 @@
+{
+  "version": "Q41_DIRECTOR_PREPARATION_REVIEW_V1",
+  "status": "PREPARED_FOR_STATIC_DIRECTOR_MATERIALIZATION",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "shot_id": "q41",
+  "checkpoint_version_observed": 8,
+  "source_qa_receipt_id": "e407d82adbe9721a1d2af2a56c0e44449d612a1f3b4493f58a6f3f8a4bc00875",
+  "source_qa_result_sha256": "39020057f384ddde5a57894bc1b98f66d4e24f0231bfdbc7d6e976d5744ed6a2",
+  "prepared_binding_sha": "8c3ecc2a8cc722440cd209576e007ea6ec64d88b95f56903024cd9169d87072c",
+  "source_artifact_id": "7395b7f15f18f49e0b65c86a6224b10ad495222f4df56e75e1ce3fd1c4f36374",
+  "source_sha256": "c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b",
+  "duration_seconds": 4,
+  "style": "PREMIUM_FEATURE_FILM_QUALITY_STYLIZED_3D_CGI",
+  "direction": {
+    "educational_goal": "Conocer a Lumi y la granja.",
+    "reason_es": "Presentar a Lumi y la granja con una acción contenida, conservando exactamente la composición aprobada.",
+    "emotion": "warm",
+    "focus": "viewer",
+    "framing": "FROM_APPROVED_SOURCE",
+    "principal_actions": [
+      {
+        "grammar": "GAZE_VIEWER",
+        "actor": "lumi",
+        "body_part": "gaze",
+        "target": "viewer",
+        "direction": "toward_viewer",
+        "amplitude": "small",
+        "pace": "natural_1x",
+        "body_motion": "PRESERVE_INITIAL",
+        "timing": {
+          "preparation": 0.5,
+          "gesture": 2.5,
+          "settle": 1,
+          "response_window": 0
+        }
+      }
+    ],
+    "secondary_motion": [
+      "blink",
+      "natural_settle"
+    ],
+    "stable_parts": [
+      "torso",
+      "feet",
+      "posterior_silhouette",
+      "wand",
+      "educational_objects"
+    ],
+    "camera": {
+      "type": "STATIC",
+      "reason_es": "Conservar la perspectiva y la anatomía visibles en la imagen aprobada; no revelar geometría oculta.",
+      "approval_id": null
+    },
+    "end": "NATURAL_SETTLE",
+    "continuity": {
+      "previous_shot": null,
+      "next_shot": "q42",
+      "entry_gaze": "VIEWER",
+      "exit_gaze": "VIEWER",
+      "screen_direction": "PRESERVE",
+      "function": "introduction"
+    },
+    "captions": {
+      "generated_text": false,
+      "labels": [],
+      "text_character_overlap": 0,
+      "critical_object_overlap": 0,
+      "safe_region_fact": "caption_space"
+    }
+  },
+  "character_constraints": {
+    "body": "amarillo cálido",
+    "eyes": "turquesas",
+    "prop": "varita con estrella",
+    "wings": "exactamente dos, celestes",
+    "cheeks": "rosadas",
+    "antennae": "violetas",
+    "clothing": "overol celeste y zapatillas blancas",
+    "forbidden": [
+      "abdomen de abeja",
+      "franjas",
+      "alas adicionales",
+      "cartoon drift",
+      "texto sobre Lumi"
+    ]
+  },
+  "animal_continuity": "Preserve one cow at source-left, one sheep behind Lumi at source-right, and one hen at lower source-right. Preserve their approved colors, silhouettes, positions and visibility. No added animal, count change, new action, or background substitution.",
+  "production_constraints": {
+    "budget_ceiling_usd": 5,
+    "provider_generation_authorized": false,
+    "provider_calls": 0,
+    "execution_authorization": false,
+    "publication": false,
+    "autorun": false,
+    "automatic_retries": 0,
+    "automatic_resubmits": 0,
+    "audio_generation": false
+  },
+  "authorization_assessment": {
+    "existing_scope": "RESUME",
+    "existing_readiness": "CREATE_AND_LOCAL_ONLY",
+    "expires_at": "2026-10-15T02:39:19.745Z",
+    "local_director_compilation_permitted": true,
+    "new_provider_emission_permitted": false
+  },
+  "verified_blockers": [
+    {
+      "code": "DIRECTOR_INPUT_NOT_MATERIALIZED",
+      "detail": "Checkpoint stores the initial SOURCE_EVIDENCE_REQUIRED descriptor. The runtime binds media/topology only; required shot contract, visual facts/reviews, source QA, locks and editorial evidence are not projected into the compiler envelope."
+    },
+    {
+      "code": "FLOWER_SPECIFIC_INVENTORY_VALIDATOR",
+      "detail": "The director compares every object color with a fixed flower_red/yellow/blue map. Cow/sheep/hen have no entry; a schema-valid nonempty animal color cannot satisfy that comparison."
+    },
+    {
+      "code": "GARDEN_SPECIFIC_PROJECTION",
+      "detail": "The shared projection currently names the garden. A farm direction must preserve its approved world, not silently change it."
+    }
+  ],
+  "minimum_next_change": "Materialize this static direction through the existing runtime using verified original bytes, exact source-QA receipt, original human decision and immutable prepared binding. No provider authority.",
+  "remote_effects_performed": false,
+  "prior_draft_sha256": "8c19814eb26cbef8928b61c08165cdc3b87b46503d4474035f3a5e614da841df",
+  "evidence_id": "EP004_Q41_DIRECTOR_STATIC_OBSERVATIONS_20261014",
+  "reviewed_at": "2026-10-14T15:54:43.428558Z",
+  "review_method": "ASSISTANT_VISUAL_INSPECTION_OF_VERIFIED_ORIGINAL",
+  "scope": "STATIC_VISIBLE_SOURCE_ONLY",
+  "world_description": "sunlit farm, red barn and fence; cow at source-left, sheep behind Lumi at source-right, hen at lower source-right; retain the exact approved crop and lighting",
+  "inventory": [
+    {
+      "id": "cow",
+      "count": 1,
+      "color": "black and white with pink muzzle",
+      "shape": "recognizable cow with horns and bovine muzzle",
+      "placement": "source-left behind Lumi; source-edge crop preserved",
+      "visibility": "PARTIAL"
+    },
+    {
+      "id": "sheep",
+      "count": 1,
+      "color": "cream wool and dark face",
+      "shape": "recognizable woolly sheep",
+      "placement": "source-right behind Lumi; source-edge crop preserved",
+      "visibility": "PARTIAL"
+    },
+    {
+      "id": "hen",
+      "count": 1,
+      "color": "brown feathers, red comb, yellow beak and feet",
+      "shape": "recognizable hen",
+      "placement": "lower source-right; source-edge crop preserved",
+      "visibility": "PARTIAL"
+    }
+  ],
+  "observed_facts": {
+    "wand_state": "HELD_RIGHT",
+    "body_orientation": "FRONT",
+    "framing": "SOURCE_SUPPORTS_SHOT",
+    "caption_space": "CLEAR_OF_LUMI_AND_CRITICAL_OBJECTS",
+    "gaze": "VIEWER",
+    "supported_actions": [
+      "GAZE_VIEWER"
+    ],
+    "supported_cameras": [
+      "STATIC"
+    ],
+    "educational_inventory": [
+      {
+        "id": "cow",
+        "count": 1,
+        "color": "black and white with pink muzzle",
+        "shape": "recognizable cow with horns and bovine muzzle",
+        "placement": "source-left behind Lumi; source-edge crop preserved",
+        "visibility": "PARTIAL"
+      },
+      {
+        "id": "sheep",
+        "count": 1,
+        "color": "cream wool and dark face",
+        "shape": "recognizable woolly sheep",
+        "placement": "source-right behind Lumi; source-edge crop preserved",
+        "visibility": "PARTIAL"
+      },
+      {
+        "id": "hen",
+        "count": 1,
+        "color": "brown feathers, red comb, yellow beak and feet",
+        "shape": "recognizable hen",
+        "placement": "lower source-right; source-edge crop preserved",
+        "visibility": "PARTIAL"
+      }
+    ]
+  },
+  "readiness": {
+    "STYLE_MATCH_TO_CANONICAL_REFERENCE": "PASS",
+    "IDENTITY": "PASS",
+    "ANATOMY": "PASS",
+    "MATERIALS": "PASS",
+    "LIGHTING": "PASS",
+    "WORLD": "PASS",
+    "OBJECT_COMPLETENESS": "PASS",
+    "EDUCATIONAL_SEMANTICS": "PASS",
+    "MOTION_SPACE": "PASS",
+    "CAMERA_COMPATIBILITY": "PASS",
+    "END_STATE_COMPATIBILITY": "PASS"
+  },
+  "limitations": [
+    "MOTION_QA_NOT_PERFORMED",
+    "OCCLUDED_GEOMETRY_NOT_MEASURED",
+    "Animals are recognizable, not entirely within the frame. Preserve the approved partial crop; no reveal.",
+    "Caption space refers to the clear upper sky; final caption layout still requires editorial QA.",
+    "Motion space and end-state compatibility assessed only for fixed-camera gaze, blink and restrained breathing/settle.",
+    "Source approval is reused as recorded. This visual inspection is not a new human or motion approval."
+  ]
+}

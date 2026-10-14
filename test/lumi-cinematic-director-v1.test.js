@@ -244,3 +244,50 @@ test('sequence review does not label incomplete evidence as PASS', async () => {
 test('all tested paths have zero real outbound attempts', () => {
   assert.deepEqual(globalThis.LUMI_OFFLINE_GUARD.attempts,[]);
 });
+
+// New-episode static direction policy. All bytes and reviews here are explicit
+// synthetic fixtures, never production evidence or motion certification.
+async function farmFixture(t,{target='viewer'}={}){
+ const f=await makeFixture({grammar:'GAZE_VIEWER'});t.after(()=>rm(f.directory,{recursive:true,force:true}));
+ const c=f.input.contract,ids=['cow','sheep','hen'];
+ c.REQUIRED_OBJECTS=ids.map(id=>({id,count:1,color:'synthetic '+id+' color',shape:id,placement:'synthetic reviewed crop'}));
+ const inv=c.REQUIRED_OBJECTS.map(o=>({...o,visibility:'PARTIAL'}));
+ c.START_STATE.object_inventory=inv;c.END_STATE.object_inventory=structuredClone(inv);
+ c.EDUCATIONAL_INVARIANTS=c.REQUIRED_OBJECTS.flatMap(o=>['count','color','shape'].map(property=>({object_id:o.id,property,value:o[property]})));
+ c.GOLDEN_REFERENCES=[];f.input.media=f.input.media.filter(m=>m.role==='source');f.input.reviews=f.input.reviews.slice(0,1);
+ setReviewedFact(f.input,'educational_inventory',inv);
+ if(target!=='viewer'){
+  f.input.direction.focus=target;Object.assign(f.input.direction.principal_actions[0],{grammar:'GAZE_TARGET',target,direction:'toward_target'});
+  c.PRIMARY_ACTION.action='look_at_object';setReviewedFact(f.input,'supported_actions',['GAZE_TARGET']);
+ }
+ const evidence={scope:'APPROVED_STATIC_SOURCE_DIRECTION',episode_id:f.input.episode_id,shot_id:c.shot_id,sha256:c.SOURCE_ARTIFACT.sha256,
+  source_qa_receipt:'a'.repeat(64),source_qa_result_sha:'b'.repeat(64),canonical_sha:'c'.repeat(64),limitations:['MOTION_QA_NOT_PERFORMED']};
+ f.input.context.static_source_evidence=evidence;f.input.context.source_readiness[c.SOURCE_ARTIFACT.artifact_id].STYLE_MATCH_TO_CANONICAL_REFERENCE='PASS';
+ f.options.policy={...structuredClone(POLICY),source_evidence_policy:evidence,educational_objects:{[c.shot_id]:ids},educational_inventory:{[c.shot_id]:structuredClone(c.REQUIRED_OBJECTS)},world_description:'reviewed farm',restrained_breathing:true};
+ return f;
+}
+test('approved static farm keeps exact crop and animals without falsely certifying motion or authorizing generation',async t=>{
+ const f=await farmFixture(t),p=await compile(f);
+ assert.deepEqual(p.blockers,[]);assert.equal(p.gates.SCHEMA_VALID,true);assert.equal(p.gates.SOURCE_EVIDENCE_READY,true);
+ assert.equal(p.gates.EXECUTION_AUTHORIZATION,false);assert.equal(p.gates.HUMAN_DIRECTION_APPROVAL,false);
+ assert.equal(p.evidence.motion_qa,'NOT_PERFORMED');assert.equal(p.evidence.historical_golden_parity,'NOT_ASSESSED');
+ assert.match(p.PROVIDER_PROMPT.text,/reviewed farm/);assert.doesNotMatch(p.PROVIDER_PROMPT.text,/garden|flower/);
+ assert.match(p.PROVIDER_PROMPT.text,/Exactly two blue/);assert.match(p.PROVIDER_PROMPT.text,/Gentle breathing/);
+ assert.equal(p.PROVIDER_REQUEST_PREVIEW.parameters.sound,'off');assert.equal(p.provider_calls,0);
+});
+for(const target of ['cow','sheep','hen'])test('animal gaze grammar binds target '+target+' without hand gesture or torso rotation',async t=>{
+ const f=await farmFixture(t,{target}),p=await compile(f);assert.deepEqual(p.blockers,[]);
+ assert.match(p.PROVIDER_PROMPT.text,new RegExp('toward the '+target));assert.match(p.PROVIDER_PROMPT.text,/without turning her torso/);
+});
+for(const [fault,change]of[
+ ['missing scope',f=>delete f.options.policy.source_evidence_policy],
+ ['wrong source',f=>f.options.policy.source_evidence_policy={...f.options.policy.source_evidence_policy,sha256:'0'.repeat(64)}],
+ ['missing receipt',f=>{f.options.policy.source_evidence_policy.source_qa_receipt=null;}],
+ ['changed animal color',f=>{f.input.contract.REQUIRED_OBJECTS[0].color='unapproved';}],
+ ['animal reveal',f=>{f.input.contract.END_STATE.object_inventory[0].visibility='FULLY_VISIBLE';}],
+ ['missing canonical comparison',f=>{delete f.input.context.source_readiness[f.input.contract.SOURCE_ARTIFACT.artifact_id].STYLE_MATCH_TO_CANONICAL_REFERENCE;}],
+ ['missing human review',f=>{f.input.reviews[0].status='REJECTED';}],
+ ['moving camera',f=>{f.input.contract.CAMERA.type='SUBTLE_PUSH_IN';f.input.direction.camera.type='SUBTLE_PUSH_IN';}],
+])test('static direction fails closed: '+fault,async t=>{
+ const f=await farmFixture(t);change(f);const p=await compile(f);assert.ok(p.blockers.length);assert.equal(p.PROVIDER_PROMPT,null);assert.equal(p.gates.EXECUTION_AUTHORIZATION,false);
+});

@@ -727,3 +727,36 @@ test('SOURCE_QA controlled acceptance refuses pending delivery or command withou
   assert.deepEqual(await f.store.getEpisode(episode),before);assert.equal(f.calls.length,calls);
  }
 });
+
+test('all seven EP004 cinematic descriptors are compatible; future images remain pending, not approved',async()=>{
+ const {ep004ProductionRequest,prepareGenericV2Episode,validateEp004DirectorInventory}=await import('../lib/lumi-generic-v2-adapter.js');
+ const p=prepareGenericV2Episode(ep004ProductionRequest({episode_id:episode,sha256:'a'.repeat(64)}));
+ assert.equal(validateEp004DirectorInventory(p).shots,7);
+ assert.deepEqual(p.shot_plans.map(s=>s.duration),[4,4,4,4,5,5,3]);
+ assert.ok(p.shot_plans.slice(1).every(s=>s.director_input.contract.SOURCE_ARTIFACT.status==='NOT_CREATED'));
+ for(const change of [p=>p.shot_plans.pop(),p=>p.shot_plans[1].focus='flower_red',p=>p.shot_plans[0].duration=5]){
+  const bad=structuredClone(p);change(bad);assert.throws(()=>validateEp004DirectorInventory(bad),/INVENTORY_INVALID/);
+ }
+});
+test('director operator requires HMAC and fixed server scope; missing real source evidence fails before durable claim',async()=>{
+ const f=await sourceQaFixture();await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+ const routes=new Map(),calls=f.calls.length,edits=f.telegramCalls.length,path='/lumi/telegram-review/make/v1';
+ mountMakeTransportEndpoint({get:()=>{},post:(p,h)=>routes.set(p,h)},{store:f.reviewStore,production:f.production,validateOwner:async()=>true,env:f.env});
+ const call=async(body,id,bad=false)=>{const signed={method:'POST',path,timestamp:String(Math.floor(Date.now()/1000)),requestId:id,body:Buffer.from(JSON.stringify(body))};
+  const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+  await routes.get(path)({body,rawBody:signed.body,path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':id,'x-lumi-signature':bad?'bad':signRequest(secret,signed)}},res);return res;};
+ const body={op:'PREPARE_EP004_DIRECTOR',user_id:'1',chat_id:'1'},cp=await f.store.getEpisode(episode);
+ assert.equal((await call(body,'dir-bad',true)).code,401);
+ assert.equal((await call({...body,action:'video:q41'},'dir-forged')).code,409);
+ assert.equal((await call({...body,message_id:148},'dir-panel')).code,409);
+ await assert.rejects(f.production.prepareEp004Director({user:'1',chat:'1'}),/DIRECTOR_DURABLE_EVIDENCE_MISMATCH/);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.calls.length,calls);assert.equal(f.telegramCalls.length,edits);
+ await f.edit(s=>{s.delivery.status='EMITTING';});
+ await assert.rejects(f.production.prepareEp004Director({user:'1',chat:'1'}),/OWNER_OR_DELIVERY_REQUIRED/);
+});
+test('director navigation respects expired non-generative authorization and explains the block',async()=>{
+ const f=await sourceQaFixture();await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+ await f.edit(s=>{Object.values(s.v2_authorizations).find(g=>g.operation_id===EP004_IMPORT_OP).expires_at='2000-01-01T00:00:00Z';});
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});const view=f.telegramCalls.at(-1).body;
+ assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>b.text.includes('Continuar producción')));assert.match(view.media.caption,/autorización/);
+});

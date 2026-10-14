@@ -23,7 +23,7 @@ async function setup(){
  const call=async(body,id,signature)=>{const res={code:200,status(c){this.code=c;return this;},json(value){this.value=value;return this;}};await routes.get(path)(request(body,id,signature),res);return res;};
  const menu=id=>({update_id:id,message:{message_id:1000+id,from:{id:1},chat:{id:1},text:'/menu'}});
  const click=async(c,action,id='click')=>{const s=(await store.get('1')).state;const button=c.body.reply_markup.inline_keyboard.flat().find(b=>s.tokens[b.callback_data.slice(3)]?.action===action);assert.ok(button,action);return {id,from:{id:1},message:message(c),data:button.callback_data};};
- return {store,svc,transport,ack,message,call,menu,click,logs};
+ return {store,svc,transport,production,ack,message,call,menu,click,logs};
 }
 test('distinct nonce claims recover CAS contention; same nonce remains rejected',async()=>{
  const f=await setup();const results=await Promise.allSettled([claimRequest(f.store,'1',nonce('ack')),claimRequest(f.store,'1',nonce('menu'))]);
@@ -220,4 +220,59 @@ test('repeated real-route shape /menu -> Create -> HOME -> Production -> Review 
   }
  }
  assert.equal(JSON.stringify((await f.store.get('1')).state.episodes),before);assert.equal((await f.store.get('1')).state.panel_content_type,'photo');
+});
+
+async function resumeFixture(){
+ const f=await setup(),c=(await f.svc.show('1','1',{kind:'menu'})).commands[0];await f.ack(c);
+ const row=await f.store.get('1');row.state.tokens['a'.repeat(24)]={action:'resume',episode_id:'ep',next_action:'planning'};
+ row.state.episodes.ep.next_action='planning';row.state.episodes.ep.budget_usd=5;
+ await f.store.cas('1',row.revision,row.state);
+ return {...f,cb:{id:'continue-first',from:{id:1},message:f.message(c),data:'lr:'+'a'.repeat(24)}};
+}
+test('resume claim rereads after nonce CAS race, preserving budget and approvals without replay',async()=>{
+ const f=await resumeFixture(),cas=f.store.cas.bind(f.store);let raced=false,calls=0;
+ f.production.resume=async()=>{calls++;};
+ const before=(await f.store.get('1')).state.episodes;
+ f.store.cas=async(u,r,s)=>{if(!raced&&s.pending_callback){raced=true;await claimRequest(f.store,'1',nonce('concurrent-nonce'));}return cas(u,r,s);};
+ const response=await f.call({callback_query:f.cb},'continue-cas');
+ assert.equal(response.code,200);assert.equal(calls,1);assert.equal(response.value.commands.filter(c=>c.method==='editMessageMedia').length,1);
+ assert.equal(response.value.commands.filter(c=>c.method==='answerCallbackQuery').length,1);
+ await f.ack(response.value.commands.find(c=>c.method==='editMessageMedia'));
+ assert.deepEqual((await f.store.get('1')).state.episodes,before);
+ assert.ok((await f.store.get('1')).state.make_requests['concurrent-nonce']);
+});
+test('second resume during a claimed command is pending HTTP200 without dispatch or second edit',async()=>{
+ const f=await resumeFixture();let release,entered,calls=0;
+ const waiting=new Promise(r=>release=r),started=new Promise(r=>entered=r);
+ f.production.resume=async()=>{calls++;entered();await waiting;};
+ const first=f.call({callback_query:f.cb},'continue-owner');await started;
+ const second=await f.call({callback_query:{...f.cb,id:'continue-second'}},'continue-contender');
+ release();const completed=await first;
+ assert.equal(second.code,200);assert.equal(second.value.status,'DELIVERY_PENDING');assert.equal(second.value.executed,false);
+ assert.equal(second.value.provider_calls,0);assert.deepEqual(second.value.commands,[]);assert.equal(calls,1);
+ assert.equal(completed.code,200);await f.ack(completed.value.commands.find(c=>c.method==='editMessageMedia'));
+});
+test('resume failure after dispatch remains real HTTP409 and crash cannot replay it',async()=>{
+ const f=await resumeFixture();let calls=0;
+ f.production.resume=async()=>{calls++;throw Error('telegram_delivery_reconciliation_required');};
+ const first=await f.call({callback_query:f.cb},'continue-ambiguous');assert.equal(first.code,409);
+ assert.equal(first.value.recovery_required,true);assert.equal(first.value.provider_calls,null);
+ const second=await f.call({callback_query:{...f.cb,id:'continue-after-crash'}},'continue-restart');
+ assert.equal(second.code,200);assert.equal(second.value.status,'DELIVERY_PENDING');assert.equal(calls,1);
+});
+test('resume claim retry revalidates panel identity instead of dispatching from stale snapshot',async()=>{
+ const f=await resumeFixture(),cas=f.store.cas.bind(f.store);let raced=false,calls=0;
+ f.production.resume=async()=>calls++;
+ f.store.cas=async(u,r,s)=>{if(!raced&&s.pending_callback){raced=true;const row=await f.store.get(u);row.state.message_id=149;await cas(u,row.revision,row.state);}return cas(u,r,s);};
+ const response=await f.call({callback_query:f.cb},'continue-changed-panel');
+ assert.equal(response.code,409);assert.equal(calls,0);assert.equal((await f.store.get('1')).state.message_id,149);
+});
+test('exhausted callback claim contention remains CAS_CONFLICT without production effects',async()=>{
+ const f=await resumeFixture(),cas=f.store.cas.bind(f.store);let claims=0,calls=0;
+ f.production.resume=async()=>calls++;
+ f.store.cas=async(u,r,s)=>{if(s.pending_callback){claims++;await claimRequest(f.store,'1',nonce('claim-race-'+claims));}return cas(u,r,s);};
+ const response=await f.call({callback_query:f.cb},'continue-claim-exhausted');
+ assert.equal(response.code,409);assert.equal(response.value.classification,'CAS_CONFLICT');
+ assert.equal(response.value.provider_calls,0);assert.equal(claims,6);assert.equal(calls,0);
+ assert.equal((await f.store.get('1')).state.pending_callback,null);
 });

@@ -30,6 +30,54 @@ test('distinct nonce claims recover CAS contention; same nonce remains rejected'
  assert.ok(results.every(x=>x.status==='fulfilled'));assert.equal(Object.keys((await f.store.get('1')).state.make_requests).length,2);
  await assert.rejects(claimRequest(f.store,'1',nonce('ack')),/replayed_request/);
 });
+
+async function approvedQ41Fixture({legacyTrailingSpace=false}={}){
+ const f=await setup(),row=await f.store.get('1');row.state.message_id=148;
+ row.state.q41_first_image={status:'APPROVED_PAUSED',artifact:{...photo,width:1520,height:2688},
+  technical_qa:{ok:true},visual_qa:'REQUIRES_HUMAN_VISUAL_REVIEW',review:{status:'APPROVED',artifact_sha:photo.sha256}};
+ await f.store.cas('1',row.revision,row.state);
+ let c=(await f.svc.show('1','1',{kind:'q41_review'})).commands[0];
+ if(legacyTrailingSpace){const r=await f.store.get('1');r.state.delivery.command.body.media.caption=c.body.media.caption.replace(/ +$/u,'')+' ';
+  await f.store.cas('1',r.revision,r.state);c=(await f.store.get('1')).state.delivery.command;}
+ const message={message_id:148,chat:{id:1},caption:c.body.media.caption.replace(/ +$/u,''),
+  reply_markup:c.body.reply_markup,photo:[{file_id:'HOME',file_unique_id:'HOME_UNIQUE'}]};
+ return {...f,c,receipt:message};
+}
+test('approved q41 renders no trailing space before Continue production',async()=>{
+ const f=await approvedQ41Fixture();assert.equal(f.c.body.media.caption.endsWith(' '),false);
+ assert.equal(f.c.body.reply_markup.inline_keyboard[0][0].text,'Continuar producción');
+});
+test('real approval receipt recovers legacy trailing-space ACK without editing or repeating callback',async()=>{
+ const f=await approvedQ41Fixture({legacyTrailingSpace:true}),before=(await f.store.get('1')).state;
+ const body={op:'ack',user_id:'1',chat_id:'1',message_id:148,command_id:f.c.idempotency_key,
+  telegram_result:{...f.receipt,caption:undefined,caption_sha:sha256(f.receipt.caption)}};
+ const r=await f.call(body,'q41-ack-recovery');assert.equal(r.code,200);assert.equal(r.value.ok,true);
+ const after=(await f.store.get('1')).state;assert.equal(after.delivery.status,'DELIVERED');
+ assert.deepEqual(after.q41_first_image,before.q41_first_image);assert.deepEqual(after.episodes,before.episodes);
+ assert.equal(after.message_id,148);assert.equal(f.transport.commands.length,0);
+ assert.equal((await f.call(body,'q41-ack-duplicate')).value.status,'ACK_ALREADY_APPLIED');
+ assert.equal((await f.call(body,'q41-ack-recovery')).value.classification,'REPLAY_REJECTED');
+});
+test('q41 receipt normalization preserves semantic, media, owner and command checks',async()=>{
+ const f=await approvedQ41Fixture({legacyTrailingSpace:true});
+ for(const change of [{caption:f.receipt.caption.replace('APPROVED','REJECTED')},
+  {caption:f.receipt.caption.replace('Primera imagen','Primera  imagen')},{caption:f.receipt.caption+'\n'},
+  {caption:undefined,caption_sha:'0'.repeat(64)},
+  {photo:[{file_id:'WRONG',file_unique_id:'WRONG_UNIQUE'}]},{message_id:149},{chat:{id:2}}]){
+  await assert.rejects(acknowledgeCommand(f.store,'1','1',f.c.idempotency_key,{...f.receipt,...change}));
+ }
+ await assert.rejects(acknowledgeCommand(f.store,'1','1','wrong-command',f.receipt),/identity/);
+ const row=await f.store.get('1');row.state.delivery.screen.kind='menu';await f.store.cas('1',row.revision,row.state);
+ await assert.rejects(acknowledgeCommand(f.store,'1','1',f.c.idempotency_key,f.receipt),/caption/);
+ assert.equal((await f.store.get('1')).state.delivery.status,'EMITTING');
+});
+test('legacy q41 ACK revalidates after CAS contention and never emits Telegram commands',async()=>{
+ const f=await approvedQ41Fixture({legacyTrailingSpace:true}),cas=f.store.cas.bind(f.store);let raced=false;
+ f.store.cas=async(u,r,s)=>{if(!raced&&s.delivery.status==='DELIVERED'){raced=true;await claimRequest(f.store,'1',nonce('concurrent-read'));}return cas(u,r,s);};
+ await acknowledgeCommand(f.store,'1','1',f.c.idempotency_key,f.receipt);
+ const s=(await f.store.get('1')).state;assert.equal(s.delivery.status,'DELIVERED');assert.ok(s.make_requests['concurrent-read']);
+ assert.equal(f.transport.commands.length,0);assert.equal(s.q41_first_image.review.status,'APPROVED');
+});
 test('outbox is atomic: every persisted EMITTING state includes exact command',async()=>{
  const f=await setup(),cas=f.store.cas.bind(f.store);let writes=0;
  f.store.cas=async(u,r,s)=>{if(s.delivery?.status==='EMITTING'){writes++;assert.equal(s.delivery.command.message_id,138);assert.equal(s.delivery.command.review_version,r+1);}return cas(u,r,s);};

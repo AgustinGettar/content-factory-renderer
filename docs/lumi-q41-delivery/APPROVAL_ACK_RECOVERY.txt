@@ -1,0 +1,51 @@
+Q41 APPROVAL ACK INCIDENT — 2026-10-14
+Scope: local correction only. No push, deploy, Make edit/activation, queue deletion, callback replay, Telegram edit or provider request in this task.
+
+REMOTE EVIDENCE
+Make scenario 6224860, execution 629210a1cf654fbea63d1bf610a210e8, update 830558953.
+Actual callback action q41_approve, callback query 8241490266114870011.
+Module8 HTTP200, episode_created=false, APPROVED_PAUSED.
+Module12 operation2 HTTP200, message148, same approved image file identity.
+Command/delivery id 9e6fd11622f4d38b08dc48f0224db040d3be71736290d44815568433e2227b3c, review_version436.
+Module21 request629210a1cf654fbea63d1bf610a210e8:ack failed HTTP409.
+Render log: telegram_caption_mismatch, UNEXPECTED_BACKEND_ERROR, NONCE_CLAIMED, session_revision437, deliveryEMITTING, no Telegram transport lease.
+Sent caption SHA fddadb2a4ad1e0097b1c5f39fd67fbffe7a4c00a94d19d98b07a80b3676f8c3f.
+Actual Telegram caption SHA f8b3da83da5ed3564160fd4fe153c528e11cadcb2b556eb53d08586945a69d27.
+Exact difference: one trailing U+0020 appended by the approved-q41 renderer; Telegram omitted it.
+This is not CAS_CONFLICT, ACK_ALREADY_APPLIED, STALE_DELIVERY or an unsuccessful Telegram edit.
+
+DURABLE STATE
+Q41 approval APPROVED at2026-10-14T00:56:01.879Z, artifactSHA c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b.
+Isolated checkpoint ep004_q41_first_image: RUNNING, runtime_revision10, image APPROVED_PAUSED, first_pending_action image:q41.
+Full episode ep_lumi_granja_004_20261008_ee7ab4b3: no checkpoint and no session episode.
+Q41 therefore is not incorporated into the full episode.
+Only durable generation grant: scope EP004_Q41_FIRST_IMAGE, ceiling0.5. No CREATE or RESUME grant for full episode.
+Internal episode ceiling5, outstanding reservation0.33875 pending verified actual charge; actual charge remains unknown.
+Provider journal retains one request736adb19-c485-47d2-8f36-49f6e7387ade. No additional generation.
+Historical episodes MD5 fd20d3a60f9c14f0b6b429bcdce6b9d1; historical reviews MD5 a3d345e076c3bc3fb5df1cb391363d17 unchanged.
+
+QUEUE — DO NOT PROCESS OR DELETE WITHOUT SPECIFIC AUTHORIZATION
+4e3c6ed0de1d7162e4f2fd0b9152b59d update830558953 q41_approve already persisted.
+1e08a5c9ece4eee1841e7ee69db5d182 update830558954 q41_continue not dispatched.
+007755693fcfaa06b0005034377dd6d9 update830558955 q41_continue not dispatched.
+Both continuation callbacks point to token675902e1d2b9e6a58c473bd9. They are not evidence of an executed continuation.
+
+MINIMAL LOCAL PATCH
+core.js: do not append the accidental trailing ASCII space.
+make-transport.js: accept the exact original receipt for a pending approved-q41 photo outbox after omitting exactly one trailing ASCII space, with approved SHA binding.
+All owner, panel, command, file identity, keyboard, HMAC, nonce and CAS checks remain.
+Wrong caption contents, interior whitespace, newline changes, wrong file/panel/command and unrelated screens still fail.
+No generic 409-as-success path, no Make configuration change, no episode/grant creation.
+
+VALIDATION
+Three incident regression checks failed before the patch (render, hashed ACK, CAS recovery).
+Final focused regression:80/80 PASS with network disabled.
+Exact real durable command plus original Make21 ACK replayed in local memory: DELIVERED at local revision438; duplicate ACK_ALREADY_APPLIED; no Telegram call; approval unchanged.
+Existing continuation guard validated locally: missing/full-episode source mismatch blocks; matching existing checkpoint only navigates, without creating another checkpoint or calling providers.
+
+APPROVAL PACKAGE
+Publish only this local correction on lumi-telegram-review-v1 with guarded head and exact tree verification; require CI GREEN; deploy only content-factory-av2-staging.
+Then re-read session and original successful Telegram receipt, recover ACK using existing endpoint and a fresh HMAC nonce. Do not repeat q41_approve or editMessageMedia.
+Separately authorized queue cleanup must reverify exactly the three backed-up events above, discard only those, then reactivate6224860 without changing modules/webhook.
+Full-episode continuation remains a separate explicit CREATE authorization and original-q41 incorporation prerequisite. Do not promote the first-image grant, mark readinessPASS without evidence, invent actual cost, or regenerate image:q41.
+

@@ -467,6 +467,24 @@ test('approved q41 exposes explicit continuation but never creates an episode or
  assert.equal((await f.store.getEpisode(operation)).metadata.first_image.review.status,'APPROVED');
 });
 
+test('q41 continuation only opens a checkpoint that already incorporates the exact approved source',async()=>{
+ for(const binding of ['matching','wrong-sha','wrong-request']){
+  const f=await fixture({supervised:true});await f.prepare();await f.click('q41_confirm');await f.click('q41_approve');
+  const image=(await f.store.getEpisode(operation)).metadata.first_image;
+  const incorporated={episode_id:episode,status:'PAUSED_HUMAN_REVIEW',first_pending_action:'video:q41',authorized_ceiling_usd:5,
+   metadata:{user:'1',stage_results:{'image:q41':{result:{artifacts:[{...image.artifact,sha256:binding==='wrong-sha'?'0'.repeat(64):image.artifact.sha256}],
+    provider_job_ids:[binding==='wrong-request'?'unrelated-request':image.accepted.request_id]}}}}};
+  await f.store.putEpisode(incorporated);await f.edit(s=>{s.episodes[episode]={episode_id:episode};});
+  const count=f.calls.length,journal=JSON.stringify([...f.journalRows]),before=await f.store.getEpisode(episode);
+  const result=await f.adapter.firstImageAction({command:f.command(await f.callback('q41_continue'))});
+  if(binding==='matching')assert.deepEqual(result.next_screen,{kind:'progress',episode_id:episode});
+  else {assert.equal(result.next_screen,undefined);assert.equal(result.blocker,'Q41_EPISODE_CONTINUATION_NOT_AUTHORIZED');}
+  assert.deepEqual(await f.store.getEpisode(episode),before);assert.equal(f.calls.length,count);
+  assert.equal(JSON.stringify([...f.journalRows]),journal);
+  assert.equal((await f.store.getEpisode(operation)).metadata.first_image.review.status,'APPROVED');
+ }
+});
+
 test('unofficial or malformed balance responses cannot be promoted into verified USD',async()=>{
  for(const balance of [{source:'USER_REPORTED',balance_usd:4.60},{source:'OFFICIAL_API',currency:'credits',balance_usd:10},
    {source:'OFFICIAL_API',currency:'USD',balance_usd:-1}]){

@@ -587,3 +587,17 @@ test('imported journal binding rejects a cross-episode or altered request before
   await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/PROVIDER_JOURNAL_MISMATCH/);
  }
 });
+
+test('Make-native /produccion opens imported EP004 on the current panel with one edit and no production execution',async()=>{
+ const f=await approvedImportFixture();await f.adapter.createEp004FromApprovedQ41({command:importCommand(f)});
+ const routes=new Map(),calls=f.calls.length,cp=await f.store.getEpisode(episode);
+ mountMakeTransportEndpoint({get:()=>{},post:(path,fn)=>routes.set(path,fn)}, {store:f.reviewStore,env:f.env,loadBytes:async()=>canonical,validateOwner:async()=>true,production:f.production});
+ const body={update_id:-2026101411,message:{from:{id:1},chat:{id:1},text:'/produccion',date:new Date().toISOString()}};
+ const signed={timestamp:String(Math.floor(Date.now()/1000)),requestId:'ep004-progress-'+crypto.randomUUID(),method:'POST',path:'/lumi/telegram-review/make/v1',body:Buffer.from(JSON.stringify(body))};
+ let result,status=200;const res={status(n){status=n;return this;},json(v){result=v;return this;}};
+ await routes.get(signed.path)({body,rawBody:signed.body,path:signed.path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':signed.requestId,'x-lumi-signature':signRequest(secret,signed)}},res);
+ assert.equal(status,200);assert.equal(result.actions.length,1);assert.equal(result.actions[0].method,'editMessageMedia');
+ const telegram=JSON.parse(result.actions[0].body_json);assert.equal(telegram.message_id,138);assert.match(telegram.media.caption,/Episodio 004 creado/);
+ assert.ok(telegram.reply_markup.inline_keyboard.flat().some(b=>b.text==='▶️ Continuar producción'));
+ assert.equal(f.calls.length,calls);assert.deepEqual(await f.store.getEpisode(episode),cp);
+});

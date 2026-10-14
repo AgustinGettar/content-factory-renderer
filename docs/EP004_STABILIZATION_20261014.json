@@ -1,27 +1,39 @@
 {
-  "scope": "EP004 end-to-end stabilization: partial implementation, external deployment blocker; not a production acceptance",
+  "scope": "EP004 stabilization: deployed repairs and non-generative evidence; production acceptance remains BLOCKED",
   "base_sha": "dee6162b5bd2f738bba73de07427ceb084ed6d84",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
-  "verified_at": "2026-10-14",
+  "verified_at": "2026-10-14T22:26:32.262941+00:00",
   "real_mutations": {
     "provider_generation": 0,
     "provider_estimates": 0,
     "telegram_edits": 0,
     "make_changes": 0,
-    "supabase_writes": 0,
-    "deploy_created": 0
+    "supabase_writes": "Two authenticated operator nonce claims only; no episode, approval, budget or provider journal changes",
+    "deploy_created": 1
   },
   "infrastructure": {
     "database": "ACTIVE_HEALTHY; isolated mofjhwathxzfnjapvvst",
     "make": "active; connections ok; no incomplete executions",
-    "staging": "HTTP 503 x-render-routing=hibernate-wake-error; deployment API 503 deploys is currently unavailable",
-    "official_incident": "https://status.render.com/ ; 2026-10-14 21:43 UTC: free-instance builds/deploys still paused",
+    "staging": "Recovered: deploy dep-db801epsrm7s7386vqug LIVE, code SHA 11ddf4eea0b77c4b637c1c2f30a70d4e8b3a9ee9; health and authenticated staging requests HTTP 200",
+    "official_incident": "Earlier 503 wake failure and deployment API rejection observed; Render later accepted and completed the staging deploy. No plan changes.",
     "causal_limit": "Wake failure is directly observed. Exact contribution to earlier 40-second requests is not proven by request logs.",
     "panel": {
       "id": 148,
-      "revision": 509,
+      "revision": 511,
       "delivery": "EMITTING",
-      "status": "BLOCKED pending authentic delivery reconciliation"
+      "status": "BLOCKED: original command d4d54d0a60e348742630953cf60fc89304c8e63713c29aa729a30066d18d457b remains EMITTING; no authentic delivery ACK available; not cleared or replayed",
+      "make_evidence": "43d644cbfc9940a7afc7c27f2bdbb91f stopped at HTTP module 8 after 40s; 1c838821f50e46a3a5903b5f10b71b6f returned DELIVERY_PENDING; neither invoked Telegram delivery"
+    },
+    "staging_samples": {
+      "health_seconds": [
+        5.021138,
+        4.005368
+      ],
+      "authenticated_seconds": [
+        10.813,
+        8.148
+      ],
+      "assessment": "PASS_REAL observed availability; future cold-start behavior NOT_TESTED_REAL"
     }
   },
   "budget": {
@@ -49,8 +61,9 @@
     "historical_usd": 0.448,
     "historical_effective_expiration": "2026-10-14T19:06:22.129Z",
     "historical_status": "EXPIRED",
-    "renewal_implementation": "PASS_OFFLINE; not deployed",
-    "history": "Immutable deterministic successor CAS claims; prior approval does not authorize successor; ambiguous requests never renewed"
+    "renewal_implementation": "PASS_OFFLINE and deployed; NOT_TESTED_REAL because canonical panel delivery is unresolved",
+    "history": "Immutable deterministic successor CAS claims; prior approval does not authorize successor; ambiguous requests never renewed",
+    "live_blocker": "Q41_QUOTE_OWNER_OR_DELIVERY_REQUIRED would reject EMITTING panel. No new estimate attempted."
   },
   "tests": {
     "focused": "106/106 PASS_OFFLINE",
@@ -59,7 +72,8 @@
     "dry_wrappers": "PASS_SIMULATED: 14 wrappers to WAITING_FINAL_REVIEW; 56 crash cases; zero duplicate side effects",
     "full_end_to_end": "BLOCKED: real production handoffs incomplete; generic dry fixture and independent master test are not one complete production path",
     "initial_unqualified_node_test": "Not a supported release gate: included worker entrypoints requiring arguments and unavailable legacy external fixtures; final validation uses exact branch CI manifest and offline guard",
-    "process_restart": "21/21 PASS_OFFLINE: real process termination and isolated recovery; no external provider"
+    "process_restart": "21/21 PASS_OFFLINE: real process termination and isolated recovery; no external provider",
+    "ci": "GREEN: GitHub Actions 38646938246 on code SHA 11ddf4eea0b77c4b637c1c2f30a70d4e8b3a9ee9"
   },
   "stages": [
     {
@@ -345,7 +359,7 @@
     "SOURCE_IMAGE_OVER_5MB": "PASS_OFFLINE 6,045,628-byte source, exact bytes",
     "SIGNED_URL_EXPIRATION": "PASS_OFFLINE; no stale authorization",
     "BINARY_TRANSPORT": "PASS_OFFLINE photo route; first real video/master upload NOT_TESTED_REAL",
-    "HTTP_TIMEOUT": "PASS_OFFLINE late signed Telegram admission does not create outbox; real Render BLOCKED",
+    "HTTP_TIMEOUT": "PASS_OFFLINE late signed Telegram admission does not create outbox; staging recovered and authenticated requests responded in <11s; future cold start NOT_TESTED_REAL",
     "DUPLICATE_CALLBACK": "PASS_OFFLINE",
     "DOUBLE_CLICK": "PASS_OFFLINE",
     "PROVIDER_RESULT_AMBIGUOUS": "PASS_OFFLINE fail closed, no resubmit",
@@ -354,5 +368,26 @@
     "TELEGRAM_PANEL_RECOVERY": "PASS_OFFLINE; actual pending outbox not cleared",
     "STORAGE_SHA_MISMATCH": "PASS_OFFLINE",
     "MASTER_DELIVERY": "PASS_SIMULATED cached transport; NOT_TESTED_REAL first EP004 delivery"
+  },
+  "open_production_blockers": [
+    "Canonical panel delivery remains unreconciled",
+    "Quoted-spend approval has no production emission consumer",
+    "Subsequent image/video quote and authorization handoffs are incomplete",
+    "Subsequent source observations and director inputs have no production materialization route",
+    "Generic Telegram accepted-job recovery binding is incomplete",
+    "Fresh TTS quota/budget context and measured assembly/caption inputs have no production writer",
+    "One complete create-to-download production-path fixture has not passed"
+  ],
+  "acceptance": {
+    "STAGING_STABLE": "PASS_REAL within observed window; future cold start untested",
+    "QUOTE_RENEWAL": "PASS_OFFLINE, deployed, NOT_TESTED_REAL",
+    "EP004_CHECKPOINT_PRESERVED": "PASS_REAL",
+    "Q41_HUMAN_APPROVED": "PASS_REAL",
+    "MAKE_ACTIVE": "PASS_REAL",
+    "TELEGRAM_PANEL_148": "PRESERVED; BLOCKED DELIVERY_PENDING",
+    "END_TO_END_NON_GENERATIVE_TEST": "BLOCKED; component and dry-wrapper tests passed, not the complete production path",
+    "BUDGET_GATE": "PASS_OFFLINE; real spend BLOCKED by expired quote and unresolved authority/transport",
+    "NO_DUPLICATE_OPERATIONS": "PASS_OFFLINE; real journal unchanged at one historical image emission",
+    "NEW_PROVIDER_GENERATION_CALLS": 0
   }
 }

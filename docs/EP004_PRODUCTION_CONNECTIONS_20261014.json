@@ -11,7 +11,8 @@
       "tts": "7 fixture emissions; Fernanda request binding; unique claims",
       "live_generation_calls": 0,
       "live_quote_calls": 0
-    }
+    },
+    "final_ci": "801/801 relevant regression +21/21 process restarts; CI38654599390 GREEN"
   },
   "connections": [
     "versioned exact encrypted payload quote -> current human spend authorization -> durable reservation -> existing emission journal -> provider adapter",
@@ -31,7 +32,8 @@
       "ambiguous outcome remains fail-closed and retains exposure; no automatic retry",
       "binary originals verified by size/SHA; authenticated transport scope; signed source lifetime enforced",
       "private provider payload encrypted at rest with authenticated encryption; no secret changes detected",
-      "global V2, runners, autorun, production and main unchanged"
+      "global V2, runners, autorun, production and main unchanged",
+      "In-flight local stage cannot be invoked again from progress; complete receipts remain recoverable"
     ]
   },
   "remaining_not_tested_real": [
@@ -66,5 +68,60 @@
     "api_key_remaining_quota": null,
     "provider_generation_calls": 0,
     "status": "PASS_REAL for voice/model/subscription quota; not generation"
+  },
+  "final_verification": {
+    "STAGING_SHA": "0debad351c73931156a1133e985aff908d6bf25e",
+    "DEPLOY_ID": "dep-db813l689jmc73bprdq0",
+    "DEPLOY_STATUS": "LIVE",
+    "DEPLOY_FINISHED_AT": "2026-10-14T23:36:25.594104Z",
+    "STAGING_STABILITY": "PASS_REAL: authenticated readiness HTTP200 in10.046s and three health200 responses; observation window only, cold start behavior not a long-term availability guarantee",
+    "DATABASE_ISOLATION": "PASS_REAL: startup journal target mofjhwathxzfnjapvvst.supabase.co and authenticated request nonce found in staging session",
+    "EP004_CHECKPOINT": {
+      "status": "RUNNING",
+      "version": 10,
+      "last_completed_action": "director:q41",
+      "first_pending_action": "video:q41",
+      "runner_enabled": false,
+      "autorun": false,
+      "provider_generation_authorized": false
+    },
+    "Q41_APPROVAL": "PASS_REAL: original approval and c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b unchanged",
+    "MAKE_ACTIVE": "PASS_REAL;6224860 active; connections OK; only module23 mapper.type changed",
+    "TELEGRAM_PANEL": 148,
+    "DELIVERY_RECONCILIATION": "BLOCKED: original EMITTING command has no authentic matching ACK; unchanged full delivery hash d6b6f4ced3cb41d75214b61c8dcea8ae",
+    "QUOTE_RENEWAL": "PASS_OFFLINE; BLOCKED_REAL by pending delivery; no new estimate attempted",
+    "KLING_QUOTE": {
+      "new_quote_count": 0,
+      "historical_usd": 0.448,
+      "historical_operation_id": "114de48bf4b5cb74145bb00e3e8e9cefe844adf88bbbc831af160f05ae758fc0",
+      "historical_expiration": "2026-10-14T19:06:22.129Z",
+      "status": "EXPIRED"
+    },
+    "BUDGET": {
+      "hard_ceiling_usd": 5,
+      "q41_image_estimated_usd": 0.271,
+      "reserved_usd": 0.33875,
+      "actual_cost_usd": null,
+      "actual_cost_status": "UNVERIFIED",
+      "potential_unconfirmed_exposure_usd": 0.33875,
+      "potential_exposure_already_in_reservation": true,
+      "internal_remaining_usd": 4.66125,
+      "provider_balance": "NOT_VERIFIED",
+      "full_episode_coverage": "NOT_QUOTED",
+      "next_generation_gate": "BLOCKED until current quote and human authorization"
+    },
+    "GENERATION_JOURNAL_ROWS": 1,
+    "NEW_PROVIDER_GENERATION_CALLS": 0,
+    "PRODUCTION_CONNECTIONS": "PASS_INTEGRATION / PASS_SIMULATED: isolated fixture providers, actual shared runtime, human decision fixtures, real synthetic final encode; not real production media acceptance",
+    "CI_CODE": {
+      "id": 38654599390,
+      "sha": "0debad351c73931156a1133e985aff908d6bf25e",
+      "status": "GREEN",
+      "regression": "801/801",
+      "process_restart": "21/21",
+      "executor_bindings": "14/14",
+      "crash_matrix": "56 cases PASS_SIMULATED"
+    },
+    "NEXT_ACTION": "Obtain an authentic callback message from existing Telegram panel148 by a navigation click. Reconcile only if exact pending command/media/keyboard matches. If it does not, retain FAIL CLOSED and inspect that authentic evidence. Once delivery is proven, renew once immediately before explicit human spend approval; never generate from this operator session."
   }
 }

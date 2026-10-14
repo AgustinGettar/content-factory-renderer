@@ -1,27 +1,26 @@
 {
-  "updated_at": "2026-10-14T23:29:21.599271+00:00",
-  "CURRENT_HEAD": "24e230f7db16f3fe6c6fcc187ca5789b81a03e36",
+  "updated_at": "2026-10-14T23:38:05.272196+00:00",
+  "CURRENT_HEAD": "0debad351c73931156a1133e985aff908d6bf25e",
   "LAST_COMPLETED_ACTION": "director:q41",
   "FIRST_PENDING_ACTION": "video:q41",
   "FILES_CHANGED": [
-    "lib/lumi-v2-telegram-runtime.js",
-    "lib/telegram-review-v1/core.js",
-    "test/lumi-q41-first-image.test.js",
     "docs/RESUME_STATE_EP004.json",
     "docs/EP004_PRODUCTION_CONNECTIONS_20261014.json"
   ],
   "TEST_RESULTS": {
-    "regression": "799/799 PASS_OFFLINE; includes simulated providers and real synthetic FFmpeg encode",
-    "process_restart": "21/21 PASS_OFFLINE",
-    "latest_navigation_changes": "21/21 PASS_OFFLINE including duplicates, quote renewal, exact authorization, interruption and long action acknowledgement",
-    "executor_boundary": "14/14 PASS_OFFLINE; 56-case crash matrix PASS_SIMULATED",
-    "ci_prior": "38653875349: 799/800; sole failure expected old button label. Corrected regression to assert checkpoint-bound action; focused2/2PASS.",
-    "in_flight_navigation": "Reproduced unsafe duplicate local continuation; fixed and16/16 focusedPASS_OFFLINE"
+    "id": 38654599390,
+    "sha": "0debad351c73931156a1133e985aff908d6bf25e",
+    "status": "GREEN",
+    "regression": "801/801",
+    "process_restart": "21/21",
+    "executor_bindings": "14/14",
+    "crash_matrix": "56 cases PASS_SIMULATED"
   },
-  "DEPLOY_STATUS": "Not deployed: preparing one additional in-flight navigation fix, CI required on its commit",
+  "DEPLOY_STATUS": "LIVE 0debad351c73931156a1133e985aff908d6bf25e via dep-db813l689jmc73bprdq0",
   "OPEN_BLOCKERS": [
-    "Panel 148 EMITTING without authentic matching ACK; preserve command d4d54d0a60e348742630953cf60fc89304c8e63713c29aa729a30066d18d457b; do not repeat edit or quote",
-    "Real provider outputs and full-episode budget coverage remain untested; each request remains gated"
+    "Exact panel148 command d4d54d0a60e348742630953cf60fc89304c8e63713c29aa729a30066d18d457b is EMITTING without authentic ACK; preserve and reconcile only from genuine Telegram evidence",
+    "Fresh Kling quote not executed because panel gate remains blocked; historical0.448USD quote expired19:06:22.129Z",
+    "Real provider media and full episode budget coverage remain untested; no generative authorization in this execution"
   ],
   "MAKE_CHANGE": {
     "scenario": 6224860,
@@ -33,9 +32,9 @@
   },
   "new_provider_generation_calls_this_execution": 0,
   "fresh_quote_calls_this_execution": 0,
-  "REMOTE_HEAD": "24e230f7db16f3fe6c6fcc187ca5789b81a03e36",
-  "LAST_COMPLETED_PHASE": "Implementation and exact-tree publication; Fernanda current non-generative validation PASS_REAL",
-  "NEXT_PHASE": "Await CI 38654293484 GREEN, deploy only srv-dapgakqd0e5s73fottig, verify health/isolation/checkpoint and original panel command. Do not quote while delivery EMITTING.",
+  "REMOTE_HEAD": "0debad351c73931156a1133e985aff908d6bf25e",
+  "LAST_COMPLETED_PHASE": "Integration, CI GREEN, staging deploy and real non-generative verification",
+  "NEXT_PHASE": "Obtain an authentic callback message from existing Telegram panel148 by a navigation click. Reconcile only if exact pending command/media/keyboard matches. If it does not, retain FAIL CLOSED and inspect that authentic evidence. Once delivery is proven, renew once immediately before explicit human spend approval; never generate from this operator session.",
   "FERNANDA_CURRENT": {
     "validated_at": "2026-10-14T23:26:25.286Z",
     "voice_id": "NyQ87MpRGbszyh7rZLXM",
@@ -44,5 +43,61 @@
     "api_key_remaining_quota": null,
     "provider_generation_calls": 0,
     "status": "PASS_REAL for voice/model/subscription quota; not generation"
+  },
+  "HEAD_SCOPE": "Runtime code verified; this record is published in a documentation-only descendant. Resolve live git HEAD before writes.",
+  "REAL_VERIFICATION": {
+    "STAGING_SHA": "0debad351c73931156a1133e985aff908d6bf25e",
+    "DEPLOY_ID": "dep-db813l689jmc73bprdq0",
+    "DEPLOY_STATUS": "LIVE",
+    "DEPLOY_FINISHED_AT": "2026-10-14T23:36:25.594104Z",
+    "STAGING_STABILITY": "PASS_REAL: authenticated readiness HTTP200 in10.046s and three health200 responses; observation window only, cold start behavior not a long-term availability guarantee",
+    "DATABASE_ISOLATION": "PASS_REAL: startup journal target mofjhwathxzfnjapvvst.supabase.co and authenticated request nonce found in staging session",
+    "EP004_CHECKPOINT": {
+      "status": "RUNNING",
+      "version": 10,
+      "last_completed_action": "director:q41",
+      "first_pending_action": "video:q41",
+      "runner_enabled": false,
+      "autorun": false,
+      "provider_generation_authorized": false
+    },
+    "Q41_APPROVAL": "PASS_REAL: original approval and c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b unchanged",
+    "MAKE_ACTIVE": "PASS_REAL;6224860 active; connections OK; only module23 mapper.type changed",
+    "TELEGRAM_PANEL": 148,
+    "DELIVERY_RECONCILIATION": "BLOCKED: original EMITTING command has no authentic matching ACK; unchanged full delivery hash d6b6f4ced3cb41d75214b61c8dcea8ae",
+    "QUOTE_RENEWAL": "PASS_OFFLINE; BLOCKED_REAL by pending delivery; no new estimate attempted",
+    "KLING_QUOTE": {
+      "new_quote_count": 0,
+      "historical_usd": 0.448,
+      "historical_operation_id": "114de48bf4b5cb74145bb00e3e8e9cefe844adf88bbbc831af160f05ae758fc0",
+      "historical_expiration": "2026-10-14T19:06:22.129Z",
+      "status": "EXPIRED"
+    },
+    "BUDGET": {
+      "hard_ceiling_usd": 5,
+      "q41_image_estimated_usd": 0.271,
+      "reserved_usd": 0.33875,
+      "actual_cost_usd": null,
+      "actual_cost_status": "UNVERIFIED",
+      "potential_unconfirmed_exposure_usd": 0.33875,
+      "potential_exposure_already_in_reservation": true,
+      "internal_remaining_usd": 4.66125,
+      "provider_balance": "NOT_VERIFIED",
+      "full_episode_coverage": "NOT_QUOTED",
+      "next_generation_gate": "BLOCKED until current quote and human authorization"
+    },
+    "GENERATION_JOURNAL_ROWS": 1,
+    "NEW_PROVIDER_GENERATION_CALLS": 0,
+    "PRODUCTION_CONNECTIONS": "PASS_INTEGRATION / PASS_SIMULATED: isolated fixture providers, actual shared runtime, human decision fixtures, real synthetic final encode; not real production media acceptance",
+    "CI_CODE": {
+      "id": 38654599390,
+      "sha": "0debad351c73931156a1133e985aff908d6bf25e",
+      "status": "GREEN",
+      "regression": "801/801",
+      "process_restart": "21/21",
+      "executor_bindings": "14/14",
+      "crash_matrix": "56 cases PASS_SIMULATED"
+    },
+    "NEXT_ACTION": "Obtain an authentic callback message from existing Telegram panel148 by a navigation click. Reconcile only if exact pending command/media/keyboard matches. If it does not, retain FAIL CLOSED and inspect that authentic evidence. Once delivery is proven, renew once immediately before explicit human spend approval; never generate from this operator session."
   }
 }

@@ -1,0 +1,47 @@
+{
+  "updated_at": "2026-10-14T23:24:04.739373+00:00",
+  "CURRENT_HEAD": "9693f4a25258c04ad40c98af8175622f6b275afa",
+  "LAST_COMPLETED_ACTION": "director:q41",
+  "FIRST_PENDING_ACTION": "video:q41",
+  "FILES_CHANGED": [
+    ".github/workflows/lumi-telegram-review-v1.yml",
+    "lib/generative-video-benchmark-v1.js",
+    "lib/lumi-generic-v2-adapter.js",
+    "lib/lumi-stage-result-v2.js",
+    "lib/lumi-third-short-master-v1.js",
+    "lib/lumi-v2-activation-context.js",
+    "lib/lumi-v2-execution-orchestrator.js",
+    "lib/lumi-v2-executor-bindings.js",
+    "lib/lumi-v2-input-materializer.js",
+    "lib/lumi-v2-telegram-runtime.js",
+    "lib/provider-emission-journal-v1.js",
+    "lib/telegram-review-v1/core.js",
+    "lib/telegram-review-v1/make-endpoint.js",
+    "lib/telegram-review-v1/make-transport.js",
+    "lib/telegram-review-v1/runtime.js",
+    "test/lumi-generic-balance-recovery.test.js",
+    "test/lumi-multipart-delivery.test.js",
+    "test/lumi-q41-first-image.test.js"
+  ],
+  "TEST_RESULTS": {
+    "regression": "799/799 PASS_OFFLINE; includes simulated providers and real synthetic FFmpeg encode",
+    "process_restart": "21/21 PASS_OFFLINE",
+    "latest_navigation_changes": "21/21 PASS_OFFLINE including duplicates, quote renewal, exact authorization, interruption and long action acknowledgement",
+    "executor_boundary": "14/14 PASS_OFFLINE; 56-case crash matrix PASS_SIMULATED"
+  },
+  "DEPLOY_STATUS": "NOT_DEPLOYED_YET; code prepared for target branch after focused tests",
+  "OPEN_BLOCKERS": [
+    "Panel 148 EMITTING without authentic matching ACK; preserve command d4d54d0a60e348742630953cf60fc89304c8e63713c29aa729a30066d18d457b; do not repeat edit or quote",
+    "Real provider outputs and full-episode budget coverage remain untested; each request remains gated"
+  ],
+  "MAKE_CHANGE": {
+    "scenario": 6224860,
+    "module": 23,
+    "field": "mapper.type",
+    "value": "{{ifempty(8.data.binary_delivery.media_type; \"photo\")}}",
+    "lastEdit": "2026-10-14T23:20:18.147Z",
+    "scope": "Only media type mapping; existing connection, webhook, routing and fallback photo preserved"
+  },
+  "new_provider_generation_calls_this_execution": 0,
+  "fresh_quote_calls_this_execution": 0
+}

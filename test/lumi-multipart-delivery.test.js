@@ -109,3 +109,15 @@ test('new explicit operator authorization can acknowledge the exact second defin
  assert.equal((await f.store.get('1')).state.delivery_recovery.status,'AUTHORIZED');
  assert.equal((await f.store.get('1')).state.delivery.command.idempotency_key,'old');
 });
+
+test('BINARY_MASTER_AND_AUDIO: native Make upload preserves original bytes and media type; large originals do not use URL fetch',async()=>{
+ const {multipartMediaAction}=await import('../lib/telegram-review-v1/make-transport.js');
+ for(const [type,mime,filename] of [['video','video/mp4','original.mp4'],['audio','audio/mpeg','original.mp3']]){
+  const data=Buffer.from([0,255,128,13,10,97]),a={...artifact,mime,size:data.length,sha256:sha256(data)};
+  const command={method:'editMessageMedia',artifact:a,artifact_sha:a.sha256,body:{media:{type,caption:'OFFLINE ORIGINAL'},reply_markup:{inline_keyboard:[]}}};
+  const action=await multipartMediaAction(command,async()=>data);
+  assert.equal(action.media_type,type);assert.equal(action.filename,filename);assert.deepEqual(Buffer.from(action.binary_file_base64,'base64'),data);
+  await assert.rejects(multipartMediaAction(command,async()=>Buffer.from('corrupt')),/artifact_bytes_mismatch/);
+  assert.equal(await signedMediaTransport({storage:{from:()=>assert.fail('must use binary')}})({...a,size:20_000_001}),null);
+ }
+});

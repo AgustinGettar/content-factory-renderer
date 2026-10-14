@@ -1,0 +1,61 @@
+{
+  "scope": "EP004 controlled production connections; no live generative calls",
+  "validation": {
+    "relevant_regression": "799/799 PASS_OFFLINE before final navigation refinements",
+    "final_focused": "21/21 PASS_OFFLINE",
+    "process_restart": "21/21 PASS_OFFLINE with SIGKILL",
+    "production_e2e": "PASS_INTEGRATION / PASS_SIMULATED; production runtime and durable stores with explicit isolated fixture transport",
+    "assembly": "PASS_OFFLINE: 29s synthetic 1080x1920 H264 High CRF17 preset slow yuv420p AAC 48kHz 192kbps; one final encode",
+    "providers": {
+      "image_video": "13 fixture emissions; unique claims",
+      "tts": "7 fixture emissions; Fernanda request binding; unique claims",
+      "live_generation_calls": 0,
+      "live_quote_calls": 0
+    }
+  },
+  "connections": [
+    "versioned exact encrypted payload quote -> current human spend authorization -> durable reservation -> existing emission journal -> provider adapter",
+    "accepted provider job receipt survives interruption before outer stage persistence; original-job GET recovery only",
+    "source human checklist bound to exact image, shot, geometry choices and source QA -> existing cinematic director",
+    "full video playback comparison by human -> temporal QA -> shot review -> next pending action",
+    "seven authored narration segments -> Fernanda quota authorization -> one explicitly requested segment per callback -> original audio recovery -> seven human reviews",
+    "approved audio and visuals -> natural-speed synchronization with 2.5s educational pause -> existing assembler -> master QA -> human approval -> same Telegram panel download"
+  ],
+  "security_review": {
+    "status": "PASS_OFFLINE",
+    "checks": [
+      "owner/HMAC/CAS and current delivered token required",
+      "single action and immutable quote payload/decision binding; expired or corrupted quotes rejected",
+      "old quote history and original q41 reservation retained",
+      "journal claims and dispatch receipts prevent second provider emission",
+      "ambiguous outcome remains fail-closed and retains exposure; no automatic retry",
+      "binary originals verified by size/SHA; authenticated transport scope; signed source lifetime enforced",
+      "private provider payload encrypted at rest with authenticated encryption; no secret changes detected",
+      "global V2, runners, autorun, production and main unchanged"
+    ]
+  },
+  "remaining_not_tested_real": [
+    "real q42-q47 images and their human visual evidence",
+    "real Kling output, quality, retrieval and human approval",
+    "current Fernanda quota and actual narrated durations; frozen approved binding exists, live quota rechecked before each segment",
+    "Full HD master resource use with actual provider media on Render free instance",
+    "Telegram native video/audio transfer and master download",
+    "full episode USD coverage: future USD quotes absent; hard budget gate pauses when reserve cannot fit"
+  ],
+  "delivery_blocker": {
+    "panel": 148,
+    "command_id": "d4d54d0a60e348742630953cf60fc89304c8e63713c29aa729a30066d18d457b",
+    "state": "EMITTING",
+    "authentic_ack": false,
+    "evidence": "Make runs 43d644cbfc9940a7afc7c27f2bdbb91f and 9c56c134a0d147f19429f91bd628fd33 failed at HTTP8 after40s without Telegram modules; insufficient to establish fate of exact pending command. No fabricated ACK, clearing or replay."
+  },
+  "make_change": {
+    "scenario": 6224860,
+    "module": 23,
+    "field": "mapper.type",
+    "value": "{{ifempty(8.data.binary_delivery.media_type; \"photo\")}}",
+    "lastEdit": "2026-10-14T23:20:18.147Z",
+    "scope": "Only media type mapping; existing connection, webhook, routing and fallback photo preserved"
+  },
+  "durable_resume": "docs/RESUME_STATE_EP004.json"
+}

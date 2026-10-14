@@ -90,6 +90,21 @@ test('generic image rejection pauses; signed refill quotes only pending action a
  }finally{await f.cleanup();}
 });
 
+test('supervised refill preserves rejected exposure and requires a fresh quote and human authorization without emitting',async()=>{
+ const f=await fixture();try{
+  await f.adapter.resume({user:'1',episodeId:f.episodeId});
+  await f.manager.checkpoint(f.episodeId,s=>{s.metadata.provider_generation_authorized=false;});
+  const before=await f.store.getEpisode(f.episodeId),count=f.calls.length,command=await f.refill();
+  const result=await f.adapter.balanceReloaded({command});assert.equal(result.status,'FRESH_QUOTE_AND_AUTHORIZATION_REQUIRED');
+  const after=await f.store.getEpisode(f.episodeId);
+  assert.equal(f.calls.length,count);assert.equal(f.journalRows.size,1);assert.equal(after.authorized_ceiling_usd,5);
+  assert.equal(after.first_pending_action,before.first_pending_action);assert.equal(after.metadata.provider_generation_authorized,false);
+  assert.deepEqual(Object.values(after.metadata.budget_reservations).map(r=>r.amount_usd),Object.values(before.metadata.budget_reservations).map(r=>r.amount_usd));
+  assert.equal(after.metadata.balance_recovery.balance.status,'NOT_VERIFIED');
+  await f.adapter.balanceReloaded({command});assert.equal(f.calls.length,count);
+ }finally{await f.cleanup();}
+});
+
 test('generic recovery refuses an ambiguous journal and unbranded/forged command',async()=>{
  const f=await fixture();try{
   await f.adapter.resume({user:'1',episodeId:f.episodeId});const command=await f.refill();

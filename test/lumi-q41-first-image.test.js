@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {createHmac} from 'node:crypto';
 import {deflateSync} from 'node:zlib';
 import {MemoryReviewStore,newSession,ReviewService,sha256} from '../lib/telegram-review-v1/core.js';
@@ -643,15 +647,15 @@ test('SOURCE_QA contextual button refreshes durable state, executes its bound ac
  const ack=async c=>{assert.equal(c.message_id,138);return acknowledgeCommand(f.reviewStore,'1','1',c.idempotency_key,
   {message_id:138,chat:{id:1},caption:c.body.media.caption,reply_markup:c.body.reply_markup,photo:[{file_id:'offline-image',file_unique_id:'offline-unique'}]});};
  const view=await f.svc.show('1','1',{kind:'progress',episode_id:episode});
- assert.ok(view.commands[0].body.reply_markup.inline_keyboard.flat().some(b=>b.text==='🔎 Verificar imagen para animación'));
+ assert.ok(view.commands[0].body.reply_markup.inline_keyboard.flat().some(b=>b.text==='Continuar · SOURCE_QA'));
  await ack(view.commands[0]);
- const cb=await f.callback('resume');assert.equal((await f.reviewStore.get('1')).state.tokens[cb.data.slice(3)].next_action,'source_qa:q41');
- const delivered=await f.svc.callback(cb);await ack(delivered.commands[0]);const cp=await f.store.getEpisode(episode);
+ const cb=await f.callback('q41_local_continue');assert.equal((await f.reviewStore.get('1')).state.tokens[cb.data.slice(3)].next_action,'source_qa:q41');
+ const delivered=await f.svc.callback(cb,{firstImageCommand:f.command(cb)});await ack(delivered.commands[0]);const cp=await f.store.getEpisode(episode);
  assert.equal(cp.last_completed_action,'source_qa:q41');assert.equal(cp.first_pending_action,'director:q41');
  assert.equal(cp.metadata.stage_qa['source_qa:q41'].topology_review.sha256,original.metadata.first_image.artifact.sha256);
  assert.equal(cp.metadata.stage_results['source_qa:q41'].result.provider_job_ids.length,0);
  const edits=f.telegramCalls.filter(c=>c.method==='editMessageMedia').length;
- const duplicate=await f.svc.callback(cb);assert.equal(duplicate.status,'DUPLICATE_REQUEST');assert.deepEqual(duplicate.commands,[]);assert.deepEqual(await f.store.getEpisode(episode),cp);
+ const duplicate=await f.svc.callback(cb,{firstImageCommand:f.command(cb)});assert.equal(duplicate.status,'DUPLICATE_REQUEST');assert.deepEqual(duplicate.commands,[]);assert.deepEqual(await f.store.getEpisode(episode),cp);
  assert.equal(f.telegramCalls.filter(c=>c.method==='editMessageMedia').length,edits);
  assert.ok(f.telegramCalls.filter(c=>c.method==='editMessageMedia').every(c=>c.body.message_id===138));
  assert.deepEqual(await f.store.getEpisode(operation),original);assert.equal(f.calls.length,calls);
@@ -667,13 +671,14 @@ for(const fault of ['expired','scope','missing-evidence','topology-fail'])test('
  const cp=await f.store.getEpisode(episode),calls=f.calls.length;
  await f.svc.show('1','1',{kind:'progress',episode_id:episode});const view=f.telegramCalls.at(-1).body;
  assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>/Verificar imagen|Continuar producción/.test(b.text)));
- assert.match(view.media.caption,/autorización|revisión detallada/);
+ if(['expired','scope'].includes(fault))assert.ok(view.reply_markup.inline_keyboard.flat().some(b=>b.text==='Continuar · SOURCE_QA'));
+ else assert.match(view.media.caption,/revisión detallada/);
  if(['expired','scope'].includes(fault))await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/CONTROLLED_ACTIVATION_REQUIRED/);
  else assert.equal((await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'})).status,'SOURCE_REVIEW_REQUIRED');
  assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.calls.length,calls);
 });
 test('SOURCE_QA forged panel, forged token and modified original cannot execute',async()=>{
- const f=await sourceQaFixture();await f.svc.show('1','1',{kind:'progress',episode_id:episode});const cb=await f.callback('resume'),cp=await f.store.getEpisode(episode),calls=f.calls.length;
+ const f=await sourceQaFixture();await f.svc.show('1','1',{kind:'progress',episode_id:episode});const cb=await f.callback('q41_local_continue'),cp=await f.store.getEpisode(episode),calls=f.calls.length;
  await assert.rejects(f.svc.callback({...cb,message:{...cb.message,message_id:999}}));
  await assert.rejects(f.svc.callback({...cb,data:'lr:forged'}));assert.deepEqual(await f.store.getEpisode(episode),cp);
  const a=cp.metadata.source_artifacts.q41.artifact;f.objects.set(a.bucket+'/'+a.path,Buffer.from('corrupt'));
@@ -768,7 +773,7 @@ test('director navigation respects expired non-generative authorization and expl
 // Synthetic durable director evidence tests transport/authorization, not visual
 // quality or a live dollar price. The actual director/source are checked offline
 // separately; this fixture never reaches a provider.
-async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},transportPatch={},imageBytes=image}={}){
+async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},transportPatch={},imageBytes=image,providerFetch=null,ttsRuntime=null}={}){
  const f=await sourceQaFixture({imageBytes});await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
  const cp=await f.store.getEpisode(episode),a=cp.metadata.source_artifacts.q41.artifact;
  const packet={episode_id:episode,shot_id:'q41',gates:{SOURCE_EVIDENCE_READY:true,CAPABILITIES_VERIFIED:true},blockers:[],
@@ -785,10 +790,10 @@ async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},tran
  await f.edit(s=>{s.delivery.status='DELIVERED';s.pending_callback=null;});
  const quotes=[];
  const make=()=>createGenericV2Runtime({manager:f.manager,reviewStore:f.reviewStore,artifactStorage:f.storage,journal:f.journal,
-  validateOwner:async(u,c)=>u==='1'&&c==='1',env:f.env,inject,
+  validateOwner:async(u,c)=>u==='1'&&c==='1',env:f.env,inject,ttsRuntime,
   mediaTransport:async artifact=>transportPatch===null?null:({url:f.env.SUPABASE_URL+'/storage/v1/object/sign/'+artifact.bucket+'/'+artifact.path+'?token=OFFLINE_VIDEO',
    sha256:artifact.sha256,expires_at:new Date(Date.now()+290000).toISOString(),...transportPatch}),
-  fetchImpl:async(url,options)=>{quotes.push({url,options});assert.equal(url,'https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video');
+  fetchImpl:async(url,options)=>{if(providerFetch&&!url.includes('/estimate/'))return providerFetch(url,options,f);quotes.push({url,options});assert.ok(['https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video','https://api.higgsfield.ai/estimate/marketing-studio/image'].includes(url));
    assert.equal(options.method,'POST');assert.equal(options.redirect,'error');
    if(mode==='timeout')throw Error('OFFLINE_TIMEOUT');if(mode==='credits')return Response.json({credits:12});
    if(mode==='http409')return Response.json({error:'conflict'},{status:409});if(mode==='malformed')return new Response('{');
@@ -832,7 +837,7 @@ test('VIDEO_QUOTE: actual runtime composition signs a large private PNG and pres
  const previousFetch=globalThis.fetch;let mounted;
  try{
   globalThis.fetch=async(url,options)=>{
-   assert.equal(url,'https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video');
+   assert.ok(['https://api.higgsfield.ai/estimate/kling-video/v3.0/pro/image-to-video','https://api.higgsfield.ai/estimate/marketing-studio/image'].includes(url));
    assert.equal(options.method,'POST');assert.equal(options.redirect,'error');estimates.push(JSON.parse(options.body));
    return Response.json({usd:.4});
   };
@@ -890,7 +895,7 @@ test('VIDEO_QUOTE: credits, timeout, HTTP 409, malformed, expired and over-budge
  }
 });
 test('VIDEO_QUOTE: source, journal, director, pending delivery, authorization and signed URL gates precede estimate',async()=>{
- for(const defect of ['bytes','journal','director','delivery','scope','source-url','source-null','prior-emission']){
+ for(const defect of ['bytes','journal','director','delivery','source-url','source-null','prior-emission']){
   const f=await videoQuoteFixture({transportPatch:defect==='source-null'?null:defect==='source-url'?{url:'https://example.test/other.png'}:{}});
   if(defect==='bytes')f.objects.set(f.source.bucket+'/'+f.source.path,Buffer.from('CORRUPTED'));
   if(defect==='journal')f.journalRows.clear();
@@ -983,4 +988,180 @@ test('QUOTE_RENEWAL: prior spend approval never authorizes the renewed quote',as
  assert.equal(next.status,'AWAITING_HUMAN_AUTHORIZATION');
  assert.equal((await f.reviewStore.get('1')).state.production_commands[next.quote_id].human_authorization,undefined);
  await assert.rejects(f.videoAdapter.authorizeEp004VideoQuote({command}),/CURRENT_QUOTE/);assert.equal(f.quotes.length,2);
+});
+
+
+test('QUOTED_EXECUTION: authentic spend decision reserves, persists ACK and concurrent callback emits once',async()=>{
+ const emissions=[];
+ const f=await videoQuoteFixture({providerFetch:async(url,options,base)=>{
+  assert.equal(url,'https://api.higgsfield.ai/kling-video/v3.0/pro/image-to-video');
+  const cp=await base.store.getEpisode(episode),attempt=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
+  assert.equal(cp.metadata.budget_reservations['video:q41'].amount_usd,.5);
+  assert.equal(base.journalRows.get(attempt).state,'EMITTING');emissions.push(options.body);
+  return Response.json({request_id:'offline-kling',status_url:'https://api.higgsfield.ai/requests/offline-kling'});
+ }});
+ const q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ await f.click('q41_video_authorize');
+ const cb=await f.callback('q41_video_generate'),command=f.command(cb);
+ const rs=await Promise.allSettled([f.videoAdapter.executeQuotedStage({command}),f.videoAdapter.executeQuotedStage({command})]);
+ assert.ok(rs.some(r=>r.status==='fulfilled'&&r.value.status==='IN_PROGRESS'),JSON.stringify(rs.map(r=>r.reason?.message||r.value)));
+ assert.equal(emissions.length,1);assert.equal(sha256(emissions[0]),q.payload_sha256);
+ const cp=await f.store.getEpisode(episode),id=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
+ assert.equal(cp.first_pending_action,'video:q41');assert.equal(cp.metadata.provider_generation_authorized,false);
+ assert.equal((await new ReviewStageReceiptStore({store:f.reviewStore,user:'1'}).get(id)).result.provider_job_ids[0],'offline-kling');
+ assert.equal(f.journalRows.get(id).provider_request_id,'offline-kling');assert.equal(f.quotes.length,1);
+ await f.restartQuote();await assert.rejects(f.videoAdapter.executeQuotedStage({command}));assert.equal(emissions.length,1);
+});
+
+test('QUOTED_EXECUTION: sealed exact payload, unapproved spend, stale quote and expired source fail closed',async()=>{
+ for(const kind of ['unapproved','expired','ciphertext','decision']){
+  let emitted=0;const f=await videoQuoteFixture({providerFetch:async()=>{emitted++;throw Error('MUST_NOT_EMIT');}});
+  const q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
+  const command=f.command(await f.callback('q41_video_generate'));
+  await f.edit(s=>{const r=s.production_commands[q.quote_id];
+   if(kind==='unapproved')delete r.human_authorization;
+   if(kind==='expired'){r.result.expires_at='invalid';r.result_sha=inputDigest(r.result);}
+   if(kind==='ciphertext')r.private_payload.ciphertext='corrupt';
+   if(kind==='decision')r.human_authorization.payload_sha256='0'.repeat(64);
+  });
+  await assert.rejects(f.videoAdapter.executeQuotedStage({command}));assert.equal(emitted,0);
+ }
+});
+
+
+test('PRODUCTION_E2E_INTEGRATION: seven shots, Fernanda fixtures, final encode, human review and Telegram download',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-e2e-synthetic-')),videos=new Map(),jobs=new Map(),emissions=[],ttsEmissions=[];
+ try{
+  for(const duration of [3,4,5]){
+   const path=join(dir,'synthetic-'+duration+'.mp4');
+   await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=180x320:rate=30','-t',String(duration),'-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
+   videos.set(duration,await readFile(path));
+  }
+  const audioPath=join(dir,'synthetic-tone.mp3');
+  await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','sine=frequency=440:sample_rate=44100','-t','1.2','-c:a','libmp3lame',audioPath]);
+  const audioBytes=await readFile(audioPath);
+  const ttsRuntime={client:{preflight:async r=>({authenticated:true,currency:'ELEVENLABS_CHARACTER_QUOTA',units:r.text.length,
+      character_count:r.text.length,quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:10000},provenance:'EXPLICIT_OFFLINE_FIXTURE',usd:null}),
+    submit:async(r,{onAcknowledged})=>{const id='synthetic-audio-'+(ttsEmissions.length+1);ttsEmissions.push({id,request:r});
+      const accepted={job_id:id,request_id:id,character_cost:r.text.length};await onAcknowledged(accepted);return accepted;},
+    poll:async id=>({job_id:id,status:'completed',artifact_url:'https://media.example.test/audio'}),recoverOriginal:async()=>audioBytes}};
+  const f=await videoQuoteFixture({quoteUsd:.01,ttsRuntime,providerFetch:async(url,options)=>{
+   if(options.method==='POST'){
+    const payload=JSON.parse(options.body),id='synthetic-job-'+(jobs.size+1),video=url.includes('kling');
+    emissions.push({url,payload,id});jobs.set(id,video?videos.get(payload.duration):image);
+    return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id});
+   }
+   const id=url.split('/').at(-1);assert.ok(jobs.has(id),url);
+   if(url.includes('/requests/'))return Response.json({request_id:id,status:'completed',video:{url:'https://media.example.test/'+id},images:[{url:'https://media.example.test/'+id}]});
+   return new Response(jobs.get(id));
+  }});
+  f.svc.telegram.call=async(method,body)=>{
+   f.telegramCalls.push({method,body:structuredClone(body)});if(method==='answerCallbackQuery')return true;
+   return {message_id:138,chat:{id:1},[body.media?.type||'document']:body.media?.type==='photo'?[{file_id:'synthetic',file_unique_id:'synthetic'}]:{file_id:'synthetic',file_unique_id:'synthetic'}};
+  };
+  f.storage.remove=async(b,p)=>{f.objects.delete(b+'/'+p);};
+  const checkpoints=[];
+  for(let step=0;step<100;step++){
+   const cp=await f.store.getEpisode(episode);checkpoints.push(cp.first_pending_action);
+   if(!cp.first_pending_action)break;
+   await f.videoAdapter.refreshProgress({user:'1',episodeId:episode});
+   const requests=Object.values((await f.reviewStore.get('1')).state.episodes[episode].review_requests||{});
+   const pending=requests.find(r=>r.status==='PENDING');
+   if(pending){
+    await f.svc.show('1','1',{kind:'review',episode_id:episode,request_id:pending.review_request_id});
+    const cb=await f.callback('approve_stage');await f.svc.callback(cb);continue;
+   }
+   const action=cp.actions.find(a=>a.key===cp.first_pending_action);
+   await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+   if(['IMAGE','VIDEO','TTS'].includes(action.stage)){
+    const row=(await f.reviewStore.get('1')).state;
+    if(row.episodes[episode].provider_result_pending){
+     const result=await f.videoAdapter.recoverQuotedStage({command:f.command(await f.callback('q41_stage_recover'))});
+     assert.ok(['HUMAN_REVIEW_REQUIRED','IN_PROGRESS'].includes(result.status),JSON.stringify(result));continue;
+    }
+    const q=await f.quote();assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION',JSON.stringify(q));
+    await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
+    const result=await f.videoAdapter.executeQuotedStage({command:f.command(await f.callback('q41_video_generate'))});
+    assert.equal(result.status,'IN_PROGRESS');
+   }else{
+    const result=await f.videoAdapter.continueLocalStage({command:f.command(await f.callback('q41_local_continue'))});
+    assert.equal(result.status,action.stage==='MASTER_REVIEW'?'HUMAN_REVIEW_REQUIRED':'STAGE_COMPLETE',action.key+': '+JSON.stringify(result));
+   }
+  }
+  const end=await f.store.getEpisode(episode);assert.equal(end.first_pending_action,null,checkpoints.join(' -> '));
+  assert.equal(emissions.length,13);assert.equal(new Set(emissions.map(x=>x.id)).size,13);
+  assert.equal(end.metadata.provider_generation_authorized,false);assert.equal(end.runner_enabled,false);
+  assert.ok(end.actions.every(a=>a.status==='COMPLETE'));
+  assert.equal(ttsEmissions.length,7);assert.equal(new Set(ttsEmissions.map(x=>x.id)).size,7);
+  const master=end.metadata.stage_results.master.result.artifacts[0];assert.equal(master.width,1080);assert.equal(master.height,1920);
+  assert.ok(Math.abs(master.duration-29)<.1);
+  await f.svc.show('1','1',{kind:'download',episode_id:episode});
+  assert.equal(f.telegramCalls.at(-1).body.media.type,'video');
+  assert.equal(sha256(f.objects.get(master.bucket+'/'+master.path)),master.sha256);
+  console.log('PASS_SIMULATED: complete production runtime; 13 image/video fixture emissions, 7 audio fixture emissions, unique claims; PASS_OFFLINE: one real FFmpeg Full HD master encode and simulated Telegram download. Real generative calls=0.');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('PROVIDER_ACK_RECOVERY: parsed accepted job survives interruption before stage receipt; recovery never resubmits',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-ack-fixture-'));let submitCount=0,interrupt=true;
+ try{
+  const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=180x320:rate=30','-t','4','-c:v','libx264','-preset','ultrafast',path]);
+  const bytes=await readFile(path);
+  const f=await videoQuoteFixture({inject:async({point})=>{if(interrupt&&point==='PROVIDER_ACK_BEFORE_STAGE_RECEIPT'){interrupt=false;throw Error('OFFLINE_CRASH_AFTER_ACK');}},
+   providerFetch:async(url,options)=>{
+    if(options.method==='POST'){submitCount++;return Response.json({request_id:'ack-job',status_url:'https://api.higgsfield.ai/requests/ack-job'});}
+    if(url==='https://api.higgsfield.ai/requests/ack-job')return Response.json({request_id:'ack-job',status:'completed',video:{url:'https://media.example.test/ack-job'}});
+    assert.equal(url,'https://media.example.test/ack-job');return new Response(bytes);
+   }});
+  await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
+  await assert.rejects(f.videoAdapter.executeQuotedStage({command:f.command(await f.callback('q41_video_generate'))}),/OFFLINE_CRASH_AFTER_ACK/);
+  const cp=await f.store.getEpisode(episode),id=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
+  assert.equal(f.journalRows.get(id).response_metadata.accepted_result.request_id,'ack-job');
+  assert.equal((await new ReviewStageReceiptStore({store:f.reviewStore,user:'1'}).get(id)).status,'STARTED');
+  f.restartQuote();await f.videoAdapter.refreshProgress({user:'1',episodeId:episode});await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+  const command=f.command(await f.callback('q41_stage_recover'));
+  const recovered=await f.videoAdapter.recoverQuotedStage({command});assert.equal(recovered.status,'HUMAN_REVIEW_REQUIRED');
+  assert.equal(submitCount,1);assert.equal((await f.store.getEpisode(episode)).first_pending_action,'video:q41');
+  const again=await f.videoAdapter.recoverQuotedStage({command});assert.equal(again.status,'HUMAN_REVIEW_REQUIRED');assert.equal(submitCount,1);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('MAKE_LONG_ACTION: explicit TTS callback acknowledges promptly and cannot create a late Telegram outbox',async()=>{
+ const f=await videoQuoteFixture(),q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
+ await f.edit(s=>{s.episodes[episode].current_stage='TTS';});
+ const cb=await f.callback('q41_video_generate'),routes=new Map();let finish,entered=false;
+ f.production.firstImageAction=async()=>{entered=true;await new Promise(resolve=>{finish=resolve;});return {status:'IN_PROGRESS',next_screen:{kind:'progress',episode_id:episode}};};
+ const logs=[];mountMakeTransportEndpoint({get(){},post:(p,h)=>routes.set(p,h)},{store:f.reviewStore,production:f.production,env:f.env,validateOwner:async()=>true,log:e=>logs.push(e)});
+ const envelope=f.envelope(cb),res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+ await routes.get(envelope.signed.path)({body:envelope.body,rawBody:envelope.signed.body,path:envelope.signed.path,
+  headers:{'x-lumi-timestamp':envelope.signed.timestamp,'x-lumi-request-id':envelope.signed.requestId,'x-lumi-signature':envelope.signature}},res);
+ assert.equal(res.value.status,'EXPLICIT_ACTION_ACCEPTED');assert.equal(res.value.commands.length,0);
+ for(let i=0;i<10&&!entered;i++)await new Promise(resolve=>setImmediate(resolve));assert.equal(entered,true);
+ finish();for(let i=0;i<10&&!logs.some(e=>e.event==='lumi_explicit_action_finished');i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.ok(logs.some(e=>e.event==='lumi_explicit_action_finished'));
+ assert.equal((await f.reviewStore.get('1')).state.delivery.status,'DELIVERED');assert.equal(f.quotes.length,1);
+});
+
+
+test('READ_ONLY_QUOTE: current owner may quote after a local-only grant expires, with no spending authority',async()=>{
+ const f=await videoQuoteFixture();await f.edit(s=>{Object.values(s.v2_authorizations).find(g=>g.operation_id===EP004_IMPORT_OP).expires_at='2000-01-01T00:00:00Z';});
+ const before=await f.store.getEpisode(episode),q=await f.quote();assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION');
+ assert.deepEqual(await f.store.getEpisode(episode),before);assert.equal(q.generation_authorized,false);assert.equal(f.quotes.length,1);
+});
+
+test('INTERRUPTION_SAFETY: reservation-before-send and ambiguous send retain exposure and forbid automatic redispatch',async()=>{
+ for(const point of ['STAGE_RESERVED_BEFORE_EMISSION','TRANSPORT_UNKNOWN']){
+  let calls=0;
+  const f=await videoQuoteFixture({inject:async event=>{if(event.point===point)throw Error('OFFLINE_INTERRUPTION');},
+   providerFetch:async()=>{calls++;throw Error('OFFLINE_TRANSPORT_UNKNOWN');}});
+  await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
+  const command=f.command(await f.callback('q41_video_generate'));
+  await assert.rejects(f.videoAdapter.executeQuotedStage({command}));
+  const cp=await f.store.getEpisode(episode),reserved=cp.metadata.budget_reservations;
+  assert.equal(cp.first_pending_action,'video:q41');assert.equal(cp.status,'PAUSED_INCIDENT');
+  assert.equal(reserved['video:q41'].amount_usd,.5);assert.equal(cp.current_cost_usd,0);
+  f.restartQuote();await assert.rejects(f.videoAdapter.executeQuotedStage({command}));
+  assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,reserved);
+  assert.equal(calls,point==='TRANSPORT_UNKNOWN'?1:0);
+ }
 });

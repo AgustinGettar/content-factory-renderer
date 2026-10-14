@@ -606,3 +606,124 @@ test('Make-native /produccion opens imported EP004 on the current panel with one
  assert.ok(telegram.reply_markup.inline_keyboard.flat().some(b=>b.text==='▶️ Continuar producción'));
  assert.equal(f.calls.length,calls);assert.deepEqual(await f.store.getEpisode(episode),cp);
 });
+
+const sourceProof=JSON.parse(await readFile(new URL('../episodes/ep_lumi_granja_004_20261008_ee7ab4b3/q41-source-qa.json',import.meta.url)));
+const {sourceQaRecord}=await import('../lib/lumi-v2-input-materializer.js');
+const {evaluateTopology}=await import('../lib/cinematic-director-v1/topology.js');
+test('inspected source evidence is exact-byte, exact-episode and approval bound, not a general QA waiver',()=>{
+ const artifact={artifact_id:'original',sha256:sourceProof.sha256,size:sourceProof.size,width:sourceProof.width,height:sourceProof.height,mime:'image/png'};
+ const state={episode_id:episode,metadata:{imported_stage_sources:{'image:q41':{artifact_id:'original',artifact_sha:artifact.sha256,
+  provider_request_id:sourceProof.provider_request_id,human_review:{status:'APPROVED',artifact_sha:artifact.sha256}}}}};
+ const r=sourceQaRecord(state,'q41',artifact);assert.equal(r.ledger.result.source_observations.scope,'STATIC_VISIBLE_SOURCE_ONLY');
+ assert.equal(evaluateTopology({stage:'SOURCE_PREFLIGHT',sha256:artifact.sha256,review:r.ledger.result.topology_review}).status,'PASS');
+ assert.notEqual(evaluateTopology({stage:'SAMPLED_FRAME_TEMPORAL_QA',sha256:artifact.sha256,review:r.ledger.result.topology_review}).status,'PASS');
+ for(const patch of [{sha256:'0'.repeat(64)},{size:1},{width:1},{height:1},{mime:'image/jpeg'}])assert.equal(sourceQaRecord(state,'q41',{...artifact,...patch}),null);
+ assert.equal(sourceQaRecord({...state,episode_id:'other'},'q41',artifact),null);assert.equal(sourceQaRecord(state,'q42',artifact),null);
+ state.metadata.imported_stage_sources['image:q41'].human_review.status='REJECTED';assert.equal(sourceQaRecord(state,'q41',artifact),null);
+});
+async function sourceQaFixture(options={}){
+ const f=await approvedImportFixture(options);await f.adapter.createEp004FromApprovedQ41({command:importCommand(f)});
+ for(const expectedAction of ['planning','source-planning'])await f.adapter.resume({user:'1',episodeId:episode,expectedAction});
+ const cp=await f.store.getEpisode(episode),artifact=cp.metadata.artifacts[cp.metadata.imported_stage_sources['image:q41'].artifact_id];
+ // Policy/transport fixture only: this is not perceptual evidence for this flat raster.
+ const ledger=structuredClone(sourceProof.ledger);ledger.content_hash=artifact.sha256;ledger.result.visual_qa.sha256=artifact.sha256;
+ ledger.result.topology_review.sha256=artifact.sha256;ledger.result.source_observations={method:'OFFLINE_SYNTHETIC_POLICY_TEST_NOT_VISUAL_EVIDENCE'};
+ await f.manager.checkpoint(episode,s=>{s.metadata.source_artifacts={q41:{artifact,ledger}};});
+ return f;
+}
+test('SOURCE_QA contextual button refreshes durable state, executes its bound action and preserves panel, master and budget',async()=>{
+ const f=await sourceQaFixture(),before=await f.store.getEpisode(episode),original=await f.store.getEpisode(operation),calls=f.calls.length;
+ const master=structuredClone((await f.reviewStore.get('1')).state.episodes.historical);
+ f.svc.telegram.authority='MAKE';
+ const {acknowledgeCommand}=await import('../lib/telegram-review-v1/make-transport.js');
+ const ack=async c=>{assert.equal(c.message_id,138);return acknowledgeCommand(f.reviewStore,'1','1',c.idempotency_key,
+  {message_id:138,chat:{id:1},caption:c.body.media.caption,reply_markup:c.body.reply_markup,photo:[{file_id:'offline-image',file_unique_id:'offline-unique'}]});};
+ const view=await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ assert.ok(view.commands[0].body.reply_markup.inline_keyboard.flat().some(b=>b.text==='🔎 Verificar imagen para animación'));
+ await ack(view.commands[0]);
+ const cb=await f.callback('resume');assert.equal((await f.reviewStore.get('1')).state.tokens[cb.data.slice(3)].next_action,'source_qa:q41');
+ const delivered=await f.svc.callback(cb);await ack(delivered.commands[0]);const cp=await f.store.getEpisode(episode);
+ assert.equal(cp.last_completed_action,'source_qa:q41');assert.equal(cp.first_pending_action,'director:q41');
+ assert.equal(cp.metadata.stage_qa['source_qa:q41'].topology_review.sha256,original.metadata.first_image.artifact.sha256);
+ assert.equal(cp.metadata.stage_results['source_qa:q41'].result.provider_job_ids.length,0);
+ const edits=f.telegramCalls.filter(c=>c.method==='editMessageMedia').length;
+ const duplicate=await f.svc.callback(cb);assert.equal(duplicate.status,'DUPLICATE_REQUEST');assert.deepEqual(duplicate.commands,[]);assert.deepEqual(await f.store.getEpisode(episode),cp);
+ assert.equal(f.telegramCalls.filter(c=>c.method==='editMessageMedia').length,edits);
+ assert.ok(f.telegramCalls.filter(c=>c.method==='editMessageMedia').every(c=>c.body.message_id===138));
+ assert.deepEqual(await f.store.getEpisode(operation),original);assert.equal(f.calls.length,calls);
+ assert.deepEqual((await f.reviewStore.get('1')).state.episodes.historical,master);
+ for(const [k,v] of Object.entries(before.metadata.episode_ledger.entries))assert.deepEqual(cp.metadata.episode_ledger.entries[k],v);
+ assert.equal((await f.manager.budgetGate({episodeId:episode,actionKey:'director:q41',projectedCallCostUsd:0})).required_total_usd,.33875);
+});
+for(const fault of ['expired','scope','missing-evidence','topology-fail'])test('SOURCE_QA hides unavailable action with explicit explanation: '+fault,async()=>{
+ const f=await sourceQaFixture();
+ if(fault==='expired'||fault==='scope')await f.edit(s=>{const g=Object.values(s.v2_authorizations).find(g=>g.episode_id===episode&&g.operation_id===EP004_IMPORT_OP);
+  if(fault==='expired')g.expires_at='2000-01-01T00:00:00Z';else g.scopes=['CREATE'];});
+ else await f.manager.checkpoint(episode,s=>{if(fault==='missing-evidence')delete s.metadata.source_artifacts;else s.metadata.source_artifacts.q41.ledger.result.topology_review.checks.NO_STINGER='FAIL';});
+ const cp=await f.store.getEpisode(episode),calls=f.calls.length;
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});const view=f.telegramCalls.at(-1).body;
+ assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>/Verificar imagen|Continuar producción/.test(b.text)));
+ assert.match(view.media.caption,/autorización|revisión detallada/);
+ if(['expired','scope'].includes(fault))await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/CONTROLLED_ACTIVATION_REQUIRED/);
+ else assert.equal((await f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'})).status,'SOURCE_REVIEW_REQUIRED');
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.calls.length,calls);
+});
+test('SOURCE_QA forged panel, forged token and modified original cannot execute',async()=>{
+ const f=await sourceQaFixture();await f.svc.show('1','1',{kind:'progress',episode_id:episode});const cb=await f.callback('resume'),cp=await f.store.getEpisode(episode),calls=f.calls.length;
+ await assert.rejects(f.svc.callback({...cb,message:{...cb.message,message_id:999}}));
+ await assert.rejects(f.svc.callback({...cb,data:'lr:forged'}));assert.deepEqual(await f.store.getEpisode(episode),cp);
+ const a=cp.metadata.source_artifacts.q41.artifact;f.objects.set(a.bucket+'/'+a.path,Buffer.from('corrupt'));
+ await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/ARTIFACT_INTEGRITY_FAILURE/);
+ assert.equal((await f.store.getEpisode(episode)).first_pending_action,'source_qa:q41');assert.equal(f.calls.length,calls);
+});
+for(const mode of ['double-click','receipt-crash','nonce-CAS','checkpoint-CAS'])test('SOURCE_QA bounded concurrency and durable recovery: '+mode,async()=>{
+ let executions=0,crash=mode==='receipt-crash';
+ const f=await sourceQaFixture({inject:async p=>{if(p.stage!=='SOURCE_QA')return;if(p.point==='EXECUTOR_ENTERED')executions++;
+  if(crash&&p.point==='AFTER_RECEIPT_BEFORE_CHECKPOINT'){crash=false;throw Error('SOURCE_QA_CRASH');}}});
+ const calls=f.calls.length;
+ if(mode==='nonce-CAS'){
+  const cas=f.reviewStore.cas.bind(f.reviewStore);let raced=false;
+  f.reviewStore.cas=async(u,r,s)=>{if(!raced&&Object.values(s.production_commands||{}).some(r=>r.status==='STARTED')){raced=true;const row=await f.reviewStore.get(u);row.state.make_requests={race:{status:'COMPLETE'}};await cas(u,row.revision,row.state);}return cas(u,r,s);};
+ }
+ const run=()=>f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+ if(mode==='checkpoint-CAS'){
+  const cas=f.store.casGenericEpisode.bind(f.store);f.store.casGenericEpisode=async(s,r)=>s.actions.find(a=>a.key==='source_qa:q41')?.status==='COMPLETE'?null:cas(s,r);
+  await assert.rejects(run());assert.equal((await f.store.getEpisode(episode)).first_pending_action,'source_qa:q41');f.store.casGenericEpisode=cas;
+ }else if(mode==='receipt-crash')await assert.rejects(run(),/SOURCE_QA_CRASH/);
+ else if(mode==='double-click')await Promise.allSettled([run(),run()]);
+ else await run();
+ await f.restart().resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'});
+ const cp=await f.store.getEpisode(episode);assert.equal(cp.first_pending_action,'director:q41');assert.equal(executions,1);assert.equal(f.calls.length,calls);
+ const again=await run();assert.equal(again.already_applied,true);assert.deepEqual(await f.store.getEpisode(episode),cp);
+});
+test('SOURCE_QA operator validation requires HMAC and fresh nonce, rejects arbitrary action/panel, never emits Telegram or providers',async()=>{
+ const f=await sourceQaFixture(),routes=new Map(),calls=f.calls.length,edits=f.telegramCalls.length,path='/lumi/telegram-review/make/v1';
+ mountMakeTransportEndpoint({get:()=>{},post:(p,h)=>routes.set(p,h)},{store:f.reviewStore,production:f.production,validateOwner:async()=>true,env:f.env});
+ const call=async(body,id,bad=false)=>{const signed={method:'POST',path,timestamp:String(Math.floor(Date.now()/1000)),requestId:id,body:Buffer.from(JSON.stringify(body))};
+  const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+  await routes.get(path)({body,rawBody:signed.body,path,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':id,'x-lumi-signature':bad?'bad':signRequest(secret,signed)}},res);return res;};
+ const body={op:'VERIFY_EP004_SOURCE_QA',user_id:'1',chat_id:'1'};
+ assert.equal((await call(body,'source-bad',true)).code,401);
+ assert.equal((await call({...body,action:'video:q41'},'source-forged')).code,409);
+ assert.equal((await call({...body,message_id:148},'source-panel')).code,409);
+ const r=await call(body,'source-good');assert.equal(r.code,200);assert.equal(r.value.completed_action,'source_qa:q41');assert.deepEqual(r.value.actions,[]);
+ assert.equal((await call(body,'source-good')).code,409);
+ assert.equal((await call(body,'source-again')).value.already_applied,true);
+ assert.equal(f.calls.length,calls);assert.equal(f.telegramCalls.length,edits);assert.equal((await f.store.getEpisode(episode)).first_pending_action,'director:q41');
+});
+test('SOURCE_QA receipt recovery still verifies original bytes and fails closed on corruption',async()=>{
+ let crash=true;const f=await sourceQaFixture({inject:async p=>{if(crash&&p.stage==='SOURCE_QA'&&p.point==='AFTER_RECEIPT_BEFORE_CHECKPOINT'){crash=false;throw Error('QA_CRASH');}}});
+ await assert.rejects(f.adapter.resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/QA_CRASH/);
+ const cp=await f.store.getEpisode(episode),a=cp.metadata.source_artifacts.q41.artifact,calls=f.calls.length;
+ f.objects.set(a.bucket+'/'+a.path,Buffer.from('corrupt-after-receipt'));
+ await assert.rejects(f.restart().resume({user:'1',episodeId:episode,expectedAction:'source_qa:q41'}),/ARTIFACT_HASH_MISMATCH/);
+ assert.equal((await f.store.getEpisode(episode)).first_pending_action,'source_qa:q41');assert.equal(f.calls.length,calls);
+});
+test('SOURCE_QA controlled acceptance refuses pending delivery or command without replaying either',async()=>{
+ for(const kind of ['delivery','command']){
+  const f=await sourceQaFixture(),before=await f.store.getEpisode(episode),calls=f.calls.length;
+  await f.edit(s=>{if(kind==='delivery')s.delivery.status='EMITTING';else s.pending_callback={id:'unknown',status:'PENDING'};});
+  await assert.rejects(f.production.verifyEp004SourceQa({user:'1',chat:'1'}),/OWNER_OR_DELIVERY_REQUIRED/);
+  assert.deepEqual(await f.store.getEpisode(episode),before);assert.equal(f.calls.length,calls);
+ }
+});

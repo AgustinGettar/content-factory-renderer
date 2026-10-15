@@ -1280,7 +1280,7 @@ test('ONETAP FINAL_RESERVATION_BOUNDARY: expiration after reserve blocks emissio
  const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
  await f.submit('first_animation',{confirm:true});assert.equal(f.quotes.length,1);assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41']);
 });
-test('ONETAP RECOVERY_TO_REVIEW: accepted original mock video becomes a private review artifact with no resubmit',async t=>{
+test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK: original private artifact remains locked through human approval',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'lumi-one-tap-test-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:size=1080x1920:rate=30','-t','4','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
  const bytes=await readFile(path);let emitted=0;
@@ -1292,6 +1292,14 @@ test('ONETAP RECOVERY_TO_REVIEW: accepted original mock video becomes a private 
  const v=await f.submit('first_animation',{confirm:true});await f.service.recoverFirstAnimation(f.principal,v.operation.id);
  const done=await f.service.view(f.principal);assert.equal(done.operation.phase,'REVIEW_READY',JSON.stringify(done.operation));
  assert.equal(done.operation.status,'COMPLETE');assert.equal(emitted,1);assert.ok(done.media.some(m=>m.role==='clip'));assert.ok(done.reviews.length);
+ const budget=await f.manager.budgetExposure({episodeId:episode}),r=done.reviews[0];
+ assert.equal(done.first_animation.status,'AWAITING_HUMAN_REVIEW');assert.equal(done.first_animation.locked,true);
+ await f.submit('first_animation',{confirm:true});assert.equal(emitted,1);
+ const approved=await f.submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:'APPROVED',full_playback:true,source_comparison:true});
+ assert.equal(approved.first_animation.status,'SUCCEEDED');assert.equal(approved.first_animation.locked,true);
+ assert.notEqual(approved.operation.kind,'first_animation');
+ await f.submit('first_animation',{confirm:true});assert.equal(emitted,1);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);
 });
 test('ONETAP MAX_RESERVATION BUDGET_GATE: excess, credits and unconfirmed quotes cannot reserve or emit',async t=>{
  for(const options of [{quoteUsd:.44801},{quoteUsd:6},{mode:'credits'},{mode:'expired'}]){
@@ -1349,13 +1357,70 @@ test('ONETAP EXACT_SOURCE_DIRECTOR: approved contract mutation cannot authorize 
 test('ONETAP PRIOR_EMISSION: any existing journal prevents a fresh operation',async t=>{
  const f=await oneTapFixture(t),cp=await f.store.getEpisode(episode),id=sha256(cp.episode_id+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
  f.journalRows.set(id,{attempt_id:id,state:'PREPARED',stage:'VIDEO'});
- await assert.rejects(f.service.enqueue(f.principal,'first_animation',{confirm:true}),/PRIOR_EMISSION/);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+ const duplicate=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await duplicate.dispatch();
+ assert.equal(duplicate.operation.id,id);assert.equal(duplicate.operation.status,'RECOVERY_REQUIRED');assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
 });
 test('ONETAP ACK_CRASH_RECOVERY: durable provider ACK recovers UI state without resubmission',async t=>{
  const f=await oneTapFixture(t,{inject:async({point})=>{if(point==='PROVIDER_ACK_BEFORE_STAGE_RECEIPT')throw Error('OFFLINE_ACK_CRASH');}});
  const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.phase,'GENERATING',JSON.stringify(v.operation));
  await f.service.recoverFirstAnimation(f.principal,v.operation.id);assert.equal(f.emitted.length,1);assert.equal(f.polls.length,1);
  await f.submit('first_animation',{confirm:true});assert.equal(f.emitted.length,1);
+});
+test('DURABLE_LOCK CONCURRENT_REQUESTS: separate instances and stale legacy buttons share the claimed operation',async t=>{
+ const f=await oneTapFixture(t),{MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const second=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:f.miniEnv,oneTapPolicy:f.service.oneTapPolicy});
+ t.after(()=>{for(const timer of second.recoveryTimers.values())clearTimeout(timer);});
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'first_animation',{confirm:true}),second.enqueue(f.principal,'first_animation',{confirm:true})]);
+ assert.equal(a.operation.id,b.operation.id);
+ const locked=await second.view(f.principal);assert.equal(locked.first_animation.locked,true);assert.equal(locked.first_animation.available,false);
+ const legacy=await second.enqueue(f.principal,'generate',{confirm:true});assert.equal(legacy.operation.id,a.operation.id);await legacy.dispatch();
+ for(const kind of ['quote','authorize'])await assert.rejects(second.enqueue(f.principal,kind,{}),/GENERATION_LOCKED/);
+ assert.equal(f.emitted.length,0);await Promise.all([a.dispatch(),b.dispatch()]);assert.equal(f.emitted.length,1);
+});
+test('DURABLE_LOCK PERSISTENT_LOCK: another active UI operation cannot hide or release the q41 lock',async t=>{
+ const f=await oneTapFixture(t),a=await f.service.enqueue(f.principal,'first_animation',{confirm:true});
+ await f.edit(s=>{s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE'};s.mini_app.active_operation='other';});
+ const v=await f.service.view(f.principal);assert.equal(v.operation.kind,'review');assert.equal(v.first_animation.locked,true);assert.equal(v.first_animation.operation_id,a.operation.id);
+ const duplicate=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await duplicate.dispatch();
+ assert.equal(duplicate.operation.id,a.operation.id);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+});
+test('DURABLE_LOCK SESSION_REOPEN RENDER_RESTART: a new authenticated device recovers the original job and budget',async t=>{
+ const f=await oneTapFixture(t),v=await f.submit('first_animation',{confirm:true}),before=await f.manager.budgetExposure({episodeId:episode});
+ const params=new URLSearchParams({auth_date:String(Math.floor(Date.now()/1000)),query_id:'second-device',user:JSON.stringify({id:1})});
+ const secret=createHmac('sha256','WebAppData').update(f.miniEnv.LUMI_TELEGRAM_BOT_TOKEN).digest();
+ params.set('hash',createHmac('sha256',secret).update([...params].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v).join('\n')).digest('hex'));
+ const login=await f.auth.login(params.toString()),p=await f.auth.authenticate(login.cookie,login.csrf);
+ assert.notEqual(p.session,f.principal.session);
+ await f.edit(s=>{s.mini_app.operations[v.operation.id].status='BLOCKED';s.mini_app.operations[v.operation.id].phase='DISPATCHING';
+  s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE'};s.mini_app.active_operation='other';});
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js'),restarted=new MiniAppService({store:f.reviewStore,adapter:f.restartQuote(),production:f.production,env:f.miniEnv,oneTapPolicy:f.service.oneTapPolicy});
+ t.after(()=>{for(const timer of restarted.recoveryTimers.values())clearTimeout(timer);});
+ const restored=await restarted.view(p);assert.equal(restored.first_animation.operation_id,v.operation.id);assert.equal(restored.first_animation.status,'SUBMITTED');
+ assert.equal(restored.operation.id,'other');
+ const duplicate=await restarted.enqueue(p,'first_animation',{confirm:true});await duplicate.dispatch();await restarted.recoverFirstAnimation(p,v.operation.id);
+ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);assert.equal(f.polls.length,1);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),before);
+ await assert.rejects(restarted.enqueue({...p},'first_animation',{confirm:true}),/SESSION/);
+});
+test('DURABLE_LOCK JOURNAL_RECOVERY: lost UI receipt, expired quote and ambiguous journal cannot unlock generation',async t=>{
+ let sent=0;const f=await oneTapFixture(t,{providerFetch:async()=>{sent++;throw Error('OFFLINE_RESPONSE_LOST');}});
+ await f.submit('first_animation',{confirm:true});const before=await f.store.getEpisode(episode);
+ await f.edit(s=>{s.mini_app.operations={};s.mini_app.active_operation=null;});
+ const v=await f.service.view(f.principal);assert.equal(v.first_animation.locked,true);assert.equal(v.first_animation.status,'AMBIGUOUS');assert.equal(v.first_animation.available,false);
+ const d=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await d.dispatch();
+ assert.equal(sent,1);assert.equal(f.quotes.length,1);assert.deepEqual(await f.store.getEpisode(episode),before);
+});
+test('DURABLE_LOCK BUDGET_PRESERVATION: reservation without UI operation or journal still fails closed',async t=>{
+ const f=await oneTapFixture(t);await f.manager.checkpoint(episode,cp=>{cp.metadata.budget_reservations['video:q41']={amount_usd:.56,status:'RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED'};});
+ const before=await f.store.getEpisode(episode),v=await f.service.view(f.principal);assert.equal(v.first_animation.status,'RESERVED');assert.equal(v.first_animation.locked,true);
+ const d=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await d.dispatch();
+ assert.equal(f.emitted.length,0);assert.equal(f.quotes.length,0);assert.deepEqual(await f.store.getEpisode(episode),before);
+});
+test('DURABLE_LOCK LATE_RESPONSE: a recovery response without a durable artifact cannot claim review is ready',async t=>{
+ const f=await oneTapFixture(t),v=await f.submit('first_animation',{confirm:true});
+ f.videoAdapter.recoverQuotedStage=async()=>({status:'IN_PROGRESS',provider_calls:0});
+ await f.service.recoverFirstAnimation(f.principal,v.operation.id);
+ const after=await f.service.view(f.principal);assert.equal(after.operation.phase,'GENERATING');assert.equal(after.first_animation.locked,true);assert.equal(after.reviews.length,0);assert.equal(f.emitted.length,1);
 });
 test('MINI_EP004_CHECKPOINT: real adapter projection preserves approved source, director and budget without callbacks',async()=>{
  const f=await miniFixture(),before=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]),calls=f.calls.length;

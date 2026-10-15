@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac,generateKeyPairSync,sign as edSign} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
+import {runInNewContext} from 'node:vm';
 import {MemoryReviewStore} from '../lib/telegram-review-v1/core.js';
 import {MiniAppAuth,validateInitData,assertMiniPrincipal,miniAppEnabled,miniAuthConfigured,miniAppSecret} from '../lib/telegram-mini-app/auth.js';
 
@@ -63,6 +64,29 @@ test('MOBILE_UI_OFFLINE: four accessible sections, safe areas, native video, sep
  assert.match(html,/viewport-fit=cover/);assert.match(html,/aria-live="polite"/);assert.match(css,/safe-area-inset-bottom/);
  assert.match(js,/controls playsinline/);assert.match(js,/Autorizar este importe/);assert.match(js,/Confirmar y generar/);
  assert.match(js,/Consultando precio…/);assert.match(js,/visibilitychange/);
- assert.match(js,/next_action==='video:q41'&&!c\.recover/);
+  assert.match(js,/generationLocked/);assert.match(js,/Actualizar progreso/);
  assert.doesNotMatch(js+html,/initDataUnsafe|SUPABASE_SERVICE_ROLE_KEY|HF_API_KEY|editMessageMedia|api\.higgsfield/);
+});
+
+test('DURABLE_LOCK MOBILE_UI HTTP_TIMEOUT DOUBLE_CLICK: ambiguous HTTP result and page reload never restore Generate',async()=>{
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),saved=new Map();let posts=0,rejectRequest;
+ const make=()=>{
+  const element={innerHTML:'',textContent:'',hidden:false,querySelector:()=>null};
+  const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},
+   localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},setInterval(){},setTimeout(){},clearTimeout(){},
+   send:()=>{posts++;return new Promise((_,reject)=>{rejectRequest=reject;});}};
+  runInNewContext(js.replace('navigation();login();','')+`
+   state={episode:{next_action:'video:q41'},quote:null,capabilities:{},first_animation:{available:true,locked:false,status:'NOT_STARTED'}};
+   csrf='offline';render=()=>{};toast=()=>{};refresh=async()=>{};request=()=>send();
+   globalThis.ui={submit,quoteCard,reviewCards,setGeneration:g=>state.first_animation=g};`,ctx);
+  return ctx.ui;
+ };
+ const ui=make();assert.match(ui.quoteCard(),/data-action="first_animation"/);
+ const pending=ui.submit('first_animation',{confirm:true});await ui.submit('first_animation',{confirm:true});
+ assert.equal(posts,1);assert.doesNotMatch(ui.quoteCard(),/data-action="first_animation"/);assert.match(ui.quoteCard(),/Actualizar progreso/);
+ rejectRequest(Object.assign(Error('offline timeout'),{name:'AbortError'}));await pending;
+ assert.doesNotMatch(ui.quoteCard(),/data-action="first_animation"/);
+ const reopened=make();await reopened.submit('first_animation',{confirm:true});assert.equal(posts,1);
+ assert.doesNotMatch(reopened.quoteCard(),/data-action="first_animation"/);
+ reopened.setGeneration({locked:true,status:'AWAITING_HUMAN_REVIEW'});assert.match(reopened.quoteCard(),/Ver animación/);
 });

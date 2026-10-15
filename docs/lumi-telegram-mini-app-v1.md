@@ -132,6 +132,33 @@ source-comparison confirmations. No review implicitly authorizes a paid action.
 
 ## Validation and acceptance
 
+### Durable first-animation lock
+
+The existing Mini App operation is claimed by CAS before quoting. Its lock is
+projected independently of `active_operation` from the stored q41 operation,
+canonical action, reservation, Provider Emission Journal and review artifact.
+A repeated Generate request returns the original operation without dispatching
+it. Stale quote/authorization buttons cannot override the lock. No new journal,
+budget gate, table, runner or Make scenario is introduced.
+
+The client hides Generate synchronously on the first click and retains an
+unresolved intent across HTTP timeouts and page reloads. This local marker only
+disables UI; the authenticated server remains authoritative. It is never an
+authorization or a reason to retry. Locked screens offer Update progress, or
+View animation when a durable original artifact exists. Completed and ambiguous
+operations remain locked; there is no automatic reset or retry button.
+
+Recovery of an accepted original job remains GET-only and works even when a
+different UI operation is selected. A recovery response alone cannot mark the
+clip ready: a stored artifact must exist. No quote expiry, session change,
+process restart, review decision or timeout releases the q41 lock.
+
+Focused validation covers concurrent instances, a second authenticated device,
+lost UI receipts, retained reservations, ambiguous responses, late responses,
+human review and browser timeout/reload behavior. Provider transports are
+synthetic. Real post-deploy validation must not call Generate or create a quote
+for an already submitted q41; inspect the original artifact and pending review.
+
 Targeted offline tests cover authentication, replay, expiry, CSRF, owner
 revocation, isolation, checkpoint projection, versioned quotes, budget limits,
 double clicks, restart recovery, media integrity/access and separate generation.
@@ -144,9 +171,9 @@ App integration cases in `test/lumi-q41-first-image.test.js`. UI markup checks
 are explicitly offline and are not a real mobile-device acceptance claim.
 
 Real acceptance must open the app from the bot in an authenticated Telegram
-client, display the existing EP004 source and checkpoint, and exercise a quote
-renewal without clicking either economic authorization or generation during
-deployment validation. HTTPS readiness alone does not prove Telegram acceptance.
+client and display the existing EP004 source, checkpoint and original clip when
+available. Do not click generation during deployment validation. HTTPS readiness
+alone does not prove Telegram acceptance.
 
 Official protocol reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
 Official public-key protocol: https://core.telegram.org/bots/webapps#validating-data-for-third-party-use

@@ -84,3 +84,22 @@ test("ambiguous emission requires explicit override in real Recovery Manager", a
   assert.equal((await store.getEpisode(context.episode_id)).metadata.resume_count, undefined);
 });
 
+
+test('shared boundary: local validation expiry never crosses transport and restart cannot replay PREPARED',async()=>{
+ const store=new Store();let calls=0;
+ const submit=journaledFetch({store,context,beforeDispatch:async()=>{throw Error('STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH');},fetchImpl:async()=>{calls++;}});
+ await assert.rejects(submit('https://example.invalid',options),/QUOTE_EXPIRED/);
+ assert.equal(calls,0);assert.equal(store.rows.get(context.attempt_id).state,'PREPARED');
+ await assert.rejects(journaledFetch({store,context,fetchImpl:async()=>{calls++;}})('https://example.invalid',options),/duplicate/);
+ assert.equal(calls,0);
+});
+test('shared boundary: deadline expires during durable EMITTING CAS; records proven local rejection without ACK',async()=>{
+ const store=new Store();let calls=0,expired=false;const transition=store.transition.bind(store);
+ store.transition=async(...args)=>{await transition(...args);if(args[2].state==='EMITTING')expired=true;};
+ await assert.rejects(journaledFetch({store,context,beforeDispatch:async()=>assert.equal(expired,false),
+  dispatchGuard:()=>{if(expired)throw Error('STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH');},fetchImpl:async()=>{calls++;}})('https://example.invalid',options),/QUOTE_EXPIRED/);
+ const r=store.rows.get(context.attempt_id);assert.equal(calls,0);assert.equal(r.provider_request_id,undefined);
+ assert.equal(r.response_metadata.transport_invoked,false);assert.equal(emissionBoundary(r),'NOT_EMITTED');
+ // Historical ambiguous rows have no such proof, even with a suggestive error string.
+ assert.equal(emissionBoundary({state:'EMISSION_UNKNOWN',transport_error:'Q41_EMISSION_BINDING_CHANGED'}),'EMISSION_UNKNOWN');
+});

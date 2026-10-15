@@ -4,3 +4,5 @@
 .stats .quote-price{font-size:clamp(18px,4.8vw,26px);overflow-wrap:anywhere}.stats>div{min-width:0}
 
 .button.progress-readonly{border:1px solid var(--blue);color:var(--blue-dark);background:#edf3f8}.button.progress-readonly:active{background:#dcebf6}
+
+.card select{display:block;width:100%;min-height:44px;margin:6px 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font:inherit}.card select:focus-visible{outline:3px solid #b2c8ed;outline-offset:3px}.media-frame audio{width:100%;min-width:0}.card li{font-size:13px;color:var(--muted)}

@@ -68,6 +68,28 @@ test('MOBILE_UI_OFFLINE: four accessible sections, safe areas, native video, sep
  assert.doesNotMatch(js+html,/initDataUnsafe|SUPABASE_SERVICE_ROLE_KEY|HF_API_KEY|editMessageMedia|api\.higgsfield/);
 });
 
+test('CROSS_EPISODE_CONTAMINATION: identical shot keys cannot inherit another episode operation or authorization',async()=>{
+ const {currentActionState,OPERATION_STATES,operationLifecycle}=await import('../lib/telegram-mini-app/runtime.js');
+ const f=await transitionFixture();
+ for(const [own,foreign] of [['ep_fixture_005','ep_fixture_006'],['ep_fixture_006','ep_fixture_005']]){
+  const cp=structuredClone(f.cp);cp.episode_id=own;cp.actions.find(a=>a.key===cp.first_pending_action).dispatch_state='NOT_DISPATCHED';
+  const state={mini_app:{operations:{other:{id:'other',kind:'generate',status:'RUNNING',binding:{proposal_id:foreign,next_action:'image:q42'}}}},
+   production_commands:{foreign:{result:{episode_id:foreign,action_key:'image:q42'},human_authorization:{decision:'APPROVED'}}}};
+  const v=currentActionState({checkpoint:cp,state,quote:null,current_emission:null});
+  assert.equal(v.status,'NOT_STARTED');assert.equal(v.emission_locked,false);assert.equal(v.authorization_recorded,false);assert.deepEqual(v.operations,[]);
+ }
+ for(const state of OPERATION_STATES){const v=operationLifecycle(state,{checkpoint_revision:22});assert.equal(v.state,state);assert.ok(v.label);assert.deepEqual(v.allowed,['READ_PROGRESS']);assert.ok(v.prohibited.includes('TIMEOUT_REEMISSION'));}
+});
+
+test('AUDIO_AND_SOURCE_REVIEW_UI: playable audio, exact source comparison and declared inventory remain visible',async()=>{
+ const f=await transitionFixture(),v=f.make();
+ v.media.push({id:'audio-original',mime:'audio/mpeg',url:'/original-audio',label:'Fernanda'});
+ v.reviews=[{id:'voice-review',stage:'TTS',media_id:'audio-original'}];
+ const {ui}=await transitionUi(v);assert.match(ui.production(),/<audio controls/);assert.match(ui.production(),/Aprobar audio/);
+ v.reviews=[{id:'source-review',stage:'IMAGE',media_id:'audio-original',contract_sha:'fixture',contract:{grammar:'WELCOME',focus:'viewer',duration:4,inventory:[{id:'cow',count:1,color:'white',shape:'rounded',placement:'left'}]}}];
+ const imageUi=await transitionUi(v);assert.match(imageUi.ui.production(),/id="pose-source-review"/);assert.match(imageUi.ui.production(),/id="wand-source-review"/);assert.match(imageUi.ui.production(),/1 × cow: white, rounded, left/);
+});
+
 test('DURABLE_LOCK MOBILE_UI HTTP_TIMEOUT DOUBLE_CLICK: ambiguous HTTP result and page reload never restore Generate',async()=>{
  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),saved=new Map();let posts=0,rejectRequest;
  const make=()=>{
@@ -175,12 +197,12 @@ test('Q42_OPERATION_RECOVERY IMAGE_BUTTON_LOCK SESSION_REOPEN PROVIDER_AMBIGUITY
  const ctx={checkpoint:f.cp,state,quote:null,current_emission:null};
  const project=()=>currentActionState(ctx);
  assert.equal(project().status,'NOT_STARTED');
- state.mini_app.operations.quote={id:'quote',kind:'quote',status:'QUEUED',started_at:new Date().toISOString(),binding:{next_action:'image:q42',quote_id:null}};
+ state.mini_app.operations.quote={id:'quote',kind:'quote',status:'QUEUED',started_at:new Date().toISOString(),binding:{proposal_id:f.cp.episode_id,next_action:'image:q42',quote_id:null}};
  assert.equal(project().status,'QUOTE_PENDING');assert.equal(project().locked,true);
  state.mini_app.operations.quote.status='COMPLETE';ctx.quote={quote_id:'q',action_key:'image:q42',status:'QUOTE_EXPIRED'};
  state.production_commands.q={result:{action_key:'image:q42',episode_id:f.cp.episode_id},human_authorization:{expires_at:'2000-01-01T00:00:00Z'}};
  assert.equal(project().status,'AUTHORIZED');assert.equal(project().authorization_expired,true);assert.equal(project().emission_locked,false);
- const generate={id:'original',kind:'generate',status:'BLOCKED',binding:{next_action:'image:q42',quote_id:'q'},started_at:'2000-01-01T00:00:00Z'};
+ const generate={id:'original',kind:'generate',status:'BLOCKED',binding:{proposal_id:f.cp.episode_id,next_action:'image:q42',quote_id:'q'},started_at:'2000-01-01T00:00:00Z'};
  state.mini_app.operations.original=generate;
  assert.equal(project().status,'AMBIGUOUS');assert.equal(project().emission_locked,true);
  for(const [journal,status] of [[{state:'PREPARED'},'RESERVED'],[{state:'EMITTING'},'EMITTING'],[{state:'EMISSION_UNKNOWN'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',request_id:'unverified-header'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',accepted:true,request_id:'verified-original'},'SUBMITTED'],[{state:'ACKNOWLEDGED',failure_confirmed:true},'FAILED_CONFIRMED']]){

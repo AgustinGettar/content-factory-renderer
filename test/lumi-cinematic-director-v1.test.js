@@ -247,9 +247,9 @@ test('all tested paths have zero real outbound attempts', () => {
 
 // New-episode static direction policy. All bytes and reviews here are explicit
 // synthetic fixtures, never production evidence or motion certification.
-async function farmFixture(t,{target='viewer'}={}){
+async function farmFixture(t,{target='viewer',ids=['cow','sheep','hen']}={}){
  const f=await makeFixture({grammar:'GAZE_VIEWER'});t.after(()=>rm(f.directory,{recursive:true,force:true}));
- const c=f.input.contract,ids=['cow','sheep','hen'];
+ const c=f.input.contract;
  c.REQUIRED_OBJECTS=ids.map(id=>({id,count:1,color:'synthetic '+id+' color',shape:id,placement:'synthetic reviewed crop'}));
  const inv=c.REQUIRED_OBJECTS.map(o=>({...o,visibility:'PARTIAL'}));
  c.START_STATE.object_inventory=inv;c.END_STATE.object_inventory=structuredClone(inv);
@@ -291,3 +291,10 @@ for(const [fault,change]of[
 ])test('static direction fails closed: '+fault,async t=>{
  const f=await farmFixture(t);change(f);const p=await compile(f);assert.ok(p.blockers.length);assert.equal(p.PROVIDER_PROMPT,null);assert.equal(p.gates.EXECUTION_AUTHORIZATION,false);
 });
+
+ test('future authored target resolves from reviewed inventory without a per-shot vocabulary patch',async t=>{
+ const f=await farmFixture(t,{target:'synthetic_cube',ids:['synthetic_cube']}),p=await compile(f);
+ assert.deepEqual(p.blockers,[]);assert.match(p.PROVIDER_PROMPT.text,/the teaching object synthetic_cube/);assert.equal(p.provider_calls,0);
+ f.input.direction.focus='unreviewed';f.input.direction.principal_actions[0].target='unreviewed';
+ assert.ok((await compile(f)).blockers.some(b=>b.code==='FOCUS_OR_TARGET_UNRESOLVED'));
+ });

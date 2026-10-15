@@ -5,7 +5,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {createHmac} from 'node:crypto';
+import {createHmac,randomUUID} from 'node:crypto';
 import {deflateSync} from 'node:zlib';
 import {MemoryReviewStore,newSession,ReviewService,sha256} from '../lib/telegram-review-v1/core.js';
 import {signRequest} from '../lib/telegram-review-v1/make-transport.js';
@@ -307,7 +307,7 @@ test('JIT final boundary rejects quote, evidence and authorization expiry after 
       });
     }});await f.prepare();await f.click('q41_confirm');
     assert.equal(f.calls.length,1);assert.ok(f.calls[0].url.includes('/estimate/'));
-    assert.equal(f.journalRows.get(operation).state,'EMISSION_UNKNOWN');
+    assert.equal(f.journalRows.get(operation).state,'PREPARED'); // Durable local rejection, no transport.
     await f.restart();await f.click('q41_status');assert.equal(f.calls.length,1);
   }
 });
@@ -1232,7 +1232,7 @@ async function miniFixture(options={}){
  const service=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path),
   oneTapPolicy:{...Q41_ONE_TAP_POLICY,source_sha256:f.source.sha256,director_sha256:cp.metadata.stage_results['director:q41'].sha256}});
  const submit=async(kind,body={})=>{const op=await service.enqueue(principal,kind,body);await op.dispatch();return service.view(principal);};
- const reopen=async()=>{const p=new URLSearchParams(params);p.delete('hash');p.set('query_id','mini-reopened-session');
+ const reopen=async()=>{const p=new URLSearchParams(params);p.delete('hash');p.set('query_id','mini-reopened-session-'+randomUUID());p.set('auth_date',String(Math.floor(Date.now()/1000)));
   p.set('hash',createHmac('sha256',secret).update([...p].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v).join('\n')).digest('hex'));
   const s=await auth.login(p.toString());return auth.authenticate(s.cookie,s.csrf);};
  return {...f,miniEnv,auth,login,principal,service,submit,reopen};
@@ -1315,7 +1315,7 @@ test('ONETAP Q42_OPERATION_RECOVERY Q42_PROVIDER_JOURNAL Q42_BUDGET_RESERVATION 
  reviewRow.state.pending_callback={id:'old-chat-callback'};reviewRow.state.message_id=999;
  await f.reviewStore.cas('1',reviewRow.revision,reviewRow.state);
  const blocked=await f.submit('continue',body);
- assert.equal(blocked.operation.status,'BLOCKED');assert.equal(blocked.operation.error,'QA_NOT_ELIGIBLE');
+ assert.equal(blocked.operation.status,'BLOCKED');assert.equal(blocked.operation.error,'HUMAN_REVIEW_OPERATION_MISMATCH');
  assert.equal(blocked.operation.resume_available,true);assert.equal(blocked.capabilities.continue,false);
  assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(emitted,1);
  const fixed=await f.reviewStore.get('1');fixed.state.mini_app.operations[reviewOp.id]=reviewOp;await f.reviewStore.cas('1',fixed.revision,fixed.state);
@@ -1464,7 +1464,7 @@ test('ONETAP EXACT_SOURCE_DIRECTOR: approved contract mutation cannot authorize 
 });
 test('ONETAP PRIOR_EMISSION: any existing journal prevents a fresh operation',async t=>{
  const f=await oneTapFixture(t),cp=await f.store.getEpisode(episode),id=sha256(cp.episode_id+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
- f.journalRows.set(id,{attempt_id:id,state:'PREPARED',stage:'VIDEO'});
+ f.journalRows.set(id,{attempt_id:id,episode_id:episode,scene_id:'q41',state:'PREPARED',stage:'VIDEO'});
  const duplicate=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await duplicate.dispatch();
  assert.equal(duplicate.operation.id,id);assert.equal(duplicate.operation.status,'RECOVERY_REQUIRED');assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
 });
@@ -1487,7 +1487,7 @@ test('DURABLE_LOCK CONCURRENT_REQUESTS: separate instances and stale legacy butt
 });
 test('DURABLE_LOCK PERSISTENT_LOCK: another active UI operation cannot hide or release the q41 lock',async t=>{
  const f=await oneTapFixture(t),a=await f.service.enqueue(f.principal,'first_animation',{confirm:true});
- await f.edit(s=>{s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE'};s.mini_app.active_operation='other';});
+ await f.edit(s=>{s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE',binding:{proposal_id:episode}};s.mini_app.active_operation='other';});
  const v=await f.service.view(f.principal);assert.equal(v.operation.kind,'review');assert.equal(v.first_animation.locked,true);assert.equal(v.first_animation.operation_id,a.operation.id);
  const duplicate=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await duplicate.dispatch();
  assert.equal(duplicate.operation.id,a.operation.id);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
@@ -1500,7 +1500,7 @@ test('DURABLE_LOCK CAS_TERMINAL_RACE: stale reads cannot create another operatio
   }
   const context=f.service.context.bind(f.service);let inject=true;
   f.service.context=async p=>{const old=await context(p);if(inject){inject=false;
-   await f.edit(s=>{s.mini_app.operations.original={id:'original',kind:kind==='first_animation'?'generate':'first_animation',status:'COMPLETE',binding:{next_action:'video:q41'}};s.mini_app.active_operation='original';});
+   await f.edit(s=>{s.mini_app.operations.original={id:'original',kind:kind==='first_animation'?'generate':'first_animation',status:'COMPLETE',binding:{proposal_id:episode,next_action:'video:q41'}};s.mini_app.active_operation='original';});
   }return old;};
   if(kind==='quote')await assert.rejects(f.service.enqueue(f.principal,kind,body),/GENERATION_LOCKED/);
   else {const duplicate=await f.service.enqueue(f.principal,kind,body);assert.equal(duplicate.operation.id,'original');await duplicate.dispatch();}
@@ -1516,7 +1516,7 @@ test('DURABLE_LOCK SESSION_REOPEN RENDER_RESTART: a new authenticated device rec
  const login=await f.auth.login(params.toString()),p=await f.auth.authenticate(login.cookie,login.csrf);
  assert.notEqual(p.session,f.principal.session);
  await f.edit(s=>{s.mini_app.operations[v.operation.id].status='BLOCKED';s.mini_app.operations[v.operation.id].phase='DISPATCHING';
-  s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE'};s.mini_app.active_operation='other';});
+  s.mini_app.operations.other={id:'other',kind:'review',status:'COMPLETE',binding:{proposal_id:episode}};s.mini_app.active_operation='other';});
  const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js'),restarted=new MiniAppService({store:f.reviewStore,adapter:f.restartQuote(),production:f.production,env:f.miniEnv,oneTapPolicy:f.service.oneTapPolicy});
  t.after(()=>{for(const timer of restarted.recoveryTimers.values())clearTimeout(timer);});
  const restored=await restarted.view(p);assert.equal(restored.first_animation.operation_id,v.operation.id);assert.equal(restored.first_animation.status,'SUBMITTED');
@@ -1776,17 +1776,96 @@ test('READ_ONLY_PROGRESS PROVIDER_JOURNAL_RECONCILIATION CAS_CONFLICT SESSION_RE
  }
 });
 
-test('Q42_ORIGINAL_OPERATION_RECOVERY PRE_SEND_QUOTE_EXPIRY BUDGET_PRESERVATION Q41_APPROVAL_PRESERVATION: local guard failure retains ambiguous evidence without another send',async t=>{
+test('Q42_ORIGINAL_OPERATION_RECOVERY PRE_SEND_QUOTE_EXPIRY BUDGET_PRESERVATION Q41_APPROVAL_PRESERVATION: new local guard failure proves no send and keeps the original reservation locked',async t=>{
  const f=await secondImageFixture(t),before=structuredClone(f.checkpoint.metadata.review_requests);
  t.mock.timers.enable({apis:['Date'],now:Date.now()});
  const transition=f.journal.transition;
  f.journal.transition=async(id,from,patch)=>{const result=await transition(id,from,patch);if(patch.state==='EMITTING')t.mock.timers.tick(61000);return result;};
  const v=await f.submit('second_image',{confirm:true});
- assert.equal(v.operation.error,'Q41_EMISSION_BINDING_CHANGED');assert.equal(v.current_action.status,'AMBIGUOUS');assert.equal(f.control.emitted,0);
+ assert.equal(v.operation.error,'STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH');assert.equal(v.current_action.status,'BLOCKED');assert.equal(f.control.emitted,0);
  const cp=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]);assert.equal(cp.metadata.budget_reservations['image:q42'].amount_usd,.3275);
  const restarted=await f.restart(),p=await f.reopen();
  const a=await restarted.enqueue(p,'second_image',{confirm:true});await a.dispatch();assert.equal(a.operation.id,v.operation.id);
  await assert.rejects(restarted.enqueue(p,'recover',{}),/ORIGINAL_JOB_UNVERIFIED/);
  await restarted.view(p);assert.equal(f.control.emitted,0);assert.equal(f.control.polls,0);assert.deepEqual([...f.journalRows],journal);
  assert.deepEqual(await f.store.getEpisode(episode),cp);for(const [id,r] of Object.entries(before))assert.deepEqual(cp.metadata.review_requests[id],r);
+});
+
+test('MULTI_EPISODE_INTEGRATION: two independent seven-shot Mini App episodes reach reviewed Full HD masters with fixture providers',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-multi-')),jobs=new Map(),videos=new Map(),requests=[],audioRequests=[];
+ t.after(()=>rm(dir,{recursive:true,force:true}));
+ for(const duration of [3,4,5]){
+  const path=join(dir,duration+'.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=180x320:rate=30','-t',String(duration),'-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);videos.set(duration,await readFile(path));
+ }
+ const ap=join(dir,'tone.mp3');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','sine=frequency=440:sample_rate=44100','-t','1.2','-c:a','libmp3lame',ap]);const audioBytes=await readFile(ap);
+ const f=await miniFixture({quoteUsd:.01,ttsRuntime:{client:{preflight:async r=>({authenticated:true,currency:'ELEVENLABS_CHARACTER_QUOTA',units:r.text.length,character_count:r.text.length,quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:10000},provenance:'EXPLICIT_OFFLINE_FIXTURE',usd:null}),
+  submit:async(r,{onAcknowledged})=>{const id='multi-audio-'+audioRequests.length;audioRequests.push({id,r});const a={job_id:id,request_id:id,character_cost:r.text.length};await onAcknowledged(a);return a;},poll:async id=>({job_id:id,status:'completed',artifact_url:'https://media.example.test/audio'}),recoverOriginal:async()=>audioBytes}},
+  providerFetch:async(url,options)=>{
+   if(options.method==='POST'){const payload=JSON.parse(options.body),id='multi-job-'+jobs.size;requests.push({id,payload});jobs.set(id,url.includes('kling')?videos.get(payload.duration):image);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id});}
+   const id=url.split('/').at(-1);assert.ok(jobs.has(id));return url.includes('/requests/')?Response.json({request_id:id,status:'completed',video:{url:'https://media.example.test/'+id},images:[{url:'https://media.example.test/'+id}]}):new Response(jobs.get(id));
+  }});
+ t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
+ f.storage.remove=async(b,p)=>f.objects.delete(b+'/'+p);
+ const {prepareGenericV2Episode,ep004ProductionRequest}=await import('../lib/lumi-generic-v2-adapter.js');
+ const {LUMI_PRODUCTION_PROFILE_V2:profile,PROFILE_SHA}=await import('../lib/lumi-production-profile-v2.js');
+ const inventory=JSON.parse(await readFile(new URL('../episodes/ep_lumi_granja_004_20261008_ee7ab4b3/Q41_DIRECTOR_PREPARATION_REVIEW.json',import.meta.url))).inventory;
+ const original=await f.store.getEpisode(episode),snapshots=[];let principal=f.principal;
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ for(const name of ['ep_fixture_farm_005','ep_fixture_farm_006']){
+  const request=ep004ProductionRequest({episode_id:episode,sha256:'a'.repeat(64)});request.episodePlan.episode.id=name;
+  for(const [i,s] of request.shotPlans.entries()){
+   s.shot_id='take_'+(i+1);s.director_input.episode_id=name;s.director_input.contract.shot_id=s.shot_id;
+   s.director_input.contract.SOURCE_ARTIFACT={sha256:null,status:'NOT_CREATED'};s.director_input.contract.REQUIRED_OBJECTS=structuredClone(inventory);
+  }
+  const prepared=prepareGenericV2Episode(request);
+  await f.manager.startEpisode({episodeId:name,actions:prepared.actions,authorizedCeilingUsd:5,metadata:{user:'1',runtime_revision:1,dry_run:false,generic_v2:prepared,provider_generation_authorized:false,publication_enabled:false,episode_ledger:{currency:'USD',entries:{},provider_units:[]}}});
+  await f.edit(s=>{s.episodes[name]={episode_id:name,title:'SYNTHETIC '+name,review_mode:'SUPERVISED',beats:7,pipeline:profile.id,profile_sha:PROFILE_SHA,binding_sha:prepared.binding_sha,shots:prepared.shot_plans.map(s=>({shot_id:s.shot_id})),artifacts:{},review_requests:{},reviews:{}};});
+  const selection=await f.service.enqueue(principal,'select_episode',{episode_id:name});await selection.dispatch();
+  principal=await f.reopen();
+  const submit=async(kind,body={})=>{const r=await f.service.enqueue(principal,kind,body);await r.dispatch();const v=await f.service.view(principal);assert.notEqual(v.operation?.status,'BLOCKED',JSON.stringify(v.operation));return v;};
+  const seen=[];
+  for(let step=0;step<125;step++){
+   const cp=await f.store.getEpisode(name),v=await f.service.view(principal);assert.equal(v.episode.id,name);if(!cp.first_pending_action)break;
+   seen.push(cp.first_pending_action);
+   const review=v.reviews[0];
+   if(review){assert.ok(review.media_id,'review must resolve exact original media');await submit('review',{request_id:review.id,artifact_sha:review.artifact_sha,review_version:review.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT',full_playback:true,source_comparison:true});continue;}
+   const a=cp.actions.find(a=>a.key===cp.first_pending_action),scope={expected_action:a.key,checkpoint_version:cp.metadata.runtime_revision};
+   if(v.capabilities.recover){await submit('recover');continue;}
+   if(['IMAGE','VIDEO','TTS'].includes(a.stage)){
+    let view=await submit('quote',{...scope,quote_id:v.quote?.quote_id??null,quote_sha:v.quote?.quote_sha??null});
+    const body={...scope,quote_id:view.quote.quote_id,quote_sha:view.quote.quote_sha,confirm:true};
+    await submit('authorize',body);
+    const left=await f.service.enqueue(principal,'generate',body),right=await f.service.enqueue(principal,'generate',body);
+    assert.equal(left.operation.id,right.operation.id);await Promise.all([left.dispatch(),right.dispatch()]);
+    const after=await f.service.view(principal);assert.notEqual(after.operation?.status,'BLOCKED',JSON.stringify(after.operation));
+    if(a.stage==='TTS')t.mock.timers.tick(360001); // Original bounded consent survives quote observation expiry.
+    principal=await f.reopen();
+   }else{assert.equal(v.capabilities.continue,true,a.key+' '+JSON.stringify(v.operation));await submit('continue',scope);}
+  }
+  const end=await f.store.getEpisode(name);assert.equal(end.first_pending_action,null,seen.join(' -> '));assert.ok(end.actions.every(a=>a.status==='COMPLETE'));
+  const master=end.metadata.stage_results.master.result.artifacts[0];assert.equal(master.width,1080);assert.equal(master.height,1920);assert.ok(Math.abs(master.duration-29)<.1);
+  const view=await f.service.view(principal),media=view.media.find(m=>m.episode===name&&m.role==='master');assert.ok(media);
+  const u=new URL(media.url,'https://fixture.invalid'),download=await f.service.media(principal,media.id,u.searchParams.get('expires'),u.searchParams.get('ticket'));
+  assert.equal(sha256(download.bytes),master.sha256);assert.equal(end.runner_enabled,false);assert.equal(end.autorun,false);
+  for(const [id,snapshot] of snapshots)assert.deepEqual(await f.store.getEpisode(id),snapshot,'cross-episode contamination');
+  snapshots.push([name,end]);console.log('PASS_INTEGRATION '+name+': 50 stages complete, master and download SHA verified.');
+ }
+ assert.deepEqual(await f.store.getEpisode(episode),original);assert.equal(requests.length,28);assert.equal(audioRequests.length,14);
+ const rows=[...f.journalRows.values()].filter(j=>j.episode_id.startsWith('ep_fixture_'));assert.equal(rows.length,28);assert.equal(new Set(rows.map(j=>j.attempt_id)).size,28);
+ assert.ok(requests.filter(r=>r.payload.image_urls).every(r=>/Include Lumi in the scene/.test(r.payload.prompt)&&!/sin dibujar a Lumi/.test(r.payload.prompt)));
+ console.log('PASS_INTEGRATION: 2 synthetic episodes, 14 shots, 28 mocked visual emissions, 14 mocked audio emissions, authentic Mini App session/CAS/reviews, two local Full HD encodes and exact download SHA; real provider calls=0.');
+});
+
+test('SHARED_IDENTITY_ISOLATION JOURNAL_RECONCILIATION: wrong episode, shot, stage or attempt cannot be read as the original job',async t=>{
+ const f=await oneTapFixture(t);await f.submit('first_animation',{confirm:true});
+ const cp=await f.store.getEpisode(episode),id=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
+ const original=structuredClone(f.journalRows.get(id)),before=await f.manager.budgetExposure({episodeId:episode});
+ for(const [key,value] of Object.entries({episode_id:'ep_fixture_foreign',scene_id:'other_take',stage:'IMAGE',attempt_id:'other_attempt'})){
+  f.journalRows.set(id,{...original,[key]:value});
+  await assert.rejects(f.service.view(f.principal),/STAGE_RECOVERY_IDENTITY_MISMATCH/);
+  await assert.rejects(f.service.enqueue(f.principal,'recover',{}),/STAGE_RECOVERY_IDENTITY_MISMATCH/);
+ }
+ f.journalRows.set(id,original);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),before);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.emitted.length,1);assert.equal(f.polls.length,0);
 });

@@ -1232,7 +1232,10 @@ async function miniFixture(options={}){
  const service=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path),
   oneTapPolicy:{...Q41_ONE_TAP_POLICY,source_sha256:f.source.sha256,director_sha256:cp.metadata.stage_results['director:q41'].sha256}});
  const submit=async(kind,body={})=>{const op=await service.enqueue(principal,kind,body);await op.dispatch();return service.view(principal);};
- return {...f,miniEnv,auth,login,principal,service,submit};
+ const reopen=async()=>{const p=new URLSearchParams(params);p.delete('hash');p.set('query_id','mini-reopened-session');
+  p.set('hash',createHmac('sha256',secret).update([...p].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v).join('\n')).digest('hex'));
+  const s=await auth.login(p.toString());return auth.authenticate(s.cookie,s.csrf);};
+ return {...f,miniEnv,auth,login,principal,service,submit,reopen};
 }
 async function oneTapFixture(t,options={}){
  const emitted=[],polls=[];
@@ -1280,7 +1283,7 @@ test('ONETAP FINAL_RESERVATION_BOUNDARY: expiration after reserve blocks emissio
  const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
  await f.submit('first_animation',{confirm:true});assert.equal(f.quotes.length,1);assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41']);
 });
-test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK: original private artifact remains locked through human approval',async t=>{
+test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK CONTINUE_PRODUCTION TEMPORAL_QA_RECOVERY: preserves approval without legacy panel',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'lumi-one-tap-test-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:size=1080x1920:rate=30','-t','4','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
  const bytes=await readFile(path);let emitted=0;
@@ -1300,6 +1303,45 @@ test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK: original private artifact rem
  assert.notEqual(approved.operation.kind,'first_animation');
  await f.submit('first_animation',{confirm:true});assert.equal(emitted,1);
  assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);
+ const human=(await f.store.getEpisode(episode)).metadata.review_requests[r.id].human_decision;
+ const cp=await f.store.getEpisode(episode),body={expected_action:cp.first_pending_action,checkpoint_version:cp.metadata.runtime_revision};
+ const reviewRow=await f.reviewStore.get('1'),reviewOp=structuredClone(reviewRow.state.mini_app.operations[human.mini_app_operation_id]);
+ // A forged/inconsistent Mini App receipt must not qualify as temporal evidence.
+ reviewRow.state.mini_app.operations[reviewOp.id].binding.artifact_sha='0'.repeat(64);
+ reviewRow.state.delivery={status:'EMITTING',command:{idempotency_key:'unresolved-telegram-delivery'}};
+ reviewRow.state.pending_callback={id:'old-chat-callback'};reviewRow.state.message_id=999;
+ await f.reviewStore.cas('1',reviewRow.revision,reviewRow.state);
+ const blocked=await f.submit('continue',body);
+ assert.equal(blocked.operation.status,'BLOCKED');assert.equal(blocked.operation.error,'QA_NOT_ELIGIBLE');
+ assert.equal(blocked.operation.resume_available,true);assert.equal(blocked.capabilities.continue,false);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(emitted,1);
+ const fixed=await f.reviewStore.get('1');fixed.state.mini_app.operations[reviewOp.id]=reviewOp;await f.reviewStore.cas('1',fixed.revision,fixed.state);
+ // A new process and session recover the same durable operation; reading state
+ // neither claims a stage nor executes the newly eligible QA.
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const restarted=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:f.miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ const principal=await f.reopen();assert.notEqual(principal.session,f.principal.session);
+ const before=await f.store.getEpisode(episode);assert.equal((await restarted.view(principal)).operation.id,blocked.operation.id);
+ assert.deepEqual(await f.store.getEpisode(episode),before);
+ const claimId=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':temporal_qa:q41');
+ const ambiguous=await f.reviewStore.get('1');ambiguous.state.production_commands[claimId]={status:'STARTED'};await f.reviewStore.cas('1',ambiguous.revision,ambiguous.state);
+ assert.equal((await restarted.view(principal)).operation.resume_available,false);
+ await assert.rejects(restarted.enqueue(principal,'resume',{}),/MINI_NO_PENDING_OPERATION/);
+ const restore=await f.reviewStore.get('1');delete restore.state.production_commands[claimId];await f.reviewStore.cas('1',restore.revision,restore.state);
+ const [a,b]=await Promise.all([restarted.enqueue(principal,'resume',{}),restarted.enqueue(principal,'resume',{})]);
+ assert.equal(a.operation.id,blocked.operation.id);assert.equal(a.operation.id,b.operation.id);
+ await Promise.all([a.dispatch(),b.dispatch()]);
+ const doneQa=await restarted.view(principal),after=await f.store.getEpisode(episode);
+ assert.equal(doneQa.operation.status,'COMPLETE',JSON.stringify(doneQa.operation));
+ assert.equal(after.actions.find(a=>a.key==='temporal_qa:q41').status,'COMPLETE');
+ assert.deepEqual(after.metadata.review_requests[r.id].human_decision,human);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);assert.equal(emitted,1);
+ const again=await restarted.enqueue(principal,'continue',body);await again.dispatch();
+ assert.equal(again.operation.id,blocked.operation.id);assert.deepEqual(await f.store.getEpisode(episode),after);
+ assert.equal((await f.reviewStore.get('1')).state.delivery.status,'EMITTING');
+ // Recover a late durable completion after loss of the HTTP/process response.
+ const lost=await f.reviewStore.get('1');lost.state.mini_app.operations[blocked.operation.id].status='RUNNING';await f.reviewStore.cas('1',lost.revision,lost.state);
+ assert.equal((await restarted.view(principal)).operation.status,'COMPLETE');assert.deepEqual(await f.store.getEpisode(episode),after);
 });
 test('ONETAP MAX_RESERVATION BUDGET_GATE: excess, credits and unconfirmed quotes cannot reserve or emit',async t=>{
  for(const options of [{quoteUsd:.44801},{quoteUsd:6},{mode:'credits'},{mode:'expired'}]){

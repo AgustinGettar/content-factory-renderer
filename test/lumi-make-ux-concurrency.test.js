@@ -7,7 +7,7 @@ const secret='offline-transport-secret-'.repeat(3),path='/lumi/telegram-review/m
 const photo={artifact_id:'home',mime:'image/png',sha256:sha256('home'),size:4,bucket:'fixture',path:'home.png'};
 const master={artifact_id:'master',mime:'video/mp4',sha256:sha256('master'),size:6,bucket:'fixture',path:'master.mp4',width:1080,height:1920,duration:41.125};
 const nonce=id=>({timestamp:String(Math.floor(Date.now()/1000)),requestId:id,path,body:Buffer.from('{}')});
-async function setup(){
+async function setup({mini=false}={}){
  const store=new MemoryReviewStore(),s=newSession({user_id:'1',chat_id:'1',message_id:138,cover:photo,legacy_menu:[[{text:'Old ideas',callback_data:'ideas'}]]});
  s.deliveries[photo.sha256]={telegram_file_id:'HOME',telegram_file_unique_id:'HOME_UNIQUE'};
  s.deliveries[master.sha256]={telegram_file_id:'MASTER',telegram_file_unique_id:'MASTER_UNIQUE',review_status:'APPROVED'};
@@ -18,13 +18,36 @@ async function setup(){
  const message=c=>({message_id:138,chat:{id:1},caption:c.body.media.caption,reply_markup:c.body.reply_markup,...(c.body.media.type==='photo'?{photo:[{file_id:'HOME',file_unique_id:'HOME_UNIQUE'}]}:{video:{file_id:'MASTER',file_unique_id:'MASTER_UNIQUE',file_size:6}})});
  const ack=c=>acknowledgeCommand(store,'1','1',c.idempotency_key,message(c));
  const routes=new Map(),logs=[];
- mountMakeTransportEndpoint({get:()=>{},post:(p,h)=>routes.set(p,h)},{store,env:{LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:secret},production,log:e=>logs.push(e),loadBytes:()=>assert.fail('no upload')});
+ mountMakeTransportEndpoint({get:()=>{},post:(p,h)=>routes.set(p,h)},{store,env:{LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:secret,SUPABASE_URL:mini?'https://mofjhwathxzfnjapvvst.supabase.co':'https://offline.example.test'},validateOwner:async(u,c)=>u==='1'&&c==='1',production,log:e=>logs.push(e),loadBytes:()=>assert.fail('no upload')});
  const request=(body,id,signature)=>{const rawBody=Buffer.from(JSON.stringify(body)),signed={...nonce(id),body:rawBody};return {path,body,rawBody,headers:{'x-lumi-timestamp':signed.timestamp,'x-lumi-request-id':id,'x-lumi-signature':signature??signRequest(secret,signed)}};};
  const call=async(body,id,signature)=>{const res={code:200,status(c){this.code=c;return this;},json(value){this.value=value;return this;}};await routes.get(path)(request(body,id,signature),res);return res;};
  const menu=id=>({update_id:id,message:{message_id:1000+id,from:{id:1},chat:{id:1},text:'/menu'}});
  const click=async(c,action,id='click')=>{const s=(await store.get('1')).state;const button=c.body.reply_markup.inline_keyboard.flat().find(b=>s.tokens[b.callback_data.slice(3)]?.action===action);assert.ok(button,action);return {id,from:{id:1},message:message(c),data:button.callback_data};};
  return {store,svc,transport,production,ack,message,call,menu,click,logs};
 }
+test('MAKE_CONFLICT: old plain-message route fails at the missing staging channels table',async t=>{
+ const f=await setup();let queries=[];
+ t.mock.method(globalThis,'fetch',async url=>{queries.push(new URL(url).pathname);return queries.length===1?Response.json([{channel_id:1}]):Response.json({code:'PGRST205'},{status:404});});
+ const body=f.menu(830558974);body.message.text='LUMI-APP';body.message.chat.type='private';
+ const r=await f.call(body,'failed-real-shape');assert.equal(r.code,409);assert.equal(r.value.error,'legacy_query_failed');
+ assert.deepEqual(queries,['/rest/v1/cf_bot_admins','/rest/v1/channels']);
+ assert.equal(r.value.provider_calls,0);assert.equal((await f.store.get('1')).state.delivery,null);
+});
+test('MINI_APP_INDEPENDENCE: plain chat opens studio without legacy DB, panel writes or delivery ACK',async t=>{
+ const f=await setup({mini:true});t.mock.method(globalThis,'fetch',()=>assert.fail('no legacy database'));
+ const row=await f.store.get('1');row.state.delivery={status:'EMITTING',command:{idempotency_key:'ambiguous-original'}};
+ await f.store.cas('1',row.revision,row.state);const before=await f.store.get('1');
+ for(const [i,text] of ['LUMI-APP','/start','/menu','/produccion'].entries()){
+  const body=f.menu(800+i);body.message.text=text;const r=await f.call(body,'studio-'+i);
+  assert.equal(r.code,200);assert.equal(r.value.status,'MINI_APP_ENTRYPOINT');assert.equal(r.value.provider_calls,0);
+  assert.equal(r.value.actions.length,1);const a=r.value.actions[0],b=JSON.parse(a.body_json);
+  assert.equal(a.method,'sendMessage');assert.equal(a.track_review,false);assert.equal(a.track_menu,false);
+  assert.equal(b.message_id,undefined);assert.equal(b.reply_markup.inline_keyboard[0][0].web_app.url,'https://content-factory-av2-staging.onrender.com/lumi/studio');
+  const duplicate=await f.call(body,'duplicate-'+i);assert.equal(duplicate.value.status,'DUPLICATE_REQUEST');assert.deepEqual(duplicate.value.actions,[]);
+ }
+ const after=await f.store.get('1');assert.deepEqual(after.state.delivery,before.state.delivery);assert.equal(after.state.message_id,before.state.message_id);
+ const unauthorized=await f.call(f.menu(999),'bad-signature','invalid');assert.equal(unauthorized.code,401);
+});
 test('distinct nonce claims recover CAS contention; same nonce remains rejected',async()=>{
  const f=await setup();const results=await Promise.allSettled([claimRequest(f.store,'1',nonce('ack')),claimRequest(f.store,'1',nonce('menu'))]);
  assert.ok(results.every(x=>x.status==='fulfilled'));assert.equal(Object.keys((await f.store.get('1')).state.make_requests).length,2);

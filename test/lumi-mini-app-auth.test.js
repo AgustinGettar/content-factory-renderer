@@ -90,3 +90,22 @@ test('DURABLE_LOCK MOBILE_UI HTTP_TIMEOUT DOUBLE_CLICK: ambiguous HTTP result an
  assert.doesNotMatch(reopened.quoteCard(),/data-action="first_animation"/);
  reopened.setGeneration({locked:true,status:'AWAITING_HUMAN_REVIEW'});assert.match(reopened.quoteCard(),/Ver animación/);
 });
+test('CONTINUE_PRODUCTION UI: immediate lock, timeout recovery and durable stage identity',async()=>{
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8');let posts=[],rejectRequest;
+ const element={innerHTML:'',textContent:'',hidden:false,querySelector:()=>null};
+ const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},
+  setInterval(){},setTimeout(){},clearTimeout(){},send:(path,options)=>{posts.push({path,options});return new Promise((_,reject)=>{rejectRequest=reject;});}};
+ runInNewContext(js.replace('navigation();login();','')+`
+  state={episode:{next_action:'temporal_qa:q41',checkpoint_version:15},quote:null,capabilities:{continue:true},first_animation:{locked:true,status:'SUCCEEDED'}};
+  csrf='offline';render=()=>{};toast=()=>{};refresh=async()=>{};request=(p,o)=>send(p,o);
+  globalThis.ui={submit,quoteCard,banner,setOperation:o=>state.operation=o};`,ctx);
+ const ui=ctx.ui,pending=ui.submit('continue');await ui.submit('continue');assert.equal(posts.length,1);
+ assert.equal(posts[0].options.body.expected_action,'temporal_qa:q41');assert.equal(posts[0].options.body.checkpoint_version,15);
+ assert.match(ui.quoteCard(),/disabled/);
+ rejectRequest(Object.assign(Error('timeout'),{name:'AbortError'}));await pending;
+ for(const status of ['QUEUED','RUNNING','RECOVERY_REQUIRED','BLOCKED']){
+  ui.setOperation({kind:'continue',status,resume_available:status==='BLOCKED'});
+  assert.doesNotMatch(ui.quoteCard(),/Siguiente etapa lista|data-action="continue"/);assert.match(ui.quoteCard(),/Actualizar progreso/);
+ }
+ assert.match(ui.banner(),/Retomar etapa guardada/);
+});

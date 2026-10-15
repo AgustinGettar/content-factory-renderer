@@ -1,5 +1,44 @@
 # Lumi Telegram Mini App V1
 
+## EP004 q41 one-tap consent (2026-10-15)
+
+The primary q41 card now offers **Generar primera animación**. Its authenticated,
+CSRF-protected POST alone activates one immutable HMAC-sealed consent operation.
+Opening, refreshing or polling the app does not activate this consent or submit
+a request. The fixed server policy pins the actual approved source SHA, director
+receipt SHA, EP004/video:q41, Kling Pro, 4 seconds, audio off, one generation,
+USD 0.56 maximum reservation and USD 5 episode ceiling. These are internal
+limits, NOT evidence of a provider-enforced maximum charge.
+
+The existing versioned quote adapter renews only completed, expired quotes.
+Unknown estimates are never repeated. Up to three safe quote versions can be
+considered within the same operation; price changes within the fixed reservation
+ceiling require no additional confirmation. The exact quote ID, USD, timestamps,
+payload SHA and operation ID are persisted before the existing authorization
+and execution adapters run. The existing Budget Gate and CAS reservation remain
+authoritative. The consent and exact quote binding are rechecked both before
+reservation and at the provider transport boundary. No new ledger or journal.
+
+Expiry before a dispatch claim renews safely under the original consent. Once
+dispatch/reservation has begun, any expiry or uncertain outcome fails closed:
+there is no rollback/retry that could double spend. This exceptional interruption
+requires reconciliation, not a new automatic submission. A duplicate click,
+new session or HTTP timeout cannot create a second one-tap operation, even after
+a block. A higher limit or retry would require a separately authorized change.
+
+After an accepted job the operation polls only the original request through
+`recoverQuotedStage`, with a CAS recovery lease and private artifact verification.
+The timer is scoped to that single consent/job, not a global runner. Reopening
+may resume GET-only recovery from the acknowledged journal, including an ACK
+saved before a lost UI receipt. Unstarted/interrupted submissions are NOT
+automatically restarted by reads. The final clip is offered for human review;
+no subsequent image, video, TTS or local production stage is started.
+
+The previous separate quote/authorize/generate APIs remain for other supervised
+stages and backward compatibility. They are no longer q41's primary UI path.
+Focused `ONETAP` tests use synthetic quotes/jobs and an explicitly synthetic local
+video. No real provider generation is part of tests or deployment acceptance.
+
 Served by the existing staging Render service at `/lumi/studio`. No new hosting,
 schema, queue, episode, provider account or generation on startup.
 

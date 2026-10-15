@@ -26,6 +26,11 @@ function errorText(e){
 }
 function navigation(){nav.innerHTML=Object.keys(paths).map(k=>`<button data-tab="${k}" class="${tab===k?'active':''}" ${tab===k?'aria-current="page"':''}>${icon(k)}<span>${({inicio:'Inicio',videos:'Videos',produccion:'Producción',ajustes:'Ajustes'})[k]}</span></button>`).join('');}
 function banner(){const op=state.operation;if(!op)return '';
+  if(op.kind==='first_animation'){
+    const text=({VERIFYING_SOURCE:'Preparando animación…',QUOTING:'Consultando precio…',BUDGET_CHECK:'Verificando presupuesto…',DISPATCHING:'Enviando a Kling…',GENERATING:'Generando video…',REVIEW_READY:'Video preparado para tu revisión'})[op.phase]||'Consultando el estado guardado…';
+    if(op.status==='BLOCKED'||op.status==='RECOVERY_REQUIRED')return '<div class="alert">La animación está detenida de forma segura. No se repetirá la solicitud. '+(/LIMIT|BUDGET/.test(op.error||'')?'El precio o presupuesto requiere una nueva autorización.':'Hay que revisar el resultado de la operación guardada antes de continuar.')+'</div>';
+    return `<div class="async-banner" role="status"><div><strong>${text}</strong><p>Podés cerrar y reabrir el estudio. Conservamos esta misma operación.</p></div></div>`;
+  }
   if(['QUEUED','RUNNING'].includes(op.status))return `<div class="async-banner" role="status"><div class="loading-orbit"></div><div><strong>${({quote:'Consultando precio…',authorize:'Guardando tu autorización…',generate:'Preparando la animación…',recover:'Consultando el clip existente…',continue:'Preparando la siguiente etapa…',review:'Guardando tu revisión…'})[op.kind]||'Guardando progreso…'}</strong><p>Podés cerrar el estudio. Tu progreso se conserva.</p></div></div>`;
   if(op.status==='RECOVERY_REQUIRED')return '<div class="alert">Hay una operación sin resultado confirmado. Su registro está guardado. No se repetirá una generación.</div>'+(op.resume_available?'<button class="button secondary" data-action="resume">Retomar acción guardada</button>':'');
   if(op.status==='BLOCKED')return '<div class="alert">La última acción necesita revisión. No se repetirá automáticamente. Actualizá el estado para consultar las opciones disponibles.</div>';
@@ -33,6 +38,10 @@ function banner(){const op=state.operation;if(!op)return '';
 }
 function budgetCard(){const b=state.budget;return `<section class="card"><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Costo real no verificado. La exposición incluye importes reservados pendientes de conciliación.</p></section>`;}
 function quoteCard(){const q=state.quote,c=state.capabilities;
+  if(state.episode.next_action==='video:q41'||state.operation?.kind==='first_animation'){
+    const op=state.operation?.kind==='first_animation'?state.operation:null;
+    return `<section class="card quote-card"><span class="tag blue">Una sola solicitud</span><h2>Primera animación de Lumi</h2><p>Kling 3.0 Pro · 4 segundos · sin audio.</p>${row('Reserva máxima autorizada','USD 0.56')}${row('Presupuesto del episodio','USD 5.00')}${op?'<p>'+ (op.phase==='REVIEW_READY'?'Tu video está disponible en Producción para revisión.':'La operación ya está registrada. No se enviará una solicitud nueva.')+'</p>':button('Generar primera animación','first_animation','primary',!state.first_animation?.available)}<p>Lumi verificará automáticamente el precio antes de generar.</p><p class="budget-note">Al pulsar autorizás una única animación dentro de estos límites internos. El costo real del proveedor no está garantizado.</p></section>`;
+  }
   if(c.recover)return `<section class="card quote-card"><span class="tag blue">Animación en curso</span><h2>El clip está en camino.</h2><p>Consultá el trabajo ya enviado a Kling. Recuperarlo no crea una animación nueva.</p>${button('Consultar y recuperar clip','recover')}</section>`;
   if(c.continue)return `<section class="card quote-card"><h3>Siguiente etapa lista</h3><p>Continuá con la preparación y revisión del episodio.</p>${button('Continuar producción','continue')}</section>`;
   if(!c.quote)return '';
@@ -56,7 +65,7 @@ async function refresh(){if(polling||!csrf)return;polling=true;try{const next=aw
     state=next;if(!playing&&(changed||mediaExpiring||!root.querySelector('.page-intro')))render();
   }catch(e){if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;}}
 async function login(){try{let s;try{s=await request('/session');}catch(e){if(e.status!==401)throw e;if(!tg?.initData)return authScreen('Abrí esta aplicación desde «Abrir Lumi Studio» en el menú del bot.');s=await request('/auth',{method:'POST',body:{initData:tg.initData}});}csrf=s.csrf;await refresh();}catch(e){authScreen(errorText(e));}}
-async function submit(kind,extra={}){if(busy()&&kind!=='resume')return;sending=true;render();toast(kind==='quote'?'Consultando precio…':'Guardando tu acción…');
+async function submit(kind,extra={}){if(busy()&&kind!=='resume')return;sending=true;render();toast(kind==='first_animation'?'Preparando animación…':kind==='quote'?'Consultando precio…':'Guardando tu acción…');
   try{const q=state.quote,result=await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...extra}});state.operation=result.operation;}
   catch(e){toast(errorText(e));}finally{sending=false;render();await refresh();}}
 function confirmSpend(kind){const q=state?.quote;if(!q||Date.parse(q.expires_at)<=Date.now()+serverOffset)return toast('La cotización venció. Renovala para continuar.');
@@ -67,7 +76,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab]
   if(t.dataset.tab){tab=t.dataset.tab;render();window.scrollTo({top:0});tg?.HapticFeedback?.selectionChanged();return;}
   if(t.dataset.review){const r=state.reviews.find(r=>r.id===t.dataset.review);if(!r)return;
     return submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:t.dataset.decision,full_playback:!!document.querySelector('#playback-check')?.checked,source_comparison:!!document.querySelector('#source-check')?.checked});}
-  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh();if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
+  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh();if(a==='first_animation')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
 document.querySelector('#dialog-cancel').onclick=()=>dialog.close();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 try{tg?.ready();tg?.expand();tg?.setHeaderColor('#f6f7fb');tg?.setBackgroundColor('#f6f7fb');tg?.onEvent('activated',refresh);}catch{/* Older Telegram clients still support ordinary navigation. */}

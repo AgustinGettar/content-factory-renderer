@@ -1228,10 +1228,134 @@ async function miniFixture(options={}){
  const secret=createHmac('sha256','WebAppData').update(miniEnv.LUMI_TELEGRAM_BOT_TOKEN).digest();
  params.set('hash',createHmac('sha256',secret).update([...params].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v).join('\n')).digest('hex'));
  const login=await auth.login(params.toString()),principal=await auth.authenticate(login.cookie,login.csrf);
- const service=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ const {Q41_ONE_TAP_POLICY}=await import('../lib/telegram-mini-app/q41-policy.js'),cp=await f.store.getEpisode(episode);
+ const service=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path),
+  oneTapPolicy:{...Q41_ONE_TAP_POLICY,source_sha256:f.source.sha256,director_sha256:cp.metadata.stage_results['director:q41'].sha256}});
  const submit=async(kind,body={})=>{const op=await service.enqueue(principal,kind,body);await op.dispatch();return service.view(principal);};
  return {...f,miniEnv,auth,login,principal,service,submit};
 }
+async function oneTapFixture(t,options={}){
+ const emitted=[],polls=[];
+ const f=await miniFixture({...options,providerFetch:options.providerFetch|| (async(url,o,base)=>{
+  if(o.method==='POST'){
+   const cp=await base.store.getEpisode(episode);assert.ok(cp.metadata.budget_reservations['video:q41'].amount_usd<=.56);
+   assert.equal([...base.journalRows.values()].filter(j=>j.stage==='VIDEO').length,1);
+   emitted.push(o.body);return Response.json({request_id:'offline-one-tap',status_url:'https://api.higgsfield.ai/requests/offline-one-tap'});
+  }
+  polls.push(url);return Response.json({request_id:'offline-one-tap',status:'processing'});
+ })});
+ t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
+ return {...f,emitted,polls};
+}
+test('ONETAP AUTOMATIC_QUOTE PRICE_VARIATION MAX_RESERVATION: one click binds consent and emits one mock request within .56',async t=>{
+ for(const price of [.40,.447,.448]){
+  const f=await oneTapFixture(t,{quoteUsd:price}),cp=await f.store.getEpisode(episode);
+  await f.service.view(f.principal);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+  const v=await f.submit('first_animation',{confirm:true});
+  assert.equal(v.operation.phase,'GENERATING',JSON.stringify(v.operation));assert.equal(f.quotes.length,1);assert.equal(f.emitted.length,1);
+  const state=(await f.reviewStore.get('1')).state,o=state.mini_app.operations[v.operation.id];
+  assert.equal(o.consent.value.max_reservation_usd,.56);assert.equal(o.consent.value.max_generations,1);
+  assert.equal(o.consent.value.director_sha256,cp.metadata.stage_results['director:q41'].sha256);
+  assert.equal(o.quote_binding.operation_id,o.id);assert.ok(o.quote_binding.payload_sha256);
+  assert.equal((await f.manager.budgetExposure({episodeId:episode})).required_total_usd,Number((.33875+price*1.25).toFixed(9)));
+  assert.equal((await f.store.getEpisode(episode)).metadata.provider_generation_authorized,false);
+ }
+});
+test('ONETAP EXPIRED_QUOTE: supersedes one completed expired version without another economic confirmation',async t=>{
+ const f=await oneTapFixture(t),q=(await f.submit('quote')).quote;await expireQuote(f,q.quote_id);
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.phase,'GENERATING',JSON.stringify(v.operation));
+ assert.equal(f.quotes.length,2);assert.equal(f.emitted.length,1);
+ const s=(await f.reviewStore.get('1')).state;assert.ok(s.production_commands[q.quote_id]);assert.equal(s.mini_app.operations[v.operation.id].quote_binding.quote_id!==q.quote_id,true);
+});
+test('ONETAP EXPIRED_QUOTE before dispatch: refreshes within original consent without reserving the old quote',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ const f=await oneTapFixture(t),authorize=f.videoAdapter.authorizeEp004VideoQuote;let first=true;
+ f.videoAdapter.authorizeEp004VideoQuote=async args=>{const r=await authorize(args);if(first){first=false;t.mock.timers.tick(61000);}return r;};
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.phase,'GENERATING',JSON.stringify(v.operation));
+ assert.equal(f.quotes.length,2);assert.equal(f.emitted.length,1);
+});
+test('ONETAP FINAL_RESERVATION_BOUNDARY: expiration after reserve blocks emission and cannot repeat',async t=>{
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ const f=await oneTapFixture(t,{inject:async({point})=>{if(point==='STAGE_RESERVED_BEFORE_EMISSION')t.mock.timers.tick(61000);}});
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
+ await f.submit('first_animation',{confirm:true});assert.equal(f.quotes.length,1);assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41']);
+});
+test('ONETAP RECOVERY_TO_REVIEW: accepted original mock video becomes a private review artifact with no resubmit',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-one-tap-test-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:size=1080x1920:rate=30','-t','4','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
+ const bytes=await readFile(path);let emitted=0;
+ const f=await oneTapFixture(t,{providerFetch:async(url,o)=>{
+  if(o.method==='POST'){emitted++;return Response.json({request_id:'offline-ready',status_url:'https://api.higgsfield.ai/requests/offline-ready'});}
+  if(url==='https://api.higgsfield.ai/requests/offline-ready')return Response.json({request_id:'offline-ready',status:'completed',video:{url:'https://media.example.test/original'}});
+  assert.equal(url,'https://media.example.test/original');return new Response(bytes);
+ }});
+ const v=await f.submit('first_animation',{confirm:true});await f.service.recoverFirstAnimation(f.principal,v.operation.id);
+ const done=await f.service.view(f.principal);assert.equal(done.operation.phase,'REVIEW_READY',JSON.stringify(done.operation));
+ assert.equal(done.operation.status,'COMPLETE');assert.equal(emitted,1);assert.ok(done.media.some(m=>m.role==='clip'));assert.ok(done.reviews.length);
+});
+test('ONETAP MAX_RESERVATION BUDGET_GATE: excess, credits and unconfirmed quotes cannot reserve or emit',async t=>{
+ for(const options of [{quoteUsd:.44801},{quoteUsd:6},{mode:'credits'},{mode:'expired'}]){
+  const f=await oneTapFixture(t,options),v=await f.submit('first_animation',{confirm:true});
+  assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
+  assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41'],undefined);
+ }
+});
+test('ONETAP BUDGET_GATE: current episode exposure reduces coverage without double counting the imported image',async t=>{
+ const f=await oneTapFixture(t);await f.manager.checkpoint(episode,cp=>{cp.current_cost_usd=4.4;});
+ assert.equal((await f.manager.budgetExposure({episodeId:episode})).required_total_usd,4.73875);
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
+ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41'],undefined);
+});
+test('ONETAP DOUBLE_CLICK CAS_CONFLICT JOURNAL_IDEMPOTENCY: concurrent clicks and later clicks share a single durable operation',async t=>{
+ const f=await oneTapFixture(t),original=f.reviewStore.cas.bind(f.reviewStore);let collisions=2;
+ f.reviewStore.cas=async(...a)=>{if(collisions-->0)throw Error('concurrent_update');return original(...a);};
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'first_animation',{confirm:true}),f.service.enqueue(f.principal,'first_animation',{confirm:true})]);
+ assert.equal(a.operation.id,b.operation.id);await Promise.all([a.dispatch(),b.dispatch()]);
+ const again=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await again.dispatch();
+ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);assert.equal([...f.journalRows.values()].filter(j=>j.stage==='VIDEO').length,1);
+});
+test('ONETAP SESSION_REOPEN: status restores accepted job; recovery GET only, never another quote or submission',async t=>{
+ const f=await oneTapFixture(t),v=await f.submit('first_animation',{confirm:true});
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const restarted=new MiniAppService({store:f.reviewStore,adapter:f.restartQuote(),production:f.production,env:f.miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ t.after(()=>{for(const timer of restarted.recoveryTimers.values())clearTimeout(timer);});
+ const p=await f.auth.authenticate(f.login.cookie);await restarted.view(p);await restarted.recoverFirstAnimation(p,v.operation.id);
+ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);assert.equal(f.polls.length,1);
+});
+test('ONETAP NETWORK_TIMEOUT: an ambiguous estimate is retained and never renewed on repeated clicks',async t=>{
+ const f=await oneTapFixture(t,{mode:'timeout'});const a=await f.submit('first_animation',{confirm:true});
+ await f.submit('first_animation',{confirm:true});assert.equal(a.operation.status,'BLOCKED');assert.equal(f.quotes.length,1);assert.equal(f.emitted.length,0);
+});
+test('ONETAP PROVIDER_AMBIGUITY: no retries or resubmission after a sent request without an ACK',async t=>{
+ let sent=0;const f=await oneTapFixture(t,{providerFetch:async()=>{sent++;throw Error('OFFLINE_RESPONSE_LOST');}});
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');
+ await f.submit('first_animation',{confirm:true});await f.service.view(f.principal);assert.equal(sent,1);assert.equal(f.quotes.length,1);
+ assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41']);
+});
+test('ONETAP AUTH_SECURITY: fabricated identity, client limits and tampered consent fail closed',async t=>{
+ const f=await oneTapFixture(t);
+ await assert.rejects(f.service.enqueue({...f.principal},'first_animation',{confirm:true}),/SESSION/);
+ for(const b of [{},{confirm:false},{confirm:true,max_reservation_usd:2},{confirm:true,user_id:'1'}])await assert.rejects(f.service.enqueue(f.principal,'first_animation',b),/BODY/);
+ const a=await f.service.enqueue(f.principal,'first_animation',{confirm:true});
+ await f.edit(s=>{s.mini_app.operations[a.operation.id].consent.value.max_reservation_usd=5;});await a.dispatch();
+ assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);assert.equal((await f.service.view(f.principal)).operation.status,'BLOCKED');
+});
+test('ONETAP EXACT_SOURCE_DIRECTOR: approved contract mutation cannot authorize a changed request',async t=>{
+ const f=await oneTapFixture(t),a=await f.service.enqueue(f.principal,'first_animation',{confirm:true});
+ await f.manager.checkpoint(episode,cp=>{cp.metadata.stage_results['director:q41'].result.output.PROVIDER_PROMPT.text='changed';});
+ await a.dispatch();assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+});
+test('ONETAP PRIOR_EMISSION: any existing journal prevents a fresh operation',async t=>{
+ const f=await oneTapFixture(t),cp=await f.store.getEpisode(episode),id=sha256(cp.episode_id+':'+cp.metadata.generic_v2.binding_sha+':video:q41');
+ f.journalRows.set(id,{attempt_id:id,state:'PREPARED',stage:'VIDEO'});
+ await assert.rejects(f.service.enqueue(f.principal,'first_animation',{confirm:true}),/PRIOR_EMISSION/);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+});
+test('ONETAP ACK_CRASH_RECOVERY: durable provider ACK recovers UI state without resubmission',async t=>{
+ const f=await oneTapFixture(t,{inject:async({point})=>{if(point==='PROVIDER_ACK_BEFORE_STAGE_RECEIPT')throw Error('OFFLINE_ACK_CRASH');}});
+ const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.phase,'GENERATING',JSON.stringify(v.operation));
+ await f.service.recoverFirstAnimation(f.principal,v.operation.id);assert.equal(f.emitted.length,1);assert.equal(f.polls.length,1);
+ await f.submit('first_animation',{confirm:true});assert.equal(f.emitted.length,1);
+});
 test('MINI_EP004_CHECKPOINT: real adapter projection preserves approved source, director and budget without callbacks',async()=>{
  const f=await miniFixture(),before=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]),calls=f.calls.length;
  await f.edit(s=>{s.delivery.status='UNKNOWN';s.pending_callback={id:'obsolete'};});

@@ -109,3 +109,60 @@ test('CONTINUE_PRODUCTION UI: immediate lock, timeout recovery and durable stage
  }
  assert.match(ui.banner(),/Retomar etapa guardada/);
 });
+
+async function transitionFixture(){
+ const {productionPresentation}=await import('../lib/telegram-mini-app/runtime.js');
+ const {ep004ProductionRequest,prepareGenericV2Episode}=await import('../lib/lumi-generic-v2-adapter.js');
+ const generic=prepareGenericV2Episode(ep004ProductionRequest({episode_id:'ep_lumi_granja_004_20261008_ee7ab4b3',sha256:'a'.repeat(64)}));
+ const stages=['IMAGE','SOURCE_QA','DIRECTOR','VIDEO','TEMPORAL_QA','SHOT_REVIEW'];
+ const cp={first_pending_action:'image:q42',metadata:{generic_v2:generic,source_artifacts:{q41:{}},review_requests:{}},
+  actions:['q41','q42'].flatMap(scene_id=>stages.map(stage=>({key:stage.toLowerCase()+':'+scene_id,stage,scene_id,status:scene_id==='q41'?'COMPLETE':'PENDING'})))};
+ const make=()=>({server_time:Date.now(),episode:{id:generic.episode_id,title:generic.plan.episode.title,next_action:cp.first_pending_action,checkpoint_version:17,actions:cp.actions},
+  production:productionPresentation(cp),media:[{id:'clip1',episode:generic.episode_id,shot_id:'q41',role:'clip',mime:'video/mp4',url:'/original',approved:true}],reviews:[],
+  budget:{ceiling_usd:5,exposure_usd:.89875,remaining_usd:4.10125},quote:null,capabilities:{quote:true},first_animation:{locked:true,status:'SUCCEEDED'}});
+ return {cp,make};
+}
+async function transitionUi(initial,{reduced=false,playing=false}={}){
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),events=[],elements=new Map();
+ const element=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',hidden:false,open:false,querySelector:()=>({}),
+  focus:o=>events.push({focus:o}),scrollIntoView:o=>events.push({scroll:o}),showModal(){this.open=true;events.push({dialog:true});},close(){this.open=false;}});return elements.get(id);};
+ const ctx={document:{querySelector:element,querySelectorAll:()=>playing?[{paused:false}]:[],addEventListener(){}},window:{matchMedia:()=>({matches:reduced})},
+  localStorage:{getItem:()=> 'pending',setItem(){}},setInterval(){},setTimeout(){},clearTimeout(){},initial};
+ runInNewContext(js.replace('navigation();login();','')+`
+  state=initial;csrf='offline';tab='produccion';
+  globalThis.ui={production,quoteCard,render,refresh,confirmSpend,prepareSpend,
+   getState:()=>state,setState:v=>state=v,setRequest:f=>request=f,setSubmit:f=>submit=f};`,ctx);
+ return {ui:ctx.ui,events,elements};
+}
+test('Q41_COMPLETE_UI Q42_PENDING_UI NO_STALE_Q41_CONTROLS SHOT_PROGRESS BUTTON_POSITION SESSION_REOPEN',async()=>{
+ const f=await transitionFixture(),v=f.make(),{ui}=await transitionUi(v),html=ui.production();
+ assert.match(html,/Toma 1 · Completada/);assert.match(html,/Aprobación humana conservada/);assert.match(html,/src="\/original"/);
+ assert.match(html,/Escena 2/);assert.match(html,/Asociar vaca con muu/);assert.match(html,/marketing-studio\/image/);
+ assert.match(html,/Lumi, Vaca, Oveja, Gallina/);assert.match(html,/cámara fija/);assert.match(html,/preparar|Preparar siguiente imagen/);
+ assert.equal((html.match(/data-action="prepare"/g)||[]).length,1);
+ assert.ok(html.indexOf('id="next-action"')>html.indexOf('</ol>'));
+ assert.match(html,/<\/ol><div id="next-action"/);
+ assert.doesNotMatch(html,/Una primera chispa|Primera animación|Consultar precio|Renovar cotización|data-action="first_animation"/);
+ assert.doesNotMatch(html,/data-action="generate"|data-action="authorize"/);
+});
+test('DYNAMIC_STAGE_RENDERING: all six q42 stages derive from the durable action and approved AV2 goal',async()=>{
+ const f=await transitionFixture(),titles=['Preparar siguiente imagen','Verificar imagen para animación','Preparar dirección cinematográfica','Generar animación','Verificar calidad del clip','Revisar animación'];
+ for(const [i,stage] of ['image','source_qa','director','video','temporal_qa','shot_review'].entries()){
+  f.cp.first_pending_action=stage+':q42';const v=f.make();assert.equal(v.production.action.title,titles[i]);assert.equal(v.production.current_shot,'q42');
+  assert.equal(v.production.shots[0].complete,true);assert.equal(v.production.shots[1].goal,'Asociar vaca con muu.');
+  assert.equal(v.production.shots[1].stages.filter(s=>s.current).length,1);
+ }
+});
+test('CHECKPOINT_REFRESH AUTO_SCROLL: completed stage updates even while old video plays; reduced motion and focus respected',async()=>{
+ for(const reduced of [false,true]){
+  const f=await transitionFixture();f.cp.first_pending_action='shot_review:q41';const {ui,events}=await transitionUi(f.make(),{reduced,playing:true});
+  f.cp.first_pending_action='image:q42';ui.setRequest(async()=>f.make());await ui.refresh();
+  assert.equal(ui.getState().production.current_shot,'q42');assert.equal(events.find(e=>e.focus).focus.preventScroll,true);
+  assert.equal(events.find(e=>e.scroll).scroll.behavior,reduced?'auto':'smooth');
+ }
+});
+test('AUTOMATIC_QUOTE AUTH_SECURITY: expired spend opens fresh preparation, never extends the previous authorization',async()=>{
+ const f=await transitionFixture(),v=f.make();v.quote={quote_id:'expired-q42',expires_at:'2000-01-01T00:00:00Z',status:'QUOTE_EXPIRED'};
+ const {ui}=await transitionUi(v),calls=[];ui.setSubmit(async kind=>calls.push(kind));await ui.confirmSpend('generate');
+ assert.deepEqual(calls,['quote']);
+});

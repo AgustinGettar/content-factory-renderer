@@ -1342,6 +1342,26 @@ test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK CONTINUE_PRODUCTION TEMPORAL_Q
  // Recover a late durable completion after loss of the HTTP/process response.
  const lost=await f.reviewStore.get('1');lost.state.mini_app.operations[blocked.operation.id].status='RUNNING';await f.reviewStore.cas('1',lost.revision,lost.state);
  assert.equal((await restarted.view(principal)).operation.status,'COMPLETE');assert.deepEqual(await f.store.getEpisode(episode),after);
+ // Complete the local shot receipt and prepare q42 with its own quote. No q42
+ // generation is authorized, even though q41 has a completed spend decision.
+ const finish=await restarted.enqueue(principal,'continue',{expected_action:after.first_pending_action,checkpoint_version:after.metadata.runtime_revision});await finish.dispatch();
+ const q42=await restarted.view(principal),checkpoint=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]);
+ assert.equal(q42.episode.next_action,'image:q42');assert.equal(q42.production.current_shot,'q42');
+ assert.equal(q42.production.shots[0].complete,true);assert.equal(q42.production.action.title,'Preparar siguiente imagen');
+ assert.equal(q42.quote,null);assert.equal(q42.capabilities.generate,false);assert.equal(q42.first_animation.available,false);
+ assert.ok(q42.media.some(m=>m.shot_id==='q41'&&m.role==='clip'&&m.approved));
+ const scope={expected_action:'image:q42',checkpoint_version:checkpoint.metadata.runtime_revision};
+ for(const kind of ['quote','authorize','generate'])await assert.rejects(restarted.enqueue(principal,kind,{expected_action:'video:q41',checkpoint_version:cp.metadata.runtime_revision}),/STAGE_CHANGED/);
+ await assert.rejects(restarted.enqueue(principal,'quote',{}),/STAGE_CHANGED/);
+ const [qa,qb]=await Promise.all([restarted.enqueue(principal,'quote',scope),restarted.enqueue(principal,'quote',scope)]);
+ assert.equal(qa.operation.id,qb.operation.id);await Promise.all([qa.dispatch(),qb.dispatch()]);
+ const quoted=await restarted.view(principal);assert.equal(quoted.operation.status,'COMPLETE',JSON.stringify(quoted.operation));
+ assert.equal(quoted.quote.action_key,'image:q42');assert.equal(quoted.quote.model,'marketing-studio/image');
+ assert.equal(quoted.quote.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(quoted.capabilities.generate,false);
+ await assert.rejects(restarted.enqueue(principal,'generate',{...scope,quote_id:quoted.quote.quote_id,quote_sha:quoted.quote.quote_sha,confirm:true}),/SPEND_APPROVAL/);
+ assert.equal(f.quotes.at(-1).url,'https://api.higgsfield.ai/estimate/marketing-studio/image');
+ assert.deepEqual(await f.store.getEpisode(episode),checkpoint);assert.deepEqual([...f.journalRows],journal);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);assert.equal(emitted,1);
 });
 test('ONETAP MAX_RESERVATION BUDGET_GATE: excess, credits and unconfirmed quotes cannot reserve or emit',async t=>{
  for(const options of [{quoteUsd:.44801},{quoteUsd:6},{mode:'credits'},{mode:'expired'}]){

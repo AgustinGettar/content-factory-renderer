@@ -1,6 +1,6 @@
 const api='/lumi/studio/api',tg=window.Telegram?.WebApp;
 const root=document.querySelector('#app'),nav=document.querySelector('#navigation'),dialog=document.querySelector('#confirmation');
-let state=null,csrf=null,tab='inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false,mutationEpoch=0;
+let state=null,csrf=null,tab='inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false,mutationEpoch=0,progressMessage='',progressRequested=false;
 const intentKey='lumi:first-animation:ep004:q41';
 let generationIntent=false;
 try{generationIntent=localStorage.getItem(intentKey)==='pending';}catch{/* Server lock remains authoritative. */}
@@ -16,13 +16,15 @@ function unresolvedIntent(){
 }
 const actionStatusText={QUOTE_PENDING:'Consultando precio…',AUTHORIZATION_PENDING:'Guardando tu autorización…',AUTHORIZED:'Autorización registrada.',
  PREPARING:'Preparando imagen…',RESERVED:'Preparando imagen…',EMITTING:'Generando imagen…',SUBMITTED:'Generando imagen…',PROCESSING:'Generando imagen…',
- FAILED_CONFIRMED:'La generación fue rechazada. Requiere recuperación y una nueva autorización.',AMBIGUOUS:'Necesitamos verificar la operación anterior.',SUCCEEDED:'Imagen guardada.',AWAITING_HUMAN_REVIEW:'Imagen lista para revisar.'};
+ FAILED_CONFIRMED:'La generación fue rechazada. Requiere recuperación y una nueva autorización.',AMBIGUOUS:'Estamos verificando tu solicitud anterior.',SUCCEEDED:'Imagen guardada.',AWAITING_HUMAN_REVIEW:'Imagen lista para revisar.'};
 const paths={inicio:'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',videos:'M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm4 4 7 4-7 4Z',produccion:'m12 3 2.4 5.5L20 11l-5.6 2.5L12 19l-2.4-5.5L4 11l5.6-2.5ZM20 3v4m-2-2h4',ajustes:'M5 4v16M12 4v16M19 4v16M2 9h6m1 6h6m1-7h6'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name]||paths.produccion}"/></svg>`;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const usd=n=>n===null||n===undefined?'Sin verificar':'USD '+Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:6});
 const busy=()=>sending||state?.operation&&['QUEUED','RUNNING','RECOVERY_REQUIRED'].includes(state.operation.status);
-const button=(text,action,style='primary',disabled=false)=>`<button class="button ${style}" data-action="${action}" ${disabled||busy()?'disabled':''}>${text}</button>`;
+const button=(text,action,style='primary',disabled=false)=>`<button class="button ${style}" data-action="${action}" ${action!=='refresh'&&(disabled||sending||busy()&&action!=='recover')?'disabled':''}>${text}</button>`;
+const progressControl=()=>`<button type="button" class="button secondary progress-readonly" data-action="refresh">Actualizar progreso ↻</button><p class="budget-note" role="status" aria-live="polite" data-progress-status>${esc(progressMessage||'Consulta segura del estado guardado.')}</p>`;
+function progressFeedback(message){progressMessage=message;for(const n of document.querySelectorAll('[data-progress-status]'))n.textContent=message;}
 const source=()=>state?.media.find(m=>m.episode===state.episode.id&&m.role==='source');
 const frame=m=>m?`<div class="media-frame">${m.mime==='video/mp4'?`<video controls playsinline preload="metadata" src="${esc(m.url)}" aria-label="${esc(m.label)}"></video>`:`<img src="${esc(m.url)}" alt="${esc(m.label)}" loading="lazy">`}</div>`:'';
 const row=(a,b)=>`<div class="row"><span>${a}</span><strong>${b}</strong></div>`;
@@ -60,10 +62,11 @@ function quoteCard(){const q=state.quote,c=state.capabilities,g=state.current_ac
   if(state.episode.next_action==='image:q42'&&second?.available)return `<section class="card quote-card"><span class="tag green">Autorización económica disponible</span><h2>Escena 2 — La vaca</h2>${row('Reserva máxima',usd(second.max_reservation_usd))}<p>Un único clic prepara la imagen, comprueba el precio vigente y continúa dentro del límite autorizado.</p>${button('Generar segunda imagen','second_image')}<p class="budget-note">La reserva interna no garantiza el cobro máximo del proveedor.</p></section>`;
   if(state.episode.next_action==='image:q42'&&g?.operations?.some(o=>o.kind==='second_image')){
     const op=g.operations.find(o=>o.kind==='second_image');
-    if(op.status==='BLOCKED'&&/LIMIT|BUDGET/.test(op.error||''))return '<section class="card"><h3 role="status">El precio o el presupuesto supera la autorización.</h3><p>Necesitamos una nueva autorización específica antes de continuar. No se enviará otra generación.</p><button class="button secondary" data-action="refresh">Actualizar progreso</button></section>';
+    if(op.status==='BLOCKED'&&/LIMIT|BUDGET/.test(op.error||''))return `<section class="card"><h3 role="status">El precio o el presupuesto supera la autorización.</h3><p>Necesitamos una nueva autorización específica antes de continuar. Lumi no enviará otra generación.</p>${progressControl()}</section>`;
     const phaseText=({VERIFYING_SOURCE:'Preparando imagen…',QUOTING:'Verificando precio…',BUDGET_CHECK:'Comprobando presupuesto…',DISPATCHING:'Comprobando presupuesto…',GENERATING:'Generando imagen…',REVIEW_READY:'Imagen lista para revisar.'})[g.phase];
-    const text=['SUCCEEDED','AWAITING_HUMAN_REVIEW','AMBIGUOUS','FAILED_CONFIRMED'].includes(g.status)?actionStatusText[g.status]:phaseText||actionStatusText[g.status];
-    return `<section class="card"><h3 role="status">${esc(text||'Verificando la operación original…')}</h3><p>Conservamos esta misma operación al cerrar y reabrir Telegram.</p>${['AMBIGUOUS','FAILED_CONFIRMED'].includes(g.status)?'<p>La operación requiere revisión antes de continuar. No se enviará otra generación.</p>':''}<button class="button secondary" data-action="refresh">Actualizar progreso</button></section>`;
+    const text=['SUBMITTED','PROCESSING','SUCCEEDED','AWAITING_HUMAN_REVIEW','AMBIGUOUS','FAILED_CONFIRMED'].includes(g.status)?actionStatusText[g.status]:phaseText||actionStatusText[g.status];
+    const reason=g.status==='AMBIGUOUS'&&op.error==='Q41_EMISSION_BINDING_CHANGED'?'La validación final de la solicitud no se completó. No hay una respuesta confirmada del proveedor. Necesitamos recuperar evidencia de esta misma operación.':g.status==='AMBIGUOUS'?'Todavía no tenemos confirmación del proveedor. La operación requiere recuperación antes de continuar.':g.status==='FAILED_CONFIRMED'?'El proveedor rechazó la solicitud. Hace falta revisar ese resultado antes de continuar.':'';
+    return `<section class="card"><h3 role="status">${esc(text||'Verificando la operación original…')}</h3><p>Lumi no enviará otra generación.</p>${reason?`<p>${esc(reason)}</p>`:''}${progressControl()}${c.recover?button('Recuperar imagen original','recover','secondary'):''}</section>`;
   }
   if(g?.locked&&!['QUOTED','AUTHORIZED'].includes(g.status)&&state.episode.next_action!=='video:q41')return `<section class="card"><h3 role="status">${esc((actionStatusText[g.status]||'Verificando la operación guardada…').replace(/imagen/g,state.production?.action?.stage==='VIDEO'?'animación':'imagen'))}</h3><p>Conservamos la operación original. No se enviará otra generación.</p>${c.recover?'<button class="button secondary" data-action="recover" '+(sending?'disabled':'')+'>Recuperar imagen original</button>':state.reviews.length?'':'<button class="button secondary" data-action="refresh">Actualizar estado</button>'}</section>`;
   if(g?.status==='AUTHORIZED'&&(g.authorization_expired||q?.status==='QUOTE_EXPIRED'))return `<section class="card"><h3>Autorización registrada.</h3><p>La generación no se inició. El precio venció antes de confirmar el envío. Al continuar, Lumi comprobará el precio automáticamente y te pedirá una autorización nueva.</p>${button('Continuar preparación guardada','prepare','primary',!c.renew_quote)}</section>`;
@@ -99,7 +102,9 @@ function render(){navigation();if(!state)return;root.innerHTML=({inicio:home,vid
 
 function countdown(){if(!state?.quote)return;const q=state.quote,n=document.querySelector('#quote-countdown');if(n)n.textContent=Math.max(0,Math.ceil((Date.parse(q.expires_at)-Date.now()-serverOffset)/1000))+' s';if(Date.parse(q.expires_at)<=Date.now()+serverOffset&&['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status)){state.quote.status='QUOTE_EXPIRED';state.capabilities.authorize=false;state.capabilities.generate=false;if(!state.current_action?.emission_locked&&['QUOTED','AUTHORIZED'].includes(state.current_action?.status))state.capabilities.renew_quote=true;render();}}
 function authScreen(message){state=null;root.innerHTML=`<section class="welcome"><div class="auth-symbol">✦</div><span class="eyebrow">BIENVENIDO A LUMI STUDIO</span><h1>Tu próxima historia<br>empieza en Telegram.</h1><p>${esc(message)}</p>${button('Volver a comprobar acceso','login','secondary')}<small>Acceso privado al estudio de Lumi.</small></section>`;navigation();}
-async function refresh(){if(polling||!csrf)return;polling=true;const epoch=mutationEpoch;let superseded=false;
+async function refresh({manual=false}={}){
+  if(manual){progressRequested=true;progressFeedback('Consultando progreso guardado…');}
+  if(polling||!csrf)return;polling=true;const epoch=mutationEpoch;let superseded=false,feedback='Progreso actualizado. La operación original se conserva.';
   try{const next=await request('/state');
     if(epoch!==mutationEpoch){superseded=true;return;}
     if(state&&(Number(next.review_revision??0)<Number(state.review_revision??0)||Number(next.episode.checkpoint_version??0)<Number(state.episode.checkpoint_version??0)))return;
@@ -110,8 +115,8 @@ async function refresh(){if(polling||!csrf)return;polling=true;const epoch=mutat
     const advanced=state&&next.episode.next_action!==state.episode.next_action;
     if(advanced){pendingSpend=null;if(dialog.open)dialog.close();scrollPending=true;}
     state=next;if(actionIntent&&!unresolvedIntent())saveActionIntent(null);if((!playing||advanced)&&(changed||mediaExpiring||!root.querySelector('.page-intro')))render();
-    finishPreparation();
-  }catch(e){if(epoch!==mutationEpoch){superseded=true;return;}if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;if(superseded)await refresh();}}
+    // Progress reads never start preparation, quote renewal or recovery.
+  }catch(e){if(epoch!==mutationEpoch){superseded=true;return;}feedback='No pudimos consultar el progreso. Podés volver a actualizar; el bloqueo se conserva.';if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;if(superseded)await refresh();else if(progressRequested){progressRequested=false;progressFeedback(feedback);}}}
 async function login(){try{let s;try{s=await request('/session');}catch(e){if(e.status!==401)throw e;if(!tg?.initData)return authScreen('Abrí esta aplicación desde «Abrir Lumi Studio» en el menú del bot.');s=await request('/auth',{method:'POST',body:{initData:tg.initData}});}csrf=s.csrf;await refresh();}catch(e){authScreen(errorText(e));}}
 async function submit(kind,extra={}){if(sending||busy()&&!['resume','recover'].includes(kind))return;
   if(['quote','authorize','generate','second_image'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
@@ -152,7 +157,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab]
   if(t.dataset.tab){tab=t.dataset.tab;render();window.scrollTo({top:0});tg?.HapticFeedback?.selectionChanged();return;}
   if(t.dataset.review){const r=state.reviews.find(r=>r.id===t.dataset.review);if(!r)return;
     return submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:t.dataset.decision,full_playback:!!document.querySelector('#playback-check')?.checked,source_comparison:!!document.querySelector('#source-check')?.checked});}
-  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh();if(a==='prepare')return prepareSpend();if(a==='first_animation'||a==='second_image')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
+  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh({manual:true});if(a==='prepare')return prepareSpend();if(a==='first_animation'||a==='second_image')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
 document.querySelector('#dialog-cancel').onclick=()=>dialog.close();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 try{tg?.ready();tg?.expand();tg?.setHeaderColor('#f6f7fb');tg?.setBackgroundColor('#f6f7fb');tg?.onEvent('activated',refresh);}catch{/* Older Telegram clients still support ordinary navigation. */}

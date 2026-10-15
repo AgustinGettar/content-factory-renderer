@@ -1741,10 +1741,52 @@ test('Q42_ONE_TAP PROVIDER_AMBIGUITY SESSION_REOPEN: lost acknowledgement stays 
 test('Q42_ONE_TAP SESSION_REOPEN ORIGINAL_RESULT: original image reaches review after backend restart with q41 preserved',async t=>{
  const f=await secondImageFixture(t),before=structuredClone(f.checkpoint.metadata.review_requests),v=await f.submit('second_image',{confirm:true});
  const restarted=await f.restart(),principal=await f.reopen(),after=await restarted.view(principal);assert.equal(after.operation.id,v.operation.id);
- await restarted.recoverFirstAnimation(principal,v.operation.id);assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);
+ const recovery=await restarted.enqueue(principal,'recover',{});assert.equal(recovery.operation.id,v.operation.id);await recovery.dispatch();assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);
  f.control.ready=true;await restarted.recoverFirstAnimation(principal,v.operation.id);
  const ready=await restarted.view(principal);assert.equal(ready.current_action.status,'AWAITING_HUMAN_REVIEW',JSON.stringify(ready.operation));
  assert.equal(ready.operation.phase,'REVIEW_READY');assert.equal(f.control.emitted,1);assert.equal(ready.second_image.available,false);
+ await f.edit(s=>{Object.assign(s.mini_app.operations[v.operation.id],{status:'RUNNING',phase:'GENERATING'});});
+ const reviewBeforeRead=await f.reviewStore.get('1'),cpBeforeRead=await f.store.getEpisode(episode);
+ assert.equal((await restarted.view(principal)).operation.status,'COMPLETE');
+ assert.deepEqual(await f.reviewStore.get('1'),reviewBeforeRead);assert.deepEqual(await f.store.getEpisode(episode),cpBeforeRead);
  for(const [id,r] of Object.entries(before))assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests[id],r);
  const duplicate=await restarted.enqueue(principal,'second_image',{confirm:true});await duplicate.dispatch();assert.equal(f.control.emitted,1);
+});
+
+test('READ_ONLY_PROGRESS PROVIDER_JOURNAL_RECONCILIATION CAS_CONFLICT SESSION_REOPEN: authenticated state GET never writes, polls or schedules recovery',async t=>{
+ const f=await secondImageFixture(t),v=await f.submit('second_image',{confirm:true});
+ for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);f.service.recoveryTimers.clear();
+ await f.edit(s=>{Object.assign(s.mini_app.operations[v.operation.id],{status:'BLOCKED',phase:'DISPATCHING',error:'Q41_EMISSION_BINDING_CHANGED'});});
+ const {mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js'),routes=new Map();
+ const mounted=mountMiniApp({get:(path,fn)=>routes.set('GET '+path,fn),post(){},use(){}},{db:{},store:f.reviewStore,adapter:f.videoAdapter,production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:f.miniEnv,configureEntry:false});
+ mounted.service.scheduleRecovery=()=>{throw Error('READ_SCHEDULED_RECOVERY');};
+ f.reviewStore.cas=async()=>{throw Error('READ_ATTEMPTED_CAS');};
+ const attempt=(await f.store.getEpisode(episode)).actions.find(a=>a.key==='image:q42').active_attempt_id,original=structuredClone(f.journalRows.get(attempt));
+ for(const state of ['PREPARED','EMITTING','EMISSION_UNKNOWN','ACKNOWLEDGED']){
+  f.journalRows.set(attempt,{...structuredClone(original),state,...(state==='ACKNOWLEDGED'?{}:{provider_request_id:null,response_metadata:null})});
+  const before=await f.reviewStore.get('1'),cp=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]),quotes=f.quotes.length,polls=f.control.polls;
+  for(let i=0;i<3;i++){
+   const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+   await routes.get('GET /lumi/studio/api/state')({method:'GET',headers:{cookie:'__Secure-lumi_studio='+f.login.cookie}},res);
+   assert.equal(res.code,200,JSON.stringify(res.value));assert.equal(res.value.current_action.emission_locked,true);assert.equal(res.value.second_image.available,false);
+   assert.equal(res.value.current_action.operation_id,v.operation.id);
+  }
+  assert.deepEqual(await f.reviewStore.get('1'),before);assert.deepEqual(await f.store.getEpisode(episode),cp);assert.deepEqual([...f.journalRows],journal);
+  assert.equal(f.control.polls,polls);assert.equal(f.control.emitted,1);assert.equal(f.quotes.length,quotes);assert.equal(mounted.service.recoveryTimers.size,0);
+ }
+});
+
+test('Q42_ORIGINAL_OPERATION_RECOVERY PRE_SEND_QUOTE_EXPIRY BUDGET_PRESERVATION Q41_APPROVAL_PRESERVATION: local guard failure retains ambiguous evidence without another send',async t=>{
+ const f=await secondImageFixture(t),before=structuredClone(f.checkpoint.metadata.review_requests);
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ const transition=f.journal.transition;
+ f.journal.transition=async(id,from,patch)=>{const result=await transition(id,from,patch);if(patch.state==='EMITTING')t.mock.timers.tick(61000);return result;};
+ const v=await f.submit('second_image',{confirm:true});
+ assert.equal(v.operation.error,'Q41_EMISSION_BINDING_CHANGED');assert.equal(v.current_action.status,'AMBIGUOUS');assert.equal(f.control.emitted,0);
+ const cp=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]);assert.equal(cp.metadata.budget_reservations['image:q42'].amount_usd,.3275);
+ const restarted=await f.restart(),p=await f.reopen();
+ const a=await restarted.enqueue(p,'second_image',{confirm:true});await a.dispatch();assert.equal(a.operation.id,v.operation.id);
+ await assert.rejects(restarted.enqueue(p,'recover',{}),/ORIGINAL_JOB_UNVERIFIED/);
+ await restarted.view(p);assert.equal(f.control.emitted,0);assert.equal(f.control.polls,0);assert.deepEqual([...f.journalRows],journal);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);for(const [id,r] of Object.entries(before))assert.deepEqual(cp.metadata.review_requests[id],r);
 });

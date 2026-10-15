@@ -263,3 +263,27 @@ test('Q42_ONE_TAP_UI DURABLE_AUTHORIZATION STALE_RESPONSE DOUBLE_CLICK SESSION_R
   const testUi=await transitionUi(locked);assert.ok(testUi.ui.quoteCard().includes(text));assert.doesNotMatch(testUi.ui.quoteCard(),/data-action="second_image"/);
  }
 });
+
+test('READ_ONLY_PROGRESS PROGRESS_WHILE_BLOCKED PROGRESS_DURING_AMBIGUITY NETWORK_TIMEOUT STALE_RESPONSE: refresh stays active and never prepares spending',async()=>{
+ const f=await transitionFixture(),base=f.make();
+ base.second_image={available:false};base.operation={id:'original',kind:'second_image',status:'RUNNING'};
+ base.current_action={emission_locked:true,locked:true,operations:[{id:'original',kind:'second_image',status:'BLOCKED',error:'Q41_EMISSION_BINDING_CHANGED'}]};
+ for(const status of ['QUOTE_PENDING','AUTHORIZED','RESERVED','EMITTING','SUBMITTED','PROCESSING','AMBIGUOUS','FAILED_CONFIRMED','SUCCEEDED','AWAITING_HUMAN_REVIEW']){
+  const v=structuredClone(base);v.current_action.status=status;v.current_action.phase='DISPATCHING';
+  const {ui}=await transitionUi(v),html=ui.quoteCard();
+  assert.match(html,/data-action="refresh"/);assert.doesNotMatch(html,/<button[^>]*data-action="refresh"[^>]*disabled/);
+  assert.doesNotMatch(html,/data-action="(?:second_image|generate|authorize|prepare)"/);
+  if(['SUBMITTED','PROCESSING'].includes(status)){assert.match(html,/Generando imagen/);assert.doesNotMatch(html,/No hay una respuesta confirmada/);}
+ }
+ const v=structuredClone(base);v.current_action.status='AMBIGUOUS';v.review_revision=706;
+ const {ui}=await transitionUi(v);let gets=0,release;
+ ui.setRequest(async(path,options)=>{assert.equal(path,'/state');assert.equal(options,undefined);gets++;return new Promise(resolve=>release=resolve);});
+ ui.setSubmit(()=>{throw Error('READ_TRIGGERED_MUTATION');});
+ const first=ui.refresh({manual:true});await ui.refresh({manual:true});assert.equal(gets,1);
+ release(structuredClone(v));await first;assert.equal(ui.getState().current_action.emission_locked,true);
+ ui.setRequest(async()=>{throw Object.assign(Error('timeout'),{name:'AbortError'});});await ui.refresh({manual:true});
+ assert.doesNotMatch(ui.quoteCard(),/<button[^>]*data-action="refresh"[^>]*disabled/);
+ const stale=structuredClone(v);stale.review_revision=705;stale.current_action.emission_locked=false;
+ ui.setRequest(async()=>stale);await ui.refresh({manual:true});assert.equal(ui.getState().review_revision,706);assert.equal(ui.getState().current_action.emission_locked,true);
+ ui.setRequest(async()=>structuredClone(v));await ui.refresh({manual:true});assert.match(ui.quoteCard(),/Progreso actualizado/);
+});

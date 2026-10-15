@@ -1384,6 +1384,22 @@ test('DURABLE_LOCK PERSISTENT_LOCK: another active UI operation cannot hide or r
  const duplicate=await f.service.enqueue(f.principal,'first_animation',{confirm:true});await duplicate.dispatch();
  assert.equal(duplicate.operation.id,a.operation.id);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
 });
+test('DURABLE_LOCK CAS_TERMINAL_RACE: stale reads cannot create another operation after the original completes',async t=>{
+ for(const kind of ['first_animation','generate','quote']){
+  const f=await oneTapFixture(t);let body=kind==='first_animation'?{confirm:true}:{};
+  if(kind==='generate'){
+   const q=(await f.submit('quote')).quote;body={quote_id:q.quote_id,quote_sha:q.quote_sha,confirm:true};await f.submit('authorize',body);
+  }
+  const context=f.service.context.bind(f.service);let inject=true;
+  f.service.context=async p=>{const old=await context(p);if(inject){inject=false;
+   await f.edit(s=>{s.mini_app.operations.original={id:'original',kind:kind==='first_animation'?'generate':'first_animation',status:'COMPLETE',binding:{next_action:'video:q41'}};s.mini_app.active_operation='original';});
+  }return old;};
+  if(kind==='quote')await assert.rejects(f.service.enqueue(f.principal,kind,body),/GENERATION_LOCKED/);
+  else {const duplicate=await f.service.enqueue(f.principal,kind,body);assert.equal(duplicate.operation.id,'original');await duplicate.dispatch();}
+  const operations=Object.values((await f.reviewStore.get('1')).state.mini_app.operations);
+  assert.equal(operations.filter(o=>['first_animation','generate'].includes(o.kind)).length,1);assert.equal(f.emitted.length,0);
+ }
+});
 test('DURABLE_LOCK SESSION_REOPEN RENDER_RESTART: a new authenticated device recovers the original job and budget',async t=>{
  const f=await oneTapFixture(t),v=await f.submit('first_animation',{confirm:true}),before=await f.manager.budgetExposure({episodeId:episode});
  const params=new URLSearchParams({auth_date:String(Math.floor(Date.now()/1000)),query_id:'second-device',user:JSON.stringify({id:1})});

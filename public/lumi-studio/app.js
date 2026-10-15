@@ -12,7 +12,7 @@ try{actionIntent=JSON.parse(localStorage.getItem(actionIntentKey)||'null');}catc
 function saveActionIntent(value){actionIntent=value;try{localStorage.setItem(actionIntentKey,JSON.stringify(value));}catch{/* Keep the in-memory intent. */}}
 function unresolvedIntent(){
  if(!actionIntent||actionIntent.action!==state?.episode.next_action||state.current_action?.emission_locked)return false;
- return !state.current_action?.operations?.some(o=>o.kind===actionIntent.kind&&o.quote_id===actionIntent.quote_id);
+ return !state.current_action?.operations?.some(o=>o.kind===actionIntent.kind&&(actionIntent.kind==='second_image'||o.quote_id===actionIntent.quote_id));
 }
 const actionStatusText={QUOTE_PENDING:'Consultando precio…',AUTHORIZATION_PENDING:'Guardando tu autorización…',AUTHORIZED:'Autorización registrada.',
  PREPARING:'Preparando imagen…',RESERVED:'Preparando imagen…',EMITTING:'Generando imagen…',SUBMITTED:'Generando imagen…',PROCESSING:'Generando imagen…',
@@ -42,7 +42,8 @@ function errorText(e){
 }
 function navigation(){nav.innerHTML=Object.keys(paths).map(k=>`<button data-tab="${k}" class="${tab===k?'active':''}" ${tab===k?'aria-current="page"':''}>${icon(k)}<span>${({inicio:'Inicio',videos:'Videos',produccion:'Producción',ajustes:'Ajustes'})[k]}</span></button>`).join('');}
 function banner(){const op=state.operation;if(!op||op.status==='COMPLETE')return '';
-  if(op.kind==='first_animation'){
+  if(op.kind==='first_animation'||op.kind==='second_image'){
+    if(op.kind==='second_image')return ''; // Its durable phase is shown once, beneath scene progress.
     const text=({VERIFYING_SOURCE:'Preparando animación…',QUOTING:'Consultando precio…',BUDGET_CHECK:'Verificando presupuesto…',DISPATCHING:'Enviando a Kling…',GENERATING:'Generando video…',REVIEW_READY:'Video preparado para tu revisión'})[op.phase]||'Consultando el estado guardado…';
     if(op.status==='BLOCKED'||op.status==='RECOVERY_REQUIRED')return '<div class="alert">La animación está detenida de forma segura. No se repetirá la solicitud. '+(/LIMIT|BUDGET/.test(op.error||'')?'El precio o presupuesto requiere una nueva autorización.':'Hay que revisar el resultado de la operación guardada antes de continuar.')+'</div>';
     return `<div class="async-banner" role="status"><div><strong>${text}</strong><p>Podés cerrar y reabrir el estudio. Conservamos esta misma operación.</p></div></div>`;
@@ -54,7 +55,16 @@ function banner(){const op=state.operation;if(!op||op.status==='COMPLETE')return
 }
 function budgetCard(){const b=state.budget;return `<section class="card"><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Costo real no verificado. La exposición incluye importes reservados pendientes de conciliación.</p></section>`;}
 function quoteCard(){const q=state.quote,c=state.capabilities,g=state.current_action;
+  const second=state.second_image;
   if(unresolvedIntent())return '<section class="card"><h3>Verificando la acción enviada…</h3><p>Esperamos su registro guardado antes de permitir otra acción. Podés cerrar y reabrir el estudio.</p><button class="button secondary" data-action="refresh">Actualizar estado</button></section>';
+  if(state.episode.next_action==='image:q42'&&second?.available)return `<section class="card quote-card"><span class="tag green">Autorización económica disponible</span><h2>Escena 2 — La vaca</h2>${row('Reserva máxima',usd(second.max_reservation_usd))}<p>Un único clic prepara la imagen, comprueba el precio vigente y continúa dentro del límite autorizado.</p>${button('Generar segunda imagen','second_image')}<p class="budget-note">La reserva interna no garantiza el cobro máximo del proveedor.</p></section>`;
+  if(state.episode.next_action==='image:q42'&&g?.operations?.some(o=>o.kind==='second_image')){
+    const op=g.operations.find(o=>o.kind==='second_image');
+    if(op.status==='BLOCKED'&&/LIMIT|BUDGET/.test(op.error||''))return '<section class="card"><h3 role="status">El precio o el presupuesto supera la autorización.</h3><p>Necesitamos una nueva autorización específica antes de continuar. No se enviará otra generación.</p><button class="button secondary" data-action="refresh">Actualizar progreso</button></section>';
+    const phaseText=({VERIFYING_SOURCE:'Preparando imagen…',QUOTING:'Verificando precio…',BUDGET_CHECK:'Comprobando presupuesto…',DISPATCHING:'Comprobando presupuesto…',GENERATING:'Generando imagen…',REVIEW_READY:'Imagen lista para revisar.'})[g.phase];
+    const text=['SUCCEEDED','AWAITING_HUMAN_REVIEW','AMBIGUOUS','FAILED_CONFIRMED'].includes(g.status)?actionStatusText[g.status]:phaseText||actionStatusText[g.status];
+    return `<section class="card"><h3 role="status">${esc(text||'Verificando la operación original…')}</h3><p>Conservamos esta misma operación al cerrar y reabrir Telegram.</p>${['AMBIGUOUS','FAILED_CONFIRMED'].includes(g.status)?'<p>La operación requiere revisión antes de continuar. No se enviará otra generación.</p>':''}<button class="button secondary" data-action="refresh">Actualizar progreso</button></section>`;
+  }
   if(g?.locked&&!['QUOTED','AUTHORIZED'].includes(g.status)&&state.episode.next_action!=='video:q41')return `<section class="card"><h3 role="status">${esc((actionStatusText[g.status]||'Verificando la operación guardada…').replace(/imagen/g,state.production?.action?.stage==='VIDEO'?'animación':'imagen'))}</h3><p>Conservamos la operación original. No se enviará otra generación.</p>${c.recover?'<button class="button secondary" data-action="recover" '+(sending?'disabled':'')+'>Recuperar imagen original</button>':state.reviews.length?'':'<button class="button secondary" data-action="refresh">Actualizar estado</button>'}</section>`;
   if(g?.status==='AUTHORIZED'&&(g.authorization_expired||q?.status==='QUOTE_EXPIRED'))return `<section class="card"><h3>Autorización registrada.</h3><p>La generación no se inició. El precio venció antes de confirmar el envío. Al continuar, Lumi comprobará el precio automáticamente y te pedirá una autorización nueva.</p>${button('Continuar preparación guardada','prepare','primary',!c.renew_quote)}</section>`;
 
@@ -104,9 +114,10 @@ async function refresh(){if(polling||!csrf)return;polling=true;const epoch=mutat
   }catch(e){if(epoch!==mutationEpoch){superseded=true;return;}if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;if(superseded)await refresh();}}
 async function login(){try{let s;try{s=await request('/session');}catch(e){if(e.status!==401)throw e;if(!tg?.initData)return authScreen('Abrí esta aplicación desde «Abrir Lumi Studio» en el menú del bot.');s=await request('/auth',{method:'POST',body:{initData:tg.initData}});}csrf=s.csrf;await refresh();}catch(e){authScreen(errorText(e));}}
 async function submit(kind,extra={}){if(sending||busy()&&!['resume','recover'].includes(kind))return;
-  if(['quote','authorize','generate'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
+  if(['quote','authorize','generate','second_image'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
+  if(kind==='second_image'&&(!state.second_image?.available||state.current_action?.emission_locked))return refresh();
   if(kind==='first_animation')rememberGenerationIntent();
-  if(['quote','authorize','generate'].includes(kind))saveActionIntent({action:state.episode.next_action,kind,quote_id:state.quote?.quote_id??null});
+  if(['quote','authorize','generate','second_image'].includes(kind))saveActionIntent({action:state.episode.next_action,kind,quote_id:kind==='second_image'?null:state.quote?.quote_id??null});
   mutationEpoch++;sending=true;render();toast(kind==='first_animation'?'Preparando animación…':kind==='quote'?'Consultando precio…':'Guardando tu acción…');
   try{const q=state.quote;await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...(['continue','quote','authorize','generate'].includes(kind)?{expected_action:state.episode.next_action,checkpoint_version:state.episode.checkpoint_version}:{}),...extra}});
     // Action responses can arrive after a newer checkpoint. Only /state may
@@ -141,7 +152,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab]
   if(t.dataset.tab){tab=t.dataset.tab;render();window.scrollTo({top:0});tg?.HapticFeedback?.selectionChanged();return;}
   if(t.dataset.review){const r=state.reviews.find(r=>r.id===t.dataset.review);if(!r)return;
     return submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:t.dataset.decision,full_playback:!!document.querySelector('#playback-check')?.checked,source_comparison:!!document.querySelector('#source-check')?.checked});}
-  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh();if(a==='prepare')return prepareSpend();if(a==='first_animation')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
+  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh();if(a==='prepare')return prepareSpend();if(a==='first_animation'||a==='second_image')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
 document.querySelector('#dialog-cancel').onclick=()=>dialog.close();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 try{tg?.ready();tg?.expand();tg?.setHeaderColor('#f6f7fb');tg?.setBackgroundColor('#f6f7fb');tg?.onEvent('activated',refresh);}catch{/* Older Telegram clients still support ordinary navigation. */}

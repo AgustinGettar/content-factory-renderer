@@ -239,3 +239,27 @@ test('Q42_HTTP_TIMEOUT DOUBLE_CLICK SESSION_REOPEN STALE_RESPONSE: uncertain sub
  saved.clear();const rejected=make();rejected.setRequest(path=>{if(path.includes('/actions/'))throw Object.assign(Error('MINI_CURRENT_QUOTE_REQUIRED'),{status:409});return Promise.resolve(initial);});
  await rejected.submit('generate',{confirm:true});assert.doesNotMatch(rejected.quoteCard(),/Verificando la acción enviada/);
 });
+
+test('Q42_ONE_TAP_UI DURABLE_AUTHORIZATION STALE_RESPONSE DOUBLE_CLICK SESSION_REOPEN: one button survives expired quote without economic modal',async()=>{
+ const f=await transitionFixture(),v=f.make();v.current_action={status:'AUTHORIZED',locked:true,emission_locked:false,operations:[]};
+ v.second_image={available:true,authorization_available:true,max_reservation_usd:.3275};
+ v.quote={quote_id:'expired',status:'QUOTE_EXPIRED',expires_at:'2000-01-01T00:00:00Z'};v.capabilities={};
+ const {ui}=await transitionUi(v);assert.match(ui.quoteCard(),/Autorización económica disponible/);assert.match(ui.quoteCard(),/Generar segunda imagen/);
+ assert.equal((ui.quoteCard().match(/data-action="second_image"/g)||[]).length,1);assert.doesNotMatch(ui.quoteCard(),/data-action="(?:prepare|authorize|generate)"/);
+ const exceeded=structuredClone(v);exceeded.second_image.available=false;exceeded.current_action.operations=[{kind:'second_image',status:'BLOCKED',error:'Q42_ONE_TAP_LIMIT_OR_PAYLOAD_CHANGED'}];
+ assert.match((await transitionUi(exceeded)).ui.quoteCard(),/nueva autorización específica/);
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),saved=new Map();let posts=0,rejectRequest;
+ const make=()=>{
+  const el={innerHTML:'',querySelector:()=>null};const ctx={document:{querySelector:()=>el,querySelectorAll:()=>[],addEventListener(){}},window:{},initial:structuredClone(v),
+   localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},setInterval(){},setTimeout(){},clearTimeout(){},send:()=>{posts++;return new Promise((_,reject)=>rejectRequest=reject);}};
+  runInNewContext(js.replace('navigation();login();','')+`state=initial;csrf='offline';render=()=>{};toast=()=>{};refresh=async()=>{};request=()=>send();globalThis.ui={submit,quoteCard};`,ctx);return ctx.ui;
+ };
+ const first=make(),pending=first.submit('second_image',{confirm:true});await first.submit('second_image',{confirm:true});assert.equal(posts,1);
+ assert.doesNotMatch(first.quoteCard(),/data-action="second_image"/);
+ rejectRequest(Object.assign(Error('timeout'),{name:'AbortError'}));await pending;
+ const reopened=make();await reopened.submit('second_image',{confirm:true});assert.equal(posts,1);assert.doesNotMatch(reopened.quoteCard(),/data-action="second_image"/);
+ for(const [phase,text] of [['VERIFYING_SOURCE','Preparando imagen'],['QUOTING','Verificando precio'],['BUDGET_CHECK','Comprobando presupuesto'],['GENERATING','Generando imagen']]){
+  const locked=structuredClone(v);locked.second_image.available=false;locked.current_action={locked:true,emission_locked:true,status:'PREPARING',phase,operations:[{kind:'second_image'}]};
+  const testUi=await transitionUi(locked);assert.ok(testUi.ui.quoteCard().includes(text));assert.doesNotMatch(testUi.ui.quoteCard(),/data-action="second_image"/);
+ }
+});

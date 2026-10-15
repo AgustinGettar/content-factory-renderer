@@ -1654,3 +1654,97 @@ test('MINI_ASYNC_RECOVERY: interruption before executor resumes durable queued a
  const retry=await second.enqueue(g.principal,'resume',{});await retry.dispatch();assert.equal(g.quotes.length,0);
  assert.equal((await second.view(g.principal)).quote.status,'QUOTE_RESULT_UNKNOWN');
 });
+
+async function secondImageFixture(t,options={}){
+ const dir=await mkdtemp(join(tmpdir(),'lumi-q42-one-tap-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const path=join(dir,'offline.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:size=1080x1920:rate=30','-t','4','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
+ const bytes=await readFile(path),control={ready:false,emitted:0,polls:0};
+ const f=await oneTapFixture(t,{quoteUsd:options.quoteUsd??.262,inject:options.inject,providerFetch:async(url,o)=>{
+  if(url.endsWith('/marketing-studio/image')&&o.method==='POST'){
+   control.emitted++;if(options.ambiguous)throw Error('OFFLINE_RESPONSE_LOST');
+   return Response.json({request_id:'offline-q42-one-tap',status_url:'https://api.higgsfield.ai/requests/offline-q42-one-tap'});
+  }
+  if(url.endsWith('/requests/offline-q42-one-tap')){control.polls++;return Response.json({request_id:'offline-q42-one-tap',status:control.ready?'completed':'processing',images:[{url:'https://media.example.test/q42-one-tap'}]});}
+  if(url==='https://media.example.test/q42-one-tap')return new Response(image);
+  if(o.method==='POST')return Response.json({request_id:'offline-q41-setup',status_url:'https://api.higgsfield.ai/requests/offline-q41-setup'});
+  if(url.endsWith('/requests/offline-q41-setup'))return Response.json({request_id:'offline-q41-setup',status:'completed',video:{url:'https://media.example.test/q41-setup'}});
+  assert.equal(url,'https://media.example.test/q41-setup');return new Response(bytes);
+ }});
+ const initial=await f.submit('first_animation',{confirm:true});await f.service.recoverFirstAnimation(f.principal,initial.operation.id);
+ const review=(await f.service.view(f.principal)).reviews[0];await f.submit('review',{request_id:review.id,artifact_sha:review.artifact_sha,review_version:review.version,decision:'APPROVED',full_playback:true,source_comparison:true});
+ for(let i=0;i<2;i++){const cp=await f.store.getEpisode(episode);await f.submit('continue',{expected_action:cp.first_pending_action,checkpoint_version:cp.metadata.runtime_revision});}
+ const cp=await f.store.getEpisode(episode);assert.equal(cp.first_pending_action,'image:q42');
+ const {Q42_ONE_TAP_POLICY,q42PayloadFingerprint}=await import('../lib/telegram-mini-app/q41-policy.js');
+ const policy={...Q42_ONE_TAP_POLICY,request_sha:cp.metadata.generic_v2.binding_sha,source_sha256:cp.metadata.generic_v2.source_contracts.find(s=>s.shot_id==='q42').canonical_source_sha,payload_fingerprint:q42PayloadFingerprint(cp)};
+ f.service.secondImagePolicy=policy;
+ const authorization={status:'AUTHORIZED',decision:'APPROVED',channel:'EXPLICIT_USER_REQUEST',user_id:'1',chat_id:'1',policy};
+ await f.edit(s=>{s.v2_authorizations[policy.authorization_id]=structuredClone(authorization);});
+ const restart=async()=>{const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+  const svc=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:f.miniEnv,secondImagePolicy:policy,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+  t.after(()=>{for(const timer of svc.recoveryTimers.values())clearTimeout(timer);});return svc;};
+ return {...f,control,policy,authorization,checkpoint:cp,restart};
+}
+test('Q42_ONE_TAP DURABLE_AUTHORIZATION EXPIRED_QUOTE AUTO_REQUOTE DOUBLE_CLICK CAS_CONFLICT NO_DUPLICATE_GENERATION',async t=>{
+ const f=await secondImageFixture(t);t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ const scope={expected_action:'image:q42',checkpoint_version:f.checkpoint.metadata.runtime_revision};
+ const old=(await f.submit('quote',scope)).quote;t.mock.timers.tick(61000);
+ assert.equal((await f.service.view(f.principal)).second_image.available,true);
+ const original=f.videoAdapter.authorizeEp004VideoQuote;let calls=0;
+ f.videoAdapter.authorizeEp004VideoQuote=async args=>{const r=await original(args);if(calls++===0)t.mock.timers.tick(61000);return r;};
+ const restarted=await f.restart(),principal=await f.reopen(),cas=f.reviewStore.cas.bind(f.reviewStore);let conflicts=2;
+ f.reviewStore.cas=async(...args)=>{if(conflicts-->0)throw Error('concurrent_update');return cas(...args);};
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'second_image',{confirm:true}),restarted.enqueue(principal,'second_image',{confirm:true})]);assert.equal(a.operation.id,b.operation.id);
+ const queued=(await f.reviewStore.get('1')).state.mini_app.operations[a.operation.id];
+ await f.service.run(queued.session_id===principal.session?principal:f.principal,a.operation.id);
+ const view=await restarted.view(principal);assert.equal(view.operation.phase,'GENERATING',JSON.stringify(view.operation));assert.equal(view.current_action.status,'SUBMITTED');
+ assert.equal(view.second_image.available,false);assert.equal(f.control.emitted,1);assert.equal(calls,2);
+ const state=(await f.reviewStore.get('1')).state;assert.deepEqual(state.v2_authorizations[f.policy.authorization_id],f.authorization);
+ assert.equal(state.production_commands[old.quote_id].human_authorization,undefined);
+ assert.equal(state.mini_app.operations[a.operation.id].consent.value.max_generations,1);
+ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['image:q42'].amount_usd,.3275);
+ const again=await restarted.enqueue(principal,'second_image',{confirm:true});await again.dispatch();assert.equal(again.operation.id,a.operation.id);assert.equal(f.control.emitted,1);
+ await assert.rejects(restarted.enqueue(principal,'quote',{...scope,quote_id:view.quote?.quote_id,quote_sha:view.quote?.quote_sha}),/STAGE_CHANGED|GENERATION_LOCKED/);
+});
+test('Q42_ONE_TAP MAX_RESERVATION BUDGET_GATE: excess price and exhausted episode block before emission without releasing intent',async t=>{
+ for(const budget of [false,true]){
+  const f=await secondImageFixture(t,{quoteUsd:budget?.262:.26201});
+  if(budget)await f.manager.checkpoint(episode,cp=>{cp.current_cost_usd=4.5;});
+  const v=await f.submit('second_image',{confirm:true});assert.equal(v.operation.status,'BLOCKED',JSON.stringify(v.operation));assert.equal(f.control.emitted,0);
+  assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['image:q42'],undefined);
+  await f.submit('second_image',{confirm:true});assert.equal(f.control.emitted,0);assert.equal((await f.service.view(f.principal)).second_image.available,false);
+ }
+});
+test('Q42_ONE_TAP PAYLOAD_BINDING AUTH_SECURITY: modified consent, quote payload and source cannot spend',async t=>{
+ const f=await secondImageFixture(t),{assertQ42Authorization,imagePayloadFingerprint}=await import('../lib/telegram-mini-app/q41-policy.js');
+ const state=(await f.reviewStore.get('1')).state;
+ const payload={prompt:'exact prompt',image_urls:['https://source.test/old'],quality:'high',resolution:'2k',aspect_ratio:'9:16',moderation:'auto',enhance_prompt:false};
+ const fp=imagePayloadFingerprint(payload,f.policy.source_sha256);
+ assert.equal(imagePayloadFingerprint({...payload,image_urls:['https://source.test/refreshed']},f.policy.source_sha256),fp);
+ assert.notEqual(imagePayloadFingerprint({...payload,prompt:'different'},f.policy.source_sha256),fp);
+ assert.notEqual(imagePayloadFingerprint(payload,'f'.repeat(64)),fp);
+ for(const patch of [{max_reservation_usd:.3276},{model:'different'},{payload_fingerprint:'f'.repeat(64)}]){
+  const bad=structuredClone(state);Object.assign(bad.v2_authorizations[f.policy.authorization_id].policy,patch);
+  assert.throws(()=>assertQ42Authorization(bad,f.checkpoint,f.policy),/AUTHORIZATION/);
+ }
+ const prepare=f.videoAdapter.prepareEp004VideoQuote;f.videoAdapter.prepareEp004VideoQuote=async args=>({...await prepare(args),payload_fingerprint:'f'.repeat(64)});
+ const v=await f.submit('second_image',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.match(v.operation.error,/PAYLOAD_CHANGED/);assert.equal(f.control.emitted,0);
+});
+test('Q42_ONE_TAP PROVIDER_AMBIGUITY SESSION_REOPEN: lost acknowledgement stays locked across instances and never resubmits',async t=>{
+ const f=await secondImageFixture(t,{ambiguous:true}),v=await f.submit('second_image',{confirm:true});
+ assert.equal(f.control.emitted,1);assert.equal(v.current_action.status,'AMBIGUOUS');
+ const restarted=await f.restart(),principal=await f.reopen(),after=await restarted.view(principal);
+ assert.equal(after.current_action.operation_id,v.operation.id);assert.equal(after.second_image.available,false);
+ const duplicate=await restarted.enqueue(principal,'second_image',{confirm:true});await duplicate.dispatch();
+ assert.equal(duplicate.operation.id,v.operation.id);assert.equal(f.control.emitted,1);assert.equal(f.control.polls,0);
+ assert.equal([...f.journalRows.values()].filter(j=>j.scene_id==='q42').length,1);
+});
+test('Q42_ONE_TAP SESSION_REOPEN ORIGINAL_RESULT: original image reaches review after backend restart with q41 preserved',async t=>{
+ const f=await secondImageFixture(t),before=structuredClone(f.checkpoint.metadata.review_requests),v=await f.submit('second_image',{confirm:true});
+ const restarted=await f.restart(),principal=await f.reopen(),after=await restarted.view(principal);assert.equal(after.operation.id,v.operation.id);
+ await restarted.recoverFirstAnimation(principal,v.operation.id);assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);
+ f.control.ready=true;await restarted.recoverFirstAnimation(principal,v.operation.id);
+ const ready=await restarted.view(principal);assert.equal(ready.current_action.status,'AWAITING_HUMAN_REVIEW',JSON.stringify(ready.operation));
+ assert.equal(ready.operation.phase,'REVIEW_READY');assert.equal(f.control.emitted,1);assert.equal(ready.second_image.available,false);
+ for(const [id,r] of Object.entries(before))assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests[id],r);
+ const duplicate=await restarted.enqueue(principal,'second_image',{confirm:true});await duplicate.dispatch();assert.equal(f.control.emitted,1);
+});

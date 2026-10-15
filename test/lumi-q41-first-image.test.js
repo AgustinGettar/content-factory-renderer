@@ -1127,6 +1127,47 @@ test('PROVIDER_ACK_RECOVERY: parsed accepted job survives interruption before st
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 
+test('MAKE_QUOTE_TIMEOUT: held renewal returns promptly, double clicks emit once and progress recovers the durable result',async()=>{
+ let hold=false,entered=false,release;
+ const blocked=new Promise(resolve=>{release=resolve;});
+ const f=await videoQuoteFixture({inject:async({point})=>{if(hold&&point==='VIDEO_QUOTE_CLAIMED'){entered=true;await blocked;}}});
+ const original=await f.quote();await expireQuote(f,original.quote_id);
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ const cp=await f.store.getEpisode(episode),source=await f.store.getEpisode(operation),journal=structuredClone([...f.journalRows]);
+ const cb=await f.callback('q41_video_quote'),routes=new Map(),logs=[];
+ mountMakeTransportEndpoint({get(){},post:(p,h)=>routes.set(p,h)},{store:f.reviewStore,production:f.production,env:f.env,validateOwner:async()=>true,log:e=>logs.push(e)});
+ const call=(callback,updateId,bad=false)=>{
+  const body={update_id:updateId,callback_query:callback},signed={...f.envelope(callback).signed,body:Buffer.from(JSON.stringify(body))};
+  const res={code:200,status(c){this.code=c;return this;},json(v){this.value=v;return this;}};
+  const done=routes.get(signed.path)({body,rawBody:signed.body,path:signed.path,headers:{'x-lumi-timestamp':signed.timestamp,
+   'x-lumi-request-id':signed.requestId,'x-lumi-signature':bad?'forged':signRequest(secret,signed)}},res);
+  return {res,done};
+ };
+ const forged=call(cb,900,true);await forged.done;assert.equal(forged.res.code,401);assert.equal(f.quotes.length,1);
+ hold=true;const first=call(cb,901);
+ try{
+  for(let i=0;i<100&&!entered;i++)await new Promise(resolve=>setImmediate(resolve));assert.equal(entered,true);
+  assert.equal(first.res.value?.status,'EXPLICIT_ACTION_ACCEPTED','Make must receive its response while the estimator is still held');
+  assert.deepEqual(first.res.value.commands,[]);assert.equal(first.res.value.actions[0].method,'answerCallbackQuery');
+  assert.match(JSON.parse(first.res.value.actions[0].body_json).text,/Actualizar progreso/);
+  const duplicate=call(cb,901);await duplicate.done;assert.equal(duplicate.res.value.status,'DUPLICATE_REQUEST');
+  const second=call({...cb,id:cb.id+'-double'},902);await second.done;
+  assert.equal(second.res.value.status,'EXPLICIT_ACTION_ACCEPTED');
+  for(let i=0;i<100&&!logs.some(e=>e.event==='lumi_explicit_action_finished');i++)await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(f.quotes.length,1);assert.equal((await f.reviewStore.get('1')).state.delivery.status,'DELIVERED');
+ }finally{release();await first.done;}
+ for(let i=0;i<100&&logs.filter(e=>e.event==='lumi_explicit_action_finished').length<2;i++)await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.quotes.length,2);assert.equal((await f.reviewStore.get('1')).state.delivery.status,'DELIVERED');
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.deepEqual(await f.store.getEpisode(operation),source);assert.deepEqual([...f.journalRows],journal);
+ f.restartQuote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ assert.ok(f.telegramCalls.at(-1).body.reply_markup.inline_keyboard.flat().some(b=>b.text==='Autorizar gasto de video'));
+ assert.equal(f.quotes.length,2,'refresh and restart must recover, never estimate again');
+ await f.click('q41_video_authorize');
+ const ready=(await f.reviewStore.get('1')).state;
+ assert.ok(f.telegramCalls.at(-1).body.reply_markup.inline_keyboard.flat().some(b=>ready.tokens[b.callback_data.slice(3)].action==='q41_video_generate'));
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.deepEqual([...f.journalRows],journal);
+});
+
 test('MAKE_LONG_ACTION: explicit TTS callback acknowledges promptly and cannot create a late Telegram outbox',async()=>{
  const f=await videoQuoteFixture(),q=await f.quote();await f.svc.show('1','1',{kind:'progress',episode_id:episode});await f.click('q41_video_authorize');
  await f.edit(s=>{s.episodes[episode].current_stage='TTS';});

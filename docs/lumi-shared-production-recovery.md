@@ -54,7 +54,9 @@ credits are not a verified API USD balance or billing ledger.
 * Each new source needs its own authenticated human checklist and artifact SHA.
   Future episodes supply an explicit object inventory in their director contract;
   missing inventory fails closed. Mini App review operations are checked against
-  the durable review before source/direction/temporal QA can consume them.
+  the durable review before source/direction/temporal QA can consume them. If a crash separates the
+  decision, checkpoint and UI acknowledgement, recovery uses that exact existing
+  decision; read-only projection never creates a replacement approval.
 * Future TTS consent may cover a frozen bounded request set. Quote observation
   expiry does not erase that explicit consent. Every segment checks remaining
   quota and has its own original receipt. Legacy consents are not broadened.

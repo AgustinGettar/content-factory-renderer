@@ -1869,3 +1869,25 @@ test('SHARED_IDENTITY_ISOLATION JOURNAL_RECONCILIATION: wrong episode, shot, sta
  assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),before);
  assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.emitted.length,1);assert.equal(f.polls.length,0);
 });
+
+test('HUMAN_REVIEW SESSION_REOPEN: recover a saved decision across checkpoint and UI acknowledgement crashes',async t=>{
+ const f=await secondImageFixture(t),v=await f.submit('second_image',{confirm:true});f.control.ready=true;
+ await f.service.recoverFirstAnimation(f.principal,v.operation.id);
+ const pending=await f.store.getEpisode(episode),r=(await f.service.view(f.principal)).reviews[0];
+ const approved=await f.submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT'});
+ const id=approved.operation.id,decisions=(await f.reviewStore.get('1')).state.reviews.length;
+ // Crash after the durable human decision, before checkpoint reconciliation.
+ f.store.episodes.set(episode,structuredClone(pending));
+ await f.edit(s=>{Object.assign(s.mini_app.operations[id],{status:'BLOCKED',error:'MINI_ACTION_REQUIRES_RECOVERY'});});
+ const svc=await f.restart(),p=await f.reopen(),before=await f.reviewStore.get('1');
+ assert.equal((await svc.view(p)).operation.resume_available,true);assert.deepEqual(await f.reviewStore.get('1'),before);
+ const resume=await svc.enqueue(p,'resume',{});await resume.dispatch();assert.equal((await svc.view(p)).operation.status,'COMPLETE');
+ assert.equal((await f.reviewStore.get('1')).state.reviews.length,decisions);
+ // Crash after the checkpoint commit, before the UI operation acknowledgement.
+ await f.edit(s=>{Object.assign(s.mini_app.operations[id],{status:'RUNNING',started_at:'2000-01-01T00:00:00Z'});});
+ const saved=await f.reviewStore.get('1'),cp=await f.store.getEpisode(episode),read=await svc.view(p);
+ assert.equal(read.operation.status,'COMPLETE');assert.equal(read.capabilities.continue,true);assert.deepEqual(await f.reviewStore.get('1'),saved);
+ const next=await svc.enqueue(p,'continue',{expected_action:cp.first_pending_action,checkpoint_version:cp.metadata.runtime_revision});await next.dispatch();
+ assert.equal((await svc.view(p)).operation.status,'COMPLETE');assert.equal(f.control.emitted,1);
+ assert.equal((await f.reviewStore.get('1')).state.reviews.length,decisions);
+});

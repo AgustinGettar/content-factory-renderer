@@ -22,6 +22,7 @@ jobs:
       - name: Telegram, Recovery Manager and director regression with network disabled
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
+          test/lumi-mini-app-auth.test.js
           test/lumi-telegram-review-v1.test.js
           test/lumi-make-transport.test.js
           test/lumi-panel-recovery.test.js

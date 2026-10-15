@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="description" content="El estudio de Lumi: historias, animación y revisión, paso a paso.">
+  <title>Lumi Studio</title>
+  <link rel="stylesheet" href="/lumi/studio/style.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script type="module" src="/lumi/studio/app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar"><a class="brand" href="#inicio" aria-label="Lumi Studio, inicio"><span class="brand-mark" aria-hidden="true">✦</span><span>Lumi<span class="brand-studio">STUDIO</span></span></a><span class="environment"><i></i>Tu estudio privado</span></header>
+    <main id="app" tabindex="-1"><section class="welcome"><span class="eyebrow">UN POQUITO DE MAGIA</span><h1>Las historias de Lumi<br>cobran vida.</h1><p>Preparando tu estudio…</p><div class="loading-orbit" aria-label="Cargando"></div></section></main>
+    <nav id="navigation" class="bottom-nav" aria-label="Navegación principal"></nav>
+  </div>
+  <div id="notice" class="toast" role="status" aria-live="polite" hidden></div>
+  <dialog id="confirmation" aria-labelledby="dialog-title"><div class="dialog-body"><span class="dialog-spark" aria-hidden="true">✦</span><h2 id="dialog-title"></h2><div id="dialog-content"></div><button id="dialog-confirm" class="button primary"></button><button id="dialog-cancel" class="button quiet">Volver</button></div></dialog>
+</body>
+</html>

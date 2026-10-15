@@ -1217,3 +1217,126 @@ test('LOCAL_IN_FLIGHT: progress never offers a second continuation while the cla
  assert.ok(!view.reply_markup.inline_keyboard.flat().some(b=>['q41_local_continue','resume'].includes(s.tokens[b.callback_data.slice(3)]?.action)));
  assert.match(view.media.caption,/en curso/);assert.deepEqual(await f.store.getEpisode(episode),before);
 });
+
+// Mini App integration uses the SAME director, receipt, budget and emission fixture.
+// All provider transports remain synthetic and protected by director-offline-guard.
+async function miniFixture(options={}){
+ const f=await videoQuoteFixture(options),{MiniAppAuth}=await import('../lib/telegram-mini-app/auth.js'),{MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const miniEnv={...f.env,SUPABASE_URL:'https://mofjhwathxzfnjapvvst.supabase.co',LUMI_TELEGRAM_BOT_TOKEN:'1:OFFLINE_MINI_BOT'};
+ const auth=new MiniAppAuth({store:f.reviewStore,validateOwner:async(u,c)=>u==='1'&&c==='1',env:miniEnv});
+ const params=new URLSearchParams({auth_date:String(Math.floor(Date.now()/1000)),query_id:'mini-test',user:JSON.stringify({id:1,first_name:'Test'})});
+ const secret=createHmac('sha256','WebAppData').update(miniEnv.LUMI_TELEGRAM_BOT_TOKEN).digest();
+ params.set('hash',createHmac('sha256',secret).update([...params].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v).join('\n')).digest('hex'));
+ const login=await auth.login(params.toString()),principal=await auth.authenticate(login.cookie,login.csrf);
+ const service=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ const submit=async(kind,body={})=>{const op=await service.enqueue(principal,kind,body);await op.dispatch();return service.view(principal);};
+ return {...f,miniEnv,auth,login,principal,service,submit};
+}
+test('MINI_EP004_CHECKPOINT: real adapter projection preserves approved source, director and budget without callbacks',async()=>{
+ const f=await miniFixture(),before=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]),calls=f.calls.length;
+ await f.edit(s=>{s.delivery.status='UNKNOWN';s.pending_callback={id:'obsolete'};});
+ const view=await f.service.view(f.principal);
+ assert.equal(view.episode.next_action,'video:q41');assert.equal(view.episode.director_complete,true);assert.equal(view.episode.source_approved,true);
+ assert.equal(view.budget.ceiling_usd,5);assert.equal(view.budget.exposure_usd,.33875);assert.equal(view.budget.actual_cost_usd,null);
+ assert.deepEqual(await f.store.getEpisode(episode),before);assert.deepEqual([...f.journalRows],journal);assert.equal(f.calls.length,calls);
+ assert.doesNotMatch(JSON.stringify(view),/private_payload|api_key|OFFLINE_KEY|bucket|storage_path/);
+ await assert.rejects(f.videoAdapter.miniAppStatus({...f.principal}),/SESSION/);
+});
+test('MINI_QUOTE_DOUBLE_CLICK_ASYNC: durable acknowledgement precedes estimate; duplicates and reopened app use one result',async()=>{
+ let release,entered;const wait=new Promise(r=>release=r),started=new Promise(r=>entered=r);
+ const f=await miniFixture({inject:async({point})=>{if(point==='VIDEO_QUOTE_CLAIMED'){entered();await wait;}}});
+ await f.edit(s=>{s.delivery.status='UNKNOWN';s.pending_callback={id:'obsolete'};});
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'quote',{}),f.service.enqueue(f.principal,'quote',{})]);
+ assert.equal(a.operation.id,b.operation.id);assert.equal(f.quotes.length,0);assert.equal(a.operation.status,'QUEUED');
+ const task=a.dispatch();await started;
+ assert.equal((await f.service.view(f.principal)).operation.status,'RUNNING');release();await task;await b.dispatch();
+ const view=await f.service.view(await f.auth.authenticate(f.login.cookie));assert.equal(f.quotes.length,1);assert.equal(view.quote.status,'AWAITING_HUMAN_AUTHORIZATION');
+ assert.equal(view.operation.status,'COMPLETE');assert.equal(view.capabilities.generate,false);
+ assert.equal((await f.store.getEpisode(episode)).first_pending_action,'video:q41');
+});
+test('MINI_BUDGET_AUTH: approval is quote-bound, separate from generation, durable and independent of legacy navigation',async()=>{
+ const f=await miniFixture();await f.edit(s=>{s.delivery.status='UNKNOWN';s.pending_callback={id:'obsolete'};});
+ let view=await f.submit('quote'),q=view.quote,body={quote_id:q.quote_id,quote_sha:q.quote_sha,confirm:true};
+ await assert.rejects(f.service.enqueue(f.principal,'generate',body),/SPEND_APPROVAL/);
+ await assert.rejects(f.service.enqueue(f.principal,'authorize',{...body,user_id:'2'}),/BODY/);
+ const before=structuredClone([...f.journalRows]),cp=await f.store.getEpisode(episode);
+ view=await f.submit('authorize',body);assert.equal(view.quote.status,'HUMAN_SPEND_AUTHORIZED');assert.equal(view.capabilities.generate,true);
+ assert.deepEqual([...f.journalRows],before);assert.deepEqual(await f.store.getEpisode(episode),cp);
+ assert.equal((await f.reviewStore.get('1')).state.production_commands[q.quote_id].human_authorization.channel,'TELEGRAM_MINI_APP');
+ await expireQuote(f,q.quote_id);await assert.rejects(f.service.enqueue(f.principal,'generate',body),/CURRENT_QUOTE|QUOTE_CHANGED/);
+ const expired=(await f.service.view(f.principal)).quote;
+ const renewed=await f.submit('quote',{quote_id:expired.quote_id,quote_sha:expired.quote_sha});assert.equal(renewed.quote.quote_version,2);assert.equal(renewed.capabilities.generate,false);
+ await assert.rejects(f.service.enqueue(f.principal,'authorize',body),/QUOTE_CHANGED/);
+});
+test('MINI_MEDIA_ACCESS: session-bound expiring private URLs, immutable-byte check and no arbitrary storage selection',async()=>{
+ const f=await miniFixture(),view=await f.service.view(f.principal),m=view.media.find(m=>m.episode===episode&&m.role==='source'),url=new URL(m.url,'https://example.test');
+ const result=await f.service.media(f.principal,m.id,url.searchParams.get('expires'),url.searchParams.get('ticket'));assert.equal(sha256(result.bytes),f.source.sha256);
+ await assert.rejects(f.service.media(f.principal,m.id,0,url.searchParams.get('ticket')),/EXPIRED/);
+ await assert.rejects(f.service.media(f.principal,m.id,url.searchParams.get('expires'),'a'.repeat(64)),/EXPIRED/);
+ await assert.rejects(f.service.media(f.principal,'../bucket',url.searchParams.get('expires'),url.searchParams.get('ticket')),/EXPIRED/);
+ f.service.mediaCache.clear();f.objects.set(f.source.bucket+'/'+f.source.path,Buffer.from('tampered'));
+ await assert.rejects(f.service.media(f.principal,m.id,url.searchParams.get('expires'),url.searchParams.get('ticket')),/INTEGRITY/);
+});
+test('MINI_ASYNC_RECOVERY: durable quote result is recovered after loss of UI receipt, without a repeated estimate',async()=>{
+ const f=await miniFixture(),view=await f.submit('quote');
+ await f.edit(s=>{s.mini_app.operations[view.operation.id].status='RUNNING';});
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const restarted=new MiniAppService({store:f.reviewStore,adapter:f.restartQuote(),production:f.production,env:f.miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ assert.equal((await restarted.view(f.principal)).operation.status,'COMPLETE');assert.equal(f.quotes.length,1);
+});
+test('MINI_END_TO_END_NON_GENERATIVE: mounted API requires official initData, cookie, origin and CSRF; entrypoint leaves panel intact',async()=>{
+ const f=await miniFixture(),{mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js'),routes=new Map(),middleware=[];
+ const app={get:(path,fn)=>routes.set('GET '+path,fn),post:(path,fn)=>routes.set('POST '+path,fn),use:(_path,fn)=>middleware.push(fn)};
+ const methods=[],db={from:()=>({select:()=>({eq:async()=>({data:[{user_id:1,chat_id:1}]})})})};
+ let menu={type:'commands'};
+ const mounted=mountMiniApp(app,{db,store:f.reviewStore,adapter:f.videoAdapter,production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:f.miniEnv,configureEntry:false,
+  fetchImpl:async(url,options)=>{const method=url.split('/').at(-1);methods.push(method);if(method==='setChatMenuButton')menu=JSON.parse(options.body).menu_button;return Response.json({ok:true,result:method==='getChatMenuButton'?menu:true});}});
+ const response=()=>({code:200,headers:{},status(c){this.code=c;return this;},set(k,v){if(typeof k==='object')Object.assign(this.headers,k);else this.headers[k]=v;return this;},json(v){this.value=v;return this;}});
+ const req={method:'GET',headers:{cookie:'__Secure-lumi_studio='+f.login.cookie}};
+ let res=response();await routes.get('GET /lumi/studio/api/state')(req,res);assert.equal(res.code,200);assert.equal(res.value.episode.next_action,'video:q41');
+ res=response();await routes.get('GET /lumi/studio/api/state')({method:'GET',headers:{}},res);assert.equal(res.code,401);
+ res=response();let next=false;middleware[0]({method:'POST',headers:{origin:'https://evil.example','content-type':'application/json'}},res,()=>next=true);assert.equal(res.code,403);assert.equal(next,false);
+ res=response();await routes.get('POST /lumi/studio/api/actions/:kind')({...req,method:'POST',params:{kind:'quote'},body:{}},res);assert.equal(res.code,401);assert.equal(f.quotes.length,0);
+ const before=(await f.reviewStore.get('1')).state;await mounted.configure();await mounted.configure();const after=(await f.reviewStore.get('1')).state;
+ assert.equal(methods.filter(m=>m==='setChatMenuButton').length,1);assert.equal(after.message_id,before.message_id);assert.deepEqual(after.delivery,before.delivery);assert.deepEqual(after.tokens,before.tokens);
+ assert.equal(after.mini_app.entrypoint.status,'CONFIGURED');assert.equal(f.quotes.length,0);
+});
+test('MINI_GENERATION_BOUNDARY: separate explicit action reaches existing reservation/journal once; recovery only polls same mock job',async()=>{
+ const emissions=[],polls=[];
+ const f=await miniFixture({providerFetch:async(url,options,base)=>{
+  if(options.method==='POST'){
+   assert.equal(url,'https://api.higgsfield.ai/kling-video/v3.0/pro/image-to-video');
+   const cp=await base.store.getEpisode(episode);assert.equal(cp.metadata.budget_reservations['video:q41'].amount_usd,.5);
+   emissions.push(options.body);return Response.json({request_id:'offline-mini-kling',status_url:'https://api.higgsfield.ai/requests/offline-mini-kling'});
+  }
+  assert.equal(url,'https://api.higgsfield.ai/requests/offline-mini-kling');polls.push(url);return Response.json({request_id:'offline-mini-kling',status:'processing'});
+ }});
+ await f.edit(s=>{s.delivery.status='UNKNOWN';s.pending_callback={id:'obsolete'};});
+ const q=(await f.submit('quote')).quote,body={quote_id:q.quote_id,quote_sha:q.quote_sha,confirm:true};
+ await f.submit('authorize',body);assert.equal(emissions.length,0);
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'generate',body),f.service.enqueue(f.principal,'generate',body)]);
+ assert.equal(a.operation.id,b.operation.id);await Promise.all([a.dispatch(),b.dispatch()]);
+ let view=await f.service.view(f.principal);assert.equal(view.operation.status,'COMPLETE',JSON.stringify(view.operation));assert.equal(emissions.length,1);
+ assert.equal(view.capabilities.recover,true,JSON.stringify((await f.store.getEpisode(episode)).actions.find(a=>a.key==='video:q41')));
+ const cp=await f.store.getEpisode(episode);assert.equal(cp.metadata.provider_generation_authorized,false);assert.equal(cp.autorun,false);assert.equal(cp.runner_enabled,false);
+ view=await f.submit('recover');assert.equal(view.operation.status,'COMPLETE',JSON.stringify(view.operation));assert.equal(emissions.length,1);assert.equal(polls.length,1);
+});
+test('MINI_BUDGET_LIMIT: over-budget estimate cannot become human authorization or dispatch',async()=>{
+ const f=await miniFixture({quoteUsd:6}),view=await f.submit('quote'),q=view.quote;
+ assert.equal(q.budget_gate,'BLOCKED');assert.equal(view.capabilities.authorize,false);assert.equal(view.capabilities.generate,false);
+ await assert.rejects(f.service.enqueue(f.principal,'authorize',{quote_id:q.quote_id,quote_sha:q.quote_sha,confirm:true}),/CURRENT_QUOTE/);
+ assert.equal([...f.journalRows.values()].filter(j=>j.stage==='VIDEO').length,0);
+});
+test('MINI_ASYNC_RECOVERY: interruption before executor resumes durable queued action; claimed estimate is never re-emitted',async()=>{
+ const f=await miniFixture(),a=await f.service.enqueue(f.principal,'quote',{});
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const restarted=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,production:f.production,env:f.miniEnv,loadBytes:a=>f.storage.download(a.bucket,a.path)});
+ const resumed=await restarted.enqueue(f.principal,'resume',{});assert.equal(resumed.operation.id,a.operation.id);await resumed.dispatch();assert.equal(f.quotes.length,1);
+ const g=await miniFixture({inject:async({point})=>{if(point==='VIDEO_QUOTE_CLAIMED')throw Error('SIMULATED_PROCESS_EXIT');}});
+ const pending=await g.service.enqueue(g.principal,'quote',{});await pending.dispatch();
+ await g.edit(s=>Object.assign(s.mini_app.operations[pending.operation.id],{status:'RUNNING',started_at:'2000-01-01T00:00:00Z'}));
+ const second=new MiniAppService({store:g.reviewStore,adapter:g.restartQuote(),production:g.production,env:g.miniEnv,loadBytes:a=>g.storage.download(a.bucket,a.path)});
+ assert.equal((await second.view(g.principal)).operation.status,'RECOVERY_REQUIRED');
+ const retry=await second.enqueue(g.principal,'resume',{});await retry.dispatch();assert.equal(g.quotes.length,0);
+ assert.equal((await second.view(g.principal)).quote.status,'QUOTE_RESULT_UNKNOWN');
+});

@@ -63,5 +63,6 @@ test('MOBILE_UI_OFFLINE: four accessible sections, safe areas, native video, sep
  assert.match(html,/viewport-fit=cover/);assert.match(html,/aria-live="polite"/);assert.match(css,/safe-area-inset-bottom/);
  assert.match(js,/controls playsinline/);assert.match(js,/Autorizar este importe/);assert.match(js,/Confirmar y generar/);
  assert.match(js,/Consultando precio…/);assert.match(js,/visibilitychange/);
+ assert.match(js,/next_action==='video:q41'&&!c\.recover/);
  assert.doesNotMatch(js+html,/initDataUnsafe|SUPABASE_SERVICE_ROLE_KEY|HF_API_KEY|editMessageMedia|api\.higgsfield/);
 });

@@ -1325,6 +1325,7 @@ test('ONETAP SESSION_REOPEN: status restores accepted job; recovery GET only, ne
 test('ONETAP NETWORK_TIMEOUT: an ambiguous estimate is retained and never renewed on repeated clicks',async t=>{
  const f=await oneTapFixture(t,{mode:'timeout'});const a=await f.submit('first_animation',{confirm:true});
  await f.submit('first_animation',{confirm:true});assert.equal(a.operation.status,'BLOCKED');assert.equal(f.quotes.length,1);assert.equal(f.emitted.length,0);
+ assert.equal(a.operation.error,'Q41_ONE_TAP_QUOTE_UNCONFIRMED');
 });
 test('ONETAP PROVIDER_AMBIGUITY: no retries or resubmission after a sent request without an ACK',async t=>{
  let sent=0;const f=await oneTapFixture(t,{providerFetch:async()=>{sent++;throw Error('OFFLINE_RESPONSE_LOST');}});

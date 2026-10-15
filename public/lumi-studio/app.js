@@ -38,7 +38,7 @@ function banner(){const op=state.operation;if(!op)return '';
 }
 function budgetCard(){const b=state.budget;return `<section class="card"><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Costo real no verificado. La exposición incluye importes reservados pendientes de conciliación.</p></section>`;}
 function quoteCard(){const q=state.quote,c=state.capabilities;
-  if(state.episode.next_action==='video:q41'||state.operation?.kind==='first_animation'){
+  if(state.episode.next_action==='video:q41'&&!c.recover||state.operation?.kind==='first_animation'){
     const op=state.operation?.kind==='first_animation'?state.operation:null;
     return `<section class="card quote-card"><span class="tag blue">Una sola solicitud</span><h2>Primera animación de Lumi</h2><p>Kling 3.0 Pro · 4 segundos · sin audio.</p>${row('Reserva máxima autorizada','USD 0.56')}${row('Presupuesto del episodio','USD 5.00')}${op?'<p>'+ (op.phase==='REVIEW_READY'?'Tu video está disponible en Producción para revisión.':'La operación ya está registrada. No se enviará una solicitud nueva.')+'</p>':button('Generar primera animación','first_animation','primary',!state.first_animation?.available)}<p>Lumi verificará automáticamente el precio antes de generar.</p><p class="budget-note">Al pulsar autorizás una única animación dentro de estos límites internos. El costo real del proveedor no está garantizado.</p></section>`;
   }

@@ -183,7 +183,7 @@ test('Q42_OPERATION_RECOVERY IMAGE_BUTTON_LOCK SESSION_REOPEN PROVIDER_AMBIGUITY
  const generate={id:'original',kind:'generate',status:'BLOCKED',binding:{next_action:'image:q42',quote_id:'q'},started_at:'2000-01-01T00:00:00Z'};
  state.mini_app.operations.original=generate;
  assert.equal(project().status,'AMBIGUOUS');assert.equal(project().emission_locked,true);
- for(const [journal,status] of [[{state:'PREPARED'},'RESERVED'],[{state:'EMITTING'},'EMITTING'],[{state:'EMISSION_UNKNOWN'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',request_id:'verified-original'},'SUBMITTED'],[{state:'ACKNOWLEDGED',failure_confirmed:true},'FAILED_CONFIRMED']]){
+ for(const [journal,status] of [[{state:'PREPARED'},'RESERVED'],[{state:'EMITTING'},'EMITTING'],[{state:'EMISSION_UNKNOWN'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',request_id:'unverified-header'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',accepted:true,request_id:'verified-original'},'SUBMITTED'],[{state:'ACKNOWLEDGED',failure_confirmed:true},'FAILED_CONFIRMED']]){
   ctx.current_emission={attempt_id:'attempt',...journal};assert.equal(project().status,status);assert.equal(project().locked,true);
   const lockedService=new MiniAppService({store:{get:async()=>({revision:4,state})},adapter:{miniAppStatus:async()=>ctx}});
   const replay=await lockedService.enqueue({user:'1'},'generate',{expected_action:'image:q42',checkpoint_version:19});assert.equal(replay.operation.id,'original');await replay.dispatch();

@@ -166,3 +166,76 @@ test('AUTOMATIC_QUOTE AUTH_SECURITY: expired spend opens fresh preparation, neve
  const {ui}=await transitionUi(v),calls=[];ui.setSubmit(async kind=>calls.push(kind));await ui.confirmSpend('generate');
  assert.deepEqual(calls,['quote']);
 });
+
+test('Q42_OPERATION_RECOVERY IMAGE_BUTTON_LOCK SESSION_REOPEN PROVIDER_AMBIGUITY: durable evidence survives unrelated active operation',async()=>{
+ const {currentActionState,MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const f=await transitionFixture();f.cp.episode_id='ep_lumi_granja_004_20261008_ee7ab4b3';f.cp.status='RUNNING';f.cp.metadata.runtime_revision=19;
+ f.cp.actions.forEach(a=>a.dispatch_state='NOT_DISPATCHED');
+ const state={mini_app:{operations:{other:{id:'other',kind:'review',status:'COMPLETE',binding:{next_action:'video:q41'}}},active_operation:'other'},production_commands:{}};
+ const ctx={checkpoint:f.cp,state,quote:null,current_emission:null};
+ const project=()=>currentActionState(ctx);
+ assert.equal(project().status,'NOT_STARTED');
+ state.mini_app.operations.quote={id:'quote',kind:'quote',status:'QUEUED',started_at:new Date().toISOString(),binding:{next_action:'image:q42',quote_id:null}};
+ assert.equal(project().status,'QUOTE_PENDING');assert.equal(project().locked,true);
+ state.mini_app.operations.quote.status='COMPLETE';ctx.quote={quote_id:'q',action_key:'image:q42',status:'QUOTE_EXPIRED'};
+ state.production_commands.q={result:{action_key:'image:q42',episode_id:f.cp.episode_id},human_authorization:{expires_at:'2000-01-01T00:00:00Z'}};
+ assert.equal(project().status,'AUTHORIZED');assert.equal(project().authorization_expired,true);assert.equal(project().emission_locked,false);
+ const generate={id:'original',kind:'generate',status:'BLOCKED',binding:{next_action:'image:q42',quote_id:'q'},started_at:'2000-01-01T00:00:00Z'};
+ state.mini_app.operations.original=generate;
+ assert.equal(project().status,'AMBIGUOUS');assert.equal(project().emission_locked,true);
+ for(const [journal,status] of [[{state:'PREPARED'},'RESERVED'],[{state:'EMITTING'},'EMITTING'],[{state:'EMISSION_UNKNOWN'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED'},'AMBIGUOUS'],[{state:'ACKNOWLEDGED',request_id:'verified-original'},'SUBMITTED'],[{state:'ACKNOWLEDGED',failure_confirmed:true},'FAILED_CONFIRMED']]){
+  ctx.current_emission={attempt_id:'attempt',...journal};assert.equal(project().status,status);assert.equal(project().locked,true);
+  const lockedService=new MiniAppService({store:{get:async()=>({revision:4,state})},adapter:{miniAppStatus:async()=>ctx}});
+  const replay=await lockedService.enqueue({user:'1'},'generate',{expected_action:'image:q42',checkpoint_version:19});assert.equal(replay.operation.id,'original');await replay.dispatch();
+  await assert.rejects(lockedService.enqueue({user:'1'},'quote',{expected_action:'image:q42',checkpoint_version:19}),/GENERATION_LOCKED/);
+  const uiState=f.make();uiState.current_action=project();uiState.capabilities={};const {ui}=await transitionUi(uiState);
+  assert.doesNotMatch(ui.quoteCard(),/data-action="(?:prepare|authorize|generate)"/);
+ }
+ // Reopening the backend with no UI operation still honors reservation and journal.
+ delete state.mini_app.operations.original;ctx.current_emission=null;f.cp.metadata.budget_reservations={'image:q42':{amount_usd:.3275}};
+ assert.equal(project().status,'RESERVED');assert.equal(project().reservation_usd,.3275);
+ delete f.cp.metadata.budget_reservations;state.production_commands['dispatch:q']={status:'CLAIMED'};
+ assert.equal(project().status,'AMBIGUOUS');
+ // Once any original generate operation exists, even a late request after
+ // checkpoint advancement returns it and cannot call the executor again.
+ state.mini_app.operations.original=generate;f.cp.first_pending_action='source_qa:q42';
+ const service=new MiniAppService({store:{get:async()=>({revision:4,state})},adapter:{miniAppStatus:async()=>ctx}});
+ const replay=await service.enqueue({user:'1'},'generate',{expected_action:'image:q42',checkpoint_version:19});
+ assert.equal(replay.operation.id,'original');await replay.dispatch();
+});
+
+test('Q42_AUTHORIZATION_EXPIRED_UI: retains original authorization and explains no dispatch; automatic price check requires new approval',async()=>{
+ const f=await transitionFixture(),v=f.make();v.current_action={status:'AUTHORIZED',locked:true,authorization_recorded:true,authorization_expired:true};
+ v.quote={status:'QUOTE_EXPIRED',expires_at:'2000-01-01T00:00:00Z'};v.capabilities={quote:false,renew_quote:true};
+ const {ui}=await transitionUi(v),html=ui.quoteCard();
+ assert.match(html,/Autorización registrada/);assert.match(html,/generación no se inició/);assert.match(html,/Continuar preparación guardada/);
+ assert.doesNotMatch(html,/Preparar siguiente imagen|data-action="generate"|data-action="authorize"/);
+});
+
+test('Q42_HTTP_TIMEOUT DOUBLE_CLICK SESSION_REOPEN STALE_RESPONSE: uncertain submission persists and old GET/POST cannot rewind state',async()=>{
+ const f=await transitionFixture(),js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),saved=new Map();let posts=0,resolvePost,resolveGet;
+ const deferred=()=>new Promise(resolve=>resolveGet=resolve);
+ const initial=f.make();initial.review_revision=10;initial.current_action={status:'AUTHORIZED',operations:[]};initial.quote={quote_id:'q',quote_sha:'sha',expires_at:new Date(Date.now()+60000).toISOString()};
+ const make=()=>{
+  const element={innerHTML:'',querySelector:()=>({}),close(){}};
+  const ctx={document:{querySelector:()=>element,querySelectorAll:()=>[],addEventListener(){}},window:{},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},setInterval(){},setTimeout(){},clearTimeout(){},initial:structuredClone(initial)};
+  runInNewContext(js.replace('navigation();login();','')+`state=initial;csrf='test';render=()=>{};toast=()=>{};
+   globalThis.ui={submit,refresh,quoteCard,getState:()=>state,setRequest:f=>request=f};`,ctx);return ctx.ui;
+ };
+ const ui=make(),old=f.make();old.review_revision=9;let gets=0;
+ const fresh=structuredClone(initial);fresh.review_revision=12;fresh.current_action={status:'SUBMITTED',locked:true,operations:[{id:'original',kind:'generate',quote_id:'q'}]};fresh.operation={id:'original',status:'COMPLETE'};
+ ui.setRequest((path)=>{if(path.includes('/actions/')){posts++;return new Promise((resolve,reject)=>resolvePost={resolve,reject});}gets++;return gets===1?deferred():Promise.resolve(fresh);});
+ const read=ui.refresh(),send=ui.submit('generate',{confirm:true});await ui.submit('generate',{confirm:true});assert.equal(posts,1);
+ assert.doesNotMatch(ui.quoteCard(),/data-action="generate"|data-action="prepare"/);
+ const reopened=make();reopened.setRequest(async()=>initial);await reopened.submit('generate',{confirm:true});assert.equal(posts,1);assert.match(reopened.quoteCard(),/Verificando la acción enviada/);
+ resolveGet(old);await read;assert.equal(ui.getState().review_revision,12);assert.equal(ui.getState().current_action.status,'SUBMITTED');
+ // The delayed action response is older than the already received durable view.
+ resolvePost.resolve({operation:{id:'original',status:'QUEUED'}});await send;assert.equal(ui.getState().operation.status,'COMPLETE');
+ ui.setRequest(async()=>old);await ui.refresh();assert.equal(ui.getState().review_revision,12);
+ // An HTTP timeout before acknowledgement retains intent across page reload.
+ saved.clear();const timeout=make();timeout.setRequest(path=>{if(path.includes('/actions/')){posts++;throw Object.assign(Error('timeout'),{name:'AbortError'});}return Promise.resolve(initial);});
+ await timeout.submit('generate',{confirm:true});assert.match(timeout.quoteCard(),/Verificando la acción enviada/);
+ const reopenedTimeout=make();assert.match(reopenedTimeout.quoteCard(),/Verificando la acción enviada/);
+ saved.clear();const rejected=make();rejected.setRequest(path=>{if(path.includes('/actions/'))throw Object.assign(Error('MINI_CURRENT_QUOTE_REQUIRED'),{status:409});return Promise.resolve(initial);});
+ await rejected.submit('generate',{confirm:true});assert.doesNotMatch(rejected.quoteCard(),/Verificando la acción enviada/);
+});

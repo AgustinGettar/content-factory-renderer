@@ -1283,11 +1283,14 @@ test('ONETAP FINAL_RESERVATION_BOUNDARY: expiration after reserve blocks emissio
  const v=await f.submit('first_animation',{confirm:true});assert.equal(v.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
  await f.submit('first_animation',{confirm:true});assert.equal(f.quotes.length,1);assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41']);
 });
-test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK CONTINUE_PRODUCTION TEMPORAL_QA_RECOVERY: preserves approval without legacy panel',async t=>{
+test('ONETAP Q42_OPERATION_RECOVERY Q42_PROVIDER_JOURNAL Q42_BUDGET_RESERVATION DOUBLE_CLICK CAS_CONFLICT CHECKPOINT_CONTINUITY Q41_APPROVAL_PRESERVATION RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK CONTINUE_PRODUCTION TEMPORAL_QA_RECOVERY: preserves approval without legacy panel',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'lumi-one-tap-test-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:size=1080x1920:rate=30','-t','4','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);
- const bytes=await readFile(path);let emitted=0;
+ const bytes=await readFile(path);let emitted=0,imageReady=false;const imagePolls=[];
  const f=await oneTapFixture(t,{providerFetch:async(url,o)=>{
+  if(o.method==='POST'&&url.endsWith('/marketing-studio/image')){emitted++;return Response.json({request_id:'offline-q42-original',status_url:'https://api.higgsfield.ai/requests/offline-q42-original'});}
+  if(url.endsWith('/requests/offline-q42-original')){imagePolls.push(url);return Response.json({request_id:'offline-q42-original',status:imageReady?'completed':'processing',images:[{url:'https://media.example.test/q42-original'}]});}
+  if(url==='https://media.example.test/q42-original')return new Response(image);
   if(o.method==='POST'){emitted++;return Response.json({request_id:'offline-ready',status_url:'https://api.higgsfield.ai/requests/offline-ready'});}
   if(url==='https://api.higgsfield.ai/requests/offline-ready')return Response.json({request_id:'offline-ready',status:'completed',video:{url:'https://media.example.test/original'}});
   assert.equal(url,'https://media.example.test/original');return new Response(bytes);
@@ -1362,6 +1365,49 @@ test('ONETAP RECOVERY_TO_REVIEW HUMAN_REVIEW_LOCK CONTINUE_PRODUCTION TEMPORAL_Q
  assert.equal(f.quotes.at(-1).url,'https://api.higgsfield.ai/estimate/marketing-studio/image');
  assert.deepEqual(await f.store.getEpisode(episode),checkpoint);assert.deepEqual([...f.journalRows],journal);
  assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);assert.equal(emitted,1);
+ // Reproduce the real incident: only economic approval, then expiry. No
+ // dispatch, reservation or provider emission is inferred from authorization.
+ const approvedQuote={...scope,quote_id:quoted.quote.quote_id,quote_sha:quoted.quote.quote_sha,confirm:true};
+ const authorize=await restarted.enqueue(principal,'authorize',approvedQuote);await authorize.dispatch();
+ let imageView=await restarted.view(principal);assert.equal(imageView.current_action.status,'AUTHORIZED');assert.equal(imageView.capabilities.quote,false);
+ assert.equal(imageView.current_action.operation_id,authorize.operation.id);assert.equal(imageView.capabilities.generate,true);
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});t.mock.timers.tick(61000);
+ imageView=await restarted.view(principal);assert.equal(imageView.current_action.status,'AUTHORIZED');assert.equal(imageView.current_action.authorization_expired,true);
+ assert.equal(imageView.capabilities.generate,false);assert.equal(imageView.capabilities.quote,false);assert.equal(imageView.capabilities.renew_quote,true);
+ assert.deepEqual([...f.journalRows],journal);assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);
+ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['image:q42'],undefined);
+ await assert.rejects(restarted.enqueue(principal,'generate',approvedQuote),/CURRENT_QUOTE/);
+ const renewed=await restarted.enqueue(principal,'quote',{...scope,quote_id:imageView.quote.quote_id,quote_sha:imageView.quote.quote_sha});await renewed.dispatch();
+ imageView=await restarted.view(principal);assert.equal(imageView.current_action.status,'QUOTED');assert.equal(imageView.capabilities.generate,false);
+ assert.equal(imageView.quote.quote_version,2);assert.equal(emitted,1);
+ const body2={...scope,quote_id:imageView.quote.quote_id,quote_sha:imageView.quote.quote_sha,confirm:true};
+ const auth2=await restarted.enqueue(principal,'authorize',body2);await auth2.dispatch();
+ // Separate instances/devices race through CAS but own one original operation.
+ const cas=f.reviewStore.cas.bind(f.reviewStore);let conflicts=2;
+ f.reviewStore.cas=async(...args)=>{if(conflicts-->0)throw Error('concurrent_update');return cas(...args);};
+ const [ga,gb]=await Promise.all([restarted.enqueue(principal,'generate',body2),f.service.enqueue(f.principal,'generate',body2)]);
+ assert.equal(ga.operation.id,gb.operation.id);
+ // Dispatch with the principal that owns the winning durable claim.
+ const winner=(await f.reviewStore.get('1')).state.mini_app.operations[ga.operation.id];
+ await restarted.run(winner.session_id===principal.session?principal:f.principal,ga.operation.id);
+ imageView=await restarted.view(principal);assert.equal(imageView.current_action.status,'SUBMITTED',JSON.stringify(imageView.current_action));
+ assert.equal(imageView.current_action.operation_id,ga.operation.id);assert.equal(imageView.current_action.provider_request_id,'offline-q42-original');
+ assert.equal(imageView.capabilities.quote,false);assert.equal(imageView.capabilities.generate,false);assert.equal(emitted,2);
+ const imageBudget=await f.manager.budgetExposure({episodeId:episode});
+ assert.ok((await f.store.getEpisode(episode)).metadata.budget_reservations['image:q42']);
+ const replay=await restarted.enqueue(principal,'generate',body2);await replay.dispatch();assert.equal(replay.operation.id,ga.operation.id);assert.equal(emitted,2);
+ let recovery=await restarted.enqueue(principal,'recover',{});await recovery.dispatch();
+ assert.equal((await restarted.view(principal)).current_action.status,'SUBMITTED');assert.equal(emitted,2);
+ imageReady=true;recovery=await restarted.enqueue(principal,'recover',{});await recovery.dispatch();
+ const ready=await restarted.view(principal);assert.equal(ready.current_action.status,'AWAITING_HUMAN_REVIEW',JSON.stringify(ready.operation));
+ assert.ok(ready.reviews.some(r=>r.stage==='IMAGE'));assert.ok(ready.media.some(m=>m.shot_id==='q42'&&m.mime==='image/png'));
+ assert.equal(ready.reviews.find(r=>r.stage==='IMAGE').media_id,ready.media.find(m=>m.shot_id==='q42'&&m.role==='source').id);
+ assert.equal(imagePolls.length,2);assert.equal(emitted,2);assert.equal(ready.current_action.operation_id,ga.operation.id);
+ assert.equal(ready.capabilities.generate,false);assert.equal(ready.capabilities.quote,false);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),imageBudget);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests[r.id].human_decision,human);
+ assert.equal((await f.store.getEpisode(episode)).actions.find(a=>a.key==='shot_review:q41').status,'COMPLETE');
+ assert.equal([...f.journalRows.values()].filter(j=>j.scene_id==='q42').length,1);
 });
 test('ONETAP MAX_RESERVATION BUDGET_GATE: excess, credits and unconfirmed quotes cannot reserve or emit',async t=>{
  for(const options of [{quoteUsd:.44801},{quoteUsd:6},{mode:'credits'},{mode:'expired'}]){

@@ -1,11 +1,22 @@
 const api='/lumi/studio/api',tg=window.Telegram?.WebApp;
 const root=document.querySelector('#app'),nav=document.querySelector('#navigation'),dialog=document.querySelector('#confirmation');
-let state=null,csrf=null,tab='inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false;
+let state=null,csrf=null,tab='inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false,mutationEpoch=0;
 const intentKey='lumi:first-animation:ep004:q41';
 let generationIntent=false;
 try{generationIntent=localStorage.getItem(intentKey)==='pending';}catch{/* Server lock remains authoritative. */}
 function rememberGenerationIntent(){generationIntent=true;try{localStorage.setItem(intentKey,'pending');}catch{/* Never release the in-memory lock on a storage error. */}}
 const generationLocked=()=>generationIntent||state?.first_animation?.locked===true;
+const actionIntentKey='lumi:pending-action:ep004';
+let actionIntent=null;
+try{actionIntent=JSON.parse(localStorage.getItem(actionIntentKey)||'null');}catch{/* Durable server state remains authoritative. */}
+function saveActionIntent(value){actionIntent=value;try{localStorage.setItem(actionIntentKey,JSON.stringify(value));}catch{/* Keep the in-memory intent. */}}
+function unresolvedIntent(){
+ if(!actionIntent||actionIntent.action!==state?.episode.next_action||state.current_action?.emission_locked)return false;
+ return !state.current_action?.operations?.some(o=>o.kind===actionIntent.kind&&o.quote_id===actionIntent.quote_id);
+}
+const actionStatusText={QUOTE_PENDING:'Consultando precio…',AUTHORIZATION_PENDING:'Guardando tu autorización…',AUTHORIZED:'Autorización registrada.',
+ PREPARING:'Preparando imagen…',RESERVED:'Preparando imagen…',EMITTING:'Generando imagen…',SUBMITTED:'Generando imagen…',PROCESSING:'Generando imagen…',
+ FAILED_CONFIRMED:'La generación fue rechazada. Requiere recuperación y una nueva autorización.',AMBIGUOUS:'Necesitamos verificar la operación anterior.',SUCCEEDED:'Imagen guardada.',AWAITING_HUMAN_REVIEW:'Imagen lista para revisar.'};
 const paths={inicio:'M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z',videos:'M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm4 4 7 4-7 4Z',produccion:'m12 3 2.4 5.5L20 11l-5.6 2.5L12 19l-2.4-5.5L4 11l5.6-2.5ZM20 3v4m-2-2h4',ajustes:'M5 4v16M12 4v16M19 4v16M2 9h6m1 6h6m1-7h6'};
 const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name]||paths.produccion}"/></svg>`;
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -42,7 +53,11 @@ function banner(){const op=state.operation;if(!op||op.status==='COMPLETE')return
   return '';
 }
 function budgetCard(){const b=state.budget;return `<section class="card"><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Costo real no verificado. La exposición incluye importes reservados pendientes de conciliación.</p></section>`;}
-function quoteCard(){const q=state.quote,c=state.capabilities;
+function quoteCard(){const q=state.quote,c=state.capabilities,g=state.current_action;
+  if(unresolvedIntent())return '<section class="card"><h3>Verificando la acción enviada…</h3><p>Esperamos su registro guardado antes de permitir otra acción. Podés cerrar y reabrir el estudio.</p><button class="button secondary" data-action="refresh">Actualizar estado</button></section>';
+  if(g?.locked&&!['QUOTED','AUTHORIZED'].includes(g.status)&&state.episode.next_action!=='video:q41')return `<section class="card"><h3 role="status">${esc((actionStatusText[g.status]||'Verificando la operación guardada…').replace(/imagen/g,state.production?.action?.stage==='VIDEO'?'animación':'imagen'))}</h3><p>Conservamos la operación original. No se enviará otra generación.</p>${c.recover?'<button class="button secondary" data-action="recover" '+(sending?'disabled':'')+'>Recuperar imagen original</button>':state.reviews.length?'':'<button class="button secondary" data-action="refresh">Actualizar estado</button>'}</section>`;
+  if(g?.status==='AUTHORIZED'&&(g.authorization_expired||q?.status==='QUOTE_EXPIRED'))return `<section class="card"><h3>Autorización registrada.</h3><p>La generación no se inició. El precio venció antes de confirmar el envío. Al continuar, Lumi comprobará el precio automáticamente y te pedirá una autorización nueva.</p>${button('Continuar preparación guardada','prepare','primary',!c.renew_quote)}</section>`;
+
   if(state.operation?.kind==='continue'&&state.operation.status!=='COMPLETE')return '<section class="card"><h3>'+(['QUEUED','RUNNING'].includes(state.operation.status)?'Preparando siguiente etapa…':'Verificando resultado anterior…')+'</h3><p>Conservamos la misma operación y la aprobación del video.</p><button class="button secondary" data-action="refresh">Actualizar progreso</button></section>';
   if(state.episode.next_action==='video:q41'){
     const g=state.first_animation,locked=generationLocked(),ready=['AWAITING_HUMAN_REVIEW','SUCCEEDED'].includes(g?.status);
@@ -52,7 +67,7 @@ function quoteCard(){const q=state.quote,c=state.capabilities;
   const action=state.production?.action,title=action?.title||'Continuar producción',image=action?.stage==='IMAGE';
   if(c.recover)return `<section class="card quote-card"><span class="tag blue">Solicitud en curso</span><h2>${image?'Tu imagen':'Tu animación'} está en camino.</h2><p>Recuperamos el resultado de la misma solicitud.</p>${button('Consultar resultado guardado','recover')}</section>`;
   if(c.continue)return `<section class="card quote-card"><h3>${esc(title)}</h3><p>Continuá con la preparación y revisión de esta escena.</p>${button(esc(title),'continue')}</section>`;
-  if(!c.quote)return state.reviews.length?'':`<section class="card"><h3>${esc(title)}</h3><p role="status">${action?'Verificando el estado guardado de esta etapa.':'Producción completada.'}</p></section>`;
+  if(!c.quote&&!c.renew_quote&&!c.authorize&&!c.generate)return state.reviews.length?'':`<section class="card"><h3>${esc(title)}</h3><p role="status">${action?'Verificando el estado guardado de esta etapa.':'Producción completada.'}</p></section>`;
   if(!q||q.status==='QUOTE_EXPIRED')return `<section class="card quote-card"><span class="tag gold">Próximo paso</span><h2>${esc(title)}</h2><p>Lumi comprobará automáticamente el precio y el presupuesto. Después podrás autorizar el importe específico de esta ${image?'imagen':'etapa'}.</p>${button(esc(title),'prepare')}</section>`;
   if(!['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status))return `<section class="card"><h3>Precio pendiente de verificación</h3><p>El resultado guardado requiere revisión antes de autorizar un gasto.</p>${button('Actualizar estado','refresh','secondary')}</section>`;
   return `<section class="card quote-card"><span class="tag ${c.generate?'green':'blue'}">${c.generate?'Importe autorizado':'Precio disponible'}</span><h3>${esc(title)}</h3><div class="quote-price">${usd(q.quote_usd)}</div>${row('Reserva propuesta',usd(q.proposed_reserve_usd))}${row('Disponible tras la reserva',usd(q.remaining_after_usd))}${row('Vigencia','<span id="quote-countdown"></span>')}<p>Esta autorización corresponde únicamente a la escena y operación actuales.</p>${button(c.generate?(image?'Generar imagen':'Generar animación'):'Revisar y autorizar importe',c.generate?'generate':'authorize','primary',!c.generate&&!c.authorize)}<p class="budget-note">${c.generate?'La generación comienza al confirmar el siguiente paso.':'Autorizar el importe no inicia la generación.'}</p></section>`;
@@ -72,23 +87,37 @@ function render(){navigation();if(!state)return;root.innerHTML=({inicio:home,vid
  if(scrollPending&&tab==='produccion'){scrollPending=false;const target=document.querySelector('#next-action');
   target?.focus({preventScroll:true});target?.scrollIntoView({block:'center',behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}}
 
-function countdown(){if(!state?.quote)return;const q=state.quote,n=document.querySelector('#quote-countdown');if(n)n.textContent=Math.max(0,Math.ceil((Date.parse(q.expires_at)-Date.now()-serverOffset)/1000))+' s';if(Date.parse(q.expires_at)<=Date.now()+serverOffset&&['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status)){state.quote.status='QUOTE_EXPIRED';state.capabilities.authorize=false;state.capabilities.generate=false;render();}}
+function countdown(){if(!state?.quote)return;const q=state.quote,n=document.querySelector('#quote-countdown');if(n)n.textContent=Math.max(0,Math.ceil((Date.parse(q.expires_at)-Date.now()-serverOffset)/1000))+' s';if(Date.parse(q.expires_at)<=Date.now()+serverOffset&&['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status)){state.quote.status='QUOTE_EXPIRED';state.capabilities.authorize=false;state.capabilities.generate=false;if(!state.current_action?.emission_locked&&['QUOTED','AUTHORIZED'].includes(state.current_action?.status))state.capabilities.renew_quote=true;render();}}
 function authScreen(message){state=null;root.innerHTML=`<section class="welcome"><div class="auth-symbol">✦</div><span class="eyebrow">BIENVENIDO A LUMI STUDIO</span><h1>Tu próxima historia<br>empieza en Telegram.</h1><p>${esc(message)}</p>${button('Volver a comprobar acceso','login','secondary')}<small>Acceso privado al estudio de Lumi.</small></section>`;navigation();}
-async function refresh(){if(polling||!csrf)return;polling=true;try{const next=await request('/state');serverOffset=next.server_time-Date.now();
+async function refresh(){if(polling||!csrf)return;polling=true;const epoch=mutationEpoch;let superseded=false;
+  try{const next=await request('/state');
+    if(epoch!==mutationEpoch){superseded=true;return;}
+    if(state&&(Number(next.review_revision??0)<Number(state.review_revision??0)||Number(next.episode.checkpoint_version??0)<Number(state.episode.checkpoint_version??0)))return;
+    serverOffset=next.server_time-Date.now();
     // Keep an actively playing review video in place during background polls.
     const mediaExpiring=state?.media?.some(m=>m.expires_at<Date.now()+60000);
     const playing=[...document.querySelectorAll('video')].some(v=>!v.paused),changed=JSON.stringify({...next,server_time:0,media:[]})!==JSON.stringify({...state,server_time:0,media:[]});
     const advanced=state&&next.episode.next_action!==state.episode.next_action;
     if(advanced){pendingSpend=null;if(dialog.open)dialog.close();scrollPending=true;}
-    state=next;if((!playing||advanced)&&(changed||mediaExpiring||!root.querySelector('.page-intro')))render();
+    state=next;if(actionIntent&&!unresolvedIntent())saveActionIntent(null);if((!playing||advanced)&&(changed||mediaExpiring||!root.querySelector('.page-intro')))render();
     finishPreparation();
-  }catch(e){if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;}}
+  }catch(e){if(epoch!==mutationEpoch){superseded=true;return;}if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;if(superseded)await refresh();}}
 async function login(){try{let s;try{s=await request('/session');}catch(e){if(e.status!==401)throw e;if(!tg?.initData)return authScreen('Abrí esta aplicación desde «Abrir Lumi Studio» en el menú del bot.');s=await request('/auth',{method:'POST',body:{initData:tg.initData}});}csrf=s.csrf;await refresh();}catch(e){authScreen(errorText(e));}}
-async function submit(kind,extra={}){if(busy()&&kind!=='resume')return;if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
+async function submit(kind,extra={}){if(sending||busy()&&!['resume','recover'].includes(kind))return;
+  if(['quote','authorize','generate'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
   if(kind==='first_animation')rememberGenerationIntent();
-  sending=true;render();toast(kind==='first_animation'?'Preparando animación…':kind==='quote'?'Consultando precio…':'Guardando tu acción…');
-  try{const q=state.quote,result=await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...(['continue','quote','authorize','generate'].includes(kind)?{expected_action:state.episode.next_action,checkpoint_version:state.episode.checkpoint_version}:{}),...extra}});state.operation=result.operation;}
-  catch(e){toast(errorText(e));}finally{sending=false;render();await refresh();}}
+  if(['quote','authorize','generate'].includes(kind))saveActionIntent({action:state.episode.next_action,kind,quote_id:state.quote?.quote_id??null});
+  mutationEpoch++;sending=true;render();toast(kind==='first_animation'?'Preparando animación…':kind==='quote'?'Consultando precio…':'Guardando tu acción…');
+  try{const q=state.quote;await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...(['continue','quote','authorize','generate'].includes(kind)?{expected_action:state.episode.next_action,checkpoint_version:state.episode.checkpoint_version}:{}),...extra}});
+    // Action responses can arrive after a newer checkpoint. Only /state may
+    // replace the view; the durable operation is recovered by the next read.
+  }
+  catch(e){
+    // These server guards reject before any operation claim. Network failures
+    // and all uncertain outcomes keep the intent until durable reconciliation.
+    if(e.status===409&&/^(MINI_QUOTE_CHANGED|MINI_CURRENT_QUOTE_REQUIRED|MINI_SPEND_APPROVAL_REQUIRED|MINI_STAGE_CHANGED)$/.test(e.message))saveActionIntent(null);
+    toast(errorText(e));
+  }finally{sending=false;render();await refresh();}}
 async function prepareSpend(){
  pendingSpend={action:state.episode.next_action,version:state.episode.checkpoint_version};
  const q=state.quote;if(q&&Date.parse(q.expires_at)>Date.now()+serverOffset&&state.capabilities.authorize){pendingSpend=null;return confirmSpend('authorize');}

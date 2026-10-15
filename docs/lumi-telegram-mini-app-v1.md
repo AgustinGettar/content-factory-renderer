@@ -8,19 +8,31 @@ schema, queue, episode, provider account or generation on startup.
 The mount requires `LUMI_RUNTIME_ENV=staging`, the exact isolated Supabase URL
 `https://mofjhwathxzfnjapvvst.supabase.co` and, when Render supplies it, service ID
 `srv-dapgakqd0e5s73fottig`. `LUMI_MINI_APP_ENABLED=false` disables the mount.
-Existing server-only bot, provider and database credentials are reused. Main and
+Existing server-only provider and database credentials are reused. Main and
 the production service are not deployment targets.
 
-On staging startup the app reads the existing private-chat administrator and
+When a bot token is available, staging startup reads the existing private-chat administrator and
 uses `getChatMenuButton` / `setChatMenuButton` to prepare “Abrir Lumi Studio”.
 The menu is verified by readback. This changes no messages, panel IDs, histories,
 webhooks or Make scenarios. BotFather is not required for this per-chat menu;
 a Main Mini App profile button would be a separate optional configuration.
 
+In this deployment the bot token remains in the existing Make connection
+11003632. The already-existing API shell 6532649 calls `getMe`,
+`setChatMenuButton` and `getChatMenuButton`; scenario 6224860 is unchanged.
+The verified public bot ID is 8843261381 (@AppMultimedia_VideosBot).
+Set staging `LUMI_TELEGRAM_BOT_ID` to this ID. After the menu readback, record
+`LUMI_MINI_APP_MENU_VERIFIED_AT` as its ISO timestamp (an operational observation,
+not an authentication grant). No credential is copied from Make.
+
 ## Authentication and authorization
 
 `POST /lumi/studio/api/auth` accepts only Telegram `initData`. The backend checks
-the official HMAC, unique field names, a five-minute age limit, future-date skew,
+the official HMAC when a bot token exists, or Telegram's official third-party
+Ed25519 signature using the server-configured bot ID and Telegram's pinned
+production public key. Neither the public key nor the bot ID comes from the
+browser. Ed25519 replay identity uses the signed canonical data, never the
+unsigned `hash` parameter. Both methods check unique field names, a five-minute age limit, future-date skew,
 numeric Telegram user identity, private-chat context and `cf_bot_admins` ownership.
 Signed initData is exchanged once using the existing CAS session store. Browser
 provided user IDs and `initDataUnsafe` are never authorization inputs.
@@ -30,6 +42,9 @@ Telegram Web iframe compatibility. Server storage contains only session hashes.
 They expire after 30 minutes; owner revocation is checked on every API request.
 POST requests require the exact staging Origin, JSON and a session-bound CSRF
 token. Content Security Policy restricts scripts to this app and Telegram's SDK.
+Session and media MACs use domain-separated keys derived from the existing
+server-only callback secret when the bot token is absent. Missing authentication
+configuration fails closed; readiness reports configuration, not real acceptance.
 No CORS authorization, bearer credentials, provider payloads or storage paths are
 exposed to the frontend. Session expiry requires reopening from the bot.
 
@@ -95,4 +110,5 @@ renewal without clicking either economic authorization or generation during
 deployment validation. HTTPS readiness alone does not prove Telegram acceptance.
 
 Official protocol reference: https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app
+Official public-key protocol: https://core.telegram.org/bots/webapps#validating-data-for-third-party-use
 Menu API reference: https://core.telegram.org/bots/api#setchatmenubutton

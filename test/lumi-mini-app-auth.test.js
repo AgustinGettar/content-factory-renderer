@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createHmac} from 'node:crypto';
+import {createHmac,generateKeyPairSync,sign as edSign} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {MemoryReviewStore} from '../lib/telegram-review-v1/core.js';
-import {MiniAppAuth,validateInitData,assertMiniPrincipal,miniAppEnabled} from '../lib/telegram-mini-app/auth.js';
+import {MiniAppAuth,validateInitData,assertMiniPrincipal,miniAppEnabled,miniAuthConfigured,miniAppSecret} from '../lib/telegram-mini-app/auth.js';
 
 const token='12345:OFFLINE_TELEGRAM_TOKEN',env={LUMI_RUNTIME_ENV:'staging',SUPABASE_URL:'https://mofjhwathxzfnjapvvst.supabase.co',LUMI_TELEGRAM_BOT_TOKEN:token};
 function sign(values={},key=token){const p=new URLSearchParams({auth_date:String(Math.floor(Date.now()/1000)),query_id:'test-query',user:JSON.stringify({id:1,first_name:'Test'}),...values});
@@ -19,6 +19,23 @@ test('AUTH_SECURITY: official HMAC, exact identity, timestamp and duplicate-fiel
   sign({user:'{"id":"1"}'}),sign({user:'null'}),sign({chat_type:'group'}),sign({chat:JSON.stringify({id:-1,type:'group'})}),sign({auth_date:'1e10'})])
   assert.throws(()=>validateInitData(raw,token));
  assert.throws(()=>assertMiniPrincipal({user:'1'}),/SESSION_REQUIRED/);
+});
+test('AUTH_SECURITY: official Ed25519 format binds bot, signed fields and replay identity; runtime pins Telegram key',async()=>{
+ const {publicKey,privateKey}=generateKeyPairSync('ed25519'),botId='8843261381',now=Date.now();
+ const make=(values={})=>{const p=new URLSearchParams({auth_date:String(Math.floor(now/1000)),user:JSON.stringify({id:1,first_name:'Test'}),query_id:'ed-query',...values});
+  const check=botId+':WebAppData\n'+[...p].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join('\n');
+  p.set('signature',edSign(null,Buffer.from(check),privateKey).toString('base64url'));p.set('hash','a'.repeat(64));return p;};
+ const raw=make(),verified=validateInitData(raw.toString(),{botId},now,publicKey);assert.equal(verified.user,'1');
+ raw.set('hash','b'.repeat(64));raw.set('signature',raw.get('signature')+'==');
+ assert.equal(validateInitData(raw.toString(),{botId},now,publicKey).exchange,verified.exchange);
+ for(const [p,cred] of [[make(),{botId:'999'}],[make({auth_date:String(Math.floor(now/1000)-301)}),{botId}],[make({chat_type:'group'}),{botId}]])assert.throws(()=>validateInitData(p.toString(),cred,now,publicKey));
+ const tampered=make();tampered.set('user',JSON.stringify({id:2}));assert.throws(()=>validateInitData(tampered.toString(),{botId},now,publicKey),/SIGNATURE/);
+ assert.throws(()=>validateInitData(make().toString(),{botId}),/SIGNATURE/);
+ const f=await fixture(),edEnv={...env,LUMI_TELEGRAM_BOT_TOKEN:undefined,LUMI_TELEGRAM_BOT_ID:botId,LUMI_TELEGRAM_CALLBACK_SECRET:'offline-existing-callback-secret'};
+ const auth=new MiniAppAuth({store:f.store,env:edEnv,validateOwner:async()=>true});
+ await assert.rejects(auth.login(make().toString()),/SIGNATURE/); // self-signed key is NEVER trusted by runtime
+ assert.equal(miniAuthConfigured(edEnv),true);assert.equal(miniAuthConfigured({...edEnv,LUMI_TELEGRAM_CALLBACK_SECRET:undefined}),false);
+ assert.equal(miniAppSecret(edEnv).length,32);assert.match(auth.csrf('session'),/^[a-f0-9]{64}$/);
 });
 test('AUTH_SECURITY: exchange is one-time across instances; session supports re-open, CSRF and owner revocation',async()=>{
  const f=await fixture(),raw=sign(),results=await Promise.allSettled([f.auth.login(raw),f.auth.login(raw)]);

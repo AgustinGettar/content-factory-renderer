@@ -1,0 +1,25 @@
+{
+  "ep004_readonly_projection": "PASS_INTEGRATION",
+  "real_snapshot_revision": 23,
+  "proposal_durable_revision": 712,
+  "proposal_digest": "0295962c614e434c807dcaf42d5b5804ad81335fe2065c07fb15cbf6370c44d6",
+  "generation_enabled": false,
+  "second_image_enabled": false,
+  "tests": {
+    "focused_pass": 67,
+    "focused_fail": 0,
+    "post_storage_namespace_change_pass": 10,
+    "post_storage_namespace_change_fail": 0,
+    "final_affected_pass": 29,
+    "final_affected_fail": 0
+  },
+  "real_provider_calls": 0,
+  "synthetic_episodes": [
+    "ep005_synthetic",
+    "ep006_synthetic"
+  ],
+  "synthetic_productive_progress": 0,
+  "real_iphone_playback": "NOT_TESTED_REAL",
+  "real_replacement_emission": "NOT_TESTED_REAL",
+  "real_master": "NOT_TESTED_REAL"
+}

@@ -1,0 +1,319 @@
+{
+  "version": 1,
+  "observed_at": "2026-10-18T23:22:20.269Z",
+  "repository": "AgustinGettar/content-factory-renderer",
+  "branch": "lumi-telegram-review-v1",
+  "source_commit": "958c904f4aaff9ff5ff94e4266273dbe42b04f5b",
+  "staging_service": "content-factory-av2-staging",
+  "supabase_project": "mofjhwathxzfnjapvvst",
+  "deployment_evidence": "Baseline LIVE 958c904 / dep-dbal0onbtjjs73fj2sjg; this change not yet published",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "status": "PAUSED_INCIDENT",
+  "last_completed_action": "shot_review:q41",
+  "first_pending_action": "image:q42",
+  "progress": {
+    "completed": 8,
+    "total": 50,
+    "approved_images": 1,
+    "approved_clips": 1,
+    "master_completed": false
+  },
+  "original": {
+    "operation_id": "125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90",
+    "attempt_id": "6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30",
+    "status": "EMISSION_UNKNOWN",
+    "response": "NO_RESPONSE",
+    "reserved_usd": 0.3275
+  },
+  "proposal_id": "02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670",
+  "budget": {
+    "ceiling_usd": 8,
+    "exposure_usd": 1.22625,
+    "proposed_new_reservation_usd": 0.3275,
+    "potential_total_exposure_usd": 1.55375,
+    "actual_spend_usd": null
+  },
+  "authorizations": {
+    "provider_generation": false,
+    "new_reservations": false,
+    "automatic_prompt_execution": false,
+    "allowed": [
+      "prepare proposal",
+      "implement and test",
+      "push target branch",
+      "CI",
+      "deploy staging"
+    ],
+    "risk_acceptance": "NOT_GRANTED"
+  },
+  "blockers": [
+    {
+      "priority": 1,
+      "category": "PROVIDER_EVIDENCE",
+      "status": "OPEN",
+      "description": "q42 has no verifiable provider result or non-emission evidence; original remains immutable.",
+      "dependencies": [],
+      "resolution_cost": "USD 0 for local preparation; provider charge unknown",
+      "time_estimate": "External evidence: unknown",
+      "production_impact": "CRITICAL",
+      "financial_risk": "HIGH",
+      "recurrence_probability": "UNKNOWN",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 2,
+      "category": "GENERATION",
+      "status": "PENDING_AUTHENTICATED_INTEGRATION",
+      "description": "q42 replacement descriptor is inert; future activation needs authenticated risk grant, atomic reservation, independent claim, journal and recovery. q42–q47 images/clips remain pending.",
+      "dependencies": [
+        "PROVIDER_EVIDENCE",
+        "BUDGET",
+        "HUMAN_REVIEW"
+      ],
+      "resolution_cost": "Implementation USD 0 provider spend; generation quotes required",
+      "time_estimate": "Engineering estimate 1 focused intervention; provider duration unknown",
+      "production_impact": "CRITICAL",
+      "financial_risk": "HIGH",
+      "recurrence_probability": "HIGH if ambiguous responses recur",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 3,
+      "category": "HUMAN_REVIEW",
+      "status": "SPECIFIC_RISK_ACCEPTANCE_MISSING",
+      "description": "No replacement risk accepted. Image, clip, audio and master reviews remain mandatory as results arrive.",
+      "dependencies": [
+        "replacement integration"
+      ],
+      "resolution_cost": "USD 0 for decisions",
+      "time_estimate": "Human response time unknown",
+      "production_impact": "CRITICAL",
+      "financial_risk": "HIGH",
+      "recurrence_probability": "EXPECTED_EACH_NEW_RESULT",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 4,
+      "category": "BUDGET",
+      "status": "HEADROOM_AVAILABLE_COVERAGE_UNKNOWN",
+      "description": "USD 8 cap preserved; current internal headroom 6.77375. New estimated reservation 0.3275 would leave 6.44625; actual charges and remaining episode coverage unverified.",
+      "dependencies": [
+        "fresh bound quotes"
+      ],
+      "resolution_cost": "USD 0 for preparation; no new reservation",
+      "time_estimate": "Quote timing must be just before authorized emission",
+      "production_impact": "HIGH",
+      "financial_risk": "HIGH",
+      "recurrence_probability": "EXPECTED_EACH_PAID_ACTION",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 5,
+      "category": "TTS",
+      "status": "NOT_TESTED_REAL_EP004",
+      "description": "Fernanda V3 configured; EP004 tts/tts_storage pending. Current quota and exact request set require preflight at its turn.",
+      "dependencies": [
+        "approved visuals",
+        "TTS consent/quota"
+      ],
+      "resolution_cost": "Current quota/cost not verified",
+      "time_estimate": "Provider and review duration unknown",
+      "production_impact": "DOWNSTREAM",
+      "financial_risk": "UNKNOWN",
+      "recurrence_probability": "EXPECTED",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 6,
+      "category": "ASSEMBLY",
+      "status": "WAITING_FOR_REAL_INPUTS",
+      "description": "captions/assembly/master/master_review remain pending; code presence and simulated tests do not prove EP004 master readiness.",
+      "dependencies": [
+        "approved visuals",
+        "TTS"
+      ],
+      "resolution_cost": "Local assembly expected USD 0 provider charge; infrastructure cost not estimated",
+      "time_estimate": "Estimate 1 assembly/review cycle after inputs",
+      "production_impact": "DOWNSTREAM",
+      "financial_risk": "LOW_FOR_LOCAL_ASSEMBLY",
+      "recurrence_probability": "UNKNOWN",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 7,
+      "category": "DELIVERY",
+      "status": "DEVICE_ACCEPTANCE_PENDING",
+      "description": "Flores playback transport fix has no real iPhone acceptance; EP004 master does not exist yet.",
+      "dependencies": [
+        "human device verification",
+        "master"
+      ],
+      "resolution_cost": "USD 0 generative charge",
+      "time_estimate": "Human check estimate 2–5 minutes",
+      "production_impact": "DOWNSTREAM",
+      "financial_risk": "LOW",
+      "recurrence_probability": "UNKNOWN",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 8,
+      "category": "MINI_APP_UX",
+      "status": "PASS_INTEGRATION_DEPLOY_PENDING",
+      "description": "Risk presentation and disabled generation validated with real EP004 snapshot; proposal persisted; device rendering not tested.",
+      "dependencies": [
+        "proposal persisted",
+        "staging deployment"
+      ],
+      "resolution_cost": "USD 0 provider spend",
+      "time_estimate": "Current intervention",
+      "production_impact": "HIGH",
+      "financial_risk": "HIGH_IF_LOCK_FAILS",
+      "recurrence_probability": "GUARDED_BY_TESTS",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    },
+    {
+      "priority": 9,
+      "category": "INFRASTRUCTURE",
+      "status": "BASELINE_HEALTHY",
+      "description": "Target staging LIVE, Supabase staging isolated; runners OFF/autorun false. No demonstrated Make defect; this release still needs exact-commit CI and live verification.",
+      "dependencies": [
+        "CI GREEN"
+      ],
+      "resolution_cost": "No new service or plan",
+      "time_estimate": "Deploy typically minutes; no guarantee",
+      "production_impact": "RELEASE_GATE",
+      "financial_risk": "LOW",
+      "recurrence_probability": "UNKNOWN",
+      "evidence": "checkpoint revision 23 and scoped repository inspection; unknown downstream execution is explicitly not treated as a proven defect"
+    }
+  ],
+  "metrics": {
+    "PRODUCTION_PROGRESS": {
+      "completed": 8,
+      "total": 50,
+      "delta_this_intervention": 0,
+      "evidence": "real checkpoint revision 23"
+    },
+    "BLOCKERS_RESOLVED": {
+      "production": 0,
+      "technical": 2,
+      "scope": "proposal visibility/preparation and stale continuation context; original emission ambiguity unresolved"
+    },
+    "REGRESSIONS_INTRODUCED": {
+      "observed": 0,
+      "scope": "67 focused tests; not exhaustive or device-level proof"
+    },
+    "DUPLICATE_EMISSIONS": {
+      "this_intervention": 0,
+      "historical": "UNKNOWN_PROVIDER_OUTCOME"
+    },
+    "UNAUTHORIZED_SPENDING": {
+      "this_intervention": 0,
+      "historical_charges": "UNVERIFIED"
+    },
+    "HUMAN_INTERVENTIONS": {
+      "new_decisions_recorded": 0,
+      "pending": [
+        "specific replacement risk acceptance",
+        "device playback acceptance"
+      ],
+      "historical_total": null
+    },
+    "REUSABLE_FIXES": {
+      "implemented": 2,
+      "validated": 2,
+      "items": [
+        "proposal-only recovery contracts and UX",
+        "versioned incidents and deterministic continuation generator"
+      ]
+    },
+    "SIMULATED_PROGRESS": {
+      "status": "PASS_OFFLINE EP005 and EP006 full contract lifecycle",
+      "productive_delta": 0
+    }
+  },
+  "feedback": {
+    "Qué pidió el prompt anterior": [
+      "Integrar biblioteca inteligente y reproducción privada de Flores; aumentar techo EP004 a USD 8 sin desbloquear q42."
+    ],
+    "Qué se completó realmente": [
+      "SHA 958c904 LIVE; biblioteca/discovery por metadatos y reproducción progresiva implementadas; 17 registros según consulta actual; aumento USD 8 durable.",
+      "La aprobación q41 está completa; q42 permaneció bloqueada. No hubo avance productivo posterior a 8/50."
+    ],
+    "Qué quedó pendiente": [
+      "Resultado/cargo original q42 desconocido; aceptación real de reproducción iPhone; q42–q47, TTS, ensamblado, master y revisiones."
+    ],
+    "Qué trabajo se repitió innecesariamente": [
+      "No hay evidencia suficiente para cuantificar repeticiones previas. Esta intervención reutiliza la documentación reciente y consulta sólo el estado actual y superficies afectadas."
+    ],
+    "Qué instrucciones evitaron errores": [
+      "Verificar estado actual; distinguir operation_id de attempt_id; conservar reserva; no inferir no-emisión por timeout; no tratar USD 8 como permiso de generación.",
+      "Pruebas offline separadas de progreso productivo; no fixtures en staging."
+    ],
+    "Qué instrucciones generaron fricción": [
+      "Los identificadores y estados históricos requerían contraste con fuentes actuales.",
+      "El estado de reanudación anterior estaba desactualizado. Dar un checkpoint y ruta compactos evita volver a reconstruir contexto.",
+      "El objetivo master exige nuevas generaciones, pero esta intervención autoriza exclusivamente preparación. No atribuir a código o pruebas un avance de producción."
+    ],
+    "Qué evidencia faltó": [
+      "Request ID o respuesta/cargo de q42; prueba de transporte no invocado; predicado exacto que produjo Q41_EMISSION_BINDING_CHANGED; aceptación iPhone.",
+      "Cuotas/cotizaciones futuras y resultados reales de TTS/assembly EP004."
+    ],
+    "Qué decisión humana se necesita": [
+      "Aceptar expresamente posible doble cargo para una propuesta identificada y un máximo concreto, sólo después de integración segura y cotización vigente. No aceptada por este prompt.",
+      "Confirmar reproducción y descarga en iPhone; no bloquea preparación q42."
+    ],
+    "Qué se completó en esta intervención": [
+      "Propuesta durable q42 sin grant, reserva nueva, operación activa ni emisión; journal/operación/checkpoint/q41 conservados.",
+      "Contratos de riesgo y doble exposición reutilizables; 67 pruebas focalizadas iniciales y 29/29 afectadas tras bloqueo directo final; EP005/EP006 sintéticos.",
+      "Registro de incidentes, estado compacto, feedback y generador determinista; push/CI/staging pendientes al escribir este snapshot."
+    ]
+  },
+  "first_safe_action": "Verificar una vez la propuesta durable, journal y checkpoint actuales; cerrar y probar offline el enlace autenticado/transaccional de reemplazo dentro del runtime existente, sin emitir ni reservar. No repetir cotizaciones hasta que haya una vía de autorización segura.",
+  "acceptance": [
+    "Original operation/journal/reservation/q41 unchanged; cap USD 8; checkpoint unchanged unless a real approved result justifies transition.",
+    "Specific human risk acceptance is absent until genuinely recorded; no inherited consent or automatic generation.",
+    "Focused adversarial tests pass; CI GREEN on exact target branch commit; staging-only deployment verified.",
+    "Report first missing production dependency and one concrete next safe action; zero generation in the absence of new specific consent."
+  ],
+  "tests": [
+    {
+      "status": "PASS_OFFLINE",
+      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-replacement.test.js test/lumi-recovery-incident-manager-v1.test.js test/provider-emission-journal-v1.test.js test/higgsfield-usd-budget-v1.test.js test/lumi-generic-balance-recovery.test.js test/lumi-mini-app-auth.test.js",
+      "result": "67/67; after final storage namespace fix 10/10 new recovery tests passed."
+    },
+    {
+      "status": "PASS_INTEGRATION",
+      "command": "MiniAppService.view over real read-only EP004 snapshot",
+      "result": "revision23; REPLACEMENT_PROPOSAL; generate=false; second_image.available=false; input unchanged."
+    },
+    {
+      "status": "PASS_REAL",
+      "command": "Supabase staging guarded proposal append and readback",
+      "result": "review revision712; original checkpoint/journal/operation/approvals hashes unchanged; journal rows3; no new reservation or generation."
+    },
+    {
+      "status": "PASS_OFFLINE",
+      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-replacement.test.js test/lumi-mini-app-auth.test.js",
+      "result": "29/29 after direct command gate; no outbound network attempts."
+    }
+  ],
+  "recent_commits": [
+    {
+      "sha": "958c904f4aaff9ff5ff94e4266273dbe42b04f5b",
+      "subject": "progressive private masters and metadata-based asset discovery"
+    },
+    {
+      "sha": "5c36d85",
+      "subject": "reuse approval state and immutable derivative recipes"
+    },
+    {
+      "sha": "7a596b4",
+      "subject": "private previews and controlled AV2 reuse"
+    },
+    {
+      "sha": "e4d6128",
+      "subject": "episode budget increases preserving pending operations"
+    }
+  ]
+}

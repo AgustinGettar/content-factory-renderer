@@ -1,0 +1,94 @@
+[
+  {
+    "INCIDENT_ID": "LUMI-Q42-AMBIGUOUS-001",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42",
+    "SYMPTOM": "Original Mini App operation BLOCKED with Q41_EMISSION_BINDING_CHANGED; provider journal EMISSION_UNKNOWN/NO_RESPONSE.",
+    "ROOT_CAUSE": null,
+    "EVIDENCE": [
+      "Original operation 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; journal attempt 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30.",
+      "Journal has no request ID, HTTP response or accepted result. Original quote expired 2026-10-15T20:20:52.775Z; operation finished with error 20:21:01.813Z.",
+      "Current journal distinguishes local rejection from transport failure for NEW records; this cannot retroactively prove no emission for q42."
+    ],
+    "CONFIDENCE": "UNKNOWN",
+    "USER_IMPACT": "EP004 paused at 8/50; no second image available for review.",
+    "FINANCIAL_RISK": "USD 0.3275 remains reserved, actual charge unknown; replacement may duplicate remote charge.",
+    "FIX_STATUS": "MITIGATED_PROPOSAL_ONLY",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
+      "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."
+    ],
+    "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
+    "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
+    "NEXT_ACTION": "Complete authenticated and atomic replacement activation integration without emission; then obtain specific human risk acceptance and a fresh bound quote. Recover original instead if verifiable evidence appears."
+  },
+  {
+    "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42",
+    "SYMPTOM": "Binding error surfaced after historical quote expiry.",
+    "ROOT_CAUSE": "Expired quote or another changed binding may have caused final validation failure; exact predicate unavailable.",
+    "EVIDENCE": [
+      "Same original operation timestamps and generic binding error as incident 001.",
+      "No original branch-specific error predicate or transport-invoked proof was persisted."
+    ],
+    "CONFIDENCE": "PROBABLE",
+    "USER_IMPACT": "A replacement could encounter another validation failure if its evidence/quote expires before transport.",
+    "FINANCIAL_RISK": "No proof of no charge; do not replay original.",
+    "FIX_STATUS": "OPEN",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
+      "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."
+    ],
+    "REGRESSION_GUARD": "Existing provider-emission-journal-v1.test.js final deadline/no-replay tests; replacement fresh quote test.",
+    "REUSABILITY": "All provider boundaries should record precise pre-transport rejection and validate payload/quote immediately before transport.",
+    "NEXT_ACTION": "Use current pre-dispatch guard and verify the exact new-operation binding offline; do not reclassify the original."
+  },
+  {
+    "INCIDENT_ID": "LUMI-RESUME-STALENESS-003",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "operator_continuation",
+    "SYMPTOM": "docs/RESUME_STATE_EP004.json still describes video:q41 while durable state has completed shot_review:q41.",
+    "ROOT_CAUSE": "The historical resume document was not refreshed after later transitions.",
+    "EVIDENCE": [
+      "Historical file updated 2026-10-14; pending video:q41.",
+      "Current staging checkpoint revision 23: shot_review:q41 complete, image:q42 pending, 8/50."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Prompts can repeat completed investigations or rely on stale budgets and actions.",
+    "FINANCIAL_RISK": "Stale state increases accidental duplicate-action risk; runtime gates still block.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
+      "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."
+    ],
+    "REGRESSION_GUARD": "Deterministic state/incident input digest, resume state and prompt generation tests.",
+    "REUSABILITY": "Versioned per-episode evidence and bounded continuation draft generation.",
+    "NEXT_ACTION": "Use docs/LUMI_RESUME_STATE.md and verify current durable state once before writes."
+  },
+  {
+    "INCIDENT_ID": "LUMI-FLORES-DEVICE-004",
+    "EPISODE_ID": "ep_lumi_flores_003",
+    "AFFECTED_ACTION": "master_playback",
+    "SYMPTOM": "Telegram/iPhone playback and download after transport fix have no recorded human acceptance.",
+    "ROOT_CAUSE": null,
+    "EVIDENCE": [
+      "docs/LUMI_INTELLIGENT_LIBRARY.md: progressive range transport and original bytes validated; device acceptance NOT_TESTED_REAL.",
+      "No new device test performed in this intervention."
+    ],
+    "CONFIDENCE": "UNKNOWN",
+    "USER_IMPACT": "Final delivery compatibility remains unconfirmed; does not block q42 preparation.",
+    "FINANCIAL_RISK": "No generative spending needed for verification.",
+    "FIX_STATUS": "HUMAN_VERIFICATION_PENDING",
+    "FIX_COMMIT": "958c904f4aaff9ff5ff94e4266273dbe42b04f5b",
+    "TEST_EVIDENCE": [
+      "Prior 43 focused library/auth tests recorded in docs/LUMI_INTELLIGENT_LIBRARY.md; not a device acceptance."
+    ],
+    "REGRESSION_GUARD": "lumi-library-v1.test.js HTTP range/private master tests.",
+    "REUSABILITY": "All approved master delivery.",
+    "NEXT_ACTION": "Human opens Flores in iPhone Telegram and confirms play plus original download; record exact symptom if failing."
+  }
+]

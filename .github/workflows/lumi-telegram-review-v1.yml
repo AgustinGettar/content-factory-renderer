@@ -13,19 +13,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      - name: Select focused asset-library validation
+      - name: Select focused library or supervised recovery validation
         id: scope
         shell: bash
         run: |
           library_only=true
-          git rev-parse HEAD^ >/dev/null 2>&1 || library_only=false
+          recovery_only=true
+          git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; }
           while IFS= read -r path; do
             case "$path" in
               lib/telegram-mini-app/library.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|public/lumi-studio/style.css|test/lumi-library-v1.test.js|supabase/migrations/*_lumi_reusable_asset_library_v1.sql|supabase/migrations/*_lumi_library_discovery_v1.sql|docs/LUMI_REUSABLE_ASSET_LIBRARY_V1.md|docs/LUMI_INTELLIGENT_LIBRARY.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) library_only=false ;;
             esac
+            case "$path" in
+              lib/lumi-supervised-replacement.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-improvement-loop.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|test/lumi-supervised-replacement.test.js|scripts/lumi-improvement-loop.mjs|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|docs/LUMI_SUPERVISED_RECOVERY.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              *) recovery_only=false ;;
+            esac
           done < <(git diff --name-only HEAD^ HEAD)
           echo "library_only=$library_only" >> "$GITHUB_OUTPUT"
+          echo "recovery_only=$recovery_only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -36,8 +42,14 @@ jobs:
       - run: node --check server.js && node --check lib/telegram-mini-app/library.js && node --check lib/telegram-mini-app/runtime.js && node --check public/lumi-studio/app.js
       - name: Asset library, SQL, auth and protected production integration (offline)
         run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js test/lumi-mini-app-auth.test.js
+      - name: Supervised recovery, budget, journal and durable continuation (offline)
+        if: steps.scope.outputs.recovery_only == 'true'
+        run: |
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-replacement.test.js test/lumi-recovery-incident-manager-v1.test.js test/provider-emission-journal-v1.test.js test/higgsfield-usd-budget-v1.test.js test/lumi-generic-balance-recovery.test.js
+          node scripts/lumi-improvement-loop.mjs
+          git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Telegram, Recovery Manager and director regression with network disabled
-        if: steps.scope.outputs.library_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true'
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
           test/lumi-mini-app-auth.test.js
@@ -83,13 +95,13 @@ jobs:
           test/lumi-six-shot-audio.test.js
 
       - name: Durable diagnostic recovery across real process termination (offline children)
-        if: steps.scope.outputs.library_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true'
         run: node --test test/lumi-durable-dry-run-restart.test.js test/lumi-generic-runtime-restart.test.js test/lumi-isolated-validation-restart.test.js test/lumi-diagnostic-http-restart.test.js
 
       - name: Future episode zero-provider dry run
-        if: steps.scope.outputs.library_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true'
         run: node scripts/lumi-production-readiness-v2.mjs /tmp/readiness-v2.json
 
       - name: Real executor boundaries and crash matrix (missing runners stay blocked)
-        if: steps.scope.outputs.library_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true'
         run: node --import ./scripts/director-offline-guard.mjs scripts/lumi-real-executor-readiness-v2.mjs /tmp/real-executor-v2.json

@@ -136,3 +136,164 @@ test('HTTP_INTEGRATION: existing Mini App guards protect catalog, range media, s
  assert.deepEqual(tables.lumi_pipeline_checkpoints,[]);
  assert.equal(globalThis.LUMI_OFFLINE_GUARD?.attempts.length,0);
 });
+
+// V2 uses the actual checkpoint manager and stage-result/review pipeline. All
+// media, transport and storage below are synthetic in-memory inputs only.
+async function productionLibraryFixture(){
+ const f=await principal(),{MemoryLumiRecoveryStore,LumiRecoveryIncidentManager}=await import('../lib/lumi-recovery-incident-manager-v1.js');
+ const {prepareGenericV2Episode,ep004ProductionRequest}=await import('../lib/lumi-generic-v2-adapter.js');
+ const store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store}),objects=new Map(),assets=[],selections=new Map(),journals=new Map();
+ const png=Buffer.from(bytes);png.writeUInt32BE(1520,16);png.writeUInt32BE(2688,20);const sha=hash(png),original={...media,sha256:sha,width:1520,height:2688,path:'source/original.png'};
+ const approved={...review,artifact_sha:sha};
+ assets.push(verifiedAsset(candidate({a:original,review:approved,episode:'ep_library_source',shot:'q41'}),png));objects.set(original.bucket+'/'+original.path,png);
+ for(const episode of ['ep_library_source','ep_fixture_005','ep_fixture_006','ep_fixture_004']){
+  const request=structuredClone(ep004ProductionRequest({episode_id:'ep_lumi_granja_004_20261008_ee7ab4b3',sha256:sha}));request.episodePlan.episode.id=episode;for(const shot of request.shotPlans){shot.director_input.episode_id=episode;shot.director_input.contract.REQUIRED_OBJECTS=['cow','sheep','hen'].map(id=>({id,count:1,color:'synthetic color',shape:id,placement:'synthetic placement'}));}const prepared=prepareGenericV2Episode(request);
+  await manager.startEpisode({episodeId:episode,actions:prepared.actions,authorizedCeilingUsd:episode==='ep_fixture_006'?9:8,metadata:{runtime_revision:1,user:'1',generic_v2:prepared,provider_generation_authorized:false,episode_ledger:{currency:'USD',entries:{}}}});
+  await manager.checkpoint(episode,d=>{for(const a of d.actions.slice(0,2)){a.status='COMPLETE';a.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};}});
+  const row=await f.store.get('1');row.state.episodes||={};row.state.episodes[episode]={episode_id:episode,title:'Synthetic',profile_sha:prepared.profile_sha,artifacts:{},review_requests:{},reviews:{}};await f.store.cas('1',row.revision,row.state);
+ }
+ await manager.checkpoint('ep_fixture_004',d=>{d.status='PAUSED_INCIDENT';d.metadata.budget_reservations={'image:q42':{amount_usd:.3275}};});
+ const catalog={list:async o=>assets.filter(a=>a.owner_id===o),get:async(o,id)=>{const a=assets.find(a=>a.owner_id===o&&a.asset_id===id);if(!a)throw Error('LIBRARY_ASSET_NOT_FOUND');return structuredClone(a);},target:async(o,id)=>{const cp=await store.getEpisode(id);if(cp&&cp.metadata.user!==o)throw Error('LIBRARY_TARGET_FORBIDDEN');return cp;},targets:async o=>[...store.episodes.values()].filter(c=>c.metadata.user===o),
+  selections:async()=>[...selections.values()],selection:async(o,id)=>{const s=selections.get(id);if(!s||s.owner_id!==o)throw Error('LIBRARY_SELECTION_NOT_FOUND');return s;},save:async s=>{if(!selections.has(s.selection_id))selections.set(s.selection_id,structuredClone(s));return selections.get(s.selection_id);}};
+ let deriveCalls=0;
+ const library=new LumiLibrary({store:catalog,manager,reviewStore:f.store,journal:{get:async id=>journals.get(id)},env,privateBucket:async()=>true,
+  loadBytes:async a=>objects.get(a.bucket+'/'+a.path),artifactStorage:{download:async(b,p)=>objects.get(b+'/'+p)},
+  inspect:async(b,stage,sha)=>({ok:true,status:'PASS',sha256:sha,decode:'PASS',width:1520,height:2688}),
+  derive:async({application:r})=>{deriveCalls++;const data=Buffer.from('synthetic derived bytes'),artifact={...r.artifact,path:'derived/'+r.selection_id,sha256:hash(data),size:data.length};objects.set(artifact.bucket+'/'+artifact.path,data);return {artifact,qa:{ok:true,status:'PASS',sha256:artifact.sha256}};}});
+ const select=(episode,mode='DIRECT_MEDIA_REUSE')=>library.select(f.p,{asset_id:assets[0].asset_id,target_episode_id:episode,target_shot_id:'q41',mode});
+ const apply=async(s,extra={})=>library.apply(f.p,s.selection_id,{expected_revision:2,confirmation:{decision:'APPLY',narrative:true,continuity:true,rights:true},...extra});
+ return {...f,cpStore:store,manager,objects,assets,journals,library,select,apply,catalog,deriveCalls:()=>deriveCalls};
+}
+
+test('V2 REUSE_APPLICATION HUMAN_REVIEW BUDGET_PRESERVATION SESSION_REOPEN: EP005/EP006 use exact originals and preserve paused EP004',async()=>{
+ const f=await productionLibraryFixture(),protectedCp=await f.cpStore.getEpisode('ep_fixture_004');
+ for(const ep of ['ep_fixture_005','ep_fixture_006']){
+  const original=await f.cpStore.getEpisode(ep),s=await f.select(ep);
+  assert.equal((await f.apply(s)).status,'AWAITING_HUMAN_REVIEW');
+  const cp=await f.cpStore.getEpisode(ep),req=Object.values(cp.metadata.review_requests)[0],row=await f.store.get('1');
+  assert.equal(cp.first_pending_action,'image:q41');assert.equal(cp.actions[2].status,'HUMAN_REVIEW_REQUIRED');
+  assert.equal(cp.metadata.stage_results['image:q41'].result.artifacts[0].path,'source/original.png');
+  assert.deepEqual(cp.metadata.stage_results['image:q41'].result.provider_job_ids,[]);
+  assert.equal(req.status,'PENDING');assert.equal(row.state.episodes[ep].review_requests[req.review_request_id].status,'PENDING');
+  assert.equal(cp.authorized_ceiling_usd,original.authorized_ceiling_usd);assert.deepEqual(cp.metadata.budget_reservations,{});
+  const before=JSON.stringify(cp);assert.equal((await f.apply(s)).provider_calls,0);assert.equal(JSON.stringify(await f.cpStore.getEpisode(ep)),before);
+ }
+ assert.deepEqual(await f.cpStore.getEpisode('ep_fixture_004'),protectedCp);assert.equal(f.objects.size,1);assert.equal(f.journals.size,0);
+});
+test('V2 CAS_CONCURRENCY DUPLICATE_EVENT: one application wins; ACK loss repairs projection without a second artifact or decision',async()=>{
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_005');
+ const results=await Promise.allSettled([f.apply(s),f.apply(s)]);assert.ok(results.some(r=>r.status==='fulfilled'));
+ let cp=await f.cpStore.getEpisode('ep_fixture_005');assert.equal(Object.keys(cp.metadata.library_reuse).length,1);
+ // The checkpoint application is authoritative even if the UI and review projection ACK disappear.
+ const row=await f.store.get('1');row.state.episodes[cp.episode_id].review_requests={};await f.store.cas('1',row.revision,row.state);
+ await f.apply(s);cp=await f.cpStore.getEpisode(cp.episode_id);assert.equal(Object.keys(cp.metadata.review_requests).length,1);
+ assert.equal(Object.keys((await f.store.get('1')).state.episodes[cp.episode_id].review_requests).length,1);assert.equal(f.objects.size,1);
+});
+test('V2 Q42_AMBIGUITY_PRESERVATION AUTH_SECURITY HASH_INTEGRITY: blocked targets, reservations, revisions, ownership and missing approval fail closed',async()=>{
+ for(const fault of ['paused','reservation','journal','stale','owner','hash','approval','pending_operation']){
+  const f=await productionLibraryFixture(),ep=fault==='paused'?'ep_fixture_004':'ep_fixture_005',s=await f.select(ep);
+  if(fault==='reservation')await f.manager.checkpoint(ep,d=>{d.metadata.budget_reservations={'image:q41':{amount_usd:.5}};});
+  if(fault==='journal'){const cp=await f.cpStore.getEpisode(ep);f.journals.set(hash(ep+':'+cp.metadata.generic_v2.binding_sha+':image:q41'),{state:'EMISSION_UNKNOWN'});}
+  if(fault==='owner')await f.manager.checkpoint(ep,d=>{d.metadata.user='2';});
+  if(fault==='hash')f.objects.set('private-originals/source/original.png',Buffer.from('corrupt'));
+  if(fault==='approval')f.assets[0].approval_status='PENDING_VERIFICATION';
+  if(fault==='pending_operation'){const row=await f.store.get('1');row.state.mini_app.operations.pending={kind:'generate',status:'QUEUED',binding:{proposal_id:ep,next_action:'image:q41'}};await f.store.cas('1',row.revision,row.state);}
+  const before=await f.cpStore.getEpisode(ep);
+  await assert.rejects(f.apply(s,fault==='stale'?{expected_revision:1}:{}));assert.deepEqual(await f.cpStore.getEpisode(ep),before);
+ }
+});
+test('V2 REFERENCE_REUSE ASSET_PROVENANCE: canonical image stays first; actual provider payload includes approved supplemental reference',async()=>{
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_005','REFERENCE_REUSE');await f.apply(s);
+ const cp=await f.cpStore.getEpisode('ep_fixture_005'),{buildSceneImagePayload}=await import('../lib/lumi-v2-executor-bindings.js');
+ const resolved=await f.library.verifiedApplication(cp,'image:q41');assert.equal(resolved.application.reuse_mode,'REFERENCE_REUSE');
+ const payload=buildSceneImagePayload(cp.metadata.generic_v2,cp.metadata.generic_v2.shot_plans[0],'https://private.invalid/canonical',['https://private.invalid/reference']);
+ assert.deepEqual(payload.image_urls,['https://private.invalid/canonical','https://private.invalid/reference']);assert.equal(cp.actions[2].status,'PENDING');
+ assert.equal(resolved.application.expected_cost_impact.potential_saving_usd,0);assert.equal(resolved.application.expected_cost_impact.verified_saving_usd,null);
+ assert.equal(cp.metadata.budget_reservations,undefined);
+});
+test('V2 DERIVED_ASSET: explicit local recipe preserves original, new artifact awaits approval and repeat never derives twice',async()=>{
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_006','DERIVED_ASSET'),input={derivation:{kind:'CROP_IMAGE',x:0,y:0,width:1080,height:1920}};
+ await f.apply(s,input);const cp=await f.cpStore.getEpisode('ep_fixture_006'),r=cp.metadata.stage_results['image:q41'].result;
+ assert.notEqual(r.artifacts[0].sha256,f.assets[0].sha256);assert.equal(r.human_review_requirement,true);assert.equal(f.deriveCalls(),1);
+ await f.apply(s,input);assert.equal(f.deriveCalls(),1);assert.equal(f.objects.size,2);assert.equal(f.assets.length,1);
+ await assert.rejects(f.apply(s,{derivation:{...input.derivation,x:10}}),/DERIVATION_CHANGED/);
+});
+test('V2 REUSE_COMPATIBILITY: incompatible scene, character, format, duration, version and owner cannot be inferred compatible',async()=>{
+ const {reuseCompatibility,reuseCostImpact}=await import('../lib/telegram-mini-app/library.js'),f=await productionLibraryFixture();
+ const cp=await f.cpStore.getEpisode('ep_fixture_005'),source=await f.cpStore.getEpisode('ep_library_source'),shot=cp.metadata.generic_v2.shot_plans[0],a=f.assets[0];
+ assert.equal(reuseCompatibility(a,cp,shot,'DIRECT_MEDIA_REUSE',source).status,'COMPATIBLE');
+ for(const changed of [{...a,dimensions:{width:1920,height:1080}},{...a,owner_id:'2'},{...a,approval_status:'PENDING_VERIFICATION'},{...a,asset_type:'MASTER'}])assert.equal(reuseCompatibility(changed,cp,shot,'DIRECT_MEDIA_REUSE',source).status,'INCOMPATIBLE');
+ source.metadata.generic_v2.plan.scenes[0].educational_goal='Incompatible topic';assert.equal(reuseCompatibility(a,cp,shot,'DIRECT_MEDIA_REUSE',source).status,'INCOMPATIBLE');
+ assert.equal(reuseCostImpact(cp,cp.actions[2],'DIRECT_MEDIA_REUSE').potential_saving_usd,null);
+ const selected=await f.select('ep_fixture_005');f.assets[0].version++;await assert.rejects(f.apply(selected),/CONTRACT_CHANGED/);
+});
+
+test('V2 DIRECT_MEDIA_REUSE MATERIALIZATION: approved destination advances through existing review and Source QA without a fake provider journal',async()=>{
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_005'),priced=await f.store.get('1');
+ priced.state.production_commands={synthetic_quote:{status:'COMPLETE',result:{status:'AWAITING_HUMAN_AUTHORIZATION',budget_gate:'PASS',episode_id:'ep_fixture_005',action_key:'image:q41',checkpoint_version:2,quote_id:'fixture-quote',quote_usd:.2,expires_at:new Date(Date.now()+60000).toISOString()}}};await f.store.cas('1',priced.revision,priced.state);
+ await f.apply(s);assert.equal((await f.library.plan(f.p,'ep_fixture_005','q41')).applications[0].expected_cost_impact.verified_saving_usd,null);
+ const {inputDigest}=await import('../lib/lumi-v2-activation-context.js'),{reconcileStageReview}=await import('../lib/lumi-stage-result-v2.js'),{createV2InputMaterializer,checkpointIdentity}=await import('../lib/lumi-v2-input-materializer.js');
+ const cp=await f.cpStore.getEpisode('ep_fixture_005'),req=Object.values(cp.metadata.review_requests)[0],row=await f.store.get('1');
+ const decision={user:'1',chat_id:'1',message_id:1,status:'APPROVED',timestamp:new Date().toISOString(),callback_query_id:'synthetic-human-decision',artifact_sha:req.artifact_sha,review_version:req.review_version,
+  checklist_decision:{contract_sha:inputDigest(req.review_contract),pose:'FRONT',wand_hand:'RIGHT',full_playback:true,source_comparison:true}};
+ Object.assign(row.state.episodes[cp.episode_id].review_requests[req.review_request_id],{status:'APPROVED',human_decision:decision});await f.store.cas('1',row.revision,row.state);
+ const storage={download:async(b,p)=>f.objects.get(b+'/'+p)};
+ await reconcileStageReview({manager:f.manager,reviewStore:f.store,user:'1',episodeId:cp.episode_id,requestId:req.review_request_id,artifactStorage:storage,strict:true});
+ const after=await f.cpStore.getEpisode(cp.episode_id);assert.equal(after.first_pending_action,'source_qa:q41');
+ const result=await createV2InputMaterializer({store:f.cpStore,storage,reviewStore:f.store,journal:{get:async()=>{throw Error('NO_NEW_PROVIDER_JOURNAL');}},library:f.library})({episode_id:cp.episode_id,stage_id:'SOURCE_QA',checkpoint_id:checkpointIdentity(after),profile_version:2,execution_context:{user:'1',profile_sha:after.metadata.generic_v2.profile_sha,action_key:after.first_pending_action}});
+ assert.equal(result.materialized_stage_input.source.artifact.sha256,f.assets[0].sha256);assert.equal(result.provenance.library_reuse[0].selection_id,s.selection_id);assert.equal(result.MATERIALIZE_PROVIDER_CALLS,0);
+ assert.equal((await f.library.plan(f.p,'ep_fixture_005','q41')).applications[0].expected_cost_impact.verified_saving_usd,.2);
+});
+
+test('V2 VIDEO_PLAYBACK PRIVATE_MEDIA_PREVIEW: all catalog types use private original bytes and session-scoped fresh access',async()=>{
+ const f=await fixture();f.assets.length=0;
+ for(const type of ['CHARACTER_REFERENCE','SCENE_REFERENCE','APPROVED_IMAGE','APPROVED_VIDEO','MASTER']){
+  const video=['APPROVED_VIDEO','MASTER'].includes(type),a=asset({type,...(video?{a:{...media,mime:'video/mp4',duration:4}}:{})});f.assets.push(a);
+  const access=await f.library.access(f.p,a.asset_id),url=new URL(access.media.media_url,'https://fixture.invalid');
+  assert.equal(access.state,'LOADING');assert.equal(access.media.media_type,video?'video/mp4':'image/png');
+  const result=await f.library.media(f.p,a.asset_id,url.searchParams.get('expires'),url.searchParams.get('ticket'));
+  assert.deepEqual(result.bytes,bytes);assert.equal(result.asset.sha256,sha);
+ }
+ assert.equal(f.assets.length,5);assert.equal((await f.library.list(f.p)).selections.length,0);
+});
+
+test('V2 DIRECT_MEDIA_REUSE CLIPS: exact compatible video enters its own review, preserves source and educational pause',async()=>{
+ const f=await productionLibraryFixture(),data=Buffer.from('synthetic-mp4-original'),sha256=hash(data);
+ const original={...media,artifact_id:'source-clip',path:'source/clip.mp4',mime:'video/mp4',sha256,size:data.length,width:1080,height:1920,duration:4};
+ const a=verifiedAsset(candidate({a:original,review:{...review,artifact_sha:sha256},episode:'ep_library_source',shot:'q41',type:'APPROVED_VIDEO'}),data);f.assets.push(a);f.objects.set(original.bucket+'/'+original.path,data);
+ const cp=await f.manager.checkpoint('ep_fixture_006',d=>{for(const action of d.actions.slice(2,5)){action.status='COMPLETE';action.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};}d.metadata.source_artifacts={q41:{artifact:{...media,sha256:f.assets[0].sha256}}};});
+ assert.equal(cp.first_pending_action,'video:q41');const s=await f.library.select(f.p,{asset_id:a.asset_id,target_episode_id:cp.episode_id,target_shot_id:'q41',mode:'DIRECT_MEDIA_REUSE'});
+ await f.apply(s,{expected_revision:cp.metadata.runtime_revision});const after=await f.cpStore.getEpisode(cp.episode_id);
+ assert.equal(after.metadata.stage_results['video:q41'].result.artifacts[0].sha256,sha256);assert.equal(after.first_pending_action,'video:q41');assert.equal(after.actions[5].status,'HUMAN_REVIEW_REQUIRED');
+ assert.equal(f.journals.size,0);assert.equal(f.objects.size,2);assert.equal(after.authorized_ceiling_usd,9);assert.deepEqual(after.metadata.budget_reservations,cp.metadata.budget_reservations||{});
+ const {reuseCompatibility}=await import('../lib/telegram-mini-app/library.js'),source=await f.cpStore.getEpisode('ep_library_source'),shot=after.metadata.generic_v2.shot_plans[0];
+ assert.equal(reuseCompatibility(a,after,{...shot,response_window_seconds:2.5},'DIRECT_MEDIA_REUSE',source).status,'INCOMPATIBLE');
+});
+
+test('V2 HUMAN_APPROVAL_CAPTURE DUPLICATE_EVENT: shared review controller captures only after durable reconciliation; split decisions are excluded',async()=>{
+ const {ProductionReviewController}=await import('../lib/telegram-review-v1/production.js');
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_005');await f.apply(s);
+ const cp=await f.cpStore.getEpisode('ep_fixture_005'),row=await f.store.get('1'),r=Object.values(row.state.episodes[cp.episode_id].review_requests)[0];
+ r.status='APPROVED';r.human_decision={...review,artifact_sha:r.artifact_sha};
+ assert.equal(sessionCandidates({user_id:1,state:row.state},[cp]).filter(c=>c.episode===cp.episode_id).length,0);
+ Object.assign(cp.metadata.review_requests[r.review_request_id],structuredClone(r));
+ const candidates=sessionCandidates({user_id:1,state:row.state},[cp]).filter(c=>c.episode===cp.episode_id),registered=new Map();assert.ok(candidates.length);
+ const c=Object.create(ProductionReviewController.prototype);c.row=async()=>({state:{episodes:{[cp.episode_id]:{pipeline:'test'}}}});let reconciled=false;
+ c.adapters={test:{handleReview:async()=>{reconciled=true;return {status:'READY_TO_CONTINUE'};}}};
+ c.captureApproved=async()=>{assert.equal(reconciled,true);for(const candidate of candidates){const a=verifiedAsset(candidate,f.objects.get(candidate.a.bucket+'/'+candidate.a.path));registered.set(a.asset_id,a);}};
+ await c.reviewed({user:'1',episodeId:cp.episode_id,requestId:r.review_request_id});await c.reviewed({user:'1',episodeId:cp.episode_id,requestId:r.review_request_id});
+ assert.equal(registered.size,candidates.length);assert.ok([...registered.values()].every(a=>a.approval_status==='HUMAN_APPROVED'));assert.equal(f.objects.size,1);
+});
+
+test('V2 PRIVATE_MEDIA_PREVIEW SIGNED_URL_EXPIRATION TELEGRAM_WEBVIEW: fresh authenticated read, image/video MIME, no optimistic READY and retry never POSTs',async()=>{
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),f=await fixture(),a=(await f.library.list(f.p)).assets[0],calls=[],element={innerHTML:'',textContent:'',hidden:false};
+ let accessError=false;
+ const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,
+  URL:{createObjectURL:b=>'blob:verified-'+b.size,revokeObjectURL(){}},fetch:async(url,opts)=>{calls.push({url,opts});return {ok:true,headers:{get:()=>a.media_type},blob:async()=>new Blob([bytes],{type:a.media_type})};}};
+ runInNewContext(js.replace('navigation();login();','')+`request=async path=>{if(globalThis.accessError)throw Object.assign(Error('MINI_SESSION_EXPIRED'),{status:401});globalThis.accessPaths.push(path);return {media:{media_url:'/fresh-authenticated-ticket'}};};globalThis.accessPaths=[];globalThis.ui={libraryMediaUrl,libraryPreview,clearLibraryMedia};`,ctx);
+ const html=ctx.ui.libraryPreview(a);assert.match(html,/LOADING/);assert.doesNotMatch(html,/READY/);
+ assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');assert.equal(calls[0].opts.credentials,'same-origin');assert.equal(calls[0].opts.cache,'no-store');
+ assert.deepEqual(Array.from(ctx.accessPaths),['/library/access/'+a.asset_id]);assert.ok(calls.every(c=>!c.opts.method||c.opts.method==='GET'));
+ ctx.ui.clearLibraryMedia();ctx.accessError=true;await assert.rejects(ctx.ui.libraryMediaUrl(a),/SESSION_EXPIRED/);ctx.accessError=false;assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');
+ assert.match(js,/EXPIRED_ACCESS/);assert.match(js,/data-library-retry/);assert.match(js,/m\.playsInline=true/);assert.match(js,/addEventListener\(a\.media_type==='video\/mp4'\?'loadedmetadata':'load'/);
+});

@@ -13,15 +13,15 @@
     "CONFIDENCE": "UNKNOWN",
     "USER_IMPACT": "EP004 paused at 8/50; no second image available for review.",
     "FINANCIAL_RISK": "USD 0.3275 remains reserved, actual charge unknown; replacement may duplicate remote charge.",
-    "FIX_STATUS": "MITIGATED_PROPOSAL_ONLY",
-    "FIX_COMMIT": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
+    "FIX_STATUS": "MITIGATED_READY_FOR_HUMAN_DECISION",
+    "FIX_COMMIT": "608e21d880e203c6a737e84e8d5fce412559d905",
     "TEST_EVIDENCE": [
-      "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
-      "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."
+      "13/13 actual SQL/auth/UI adversarial tests; 155 focused local checks and affected final checks.",
+      "Real EP004 snapshot: review enabled, generation disabled; no real grant, operation or reserve created."
     ],
     "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
     "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
-    "NEXT_ACTION": "Complete authenticated and atomic replacement activation integration without emission; then obtain specific human risk acceptance and a fresh bound quote. Recover original instead if verifiable evidence appears."
+    "NEXT_ACTION": "User reviews the risk in authenticated Lumi Studio; no assistant acceptance or new emission. Prefer original result recovery if verifiable evidence appears."
   },
   {
     "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
@@ -44,7 +44,7 @@
     ],
     "REGRESSION_GUARD": "Existing provider-emission-journal-v1.test.js final deadline/no-replay tests; replacement fresh quote test.",
     "REUSABILITY": "All provider boundaries should record precise pre-transport rejection and validate payload/quote immediately before transport.",
-    "NEXT_ACTION": "Use current pre-dispatch guard and verify the exact new-operation binding offline; do not reclassify the original."
+    "NEXT_ACTION": "Use the implemented atomic deadline/CAS guard. Preserve original UNKNOWN classification; do not repeat historical cause investigation without new evidence."
   },
   {
     "INCIDENT_ID": "LUMI-RESUME-STALENESS-003",
@@ -90,5 +90,49 @@
     "REGRESSION_GUARD": "lumi-library-v1.test.js HTTP range/private master tests.",
     "REUSABILITY": "All approved master delivery.",
     "NEXT_ACTION": "Human opens Flores in iPhone Telegram and confirms play plus original download; record exact symptom if failing."
+  },
+  {
+    "INCIDENT_ID": "LUMI-SUPERVISED-ACTIVATION-005",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "generic supervised replacement",
+    "SYMPTOM": "Proposal existed but had no authenticated consent or atomic reservation/claim integration.",
+    "ROOT_CAUSE": "Previous release deliberately stopped at proposal-only contracts.",
+    "EVIDENCE": [
+      "Repository code inspection; focused regression reproduces the required accounting/authorization boundary.",
+      "No staging activation or generation performed."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Required an additional technical intervention before the user could decide.",
+    "FINANCIAL_RISK": "Preserve USD 0.3275 ambiguous reserve and require budget for both attempts; actual charge unknown.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "608e21d880e203c6a737e84e8d5fce412559d905",
+    "TEST_EVIDENCE": [
+      "Actual SQL in PGlite; existing result and authentication regression pass."
+    ],
+    "REGRESSION_GUARD": "lumi-supervised-activation.test.js SQL/auth/concurrency/recovery/UI tests",
+    "REUSABILITY": "Any episode/shot with a supervised ambiguous replacement; concrete IMAGE/VIDEO adapters installed.",
+    "NEXT_ACTION": "Use the existing authenticated UI and retain original liability; do not rebuild or repeat validated tests unless affected."
+  },
+  {
+    "INCIDENT_ID": "LUMI-ATTEMPT-RESERVATION-006",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "generic supervised replacement",
+    "SYMPTOM": "Existing result reconciliation deleted budget_reservations[action.key], which would target the ambiguous original for a replacement result.",
+    "ROOT_CAUSE": "Reservation settlement was keyed only by action, not by the actual supervised replacement attempt.",
+    "EVIDENCE": [
+      "Repository code inspection; focused regression reproduces the required accounting/authorization boundary.",
+      "No staging activation or generation performed."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Potential undercount of original liability; no real original reserve was released.",
+    "FINANCIAL_RISK": "Preserve USD 0.3275 ambiguous reserve and require budget for both attempts; actual charge unknown.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "608e21d880e203c6a737e84e8d5fce412559d905",
+    "TEST_EVIDENCE": [
+      "Actual SQL in PGlite; existing result and authentication regression pass."
+    ],
+    "REGRESSION_GUARD": "lumi-stage-result-v2.test.js SUPERVISED_REPLACEMENT_COST",
+    "REUSABILITY": "Any episode/shot with a supervised ambiguous replacement; concrete IMAGE/VIDEO adapters installed.",
+    "NEXT_ACTION": "Use the existing authenticated UI and retain original liability; do not rebuild or repeat validated tests unless affected."
   }
 ]

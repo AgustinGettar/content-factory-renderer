@@ -14,7 +14,7 @@
     "USER_IMPACT": "EP004 paused at 8/50; no second image available for review.",
     "FINANCIAL_RISK": "USD 0.3275 remains reserved, actual charge unknown; replacement may duplicate remote charge.",
     "FIX_STATUS": "MITIGATED_PROPOSAL_ONLY",
-    "FIX_COMMIT": null,
+    "FIX_COMMIT": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
     "TEST_EVIDENCE": [
       "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
       "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."
@@ -60,7 +60,7 @@
     "USER_IMPACT": "Prompts can repeat completed investigations or rely on stale budgets and actions.",
     "FINANCIAL_RISK": "Stale state increases accidental duplicate-action risk; runtime gates still block.",
     "FIX_STATUS": "RESOLVED",
-    "FIX_COMMIT": null,
+    "FIX_COMMIT": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
     "TEST_EVIDENCE": [
       "67/67 focused offline tests; 10/10 new recovery tests after final namespace correction.",
       "EP004 read-only service projection PASS_INTEGRATION; staging proposal persistence and preservation hashes PASS_REAL."

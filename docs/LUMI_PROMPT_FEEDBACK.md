@@ -50,4 +50,4 @@ Evidence cutoff: 2026-10-18T23:22:20.269Z.
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: ac33c79418e1bfcdfea68bceacd466d18caf188f74d8c419e96deaa882152bbb. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 5cd1b848a8530e434946a060c12d3d5f849d1b5cb57a148cd0f78a4e4ed4743a. Outputs are inert drafts; generating them cannot expand authorization.

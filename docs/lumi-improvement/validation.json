@@ -11,7 +11,9 @@
     "post_storage_namespace_change_pass": 10,
     "post_storage_namespace_change_fail": 0,
     "final_affected_pass": 29,
-    "final_affected_fail": 0
+    "final_affected_fail": 0,
+    "library_pass": 25,
+    "library_fail": 0
   },
   "real_provider_calls": 0,
   "synthetic_episodes": [
@@ -21,5 +23,15 @@
   "synthetic_productive_progress": 0,
   "real_iphone_playback": "NOT_TESTED_REAL",
   "real_replacement_emission": "NOT_TESTED_REAL",
-  "real_master": "NOT_TESTED_REAL"
+  "real_master": "NOT_TESTED_REAL",
+  "implementation_commit": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
+  "preservation": {
+    "classification": "PASS_REAL",
+    "checkpoint_md5": "fcdf4f7a9760788f5000e22431a0688f",
+    "journal_md5": "465ef3001a8b0a09130b6c8612376e4a",
+    "original_operation_md5": "e627bde022ac0f6d9a17d209e360b730",
+    "review_approvals_md5": "6ab3e910810d724a1a1a61852935e4a8",
+    "journal_count": 3,
+    "before_equals_after": true
+  }
 }

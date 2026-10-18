@@ -3,7 +3,7 @@ BORRADOR. No es autorización económica y no se ejecuta automáticamente.
 MODELO: ASTRA — RAZONAMIENTO MUY ALTO.
 MISIÓN ÚNICA: cerrar la integración pendiente para poder resolver image:q42 mediante recuperación original o un único reemplazo supervisado, manteniendo el camino al master EP004.
 Repositorio: AgustinGettar/content-factory-renderer; rama exclusiva: lumi-telegram-review-v1; staging: content-factory-av2-staging; Supabase: mofjhwathxzfnjapvvst.
-Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-18T23:22:20.269Z; base: 958c904f4aaff9ff5ff94e4266273dbe42b04f5b.
+Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-18T23:22:20.269Z; base: bb3f142dfa6770a93243e373c8c1b3282aca5b9c.
 Verificá HEAD remoto, CI y SHA live actuales; conservá cambios concurrentes. No repitas la investigación histórica.
 Episodio: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50; último shot_review:q41; pendiente image:q42.
 Operación original: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; intento journal: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE; reserva USD 0.3275.
@@ -33,6 +33,8 @@ PASS_OFFLINE: node --import ./scripts/director-offline-guard.mjs --test test/lum
 PASS_INTEGRATION: MiniAppService.view over real read-only EP004 snapshot; revision23; REPLACEMENT_PROPOSAL; generate=false; second_image.available=false; input unchanged.
 PASS_REAL: Supabase staging guarded proposal append and readback; review revision712; original checkpoint/journal/operation/approvals hashes unchanged; journal rows3; no new reservation or generation.
 PASS_OFFLINE: node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-replacement.test.js test/lumi-mini-app-auth.test.js; 29/29 after direct command gate; no outbound network attempts.
+PASS_OFFLINE: node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js; 25/25 library/SQL/private media/discovery regression checks.
+Commit bb3f142dfa6770a93243e373c8c1b3282aca5b9c: supervised ambiguous recovery and durable improvement loop; local validated implementation
 Commit 958c904f4aaff9ff5ff94e4266273dbe42b04f5b: progressive private masters and metadata-based asset discovery
 Commit 5c36d85: reuse approval state and immutable derivative recipes
 Commit 7a596b4: private previews and controlled AV2 reuse
@@ -45,4 +47,4 @@ Focused adversarial tests pass; CI GREEN on exact target branch commit; staging-
 Report first missing production dependency and one concrete next safe action; zero generation in the absence of new specific consent.
 Separá PASS_REAL, PASS_INTEGRATION, PASS_OFFLINE y NOT_TESTED_REAL. Las simulaciones no avanzan el checkpoint ni prueban cobros o generación real.
 Actualizá incidentes, feedback y estado una vez al cierre; generá un solo borrador siguiente. No lo ejecutes automáticamente.
-INPUT_SHA256: ac33c79418e1bfcdfea68bceacd466d18caf188f74d8c419e96deaa882152bbb
+INPUT_SHA256: 5cd1b848a8530e434946a060c12d3d5f849d1b5cb57a148cd0f78a4e4ed4743a

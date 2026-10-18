@@ -3,10 +3,10 @@
   "observed_at": "2026-10-18T23:22:20.269Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "958c904f4aaff9ff5ff94e4266273dbe42b04f5b",
+  "source_commit": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Baseline LIVE 958c904 / dep-dbal0onbtjjs73fj2sjg; this change not yet published",
+  "deployment_evidence": "Implementation commit bb3f142dfa6770a93243e373c8c1b3282aca5b9c validated locally; baseline staging LIVE 958c904f4aaff9ff5ff94e4266273dbe42b04f5b. Release CI/deploy evidence is queried separately at handoff; resolve live before writing.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "PAUSED_INCIDENT",
   "last_completed_action": "shot_review:q41",
@@ -296,9 +296,18 @@
       "status": "PASS_OFFLINE",
       "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-replacement.test.js test/lumi-mini-app-auth.test.js",
       "result": "29/29 after direct command gate; no outbound network attempts."
+    },
+    {
+      "status": "PASS_OFFLINE",
+      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js",
+      "result": "25/25 library/SQL/private media/discovery regression checks."
     }
   ],
   "recent_commits": [
+    {
+      "sha": "bb3f142dfa6770a93243e373c8c1b3282aca5b9c",
+      "subject": "supervised ambiguous recovery and durable improvement loop; local validated implementation"
+    },
     {
       "sha": "958c904f4aaff9ff5ff94e4266273dbe42b04f5b",
       "subject": "progressive private masters and metadata-based asset discovery"

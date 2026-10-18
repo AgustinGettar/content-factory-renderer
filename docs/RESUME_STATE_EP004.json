@@ -99,5 +99,80 @@
       "crash_matrix": "56 cases PASS_SIMULATED"
     },
     "NEXT_ACTION": "Obtain an authentic callback message from existing Telegram panel148 by a navigation click. Reconcile only if exact pending command/media/keyboard matches. If it does not, retain FAIL CLOSED and inspect that authentic evidence. Once delivery is proven, renew once immediately before explicit human spend approval; never generate from this operator session."
+  },
+  "CURRENT_RECOVERY_20261018": {
+    "CURRENT_LOCAL_HEAD": "8481ddcae4e4fd2d04a862efd2e7cc073ce0dad0",
+    "CURRENT_REMOTE_HEAD": "dec570b0687c6c098083ee4b1a63a2d85b3f8cdb",
+    "PRESERVED_REMOTE_REVIEW_COMMIT": "8c7ff31b7f8576a937144b295252705056d5495f",
+    "REVIEW_TREE_EQUALITY": "Local 8481ddc and remote 8c7ff31 have identical tree bd2ed5fbceb27ba4b4b0050a7c99087c86f88fdc; no reset or replacement commit.",
+    "WORKTREE_STATUS": "At recovery start: no tracked changes, only dependency symlink node_modules. Current: one-line legacy projection compatibility fix and this resume record.",
+    "RECOVERED_FILES": [
+      "docs/lumi-shared-production-recovery.md",
+      "lib/cinematic-director-v1/director.js",
+      "lib/cinematic-director-v1/projection.js",
+      "lib/lumi-generic-v2-adapter.js",
+      "lib/lumi-v2-activation-context.js",
+      "lib/lumi-v2-executor-bindings.js",
+      "lib/lumi-v2-input-materializer.js",
+      "lib/lumi-v2-telegram-runtime.js",
+      "lib/provider-emission-journal-v1.js",
+      "lib/telegram-mini-app/q41-policy.js",
+      "lib/telegram-mini-app/runtime.js",
+      "public/lumi-studio/app.js",
+      "public/lumi-studio/style.css",
+      "test/lumi-cinematic-director-v1.test.js",
+      "test/lumi-mini-app-auth.test.js",
+      "test/lumi-q41-first-image.test.js",
+      "test/provider-emission-journal-v1.test.js"
+    ],
+    "RECOVERED_COMMITS": [
+      "dec570b0687c6c098083ee4b1a63a2d85b3f8cdb",
+      "8481ddcae4e4fd2d04a862efd2e7cc073ce0dad0",
+      "8c7ff31b7f8576a937144b295252705056d5495f"
+    ],
+    "LAST_COMPLETED_TASK": "Recovered both implementation commits; diagnosed four CI failures to absent optional REQUIRED_OBJECTS in historical projection contracts; all 27 affected tests now pass offline.",
+    "FIRST_PENDING_TASK": "Publish preserved human-review commit plus compatibility fix; require GREEN CI for final remote HEAD before staging-only deploy; compare durable invariants after deploy.",
+    "TEST_RESULTS": {
+      "durable_ci_run": 38809964917,
+      "durable_ci_job": 116680415121,
+      "passed": 870,
+      "failed": 4,
+      "failure_cause": "projectCinematicPrompt unconditionally accessed optional legacy REQUIRED_OBJECTS; fixed with optional access, without permitting unknown targets",
+      "affected_tests_20261018": "27/27 PASS_OFFLINE",
+      "multi_episode": "PASS_INTEGRATION in recovered CI: two independent seven-shot episodes, Full HD fixture masters and authenticated downloads; 256084ms",
+      "human_review_ack": "Implementation and tests recovered in preserved review commit. Previous local pass reported in conversation; /tmp logs no longer available. Final CI must validate this commit.",
+      "temporary_logs": "Historical /tmp/lumi-*.log files unavailable; GitHub CI logs recovered. No implementation lost."
+    },
+    "STAGING_SHA": "fbec54e850f6ad36d058d66ed3ccf612f3c7f35d",
+    "EP004_CHECKPOINT": {
+      "revision": 22,
+      "status": "PAUSED_INCIDENT",
+      "last_completed_action": "shot_review:q41",
+      "first_pending_action": "image:q42",
+      "runner_enabled": false,
+      "autorun": false,
+      "row_md5": "20f8921b5b4a6e78f1032ab720d43eed"
+    },
+    "Q42": {
+      "operation_id": "125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90",
+      "attempt_id": "6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30",
+      "state": "EMISSION_UNKNOWN / NO_RESPONSE",
+      "request_id": null,
+      "reservation_usd": 0.3275,
+      "row_md5": "dc1d45cf5632aa1b4d7dcf2571b351fd"
+    },
+    "BUDGET": {
+      "ceiling_usd": 5,
+      "exposure_usd": 1.22625,
+      "remaining_internal_usd": 3.77375,
+      "actual_cost": "UNVERIFIED"
+    },
+    "OPEN_BLOCKERS": [
+      "Original q42 lacks a verifiable provider request or conclusive non-emission evidence; remain fail closed.",
+      "Final commit CI and staging deployment pending at this checkpoint.",
+      "Full episode budget coverage not proven; historical-rate projection exceeds ceiling."
+    ],
+    "NEW_PROVIDER_GENERATION_CALLS": 0,
+    "SCOPE": "Historical fields above retained unchanged. This current recovery record supersedes their state; resolve real branch/deploy before further writes."
   }
 }

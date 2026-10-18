@@ -215,7 +215,7 @@ test('V2 DERIVED_ASSET: explicit local recipe preserves original, new artifact a
  const f=await productionLibraryFixture(),s=await f.select('ep_fixture_006','DERIVED_ASSET'),input={derivation:{kind:'CROP_IMAGE',x:0,y:0,width:1080,height:1920}};
  await f.apply(s,input);const cp=await f.cpStore.getEpisode('ep_fixture_006'),r=cp.metadata.stage_results['image:q41'].result;
  assert.notEqual(r.artifacts[0].sha256,f.assets[0].sha256);assert.equal(r.human_review_requirement,true);assert.equal(f.deriveCalls(),1);
- await f.apply(s,input);assert.equal(f.deriveCalls(),1);assert.equal(f.objects.size,2);assert.equal(f.assets.length,1);
+ const reopened=await f.library.resolve(f.p,s.selection_id);assert.deepEqual(reopened.derivation,input.derivation);await f.apply(s,{derivation:reopened.derivation});assert.equal(f.deriveCalls(),1);assert.equal(f.objects.size,2);assert.equal(f.assets.length,1);
  await assert.rejects(f.apply(s,{derivation:{...input.derivation,x:10}}),/DERIVATION_CHANGED/);
 });
 test('V2 REUSE_COMPATIBILITY: incompatible scene, character, format, duration, version and owner cannot be inferred compatible',async()=>{
@@ -242,7 +242,7 @@ test('V2 DIRECT_MEDIA_REUSE MATERIALIZATION: approved destination advances throu
  const after=await f.cpStore.getEpisode(cp.episode_id);assert.equal(after.first_pending_action,'source_qa:q41');
  const result=await createV2InputMaterializer({store:f.cpStore,storage,reviewStore:f.store,journal:{get:async()=>{throw Error('NO_NEW_PROVIDER_JOURNAL');}},library:f.library})({episode_id:cp.episode_id,stage_id:'SOURCE_QA',checkpoint_id:checkpointIdentity(after),profile_version:2,execution_context:{user:'1',profile_sha:after.metadata.generic_v2.profile_sha,action_key:after.first_pending_action}});
  assert.equal(result.materialized_stage_input.source.artifact.sha256,f.assets[0].sha256);assert.equal(result.provenance.library_reuse[0].selection_id,s.selection_id);assert.equal(result.MATERIALIZE_PROVIDER_CALLS,0);
- assert.equal((await f.library.plan(f.p,'ep_fixture_005','q41')).applications[0].expected_cost_impact.verified_saving_usd,.2);
+ const plan=await f.library.plan(f.p,'ep_fixture_005','q41');assert.equal(plan.applications[0].expected_cost_impact.verified_saving_usd,.2);assert.equal(plan.applications[0].application_status,'APPLIED_APPROVED');assert.equal((await f.library.list(f.p)).selections[0].status,'APPLIED_APPROVED');assert.equal((await f.apply(s)).status,'APPLIED_APPROVED');
 });
 
 test('V2 VIDEO_PLAYBACK PRIVATE_MEDIA_PREVIEW: all catalog types use private original bytes and session-scoped fresh access',async()=>{

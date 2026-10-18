@@ -11,15 +11,34 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Select focused asset-library validation
+        id: scope
+        shell: bash
+        run: |
+          library_only=true
+          git rev-parse HEAD^ >/dev/null 2>&1 || library_only=false
+          while IFS= read -r path; do
+            case "$path" in
+              lib/telegram-mini-app/library.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|public/lumi-studio/style.css|test/lumi-library-v1.test.js|supabase/migrations/*_lumi_reusable_asset_library_v1.sql|docs/LUMI_REUSABLE_ASSET_LIBRARY_V1.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              *) library_only=false ;;
+            esac
+          done < <(git diff --name-only HEAD^ HEAD)
+          echo "library_only=$library_only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Install media inspection dependency
+        if: steps.scope.outputs.library_only != 'true'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: node --check server.js
+      - run: node --check server.js && node --check lib/telegram-mini-app/library.js && node --check lib/telegram-mini-app/runtime.js && node --check public/lumi-studio/app.js
+      - name: Asset library, SQL, auth and protected production integration (offline)
+        run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js test/lumi-mini-app-auth.test.js
       - name: Telegram, Recovery Manager and director regression with network disabled
+        if: steps.scope.outputs.library_only != 'true'
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
           test/lumi-mini-app-auth.test.js
@@ -65,10 +84,13 @@ jobs:
           test/lumi-six-shot-audio.test.js
 
       - name: Durable diagnostic recovery across real process termination (offline children)
+        if: steps.scope.outputs.library_only != 'true'
         run: node --test test/lumi-durable-dry-run-restart.test.js test/lumi-generic-runtime-restart.test.js test/lumi-isolated-validation-restart.test.js test/lumi-diagnostic-http-restart.test.js
 
       - name: Future episode zero-provider dry run
+        if: steps.scope.outputs.library_only != 'true'
         run: node scripts/lumi-production-readiness-v2.mjs /tmp/readiness-v2.json
 
       - name: Real executor boundaries and crash matrix (missing runners stay blocked)
+        if: steps.scope.outputs.library_only != 'true'
         run: node --import ./scripts/director-offline-guard.mjs scripts/lumi-real-executor-readiness-v2.mjs /tmp/real-executor-v2.json

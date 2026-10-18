@@ -91,3 +91,16 @@ test('actual charge replaces estimate; a provider overrun preserves the charge a
  assert.equal(s.current_cost_usd,1.1);assert.deepEqual(s.metadata.budget_reservations,{});
  assert.equal(s.metadata.budget_exhausted,true);assert.equal(s.status,'PAUSED_INCIDENT');assert.equal(s.authorized_ceiling_usd,1);
 });
+
+test('SUPERVISED_REPLACEMENT_COST: recovered actual charge reconciles only new reservation; original risk and human review remain',async()=>{
+ const f=await fixture('HUMAN_REVIEW_REQUIRED'),original={amount_usd:.3,attempt_id:'ambiguous-original',status:'RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED'};
+ await f.manager.checkpoint(episodeId,d=>{
+  d.actions[0].active_attempt_id='one-claim';d.metadata.budget_reservations={tts:original,'replacement:one-claim':{amount_usd:.25,attempt_id:'one-claim'}};
+  d.metadata.supervised_replacement_activity={'one-claim':{original_attempt_id:'ambiguous-original',reservation_key:'replacement:one-claim'}};
+ });
+ f.result.actual_cost={currency:'USD',usd:.2};await handleStageResult(f.args);
+ const cp=await f.manager.store.getEpisode(episodeId);
+ assert.deepEqual(cp.metadata.budget_reservations.tts,original);assert.equal(cp.metadata.budget_reservations['replacement:one-claim'],undefined);
+ assert.equal(cp.current_cost_usd,.2);assert.equal(cp.first_pending_action,'tts');assert.equal(cp.actions[0].status,'HUMAN_REVIEW_REQUIRED');
+ assert.equal(Object.values(cp.metadata.review_requests)[0].status,'PENDING');
+});

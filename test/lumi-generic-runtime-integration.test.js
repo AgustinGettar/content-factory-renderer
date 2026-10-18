@@ -245,3 +245,18 @@ test('canonical runtime mount uses real Supabase adapters over isolated PostgRES
   assert.equal(env.LUMI_PIPELINE_VERSION,undefined);assert.equal(env.LUMI_TELEGRAM_REVIEW_V1,undefined);
  }finally{mounted?.stopDiagnostics();await f.cleanup();}
 });
+
+test('RECOVERED_ORIGINAL_PROVENANCE: immutable ambiguous journal requires complete GET recovery receipt and exact artifact proof',async()=>{
+ const f=await runtimeFixture();try{
+  await f.create();await seedPersistedVideos(f,{nextStage:'TTS'});
+  const id='claim_video_take_01',j=f.journalRows.get(id),cp=await f.store.getEpisode(f.episodeId),result=cp.metadata.stage_results['video:take_01'].result;
+  f.journalRows.set(id,{...j,state:'EMISSION_UNKNOWN',provider_request_id:null});
+  const receipts={get:async key=>key===id?{status:'COMPLETE',result}:null};
+  const materialize=async()=>{const s=await f.store.getEpisode(f.episodeId);return createV2InputMaterializer({store:f.store,storage:{download:async(b,p)=>f.objects.get(b+'/'+p)},reviewStore:f.reviewStore,journal:{get:async id=>f.journalRows.get(id)},receipts})({episode_id:f.episodeId,stage_id:'TTS',checkpoint_id:checkpointIdentity(s),profile_version:profile.version,execution_context:{user:'1',profile_sha:PROFILE_SHA,action_key:'tts'}});};
+  await assert.rejects(materialize(),/PROVIDER_JOURNAL_MISMATCH/);
+  await f.manager.checkpoint(f.episodeId,d=>{d.metadata.supervised_original_recoveries={[id]:{verified_by:'EXISTING_PROVIDER_GET_AND_ARTIFACT_VERIFICATION',provider_request_id:j.provider_request_id,artifact_sha256:result.artifacts[0].sha256,result_sha256:inputDigest(result)}};});
+  await materialize();assert.equal(f.journalRows.get(id).state,'EMISSION_UNKNOWN');
+  await f.manager.checkpoint(f.episodeId,d=>{d.metadata.supervised_original_recoveries[id].artifact_sha256='a'.repeat(64);});
+  await assert.rejects(materialize(),/PROVIDER_JOURNAL_MISMATCH/);assert.equal(f.counters().providerCalls,0);
+ }finally{await f.cleanup();}
+});

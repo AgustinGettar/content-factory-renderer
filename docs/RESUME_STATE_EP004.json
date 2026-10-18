@@ -174,5 +174,29 @@
     ],
     "NEW_PROVIDER_GENERATION_CALLS": 0,
     "SCOPE": "Historical fields above retained unchanged. This current recovery record supersedes their state; resolve real branch/deploy before further writes."
+  },
+  "CURRENT_BUDGET_RECOVERY_20261018": {
+    "updated_at": "2026-10-18T20:06:21.170Z",
+    "local_head": "e5654cd93610d44527313e2e3cdce7e26e45ce94",
+    "remote_head_at_start": "5332f81041aa4917ad18c49afb2236447feed058",
+    "budget_persisted": true,
+    "authorization_id": "EP004_BUDGET_LIMIT_8_USD_20261018",
+    "checkpoint_revision": 23,
+    "exposure_usd": 1.22625,
+    "remaining_usd": 6.77375,
+    "hard_ceiling_usd": 8,
+    "last_completed_task": "Budget applied atomically under checkpoint and review-session CAS; original operations and approvals preserved. Shared budget projection fixed and focused tests pass.",
+    "first_pending_task": "Publish exact validated changes to target branch; require CI GREEN and staging-only deploy; verify unchanged protected journals and budget display.",
+    "test_results": {
+      "budget_cases": "6/6 PASS_OFFLINE",
+      "affected_quote_and_ambiguity_cases": "9/9 PASS_INTEGRATION",
+      "additional_authority_regression": "5 selected cases PASS_INTEGRATION; audio file had no matching cases"
+    },
+    "open_blockers": [
+      "q42 STILL_AMBIGUOUS, no verified original request/artifact",
+      "TTS and infrastructure marginal cost not verified"
+    ],
+    "new_provider_generation_calls": 0,
+    "report": "docs/EP004_USD8_CONTINUITY_20261018.json"
   }
 }

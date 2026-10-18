@@ -13,6 +13,60 @@ import {
 const actions = [{ key: "image_s1", stage: "IMAGE", scene_id: "s1", estimated_cost_usd: 0.1 },
   { key: "video_s1", stage: "VIDEO", scene_id: "s1", estimated_cost_usd: 0.2 }];
 
+async function budgetIncreaseFixture(episodeId='synthetic_budget_a',ceiling=8) {
+  const store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store});
+  await manager.startEpisode({episodeId,actions,authorizedCeilingUsd:5,metadata:{user:'1',runtime_revision:22,
+    provider_generation_authorized:false,publication_enabled:false,
+    budget_reservations:{image_s1:{amount_usd:.3275,attempt_id:'ORIGINAL',status:'RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED'}},
+    review_requests:{approved:{status:'APPROVED',artifact_sha:'original'}},episode_ledger:{currency:'USD',entries:{}}}});
+  const cp=await store.getEpisode(episodeId);cp.status='PAUSED_INCIDENT';cp.actions[0].dispatch_state='DISPATCHING';await store.putEpisode(cp);
+  const grant={authorization_id:'budget-'+episodeId,status:'AUTHORIZED',decision:'APPROVED',scope:'EPISODE_BUDGET_LIMIT_ONLY',
+    user_id:'1',chat_id:'1',episode_id:episodeId,previous_ceiling_usd:5,authorized_ceiling_usd:ceiling,
+    expected_checkpoint_revision:22,provider_generation:false,publication:false,
+    authorized_at:new Date().toISOString(),authorization_reference:'OFFLINE_EXPLICIT_HUMAN_FIXTURE'};
+  const state={user_id:'1',chat_id:'1',v2_authorizations:{[grant.authorization_id]:grant}};
+  const args={episodeId,user:'1',authorizationId:grant.authorization_id,reviewStore:{get:async()=>structuredClone({state})}};
+  return {store,manager,grant,state,args,cp};
+}
+test('BUDGET_LIMIT_INCREASE RESERVATION_PRESERVATION HUMAN_REVIEW_PRESERVATION',async()=>{
+  const f=await budgetIncreaseFixture(),after=await f.manager.increaseBudget(f.args);
+  assert.equal(after.authorized_ceiling_usd,8);assert.equal(after.metadata.runtime_revision,23);
+  assert.deepEqual(after.actions,f.cp.actions);assert.deepEqual(after.metadata.budget_reservations,f.cp.metadata.budget_reservations);
+  assert.deepEqual(after.metadata.review_requests,f.cp.metadata.review_requests);
+  assert.equal(after.status,'PAUSED_INCIDENT');assert.equal(after.metadata.provider_generation_authorized,false);
+  assert.equal(after.first_pending_action,f.cp.first_pending_action);assert.equal(after.autorun,false);assert.equal(after.runner_enabled,false);
+  assert.equal((await f.manager.budgetExposure({episodeId:f.args.episodeId})).required_total_usd,.3275);
+});
+test('BUDGET_LIMIT_INCREASE DUPLICATE_AUTHORIZATION ACK_LOST and immutable decision',async()=>{
+  const f=await budgetIncreaseFixture();await f.manager.increaseBudget(f.args);
+  const before=await f.store.getEpisode(f.args.episodeId);
+  await f.manager.increaseBudget(f.args);assert.deepEqual(await f.store.getEpisode(f.args.episodeId),before);
+  f.grant.authorized_ceiling_usd=13;
+  await assert.rejects(f.manager.increaseBudget(f.args),/IMMUTABLE/);
+});
+test('BUDGET_LIMIT_INCREASE CAS_CONFLICT cannot overwrite a newer checkpoint',async()=>{
+  const f=await budgetIncreaseFixture();await f.manager.checkpoint(f.args.episodeId,s=>{s.metadata.newer_evidence='preserve';});
+  await assert.rejects(f.manager.increaseBudget(f.args),/STALE_CHECKPOINT/);
+  assert.equal((await f.store.getEpisode(f.args.episodeId)).authorized_ceiling_usd,5);
+  const g=await budgetIncreaseFixture();g.store.casGenericEpisode=async()=>null;
+  await assert.rejects(g.manager.increaseBudget(g.args),/STALE_CHECKPOINT/);
+  assert.deepEqual(await g.store.getEpisode(g.args.episodeId),g.cp);
+});
+test('BUDGET_LIMIT_INCREASE EPISODE_ISOLATION and independent ceilings',async()=>{
+  const a=await budgetIncreaseFixture(),b=await budgetIncreaseFixture('synthetic_budget_b',9);
+  await a.store.putEpisode(b.cp);const before=await a.store.getEpisode(b.cp.episode_id);
+  await a.manager.increaseBudget(a.args);assert.deepEqual(await a.store.getEpisode(b.cp.episode_id),before);
+  await assert.rejects(a.manager.increaseBudget({...a.args,episodeId:b.cp.episode_id}),/AUTHORIZATION/);
+  await b.manager.increaseBudget(b.args);assert.equal((await b.store.getEpisode(b.cp.episode_id)).authorized_ceiling_usd,9);
+});
+test('BUDGET_LIMIT_INCREASE missing, spend-enabled and non-increase decisions are rejected',async()=>{
+  for(const patch of [{provider_generation:true},{publication:true},{authorized_ceiling_usd:5},{authorized_ceiling_usd:NaN},{scope:'RESUME'},{user_id:'2'}]){
+    const f=await budgetIncreaseFixture();Object.assign(f.grant,patch);
+    await assert.rejects(f.manager.increaseBudget(f.args),/AUTHORIZATION/);
+    assert.deepEqual(await f.store.getEpisode(f.args.episodeId),f.cp);
+  }
+});
+
 test("pipeline defaults to legacy and only accepts the explicit candidate", () => {
   assert.equal(pipelineVersion({}), "legacy");
   assert.equal(pipelineVersion({ LUMI_PIPELINE_VERSION: "v1_1_2" }), "v1_1_2");

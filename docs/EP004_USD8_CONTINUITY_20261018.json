@@ -1,0 +1,1294 @@
+{
+  "version": 1,
+  "prepared_at": "2026-10-18T20:06:21.166Z",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "title": "Lumi y los animales de la granja",
+  "provenance": {
+    "source": "CURRENT_DURABLE_AV2_CHECKPOINT",
+    "contract_binding_sha": "8c3ecc2a8cc722440cd209576e007ea6ec64d88b95f56903024cd9169d87072c",
+    "plan_sha": "42a1ac1c600c5a3eceaae2ce18700118bc9433bcee69a1be7d10fc1a5ac4e3f5",
+    "contract_digest": "c91fe185e89b58a636dd4c942b162a14bc1bc33030d3fd1bc02e3882925f9e78",
+    "source_checkpoint_revision": 22,
+    "budget_checkpoint_revision": 23
+  },
+  "scope": "NON_GENERATIVE_PREPARATION_ONLY",
+  "no_actions_completed": true,
+  "provider_generation_calls": 0,
+  "budget": {
+    "ceiling_usd": 8,
+    "exposure_usd": 1.22625,
+    "remaining_internal_usd": 6.77375,
+    "actual_cost_usd": null,
+    "actual_cost_status": "UNVERIFIED",
+    "provider_balance_usd": null,
+    "authorization": {
+      "authorization_id": "EP004_BUDGET_LIMIT_8_USD_20261018",
+      "status": "AUTHORIZED",
+      "decision": "APPROVED",
+      "scope": "EPISODE_BUDGET_LIMIT_ONLY",
+      "user_id": "6213838779",
+      "chat_id": "6213838779",
+      "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+      "previous_ceiling_usd": 5,
+      "authorized_ceiling_usd": 8,
+      "expected_checkpoint_revision": 22,
+      "provider_generation": false,
+      "publication": false,
+      "authorized_at": "2026-10-18T20:00:56Z",
+      "authorization_reference": "LUMI APP — EP004 USD 8 BUDGET EXPANSION AND SAFE PRODUCTION CONTINUITY",
+      "channel": "EXPLICIT_USER_REQUEST",
+      "evidence_kind": "USER_AUTHORIZATION_NOT_PROVIDER_BILLING",
+      "authorization_text": "Aumentar exclusivamente el presupuesto máximo interno del episodio ep_lumi_granja_004_20261008_ee7ab4b3 desde USD 5.00 hasta USD 8.00. La ampliación es de USD 3.00. El nuevo techo total es USD 8.00, no USD 13.00.",
+      "restrictions": {
+        "new_generations": false,
+        "retries": false,
+        "resubmits": false,
+        "variants": false,
+        "release_ambiguous_reservations": false,
+        "provider_topups": false,
+        "automatic_spending": false
+      }
+    }
+  },
+  "shots": [
+    {
+      "shot_id": "q41",
+      "scene_ids": [
+        "s01"
+      ],
+      "visual_seconds": 4,
+      "nominal_visual_start_seconds": 0,
+      "nominal_visual_end_seconds": 4,
+      "educational_goal": "Conocer a Lumi y la granja.",
+      "direction_preliminary": {
+        "focus": "viewer",
+        "camera": "STATIC",
+        "grammar": "GAZE_VIEWER",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Conocer a Lumi y la granja.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q41",
+        "scene_ids": [
+          "s01"
+        ],
+        "source_sha": "c963a60e9d35a6258c47ef04968cd7371c31c71d02e40cf75f63740a62efa24b",
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "wide",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Conocer a Lumi y la granja.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 4
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "welcome"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "start"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s01_voice",
+          "text": "¡Hola! Visitemos la granja.",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q41",
+          "status": "COMPLETE"
+        },
+        {
+          "key": "source_qa:q41",
+          "status": "COMPLETE"
+        },
+        {
+          "key": "director:q41",
+          "status": "COMPLETE"
+        },
+        {
+          "key": "video:q41",
+          "status": "COMPLETE"
+        },
+        {
+          "key": "temporal_qa:q41",
+          "status": "COMPLETE"
+        },
+        {
+          "key": "shot_review:q41",
+          "status": "COMPLETE"
+        }
+      ],
+      "preparation_status": "REAL_APPROVED_PRESERVED",
+      "prerequisites": []
+    },
+    {
+      "shot_id": "q42",
+      "scene_ids": [
+        "s02"
+      ],
+      "visual_seconds": 4,
+      "nominal_visual_start_seconds": 4,
+      "nominal_visual_end_seconds": 8,
+      "educational_goal": "Asociar vaca con muu.",
+      "direction_preliminary": {
+        "focus": "cow",
+        "camera": "STATIC",
+        "grammar": "GAZE_TARGET",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Asociar vaca con muu.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q42",
+        "scene_ids": [
+          "s02"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Asociar vaca con muu.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 4
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "cow"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "welcome"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s02_voice",
+          "text": "La vaca hace muu.",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q42",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q42",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q42",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q42",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q42",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q42",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "ORIGINAL_PROVIDER_EVIDENCE",
+        "VERIFIED_ORIGINAL_ARTIFACT",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    },
+    {
+      "shot_id": "q43",
+      "scene_ids": [
+        "s03"
+      ],
+      "visual_seconds": 4,
+      "nominal_visual_start_seconds": 8,
+      "nominal_visual_end_seconds": 12,
+      "educational_goal": "Asociar oveja con bee.",
+      "direction_preliminary": {
+        "focus": "sheep",
+        "camera": "STATIC",
+        "grammar": "GAZE_TARGET",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Asociar oveja con bee.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q43",
+        "scene_ids": [
+          "s03"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Asociar oveja con bee.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 4
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "sheep"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "cow"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s03_voice",
+          "text": "La oveja hace bee.",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q43",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q43",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q43",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q43",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q43",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q43",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "PRIOR_CHECKPOINT_DEPENDENCIES",
+        "SPECIFIC_SPEND_AUTHORIZATION",
+        "VERIFIED_SOURCE",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    },
+    {
+      "shot_id": "q44",
+      "scene_ids": [
+        "s04"
+      ],
+      "visual_seconds": 4,
+      "nominal_visual_start_seconds": 12,
+      "nominal_visual_end_seconds": 16,
+      "educational_goal": "Asociar gallina con clo, clo.",
+      "direction_preliminary": {
+        "focus": "hen",
+        "camera": "STATIC",
+        "grammar": "GAZE_TARGET",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Asociar gallina con clo, clo.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q44",
+        "scene_ids": [
+          "s04"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Asociar gallina con clo, clo.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 4
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "hen"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "sheep"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s04_voice",
+          "text": "La gallina hace clo, clo.",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q44",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q44",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q44",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q44",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q44",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q44",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "PRIOR_CHECKPOINT_DEPENDENCIES",
+        "SPECIFIC_SPEND_AUTHORIZATION",
+        "VERIFIED_SOURCE",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    },
+    {
+      "shot_id": "q45",
+      "scene_ids": [
+        "s05"
+      ],
+      "visual_seconds": 5,
+      "nominal_visual_start_seconds": 16,
+      "nominal_visual_end_seconds": 21,
+      "educational_goal": "Identificar la vaca durante una pausa real de 2,5 segundos.",
+      "direction_preliminary": {
+        "focus": "viewer",
+        "camera": "STATIC",
+        "grammar": "ATTENTIVE_WAIT",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Identificar la vaca durante una pausa real de 2,5 segundos.",
+        "response_window_seconds": 2.5
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q45",
+        "scene_ids": [
+          "s05"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Identificar la vaca durante una pausa real de 2,5 segundos.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 5
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "question"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "hen"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s05_voice",
+          "text": "¿Quién hace muu?",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [
+        {
+          "id": "s05_response",
+          "purpose": "child_response",
+          "after_utterance": "s05_voice",
+          "duration_seconds": 2.5
+        }
+      ],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q45",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q45",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q45",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q45",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q45",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q45",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "PRIOR_CHECKPOINT_DEPENDENCIES",
+        "SPECIFIC_SPEND_AUTHORIZATION",
+        "VERIFIED_SOURCE",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    },
+    {
+      "shot_id": "q46",
+      "scene_ids": [
+        "s06"
+      ],
+      "visual_seconds": 5,
+      "nominal_visual_start_seconds": 21,
+      "nominal_visual_end_seconds": 26,
+      "educational_goal": "Confirmar la respuesta y repasar los tres sonidos.",
+      "direction_preliminary": {
+        "focus": "cow",
+        "camera": "STATIC",
+        "grammar": "GAZE_TARGET",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Confirmar la respuesta y repasar los tres sonidos.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q46",
+        "scene_ids": [
+          "s06"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Confirmar la respuesta y repasar los tres sonidos.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 5
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "answer"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "question"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s06_voice",
+          "text": "¡La vaca! Muu, bee y clo, clo.",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q46",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q46",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q46",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q46",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q46",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q46",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "PRIOR_CHECKPOINT_DEPENDENCIES",
+        "SPECIFIC_SPEND_AUTHORIZATION",
+        "VERIFIED_SOURCE",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    },
+    {
+      "shot_id": "q47",
+      "scene_ids": [
+        "s07"
+      ],
+      "visual_seconds": 3,
+      "nominal_visual_start_seconds": 26,
+      "nominal_visual_end_seconds": 29,
+      "educational_goal": "Cerrar positivamente y reconocer el esfuerzo.",
+      "direction_preliminary": {
+        "focus": "viewer",
+        "camera": "STATIC",
+        "grammar": "FAREWELL",
+        "body_motion": "PRESERVE_INITIAL",
+        "educational_goal": "Cerrar positivamente y reconocer el esfuerzo.",
+        "response_window_seconds": 0
+      },
+      "character_constraints": {
+        "body": "amarillo cálido",
+        "eyes": "turquesas",
+        "prop": "varita con estrella",
+        "wings": "exactamente dos, celestes",
+        "cheeks": "rosadas",
+        "antennae": "violetas",
+        "clothing": "overol celeste y zapatillas blancas",
+        "forbidden": [
+          "abdomen de abeja",
+          "franjas",
+          "alas adicionales",
+          "cartoon drift",
+          "texto sobre Lumi"
+        ]
+      },
+      "source_contract": {
+        "shot_id": "q47",
+        "scene_ids": [
+          "s07"
+        ],
+        "source_sha": null,
+        "video_endpoint": "kling-video/v3.0/pro/image-to-video",
+        "character_lock_id": "LUMI_CHARACTER_TOPOLOGY_LOCK_V2",
+        "canonical_source_sha": "5dc31254ad26aa1b606735188ac30d2f4d486bc389f19bc8a50816e1e1b3da33",
+        "source_gate_required": true,
+        "first_frame_authority": true
+      },
+      "camera": [
+        {
+          "to": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "from": {
+            "target_m": [
+              0,
+              0.7,
+              1.8
+            ],
+            "fov_y_deg": 45,
+            "position_m": [
+              0,
+              1.5,
+              4
+            ]
+          },
+          "move": "static",
+          "shot": "medium",
+          "start": {
+            "anchor": "scene.start",
+            "offset_seconds": 0
+          },
+          "easing": "hold",
+          "framing": {
+            "intent": "Cerrar positivamente y reconocer el esfuerzo.",
+            "safe_region": "learning_safe"
+          },
+          "subjects": [
+            "lumi",
+            "cow",
+            "sheep",
+            "hen"
+          ],
+          "duration_seconds": 3
+        }
+      ],
+      "continuity": [
+        {
+          "operations": [
+            {
+              "op": "set",
+              "path": "narrative_state",
+              "value": "close"
+            }
+          ],
+          "preconditions": [
+            {
+              "op": "equals",
+              "path": "narrative_state",
+              "value": "answer"
+            }
+          ]
+        }
+      ],
+      "audio_segments": [
+        {
+          "id": "s07_voice",
+          "text": "¡Muy bien! ¡Hasta pronto!",
+          "emotion": "warm",
+          "speaker": "lumi",
+          "delivery": {
+            "pace": "natural",
+            "emphasis": []
+          },
+          "expected_voice": true
+        }
+      ],
+      "pauses": [],
+      "approved_screen_text": [
+        []
+      ],
+      "stage_status": [
+        {
+          "key": "image:q47",
+          "status": "PENDING"
+        },
+        {
+          "key": "source_qa:q47",
+          "status": "PENDING"
+        },
+        {
+          "key": "director:q47",
+          "status": "PENDING"
+        },
+        {
+          "key": "video:q47",
+          "status": "PENDING"
+        },
+        {
+          "key": "temporal_qa:q47",
+          "status": "PENDING"
+        },
+        {
+          "key": "shot_review:q47",
+          "status": "PENDING"
+        }
+      ],
+      "preparation_status": "CONTRACT_PREPARED_NOT_EXECUTED",
+      "prerequisites": [
+        "PRIOR_CHECKPOINT_DEPENDENCIES",
+        "SPECIFIC_SPEND_AUTHORIZATION",
+        "VERIFIED_SOURCE",
+        "SOURCE_QA",
+        "HUMAN_REVIEW"
+      ]
+    }
+  ],
+  "narration_profile": {
+    "text": "¡Hola! Visitemos la granja. La vaca hace muu. La oveja hace bee. La gallina hace clo, clo. ¿Quién hace muu? ¡La vaca! Muu, bee y clo, clo. ¡Muy bien! ¡Hasta pronto!",
+    "model_id": "eleven_multilingual_v2",
+    "provider": "ElevenLabs Direct API",
+    "voice_id": "NyQ87MpRGbszyh7rZLXM",
+    "transport": "Direct API",
+    "voice_profile_id": "LUMI_VOICE_PROFILE_V3"
+  },
+  "tts_characters": 158,
+  "synchronization": {
+    "status": "PLAN_ONLY_REQUIRES_REAL_AUDIO",
+    "source": {
+      "pacing": "NATURAL_1X",
+      "TEXT_OVER_LUMI": "FORBIDDEN",
+      "TEXT_CHARACTER_OVERLAP": 0,
+      "forbidden_visible_labels": [
+        "PAUSA",
+        "pause",
+        "wait",
+        "hold",
+        "espera"
+      ],
+      "pedagogical_pause_seconds": 2.5,
+      "pause_when_episode_plan_requires": true
+    },
+    "nominal_visual_seconds": 29,
+    "response_pause_seconds": 2.5,
+    "rules": [
+      "Preserve authored utterances verbatim and Fernanda profile.",
+      "Place the q45 response window using the frozen editorial contract.",
+      "Measure actual audio before alignment; no invented waveform, duration or phoneme timings.",
+      "Do not stretch approved clips or change camera/motion quality automatically."
+    ]
+  },
+  "assembly_contract": {
+    "crf": 17,
+    "codec": "H.264",
+    "width": 1080,
+    "height": 1920,
+    "preset": "slow",
+    "profile": "High",
+    "audio_codec": "AAC",
+    "aspect_ratio": "9:16",
+    "pixel_format": "yuv420p",
+    "audio_bitrate": "192k",
+    "final_encodes": 1,
+    "audio_channels": 2,
+    "audio_sample_rate": 48000
+  },
+  "quality_profile": {
+    "id": "LUMI_VIDEO_QUALITY_PROFILE_V2"
+  },
+  "delivery": {
+    "status": "NOT_RENDERED",
+    "requirements": [
+      "All seven shots and their required human reviews",
+      "Real Fernanda segments and listening approval",
+      "Verified synchronization and approved captions contract",
+      "One final encode according to the frozen Full HD profile",
+      "Master technical QA and human approval",
+      "Authenticated original master download"
+    ],
+    "publication": false
+  },
+  "projection": {
+    "assumptions": [
+      "Original q42 is recovered and usable after QA/human review.",
+      "No retries or variants.",
+      "Five new images at historical USD 0.262 each.",
+      "Six videos totaling 25 seconds at historical USD 0.112/second.",
+      "Existing reserve factor 1.25 retained."
+    ],
+    "pending_base_usd": 4.11,
+    "pending_reserve_usd": 5.1375,
+    "total_exposure_before_tts_infrastructure_usd": 6.36375,
+    "remaining_margin_before_tts_infrastructure_usd": 1.63625,
+    "public_discount_scenario": {
+      "source": "https://open.higgsfield.ai/models/kling-video/v3.0/pro/image-to-video/playground",
+      "consulted_date": "2026-10-18",
+      "rate_usd_per_second": 0.084,
+      "exact_payload_quote": false,
+      "images_use_historical_estimate": true,
+      "pending_base_usd": 3.41,
+      "total_exposure_before_tts_infrastructure_usd": 5.48875,
+      "remaining_margin_usd": 2.51125
+    },
+    "tts_usd": null,
+    "incremental_compute_storage_usd": null,
+    "full_coverage": "NOT_GUARANTEED"
+  },
+  "q42": {
+    "operation_id": "125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90",
+    "state": "EMISSION_UNKNOWN / NO_RESPONSE",
+    "request_id": null,
+    "reservation_usd": 0.3275,
+    "additional_evidence": "Execution receipt STARTED without result; no q42 artifact under the episode storage prefix. Neither proves non-emission."
+  },
+  "next_safe_action": "Keep image:q42 first pending. Reconcile only a verified original request/artifact or conclusive non-emission evidence; no new emission authorized."
+}

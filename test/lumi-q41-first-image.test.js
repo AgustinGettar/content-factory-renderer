@@ -803,6 +803,18 @@ async function videoQuoteFixture({mode='usd',quoteUsd=.4,inject=async()=>{},tran
  return {...f,quotes,packet,source:a,get videoAdapter(){return adapter;},
   quote:()=>adapter.prepareEp004VideoQuote({user:'1',chat:'1'}),restartQuote:()=>{adapter=make();f.production.adapters.LUMI_PRODUCTION_PROFILE_V2=adapter;return adapter;}};
 }
+test('BUDGET_LIMIT_INCREASE shared quote uses durable ceiling and still requires separate spend consent',async()=>{
+ const f=await videoQuoteFixture();await f.manager.checkpoint(episode,s=>{s.authorized_ceiling_usd=8;});
+ const before=await f.store.getEpisode(episode),q=await f.quote();
+ assert.equal(q.hard_budget_usd,8);assert.equal(q.remaining_before_usd,7.66125);
+ assert.equal(q.status,'AWAITING_HUMAN_AUTHORIZATION');assert.equal(q.generation_authorized,false);
+ assert.deepEqual(await f.store.getEpisode(episode),before);
+ await f.svc.show('1','1',{kind:'progress',episode_id:episode});
+ await f.videoAdapter.authorizeEp004VideoQuote({command:f.command(await f.callback('q41_video_authorize'))});
+ const r=(await f.reviewStore.get('1')).state.production_commands[q.quote_id];
+ assert.equal(r.human_authorization.hard_budget_usd,8);assert.equal(f.quotes.length,1);
+ assert.ok(f.quotes.every(x=>x.url.includes('/estimate/')));
+});
 test('VIDEO_QUOTE: actual runtime composition signs a large private PNG and preserves Telegram binary routing',async()=>{
  // The existing decode fixture with inert trailing bytes tests the real size
  // boundary only. It is never creative evidence or sent over the network.
@@ -1737,6 +1749,31 @@ test('Q42_ONE_TAP PROVIDER_AMBIGUITY SESSION_REOPEN: lost acknowledgement stays 
  const duplicate=await restarted.enqueue(principal,'second_image',{confirm:true});await duplicate.dispatch();
  assert.equal(duplicate.operation.id,v.operation.id);assert.equal(f.control.emitted,1);assert.equal(f.control.polls,0);
  assert.equal([...f.journalRows.values()].filter(j=>j.scene_id==='q42').length,1);
+});
+test('BUDGET_LIMIT_INCREASE MINI_APP_BUDGET_DISPLAY Q42_AMBIGUITY PROVIDER_JOURNAL_INTEGRITY SESSION_REOPEN',async t=>{
+ const f=await secondImageFixture(t,{ambiguous:true});await f.submit('second_image',{confirm:true});
+ const before=await f.store.getEpisode(episode),journal=structuredClone([...f.journalRows]),session=await f.reviewStore.get('1');
+ const emitted=f.control.emitted,quotes=f.quotes.length,authorizationId='OFFLINE_BUDGET_8';
+ const grant={authorization_id:authorizationId,status:'AUTHORIZED',decision:'APPROVED',scope:'EPISODE_BUDGET_LIMIT_ONLY',
+   user_id:'1',chat_id:'1',episode_id:episode,previous_ceiling_usd:5,authorized_ceiling_usd:8,
+   expected_checkpoint_revision:before.metadata.runtime_revision,provider_generation:false,publication:false,
+   authorized_at:new Date().toISOString(),authorization_reference:'OFFLINE_HUMAN_BUDGET_ONLY'};
+ await f.edit(s=>{s.v2_authorizations[authorizationId]=grant;});
+ const args={episodeId:episode,user:'1',authorizationId,reviewStore:f.reviewStore};
+ await f.manager.increaseBudget(args);const after=await f.store.getEpisode(episode);
+ await f.manager.increaseBudget(args);assert.deepEqual(await f.store.getEpisode(episode),after);
+ const reopened=await f.reopen(),service=await f.restart(),view=await service.view(reopened);
+ assert.equal(view.budget.ceiling_usd,8);assert.equal(view.budget.remaining_usd,Number((8-view.budget.exposure_usd).toFixed(6)));
+ assert.equal(view.current_action.status,'AMBIGUOUS');assert.equal(view.capabilities.generate,false);
+ assert.equal(view.capabilities.quote,false);assert.equal(view.second_image.available,false);assert.equal(view.capabilities.recover,false);
+ assert.equal(view.episode.next_action,'image:q42');assert.deepEqual(after.actions,before.actions);
+ assert.deepEqual(after.metadata.budget_reservations,before.metadata.budget_reservations);
+ assert.deepEqual(after.metadata.review_requests,before.metadata.review_requests);
+ assert.deepEqual([...f.journalRows],journal);
+ assert.deepEqual((await f.reviewStore.get('1')).state.mini_app.operations,session.state.mini_app.operations);
+ assert.equal(f.control.emitted,emitted);assert.equal(f.quotes.length,quotes);
+ const ui=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8');
+ assert.match(ui,/Límite interno, no saldo Higgsfield/);assert.match(ui,/Actualizar progreso/);
 });
 test('Q42_ONE_TAP SESSION_REOPEN ORIGINAL_RESULT: original image reaches review after backend restart with q41 preserved',async t=>{
  const f=await secondImageFixture(t),before=structuredClone(f.checkpoint.metadata.review_requests),v=await f.submit('second_image',{confirm:true});

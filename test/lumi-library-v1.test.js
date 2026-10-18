@@ -1,12 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,createHmac} from 'node:crypto';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 import {runInNewContext} from 'node:vm';
 import {PGlite} from '@electric-sql/pglite';
 import {MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
 import {MemoryReviewStore} from '../lib/telegram-review-v1/core.js';
-import {verifiedAsset,approvalEvidence,reuseContract,LumiLibrary,sessionCandidates} from '../lib/telegram-mini-app/library.js';
+import {verifiedAsset,approvalEvidence,reuseContract,LumiLibrary,sessionCandidates,discoverCandidates,mediaRange,videoThumbnail,syncLibrary,DISCOVERY_VERSION} from '../lib/telegram-mini-app/library.js';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const bytes=Buffer.alloc(30);Buffer.from('89504e470d0a1a0a','hex').copy(bytes);bytes.writeUInt32BE(90,16);bytes.writeUInt32BE(160,20);
 const sha=hash(bytes),env={LUMI_RUNTIME_ENV:'staging',SUPABASE_URL:'https://mofjhwathxzfnjapvvst.supabase.co',LUMI_TELEGRAM_BOT_TOKEN:'123:OFFLINE'};
@@ -32,6 +36,7 @@ async function fixture(){const f=await principal(),assets=[asset()],selections=n
 }
 
 test('ASSET_CATALOG + APPROVAL_PROVENANCE: exact hash approval; incomplete and unrelated approvals stay pending',()=>{
+ assert.throws(()=>asset({review:{...review,user:'2'}}),/APPROVAL_OWNER_MISMATCH/);
  const a=asset();assert.equal(a.approval_status,'HUMAN_APPROVED');assert.equal(a.sha256,sha);assert.equal(a.dimensions.width,90);
  for(const r of [null,{...review,artifact_sha:'a'.repeat(64)},{...review,status:'PASS'},{status:'APPROVED',artifact_sha:sha}]){
   const pending=asset({review:r});assert.equal(pending.approval_status,'PENDING_VERIFICATION');assert.deepEqual(pending.reuse_policy.modes,[]);assert.throws(()=>reuseContract(pending,{target_episode_id:'ep005',target_shot_id:'s1',mode:'REFERENCE_REUSE'}),/NOT_APPROVED/);
@@ -77,17 +82,19 @@ test('DUPLICATE_DETECTION + CROSS_EPISODE_ISOLATION + EP004_PRESERVATION: durabl
  f.corrupt();await assert.rejects(f.library.resolve(f.p,first.selection_id),/HASH/);
 });
 test('APPROVAL_PROVENANCE: generic import works across episode and shot IDs; contextual animals share unchanged media',()=>{
- const row={user_id:1,state:{episodes:{any_episode:{title:'Pradera',artifacts:{original:media},review_requests:{r:{artifact_id:'original',artifact_sha:sha,status:'APPROVED',action_key:'image:custom99',human_decision:review},v:{status:'APPROVED',review_contract:{source_sha:sha,inventory:[{id:'horse',color:'brown',shape:'horse',placement:'left'}]}}}}}}};
+ const row={user_id:1,state:{episodes:{any_episode:{title:'Pradera',artifacts:{original:media},review_requests:{r:{artifact_id:'original',artifact_sha:sha,status:'APPROVED',action_key:'image:custom99',human_decision:review},v:{status:'APPROVED',review_contract:{source_sha:sha,inventory:[{id:'horse',kind:'animal',color:'brown',shape:'horse',placement:'left'}]}}}}}}};
  const before=JSON.stringify(row),c=sessionCandidates(row,[]);assert.equal(c.length,3);assert.ok(c.some(x=>x.subject==='horse'));assert.equal(c[0].shot,'custom99');assert.ok(c.every(x=>x.a===media));assert.equal(JSON.stringify(row),before);
 });
 test('VERSIONING + DUPLICATE_DETECTION + AUTH_SECURITY: actual SQL grants, RLS, immutable versions and owner-bound selection',async()=>{
  const db=new PGlite();try{
   await db.exec('create role anon; create role authenticated; create role service_role bypassrls;');
   await db.exec(await readFile(new URL('../supabase/migrations/20261018200623_lumi_reusable_asset_library_v1.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261018225733_lumi_library_discovery_v1.sql',import.meta.url),'utf8'));
   const a=asset(),register=async a=>(await db.query('select (public.lumi_library_register_v1($1::jsonb)).*',[JSON.stringify(a)])).rows[0];
   const first=await register(a),again=await register(a);assert.equal(first.asset_id,again.asset_id);assert.equal(first.version,1);
   const next={...a,asset_id:'b'.repeat(64),sha256:'c'.repeat(64),approval_reference:{...a.approval_reference,artifact_sha256:'c'.repeat(64)}};assert.equal((await register(next)).version,2);
   assert.equal((await db.query('select count(*)::int n from lumi_library_assets')).rows[0].n,2);
+  const object=asset({type:'OBJECT_REFERENCE',subject:'wand'});assert.equal((await register(object)).asset_type,'OBJECT_REFERENCE');
   await assert.rejects(db.exec("update lumi_library_assets set display_name='changed'"),/immutable/);
   const ins=async(owner,contract)=>db.query('insert into lumi_library_selections(selection_id,owner_id,asset_id,target_episode_id,target_shot_id,mode,contract) values($1,$2,$3,$4,$5,$6,$7)',[hash(JSON.stringify([owner,contract])),owner,a.asset_id,'ep005','s01','DIRECT_MEDIA_REUSE',JSON.stringify(contract)]);
   const contract=reuseContract(a,{target_episode_id:'ep005',target_shot_id:'s01',mode:'DIRECT_MEDIA_REUSE'});
@@ -122,12 +129,20 @@ test('HTTP_INTEGRATION: existing Mini App guards protect catalog, range media, s
    const req={method,headers:{origin:'https://content-factory-av2-staging.onrender.com','content-type':'application/json',cookie:'__Secure-lumi_studio='+cookie,'x-lumi-csrf':csrf,...headers},body,params,query};
    const res={statusCode:200,headers:{},status(n){this.statusCode=n;return this;},set(k,v){if(typeof k==='object')Object.assign(this.headers,k);else this.headers[k]=v;return this;},type(t){this.headers.type=t;return this;},json(v){this.data=v;this.ended=true;return this;},send(v){this.data=v;this.ended=true;return this;},end(){this.ended=true;return this;}};
    for(const fn of middleware){fn(req,res,()=>{});if(res.ended)return res;}
-   await routes.get(method+' /lumi/studio/api'+path)(req,res);return res;
+   await routes.get((method==='HEAD'?'GET':method)+' /lumi/studio/api'+path)(req,res);return res;
  };
  const denied=await call('GET','/library',{cookie:''});assert.equal(denied.statusCode,401);
  const list=await call('GET','/library');assert.equal(list.statusCode,200);assert.equal(list.headers['Cache-Control'],'no-store');assert.equal(list.data.assets.length,1);
  const ticket=new URL(list.data.assets[0].media_url,'https://localhost');
  const range=await call('GET','/library/media/:id',{params:{id:a.asset_id},query:Object.fromEntries(ticket.searchParams),headers:{range:'bytes=1-5'}});assert.equal(range.statusCode,206);assert.deepEqual(range.data,bytes.subarray(1,6));
+ const access={params:{id:a.asset_id},query:Object.fromEntries(ticket.searchParams)};
+ for(const [header,start,end] of [['bytes=0-1',0,1],['bytes=-5',25,29],['bytes=20-999',20,29],['bytes=0-',0,29]]){
+  const r=await call('GET','/library/media/:id',{...access,headers:{range:header}});assert.equal(r.statusCode,206);assert.equal(r.headers['Content-Length'],String(end-start+1));assert.equal(r.headers['Content-Range'],`bytes ${start}-${end}/30`);assert.deepEqual(r.data,bytes.subarray(start,end+1));
+ }
+ for(const header of ['bytes=30-','bytes=-0','bytes=0-1,4-5'])assert.equal((await call('GET','/library/media/:id',{...access,headers:{range:header}})).statusCode,416);
+ const head=await call('HEAD','/library/media/:id',access);assert.equal(head.headers['Content-Length'],'30');assert.equal(head.data,undefined);
+ const download=await call('GET','/library/media/:id',{...access,query:{...access.query,download:'1'}});assert.match(download.headers['Content-Disposition'],/^attachment;/);assert.deepEqual(download.data,bytes);
+ const changed=await call('GET','/library/media/:id',{...access,headers:{range:'bytes=0-1','if-range':'"obsolete"'}});assert.equal(changed.statusCode,200);assert.deepEqual(changed.data,bytes);
  const input={asset_id:a.asset_id,target_episode_id:'ep005',target_shot_id:'shot77',mode:'DIRECT_MEDIA_REUSE'};
  assert.equal((await call('POST','/library/selections',{body:input,csrf:'forged'})).statusCode,401);
  assert.equal((await call('POST','/library/selections',{body:input,headers:{origin:'https://evil.invalid'}})).statusCode,403);
@@ -295,5 +310,73 @@ test('V2 PRIVATE_MEDIA_PREVIEW SIGNED_URL_EXPIRATION TELEGRAM_WEBVIEW: fresh aut
  assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');assert.equal(calls[0].opts.credentials,'same-origin');assert.equal(calls[0].opts.cache,'no-store');
  assert.deepEqual(Array.from(ctx.accessPaths),['/library/access/'+a.asset_id]);assert.ok(calls.every(c=>!c.opts.method||c.opts.method==='GET'));
  ctx.ui.clearLibraryMedia();ctx.accessError=true;await assert.rejects(ctx.ui.libraryMediaUrl(a),/SESSION_EXPIRED/);ctx.accessError=false;assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');
- assert.match(js,/EXPIRED_ACCESS/);assert.match(js,/data-library-retry/);assert.match(js,/m\.playsInline=true/);assert.match(js,/addEventListener\(a\.media_type==='video\/mp4'\?'loadedmetadata':'load'/);
+ assert.match(js,/EXPIRED_ACCESS/);assert.match(js,/data-library-retry/);assert.match(js,/m\.playsInline=true/);assert.match(js,/addEventListener\(video&&!poster\?'loadedmetadata':'load'/);
+});
+
+test('MASTER_PLAYBACK HTTP_RANGE PRIVATE_DOWNLOAD: strict valid ranges and native video never downloads a JS blob',async()=>{
+ assert.deepEqual(mediaRange('bytes=-100',30),{start:0,end:29});assert.equal(mediaRange('bytes=9007199254740992-',30),false);
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),calls=[],element={innerHTML:'',textContent:'',hidden:false},downloads=[];
+ const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[],body:{append(){}},createElement(){return {click(){downloads.push(this.href);},remove(){}};}},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,URL,
+  fetch:async()=>{throw Error('FULL_MASTER_FETCH_FORBIDDEN');}};
+ runInNewContext(js.replace('navigation();login();','')+`request=async path=>{globalThis.calls.push(path);return {media:{media_url:'/private-master?ticket=fresh',media_type:'video/mp4',sha256:'a'.repeat(64)}};};globalThis.calls=[];globalThis.ui={libraryMediaUrl,downloadLibraryOriginal};`,ctx);
+ const a={asset_id:'a'.repeat(64),media_type:'video/mp4'};
+ assert.equal(await ctx.ui.libraryMediaUrl(a),'/private-master?ticket=fresh');await ctx.ui.downloadLibraryOriginal(a.asset_id);
+ assert.deepEqual(downloads,['/private-master?ticket=fresh&download=1']);assert.ok(ctx.calls.every(p=>p==='/library/access/'+a.asset_id));
+});
+
+test('MASTER_THUMBNAIL HASH_INTEGRITY: local decoded JPEG, one verified download for concurrent ranges, original preserved',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-master-test-'));
+ try{const path=join(dir,'synthetic.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','color=c=blue:s=360x640:r=24','-t','0.5','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart',path]);
+  const b=await readFile(path),originalSha=hash(b),jpeg=await videoThumbnail(b);assert.equal(jpeg.subarray(0,2).toString('hex'),'ffd8');assert.equal(hash(await readFile(path)),originalSha);
+  const a=verifiedAsset(candidate({type:'MASTER',a:{...media,mime:'video/mp4',path:'private/master.mp4',sha256:originalSha,size:b.length,width:360,height:640,duration:.5},review:{...review,artifact_sha:originalSha}}),b);
+  let loads=0,posters=0,privateBucket=true;const f=await principal();const library=new LumiLibrary({env,store:{get:async()=>a},privateBucket:async()=>privateBucket,loadBytes:async()=>{loads++;await Promise.resolve();return b;},thumbnail:async bytes=>{posters++;return videoThumbnail(bytes);}});
+  const access=await library.access(f.p,a.asset_id),url=new URL(access.media.media_url,'https://offline.invalid'),args=[f.p,a.asset_id,url.searchParams.get('expires'),url.searchParams.get('ticket')];
+  const results=await Promise.all([library.media(...args),library.media(...args),library.media(...args)]);assert.equal(loads,1);assert.ok(results.every(r=>hash(r.bytes)===originalSha));
+  const images=await Promise.all(results.map(r=>library.poster(r.asset,r.bytes)));assert.equal(posters,1);assert.ok(images.every(b=>hash(b)===hash(images[0])));
+  privateBucket=false;await assert.rejects(library.media(...args),/PRIVATE_STORAGE/);
+  const expired=[f.p,a.asset_id,Date.now()-1,url.searchParams.get('ticket')];await assert.rejects(library.media(...expired),/EXPIRED/);
+ }finally{await rm(dir,{recursive:true,force:true});}
+ assert.equal(globalThis.LUMI_OFFLINE_GUARD?.attempts.length,0);
+});
+
+test('ASSET_DISCOVERY OBJECT_REFERENCE CANDIDATE_DEDUPLICATION: AV2 metadata creates contextual candidates, never imagined isolation',async()=>{
+ const f=await productionLibraryFixture(),cp=await f.cpStore.getEpisode('ep_fixture_005'),a=f.assets[0],b=f.objects.get(a.storage_reference.bucket+'/'+a.storage_reference.path);
+ const base=candidate({episode:cp.episode_id,shot:'q41',a:f.library.descriptor(a),review:{...review,artifact_sha:a.sha256}}),before=JSON.stringify(cp);
+ const detected=discoverCandidates(base,{cp});assert.equal(detected.length,7);assert.equal(detected.filter(c=>c.type==='OBJECT_REFERENCE').length,1);assert.equal(detected.find(c=>c.type==='OBJECT_REFERENCE').subject,'wand');
+ assert.equal(detected.filter(c=>c.type==='CHARACTER_REFERENCE').length,4);assert.ok(!detected.some(c=>c.type==='BACKGROUND'));assert.ok(detected.every(c=>c.discovery.visual_analysis===false&&c.discovery.isolated===false));
+ const first=detected.map(c=>verifiedAsset(c,b)),again=discoverCandidates(base,{cp}).map(c=>verifiedAsset(c,b));assert.deepEqual(first.map(a=>a.asset_id),again.map(a=>a.asset_id));
+ assert.ok(first.every(a=>a.reuse_policy.discovery.detector_version===DISCOVERY_VERSION));assert.ok(first.every(a=>a.storage_reference.path===base.a.path));
+ const pending=discoverCandidates({...base,review:null},{cp}).map(c=>verifiedAsset(c,b));assert.ok(pending.every(a=>a.approval_status==='PENDING_VERIFICATION'&&a.reuse_policy.modes.length===0&&a.reuse_policy.discovery.lifecycle.includes('PENDING_APPROVAL')));
+ const rejected=discoverCandidates({...base,review:{...base.review,status:'REJECTED'}},{cp}).map(c=>verifiedAsset(c,b));assert.ok(rejected.every(a=>a.reuse_policy.discovery.lifecycle.includes('REJECTED')&&a.reuse_policy.modes.length===0));
+ const background=discoverCandidates(base,{cp,request:{media_manifest:{role:'BACKGROUND',sha256:base.a.sha256,isolated:true}}});assert.ok(background.some(c=>c.type==='BACKGROUND'));
+ assert.equal(JSON.stringify(cp),before);
+});
+
+test('AUTO_CATALOG APPROVAL_PROVENANCE SESSION_REOPEN: existing sync is idempotent, does not reload unchanged media or rewrite checkpoints',async()=>{
+ const f=await productionLibraryFixture(),s=await f.select('ep_fixture_005');await f.apply(s);
+ const cp=await f.cpStore.getEpisode('ep_fixture_005'),row=await f.store.get('1'),r=Object.values(row.state.episodes[cp.episode_id].review_requests)[0];
+ r.status='APPROVED';r.human_decision={...review,artifact_sha:r.artifact_sha};Object.assign(cp.metadata.review_requests[r.review_request_id],structuredClone(r));
+ const check=JSON.stringify({cp,row}),catalog=new Map();let loads=0;
+ const db={from(name){let key;const q={select(){return q;},eq(k,v){key=v;return q;},maybeSingle(){return q;},then(resolve,reject){return Promise.resolve({data:name==='cf_bot_admins'?[{user_id:'1',chat_id:'1'}]:name==='lumi_pipeline_checkpoints'?[cp]:{user_id:'1',state:{...row.state,chat_id:'1',user_id:'1'}}}).then(resolve,reject);}};return q;}};
+ const config={db,store:{list:async()=>[...catalog.values()],register:async a=>catalog.set(a.asset_id,a)},privateBucket:async()=>true,loadBytes:async a=>{loads++;return f.objects.get(a.bucket+'/'+a.path);}};
+ const first=await syncLibrary(config);assert.equal(first.failed,0);assert.equal(first.registered,7);assert.equal(loads,1);
+ const second=await syncLibrary(config);assert.equal(second.registered,0);assert.equal(second.skipped,7);assert.equal(loads,1);assert.equal(catalog.size,7);assert.equal(JSON.stringify({cp,row}),check);
+ const split=structuredClone(row);delete split.state.episodes[cp.episode_id].review_requests[r.review_request_id];assert.equal(sessionCandidates({user_id:1,state:split.state},[cp]).length,0);
+});
+
+test('PLANNER_RECOMMENDATIONS CHARACTER_CONTINUITY SCENE_COMPATIBILITY CROSS_EPISODE_ISOLATION: EP005/EP006 structural ranking and read-only preparation',async()=>{
+ const {reuseCompatibility}=await import('../lib/telegram-mini-app/library.js');const f=await productionLibraryFixture(),source=await f.cpStore.getEpisode('ep_library_source'),original=f.assets[0],b=f.objects.get(original.storage_reference.bucket+'/'+original.storage_reference.path);
+ const base=candidate({episode:source.episode_id,shot:'q41',a:f.library.descriptor(original),review:{...review,artifact_sha:original.sha256}});
+ f.assets.push(...discoverCandidates(base,{cp:source}).filter(c=>c.subject).map(c=>verifiedAsset(c,b)));
+ const protectedState=JSON.stringify([...f.cpStore.episodes.values()]);
+ for(const episode of ['ep_fixture_005','ep_fixture_006']){
+  const plan=await f.library.plan(f.p,episode,'q41');assert.equal(plan.recommendation.classification,'DIRECT_REUSE_COMPATIBLE');assert.equal(plan.preparation.shots.length,7);assert.equal(plan.preparation.shots[4].response_window_seconds,2.5);assert.equal(plan.preparation.generation_authorized,false);
+  const later=await f.library.plan(f.p,episode,'q42');assert.equal(later.recommendation.classification,'REFERENCE_REUSE_COMPATIBLE');assert.equal(later.suggestions[0].asset.subject_key,'cow');assert.ok(later.suggestions.some(s=>s.asset.asset_type==='OBJECT_REFERENCE'&&s.compatibility.status==='COMPATIBLE'));
+  assert.ok(later.suggestions.filter(s=>s.mode==='REFERENCE_REUSE').every(s=>s.expected_cost_impact.potential_saving_usd===0));assert.ok(later.applications.length===0);
+ }
+ const target=await f.cpStore.getEpisode('ep_fixture_006'),shot=target.metadata.generic_v2.shot_plans[1],object=f.assets.find(a=>a.asset_type==='OBJECT_REFERENCE');
+ target.metadata.generic_v2.plan.entities.find(e=>e.id==='wand').asset_ref.version='999';assert.ok(reuseCompatibility(object,target,shot,'REFERENCE_REUSE',source).reasons.includes('ENTITY_VERSION_INCOMPATIBLE'));
+ const scene=f.assets.find(a=>a.asset_type==='SCENE_REFERENCE');target.metadata.generic_v2.plan.scenes[1].stage.environment_ref.id='unrelated';assert.ok(reuseCompatibility(scene,target,shot,'REFERENCE_REUSE',source).reasons.includes('SCENE_CONTEXT_INCOMPATIBLE'));
+ const empty=await f.library.plan(f.p,'ep_fixture_004','q42');assert.equal(empty.status,'PAUSED_INCIDENT');assert.equal(empty.provider_calls,0);assert.equal(JSON.stringify([...f.cpStore.episodes.values()]),protectedState);
+ assert.equal(f.journals.size,0);assert.equal(f.objects.size,1);assert.equal(globalThis.LUMI_OFFLINE_GUARD?.attempts.length,0);
 });

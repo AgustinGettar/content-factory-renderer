@@ -21,7 +21,7 @@ jobs:
           git rev-parse HEAD^ >/dev/null 2>&1 || library_only=false
           while IFS= read -r path; do
             case "$path" in
-              lib/telegram-mini-app/library.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|public/lumi-studio/style.css|test/lumi-library-v1.test.js|supabase/migrations/*_lumi_reusable_asset_library_v1.sql|docs/LUMI_REUSABLE_ASSET_LIBRARY_V1.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              lib/telegram-mini-app/library.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|public/lumi-studio/style.css|test/lumi-library-v1.test.js|supabase/migrations/*_lumi_reusable_asset_library_v1.sql|supabase/migrations/*_lumi_library_discovery_v1.sql|docs/LUMI_REUSABLE_ASSET_LIBRARY_V1.md|docs/LUMI_INTELLIGENT_LIBRARY.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) library_only=false ;;
             esac
           done < <(git diff --name-only HEAD^ HEAD)
@@ -32,7 +32,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Install media inspection dependency
-        if: steps.scope.outputs.library_only != 'true'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: node --check server.js && node --check lib/telegram-mini-app/library.js && node --check lib/telegram-mini-app/runtime.js && node --check public/lumi-studio/app.js
       - name: Asset library, SQL, auth and protected production integration (offline)

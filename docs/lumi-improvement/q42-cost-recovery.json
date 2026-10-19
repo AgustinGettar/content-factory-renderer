@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "observed_at": "2026-10-19T01:20:39.517Z",
+  "baseline_commit": "c593646daaa4b72efc85819f7f72522f067c3690",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "original": {
+    "operation_id": "125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90",
+    "attempt_id": "6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30",
+    "status": "EMISSION_UNKNOWN",
+    "response": "NO_RESPONSE",
+    "reservation_usd": 0.3275,
+    "preserved": true
+  },
+  "latest_confirmation": {
+    "confirmation_id": "dbef34a4-3106-4b67-858b-fe25e236e1f7",
+    "authorization_reference": "54d88301-2c29-4ada-a8bd-36055c7403b3",
+    "operation_id": "67cb98113d392fd5a325697d39526214a7be3813721f6eb86135c7a4911fac1c",
+    "operation_created": false,
+    "quote_id": null,
+    "quote_amount_usd": null,
+    "quote_expiration": null,
+    "reservation_multiplier": 1.25,
+    "calculated_reservation_usd": null,
+    "authorized_max_usd": 0.3275,
+    "episode_remaining_usd": 6.77375,
+    "payload_sha256": "dee5c851a0cdccfb3dbd56d8dec6699b485b3b6eb66bec0b2eaea229148ee5e5",
+    "failure_stage": "QUOTE",
+    "error_code": "Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED",
+    "finished_at": "2026-10-19T00:54:36.956377+00:00",
+    "provider_dispatch_status": "NO_JOURNAL_NO_GENERATION",
+    "provider_request_id": null,
+    "new_reservation": false
+  },
+  "cause": {
+    "confirmed": "Admission branch rejected zero estimate OR reserve above the specific maximum; successful estimator values were discarded before durable persistence.",
+    "unknown": "Exact historical amount, computed reserve and which of those branches applied.",
+    "not_established": [
+      "cross-shot binding defect",
+      "consent expiry",
+      "episode budget exhaustion",
+      "historical rounding defect"
+    ],
+    "evidence": [
+      "Existing fenced confirmation outcome",
+      "Render app logs 2026-10-19T00:54:37.099785939Z",
+      "Deployed c593 gate and quote adapter",
+      "No atomic replacement journal/operation/reservation"
+    ]
+  },
+  "consent": {
+    "status": "HUMAN_RISK_ACCEPTANCE",
+    "contract_version": 3,
+    "authorized_at": "2026-10-19T00:54:03.567Z",
+    "expires_at": "2026-10-20T00:53:52.703Z",
+    "maximum_reservation_usd": 0.3275,
+    "material_fingerprint": "c48fc376bb6e86a7a87a40419895b17a1edc08f21e65ab59235b91c255203ba6",
+    "preserved": true
+  },
+  "budget": {
+    "ceiling_usd": 8,
+    "internal_exposure_usd": 1.22625,
+    "remaining_usd": 6.77375,
+    "actual_total_charge_usd": null
+  },
+  "preservation_baseline": {
+    "status": "PAUSED_INCIDENT",
+    "autorun": false,
+    "cap_usd": 8,
+    "grants_md5": "b7888ef6ffe01dea7239f775567c0fce",
+    "source_md5": "9db50472ae7d3d318078c7e3c517d422",
+    "publication": false,
+    "reviews_md5": "6ab3e910810d724a1a1a61852935e4a8",
+    "first_pending": "image:q42",
+    "journal_count": 2,
+    "proposals_md5": "0d8d513a8d0f13277fd08d9d3a87330b",
+    "checkpoint_md5": "fcdf4f7a9760788f5000e22431a0688f",
+    "runner_enabled": false,
+    "quote_claims_md5": "69d4fad6ebd2bbf9d99c112ca26dbdc2",
+    "reservations_md5": "44ec5963a9476405d9e72100ea66db09",
+    "quote_history_md5": "318ca0529c112ed7872349c88726a94c",
+    "consent_history_md5": "a7ddc1a7ec73300326b3f3a67ba698a7",
+    "original_journal_md5": "dc1d45cf5632aa1b4d7dcf2571b351fd",
+    "original_operation_md5": "e627bde022ac0f6d9a17d209e360b730",
+    "all_episode_journals_md5": "08dc84d959716316b7e0fed401108178",
+    "replacement_operation_exists": false
+  },
+  "intervention": {
+    "provider_generation_calls": 0,
+    "new_provider_quotes": 0,
+    "new_reservations": 0,
+    "new_acceptances": 0,
+    "productive_delta": 0
+  },
+  "validation": {
+    "real": "PASS_REAL read-only DB/log/library evidence",
+    "integration": "PASS_INTEGRATION real snapshot: valid consent, generation disabled, quote-only available",
+    "offline": "Actual SQL/auth/estimator adapter with mocked HTTP, EP005/EP006; test counts in resume state",
+    "not_tested_real": [
+      "provider price after release",
+      "provider generation/replay/billing",
+      "Telegram/iPhone post-release"
+    ]
+  }
+}

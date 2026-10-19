@@ -238,3 +238,28 @@ test("zero-provider end-to-end dry run covers pause, resume, persistence and res
   assert.deepEqual(result.full_pipeline_stages, ["IDEA", "PLANNING", "CLAIMS", "SOURCE_READINESS", "VIDEO_READINESS", "PERSISTENCE", "QA", "BUDGET", "ASSEMBLY", "MASTER_READINESS"]);
   assert.equal(result.master_readiness, "READY_FOR_HUMAN_REVIEW");
 });
+
+
+test('FULL_EPISODE_COST_ESTIMATE admission: new episodes require complete costs before any reservation; completed media retains recovery',async()=>{
+ const store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store});
+ const id='ep006_new_cost';await manager.startEpisode({episodeId:id,authorizedCeilingUsd:8,
+  actions:[{key:'image:s1',stage:'IMAGE'},{key:'video:s1',stage:'VIDEO'},{key:'tts',stage:'TTS'}],metadata:{generic_v2:{},runtime_revision:1}});
+ const cp=await store.getEpisode(id),before=structuredClone(cp);
+ assert.equal((await manager.budgetGate({episodeId:id,actionKey:'image:s1',projectedCallCostUsd:.1})).error_code,'BUDGET_FULL_EPISODE_PLAN_REQUIRED');
+ assert.deepEqual(await store.getEpisode(id),before);
+ await manager.checkpoint(id,s=>{s.metadata.episode_ledger={entries:Object.fromEntries(s.actions.map(a=>[a.key,{estimated_cost:{currency:'USD',usd:.2}}])),
+  overhead_estimates:{STORAGE:{currency:'USD',estimate_usd:.01,evidence_reference:'synthetic'},INFRASTRUCTURE:{currency:'USD',estimate_usd:.01,evidence_reference:'synthetic'}}};});
+ assert.equal((await manager.budgetGate({episodeId:id,actionKey:'image:s1',projectedCallCostUsd:.1})).status,'PASS');
+ assert.equal((await store.getEpisode(id)).metadata.budget_reservations,undefined);
+});
+
+
+test('BUDGET_CONCURRENCY / MULTI_EPISODE: every explicitly linked source liability is counted once, unrelated reuse is free of transferred debt',async()=>{
+ const store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store});
+ await manager.startEpisode({episodeId:'ep006_sources',authorizedCeilingUsd:8,actions:[{key:'image:s2',stage:'IMAGE'}]});
+ await store.putEpisode({episode_id:'ep006_source_a',current_cost_usd:.1,metadata:{target_episode:'ep006_sources',budget_reservations:{a:{amount_usd:.2}}}});
+ await store.putEpisode({episode_id:'ep006_source_b',current_cost_usd:.3,metadata:{target_episode:'ep006_sources',budget_reservations:{b:{amount_usd:.4}}}});
+ await store.putEpisode({episode_id:'ep005_unrelated',current_cost_usd:100,metadata:{target_episode:'ep005',budget_reservations:{}}});
+ const b=await manager.budgetExposure({episodeId:'ep006_sources'});assert.equal(b.required_total_usd,1);assert.equal(b.current_confirmed_spend_usd,.4);
+ assert.equal(b.source_operation_exposure_usd,1);assert.equal(b.episode_ceiling_usd,8);
+});

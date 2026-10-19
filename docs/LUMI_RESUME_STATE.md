@@ -1,10 +1,10 @@
 # Lumi resume state
 
-Observed: 2026-10-19T00:41:27.938785Z. Input SHA-256: d4753cc74198912544fad8b4fcdd5cbeb972e82c0039551128f4b4143f128ea9.
+Observed: 2026-10-19T01:20:15.040407+00:00. Input SHA-256: 4e9ac06606f1708a010d2415bb8a46bbf8d3f5d03a7d8166dda3e905487f56b9.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: f20a0c85b77ddcc7aa53442a76fb3c11a7661b66.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: c593646daaa4b72efc85819f7f72522f067c3690.
 
-Deployment evidence: Implementation f20a0c85b77ddcc7aa53442a76fb3c11a7661b66 validated locally. Baseline remote/staging 323326d552330a1ed64c39cff29e07787c1ca69b verified LIVE; exact release CI and live SHA must be checked at handoff. No deployment inferred from tests.. Always resolve current HEAD/live before writing.
+Deployment evidence: Baseline c593646daaa4b72efc85819f7f72522f067c3690 verified remote and LIVE. Cost-engine patch validated locally; exact-release CI and staging deployment are separate gates to verify at handoff.. Always resolve current HEAD/live before writing.
 
 Episode: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50.
 
@@ -12,7 +12,7 @@ Last: shot_review:q41; next: image:q42.
 
 Original operation: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; journal attempt: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE.
 
-Proposal: 02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670; risk acceptance RECORDED_EXPIRED; replacement operation NOT_CREATED; reservation NONE. La aceptación real está conservada; su vencimiento explícito heredó el enlace firmado de la versión anterior. No se extiende retroactivamente. Una aceptación futura nueva muestra su plazo de 24 horas y permite renovar cotizaciones sin cambiar contenido ni máximo.
+Proposal: 02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670; risk acceptance HUMAN_RISK_ACCEPTANCE; replacement operation NOT_CREATED; reservation NONE. Tercera aceptación humana real, vigente al corte; las dos anteriores vencidas se conservan. No pedir otra por cotización vencida o sesión reabierta; no extender el plazo ni el máximo.
 
 Budget USD 8; exposure 1.22625; proposed additional maximum 0.3275; charges UNKNOWN.
 
@@ -20,41 +20,41 @@ Budget USD 8; exposure 1.22625; proposed additional maximum 0.3275; charges UNKN
 
 PRODUCTION_PROGRESS: {"completed":8,"total":50,"delta_this_intervention":0,"evidence":"unchanged real checkpoint revision 23"}
 
-BLOCKERS_RESOLVED: {"production":0,"technical":2,"scope":"consent/quote lifetime coupling and missing fenced confirmation outcome; primary historical error remains unknown"}
+BLOCKERS_RESOLVED: {"production":0,"technical":2,"scope":"missing rejected quote evidence; decimal reserve rounding defect. Exact historical quote and original provider outcome remain unknown."}
 
-REGRESSIONS_INTRODUCED: {"observed":0,"scope":"79 focused offline checks; device and real provider confirmation not exercised"}
+REGRESSIONS_INTRODUCED: {"observed_in_focused_acceptance":0,"scope":"focused offline checks; new full-plan prerequisite intentionally changes new-episode admission","historical_fixture_contract_update":1,"full_master_fixture_revalidation":"NOT_RERUN_AFTER_FORECAST_FIXTURE_UPDATE"}
 
 DUPLICATE_EMISSIONS: {"this_intervention":0,"historical":"UNKNOWN_PROVIDER_OUTCOME"}
 
 UNAUTHORIZED_SPENDING: {"this_intervention":0,"historical_charges":"UNVERIFIED"}
 
-HUMAN_INTERVENTIONS: {"new_decisions_recorded_this_intervention":0,"real_prior_decisions_found":2,"pending":["new human decision only because the stored explicit consent expired","device/master review"],"historical_total":null}
+HUMAN_INTERVENTIONS: {"new_decisions_recorded_this_intervention":0,"real_prior_decisions_found":3,"pending":["explicit quote-only consultation","specific higher maximum only if necessary and separately authorized","artifact reviews"],"historical_total":null}
 
-REUSABLE_FIXES: {"implemented":2,"validated":2,"scope":"durable bounded consent and recoverable fenced confirmations across IMAGE/VIDEO episodes"}
+REUSABLE_FIXES: {"implemented":4,"validated":4,"scope":"decimal economic decisions; durable quote-only/failed quote evidence; provider identity/correlation projection; whole-episode cost planning and linked-source liabilities"}
 
-SIMULATED_PROGRESS: {"status":"PASS_OFFLINE EP005 and EP006, actual SQL/auth plus mocked providers","productive_delta":0}
+SIMULATED_PROGRESS: {"status":"EP005/EP006 actual SQL and authenticated handlers with mocked provider; no real production advancement","productive_delta":0}
 
 ## Blockers
 
-1. PROVIDER_EVIDENCE / OPEN: La operación original q42 sigue EMISSION_UNKNOWN/NO_RESPONSE; no request ID verificable. El reemplazo no tiene operación, reserva ni journal. El fallo primario de las dos confirmaciones no fue registrado.
+1. BUDGET / EXACT_PRICE_EVIDENCE_MISSING: Último rechazo en QUOTE, antes de reserva/emisión. Falta el importe histórico; no inferirlo. Consultar explícitamente un precio sin generar, conservar máximo .3275 y cap8. El costo completo del episodio aún no está verificado.
 
-2. GENERATION / GUARDED_CONFIRMATION_PREPARED: Corrección técnica de consentimiento y confirmación validada offline. No se generó ni reservó; el resultado real del estimador y generación siguen sin verificarse. Restan q42–q47 y sus revisiones.
+2. PROVIDER_EVIDENCE / ORIGINAL_STILL_AMBIGUOUS: q42 original EMISSION_UNKNOWN/NO_RESPONSE, sin ID verificable. Su reserva .3275 permanece; el último intento de reemplazo no llegó a ACTIVATE. Correlación e idempotencia quedan registradas para operaciones futuras.
 
-3. HUMAN_REVIEW / RECORDED_CONSENT_EXPLICITLY_EXPIRED: Dos aceptaciones humanas reales conservadas. Última: 00:02:48Z, venció 00:05:40Z. No pedir otra si aparece una vigente; para la actualmente vencida se requiere una nueva decisión humana explícita.
+3. GENERATION / BLOCKED_PENDING_PRICE_REVIEW: Motor técnico guarda cotización y decisión antes de reservar. Consulta sin generación disponible con consentimiento vigente. Un precio mayor requiere una decisión específica posterior; el cap8 no la reemplaza.
 
-4. BUDGET / HEADROOM_AVAILABLE_COVERAGE_UNKNOWN: USD 8 cap preserved; current internal headroom 6.77375. New estimated reservation 0.3275 would leave 6.44625; actual charges and remaining episode coverage unverified.
+4. HUMAN_REVIEW / EXISTING_CONSENT_VALID: Aceptación real vigente hasta 2026-10-20T00:53:52.703Z. No repetirla si contenido, condiciones y máximo siguen iguales. q41 permanece aprobada; q42 aún no tiene artefacto.
 
-5. TTS / NOT_TESTED_REAL_EP004: Fernanda V3 configured; EP004 tts/tts_storage pending. Current quota and exact request set require preflight at its turn.
+5. TTS / PENDING_USD_COST_EVIDENCE: La cuota de caracteres no demuestra un costo en USD. Falta presupuesto completo de voz y posterior revisión del audio.
 
-6. ASSEMBLY / WAITING_FOR_REAL_INPUTS: captions/assembly/master/master_review remain pending; code presence and simulated tests do not prove EP004 master readiness.
+6. ASSEMBLY / WAITING_REAL_ASSETS: Faltan clips aprobados y voz para ensamblar el master real. Pruebas y material sintético no completan el episodio.
 
-7. DELIVERY / DEVICE_ACCEPTANCE_PENDING: Flores playback transport fix has no real iPhone acceptance; EP004 master does not exist yet.
+7. DELIVERY / WAITING_MASTER: Master real no disponible; entrega y reproducción completa en dispositivo pendientes. Publicación sigue deshabilitada.
 
-8. MINI_APP_UX / DURABLE_STATUS_AND_SAFE_ERRORS: La UI distingue aceptación registrada, fecha/razón de vencimiento, confirmación, operación y error seguro. Dispositivo real tras corrección todavía NOT_TESTED_REAL.
+8. MINI_APP_UX / PRICE_REVIEW_READY_OFFLINE: Muestra consentimiento vigente, precio/reserva exactos cuando existen, diferencia entre máximo específico y episodio, y consulta de precio separada. Interacción real iPhone tras deploy no probada.
 
-9. INFRASTRUCTURE / RELEASE_VERIFICATION_REQUIRED: RPC existente actualizado con fencing y outcomes; sin tablas ni datos nuevos. Exigir CI exacto, migración sin datos y staging aislado; verificar hashes de preservación antes/después.
+9. INFRASTRUCTURE / STAGING_RELEASE_PENDING: Branch-only, CI y migración sin reescritura de datos. Runners OFF, autorun false, Supabase aislado; verificar SHA live después del deploy.
 
-Next safe action: Abrir Lumi Studio desde Telegram y actualizar progreso (GET). Ver la aceptación original registrada y su vencimiento explícito. Si el usuario decide continuar, revisar personalmente una nueva aceptación con plazo visible; el asistente no acepta, cotiza ni genera. Si ya aparece una operación, recuperar sólo su mismo resultado.
+Next safe action: Abrir Lumi Studio autenticada, actualizar progreso y usar Consultar cotización sin generar. Guardar y leer los valores exactos. Mantener el consentimiento vigente y máximo.3275; si se excede, solicitar decisión específica sólo sobre el nuevo importe demostrado. No generar ni reservar bajo el prompt de continuación.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

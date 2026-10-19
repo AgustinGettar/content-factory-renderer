@@ -21,7 +21,7 @@
     ],
     "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
     "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
-    "NEXT_ACTION": "Use the durable consent status; the real grant is recorded but explicitly expired. Prefer original recovery when verifiable evidence exists. Never accept or emit on behalf of the user."
+    "NEXT_ACTION": "Preserve original ambiguity and valid current replacement consent; consult exact price separately without generation. Prefer verifiable original result when available."
   },
   {
     "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
@@ -180,5 +180,50 @@
     ],
     "FIX_STATUS": "RESOLVED",
     "NEXT_ACTION": "Deploy exact validated fix; preserve old grants including expiration. Human reviews a new explicit 24-hour decision only when expired or materially changed; no automatic generation."
+  },
+  {
+    "INCIDENT_ID": "LUMI-Q42-QUOTE-EVIDENCE-009",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42 / general IMAGE and VIDEO admission",
+    "SYMPTOM": "Latest confirmation failed in QUOTE with Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED; amount and reservation were missing.",
+    "ROOT_CAUSE": "The deployed quote adapter called the admission gate before returning/persisting the successful estimator response; its thrown error omitted the price/reserve. The gate branch itself is confirmed; zero versus over-limit historical quote remains UNKNOWN.",
+    "EVIDENCE": [
+      "Claim dbef34a4-3106-4b67-858b-fe25e236e1f7 finished2026-10-19T00:54:36.956377Z; Render exact code00:54:37.099785939Z.",
+      "No replacement journal, operation or reserve; generation boundary NO_JOURNAL_NO_GENERATION.",
+      "Baseline c593 quote adapter and shared gate; maximum.3275, multiplier1.25, episode remaining6.77375."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Specific generation remains blocked without exact historical economic explanation; EP004 remains8/50.",
+    "FINANCIAL_RISK": "No replacement reserve or generation in latest attempt. Original USD.3275 remains uncertain; no confirmed incident charge.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "Actual quote adapter + mocked HTTP + actual PGlite transaction; no real provider calls."
+    ],
+    "REGRESSION_GUARD": "lumi-supervised-activation.test.js QUOTE_OVER_LIMIT, QUOTE_ONLY, SESSION_REOPEN, CROSS_SHOT_IDENTITY; higgsfield-usd-budget-v1.test.js",
+    "REUSABILITY": "Any episode/action using the existing shared Budget Gate and supervised recovery.",
+    "NEXT_ACTION": "Deploy validated staging code; retrieve a new quote only by explicit authenticated consultation, never infer the old amount or expand authorization."
+  },
+  {
+    "INCIDENT_ID": "LUMI-RESERVATION-DECIMAL-010",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42 / general IMAGE and VIDEO admission",
+    "SYMPTOM": "Float arithmetic can round a reserve one micro-USD above the exact policy boundary.",
+    "ROOT_CAUSE": "Math.ceil(estimate*1.25*1e6) operates on binary floating point. Exact integer-nano arithmetic with upward micro rounding eliminates the demonstrated excess. This defect is NOT established as the historical q42 rejection cause.",
+    "EVIDENCE": [
+      "Offline counterexample only: quote.000172; old reserve.000216; exact reserve.000215.",
+      "No claim that this synthetic price was used for EP004."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Specific generation remains blocked without exact historical economic explanation; EP004 remains8/50.",
+    "FINANCIAL_RISK": "No replacement reserve or generation in latest attempt. Original USD.3275 remains uncertain; no confirmed incident charge.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "Actual quote adapter + mocked HTTP + actual PGlite transaction; no real provider calls."
+    ],
+    "REGRESSION_GUARD": "higgsfield-usd-budget-v1.test.js RESERVATION_MULTIPLIER plus SQL exact numeric policy",
+    "REUSABILITY": "Any episode/action using the existing shared Budget Gate and supervised recovery.",
+    "NEXT_ACTION": "Deploy validated staging code; retrieve a new quote only by explicit authenticated consultation, never infer the old amount or expand authorization."
   }
 ]

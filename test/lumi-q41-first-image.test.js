@@ -1855,7 +1855,7 @@ test('MULTI_EPISODE_INTEGRATION: two independent seven-shot Mini App episodes re
    s.director_input.contract.SOURCE_ARTIFACT={sha256:null,status:'NOT_CREATED'};s.director_input.contract.REQUIRED_OBJECTS=structuredClone(inventory);
   }
   const prepared=prepareGenericV2Episode(request);
-  await f.manager.startEpisode({episodeId:name,actions:prepared.actions,authorizedCeilingUsd:5,metadata:{user:'1',runtime_revision:1,dry_run:false,generic_v2:prepared,provider_generation_authorized:false,publication_enabled:false,episode_ledger:{currency:'USD',entries:{},provider_units:[]}}});
+  await f.manager.startEpisode({episodeId:name,actions:prepared.actions,authorizedCeilingUsd:5,metadata:{user:'1',runtime_revision:1,dry_run:false,generic_v2:prepared,provider_generation_authorized:false,publication_enabled:false,episode_ledger:{currency:'USD',entries:Object.fromEntries(prepared.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)).map(a=>[a.key,{estimated_cost:{currency:'USD',usd:.02}}])),overhead_estimates:{STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_INCLUDED'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_INCLUDED'}},provider_units:[]}}});
   await f.edit(s=>{s.episodes[name]={episode_id:name,title:'SYNTHETIC '+name,review_mode:'SUPERVISED',beats:7,pipeline:profile.id,profile_sha:PROFILE_SHA,binding_sha:prepared.binding_sha,shots:prepared.shot_plans.map(s=>({shot_id:s.shot_id})),artifacts:{},review_requests:{},reviews:{}};});
   const selection=await f.service.enqueue(principal,'select_episode',{episode_id:name});await selection.dispatch();
   principal=await f.reopen();

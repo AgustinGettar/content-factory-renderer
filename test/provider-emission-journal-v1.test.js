@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { journaledFetch, emissionBoundary, S37_OVERRIDE, validateS37Override } from "../lib/provider-emission-journal-v1.js";
+import { journaledFetch, emissionBoundary, providerOperationTrace, S37_OVERRIDE, validateS37Override } from "../lib/provider-emission-journal-v1.js";
 import { LumiRecoveryIncidentManager, MemoryLumiRecoveryStore } from "../lib/lumi-recovery-incident-manager-v1.js";
 import { generateBenchmarkComposite } from "../lib/asset-v2/image-provider.js";
 
@@ -102,4 +102,26 @@ test('shared boundary: deadline expires during durable EMITTING CAS; records pro
  assert.equal(r.response_metadata.transport_invoked,false);assert.equal(emissionBoundary(r),'NOT_EMITTED');
  // Historical ambiguous rows have no such proof, even with a suggestive error string.
  assert.equal(emissionBoundary({state:'EMISSION_UNKNOWN',transport_error:'Q41_EMISSION_BINDING_CHANGED'}),'EMISSION_UNKNOWN');
+});
+test('PROVIDER_TRACEABILITY / JOURNAL_RECONCILIATION: identity before HTTP, correlation before parse, result and review remain separate',async()=>{
+ const store=new Store(),c={...context,provider:'higgsfield_api'},identity={operation_id:'op-new',quote_id:'quote-new',reservation_id:'reservation-new',idempotency_key:'independent-key'};
+ const response=await journaledFetch({store,context:c,descriptor:{identity},fetchImpl:async(url,o)=>{
+   const j=store.rows.get(c.attempt_id);assert.equal(j.state,'EMITTING');assert.equal(j.payload_descriptor.trace.internal_operation_id,'op-new');
+   assert.equal(j.payload_descriptor.trace.payload_hash,j.payload_fingerprint);assert.equal(o.headers.get('Idempotency-Key'),'independent-key');
+   return new Response(JSON.stringify({request_id:'job-new',status:'queued',status_url:'https://api.higgsfield.ai/requests/job-new/status',secret:'SHOULD_NOT_PERSIST'}),{status:200,headers:{'x-correlation-id':'corr-safe'}});
+ }})('https://api.higgsfield.ai/test',{...options,headers:{...options.headers,'Idempotency-Key':'independent-key'}});
+ const j=store.rows.get(c.attempt_id);assert.equal(j.response_metadata.correlation_id,'corr-safe');assert.equal(providerOperationTrace({journal:j}).state,'EMISSION_UNKNOWN');
+ await response.json();assert.equal(providerOperationTrace({journal:j}).state,'SUBMITTED');assert.ok(!JSON.stringify(j).includes('SHOULD_NOT_PERSIST'));
+ const artifact={sha256:'a'.repeat(64),bucket:'private',path:'result.png'},receipt={result:{provider_job_ids:['job-new'],output:{status:'completed'},artifacts:[artifact],actual_cost:{currency:'USD',usd:.1}}};
+ let trace=providerOperationTrace({journal:j,receipt,reservation:{amount_usd:.125}});assert.equal(trace.state,'AWAITING_HUMAN_REVIEW');assert.equal(trace.billing_evidence.amount_usd,.1);
+ trace=providerOperationTrace({journal:j,receipt,review:{status:'APPROVED',artifact_sha:artifact.sha256}});assert.equal(trace.state,'APPROVED');assert.equal(trace.end_to_end_exactly_once_verified,false);
+ assert.equal(providerOperationTrace({journal:j,receipt:{result:{...receipt.result,provider_job_ids:['wrong-job']}}}).state,'EMISSION_UNKNOWN');
+});
+test('PROVIDER_RESPONSE_LOST / PROCESS_RESTART: failure persisting ACK leaves a consumed claim, never a second POST',async()=>{
+ const store=new Store(),transition=store.transition.bind(store);let calls=0;
+ store.transition=async(id,from,patch)=>{if(patch.state==='ACKNOWLEDGED')throw Error('DATABASE_UNAVAILABLE');return transition(id,from,patch);};
+ const transport=async()=>{calls++;return new Response('{}',{status:200,headers:{'x-request-id':'accepted-but-lost'}});};
+ await assert.rejects(journaledFetch({store,context,fetchImpl:transport})('https://example.invalid',options),/DATABASE_UNAVAILABLE/);
+ const j=store.rows.get(context.attempt_id);assert.equal(j.state,'EMITTING');assert.equal(emissionBoundary(j),'EMISSION_UNKNOWN');
+ await assert.rejects(journaledFetch({store,context,fetchImpl:transport})('https://example.invalid',options),/duplicate/);assert.equal(calls,1);
 });

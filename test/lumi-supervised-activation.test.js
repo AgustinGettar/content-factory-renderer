@@ -7,6 +7,8 @@ import {MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
 import {LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
 import {buildReplacementProposal,recoveryDigest,replacementPresentation} from '../lib/lumi-supervised-replacement.js';
+import {supervisedReservation,estimateHiggsfieldUsd} from '../lib/higgsfield-usd-budget-v1.js';
+import {quoteSupervisedPayload} from '../lib/lumi-supervised-runtime-bindings.js';
 import {installSupervisedActivation} from '../lib/lumi-supervised-activation.js';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 const migration=await readFile(new URL('../supabase/migrations/20261018233719_lumi_supervised_replacement_activation.sql',import.meta.url),'utf8');
@@ -21,6 +23,7 @@ function initData(nonce){const p=new URLSearchParams({auth_date:String(Math.floo
  p.set('hash',createHmac('sha256',key).update(body).digest('hex'));return p.toString();}
 async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,afterActivate=null}={}){
  const db=new PGlite();await db.exec(schema);await db.exec(migration);await db.exec(await readFile(new URL('../supabase/migrations/20261019003616_lumi_supervised_durable_consent.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20261019010401_lumi_cost_traceability.sql',import.meta.url),'utf8'));
  const oldMigration=await readFile(new URL('../supabase/migrations/20261011215758_lumi_balance_recovery.sql',import.meta.url),'utf8');
  await db.exec(oldMigration.slice(oldMigration.indexOf('create or replace function public.lumi_emission_immutable_v1()'),oldMigration.lastIndexOf('commit;')));
  await db.exec('create trigger immutable before update on lumi_provider_emission_journal for each row execute function lumi_emission_immutable_v1()');
@@ -50,12 +53,12 @@ async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,a
  const auth=new MiniAppAuth({store:reviewStore,validateOwner:async u=>u==='1',env});
  const login=await auth.login(initData(episode)),principal=await auth.authenticate(login.cookie,login.csrf);
  let quotes=0,calls=0;const sent=[];
- const controls={content:'Synthetic only',token:'1',quoteError:null,quoteExpired:false,beforeQuote:null};
+ const controls={content:'Synthetic only',token:'1',quoteError:null,quoteExpired:false,beforeQuote:null,quoteAmount:.262,realEstimator:false};
  const payload=()=>JSON.stringify({prompt:controls.content,image_url:'https://example.invalid/source?token='+controls.token,sound:'off',duration:4,multi_shots:false,cfg_scale:.5});
  const adapter={};
  installSupervisedActivation(adapter,{manager,reviewStore,journal,validateOwner:async u=>u==='1',secret:env.LUMI_TELEGRAM_CALLBACK_SECRET,
   buildPayload:async()=>({payload_sha256:hash(payload()),approved_content_fingerprint:hash(controls.content),private_payload:{synthetic:payload()},expires_at:new Date(Date.now()+120000).toISOString()}),openPayload:v=>v.synthetic,
-  quotePayload:async(c,g,body)=>{quotes++;if(controls.beforeQuote)await controls.beforeQuote();if(controls.quoteError)throw Error(controls.quoteError);return {episode_id:cpId,action_id:action,replacement_proposal_id:proposal.replacement_proposal_id,operation_id:proposal.planned_operation_id,attempt_id:proposal.planned_attempt_id,model:j.model,currency:'USD',status:'QUOTED',payload_sha256:hash(body),quote_id:'synthetic-quote',created_at:new Date().toISOString(),expires_at:new Date(Date.now()+(controls.quoteExpired?-1000:50000)).toISOString(),estimate_usd:.262,reserve_usd:.3275};},
+  quotePayload:async(c,g,body)=>{quotes++;if(controls.beforeQuote)await controls.beforeQuote();if(controls.quoteError)throw Error(controls.quoteError);if(controls.realEstimator)return quoteSupervisedPayload({proposal:c.proposal,grant:g,body,env:{HF_API_KEY:'mock-only'},fetchImpl:async(url,options)=>{assert.equal(url,'https://api.higgsfield.ai/estimate/'+j.model);assert.equal(options.body,body);return new Response(JSON.stringify({usd:String(controls.quoteAmount)}),{status:200,headers:{'x-request-id':'synthetic-estimate-id'}});}});return {episode_id:cpId,action_id:action,replacement_proposal_id:proposal.replacement_proposal_id,operation_id:proposal.planned_operation_id,attempt_id:proposal.planned_attempt_id,model:j.model,currency:'USD',status:'QUOTED',payload_sha256:hash(body),quote_id:'synthetic-quote',created_at:new Date().toISOString(),expires_at:new Date(Date.now()+(controls.quoteExpired?-1000:50000)).toISOString(),estimate_usd:controls.quoteAmount,reserve_usd:supervisedReservation(controls.quoteAmount)};},
   submitPayload:Object.assign(async({submit,payload})=>{const r=await submit('https://api.higgsfield.ai/'+j.model,{method:'POST',headers:{'content-type':'application/json'},body:payload});return r.json();},{fetch:async(url,opts)=>{calls++;sent.push({url,idempotency:opts.headers.get('Idempotency-Key')});if(fetchHook)return fetchHook();return new Response(JSON.stringify({request_id:'synthetic-job',status_url:'https://api.higgsfield.ai/requests/synthetic-job/status'}),{status:200,headers:{'content-type':'application/json'}});}}),
   receiptsFor:user=>new ReviewStageReceiptStore({store:reviewStore,user}),recoverResult:async(p,c,id)=>{const jr=await getJ(id),receipt=(await reviewStore.get()).state.production_commands?.[id];
    if(id===attempt){const cp=await getCp(cpId);assert.equal(cp.actions[1].active_attempt_id,attempt);assert.equal(cp.metadata.supervised_original_recoveries[attempt].provider_request_id,receipt.result.provider_job_ids[0]);}
@@ -117,8 +120,10 @@ test('CAS_CONFLICT / BUDGET_RACE / QUOTE_EXPIRATION / STALE_UI_RESPONSE: transac
  const input={...base,phase:'ACTIVATE',expected_revision:(await f.reviewStore.get()).revision,quote};
  await assert.rejects(f.tx(input),/FRESH_QUOTE/);
  // Separate source liability changes while the target checkpoint stays identical.
- await f.insert('lumi_pipeline_checkpoints',{episode_id:'ep004_q41_first_image',current_cost_usd:7.5,metadata:{target_episode:f.cpId,budget_reservations:{}}});
- await assert.rejects(f.tx({...input,quote:{...quote,expires_at:new Date(Date.now()+60000).toISOString()}}),/DOUBLE_EXPOSURE/);
+ await f.insert('lumi_pipeline_checkpoints',{episode_id:'ep005_independent_source_liability',current_cost_usd:7.5,metadata:{target_episode:f.cpId,budget_reservations:{}}});
+ const freshQuote={...quote,expires_at:new Date(Date.now()+40000).toISOString(),economic_decision:{payload_sha256:g.payload_sha256,authorized_max_usd:.3275}};
+ await f.tx({...base,phase:'QUOTE_RESULT',quote:freshQuote,quote_only:false});
+ await assert.rejects(f.tx({...input,expected_revision:(await f.reviewStore.get()).revision,quote:freshQuote}),/DOUBLE_EXPOSURE/);
  assert.equal(await f.getJ(p.planned_attempt_id),undefined);assert.equal(Object.keys((await f.getCp(f.cpId)).metadata.budget_reservations).length,1);assert.equal(f.counts().calls,0);
 });
 test('ORIGINAL_RESULT_APPEARS_LATE: before claim blocks replacement; after emission keeps both records and discloses duplicate risk',async t=>{
@@ -173,15 +178,23 @@ test('HTTP_RISK_GATE: Origin, CSRF and cookie validation precede the same durabl
  assert.equal((await invoke('accept',{...body,user_id:'other'})).status,409);
  assert.equal((await invoke('accept',body)).status,200);
  assert.deepEqual(f.counts(),{quotes:0,calls:0});assert.equal(Object.keys((await f.getCp(f.cpId)).metadata.budget_reservations).length,1);
+ const grant=(await f.reviewStore.get()).state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
+ const priceBody={proposal_id:f.proposal.replacement_proposal_id,authorization_reference:grant.authorization_reference,confirmation_id:randomUUID(),confirm:true};
+ assert.equal((await invoke('quote',priceBody,{origin:'https://evil.invalid'})).status,403);
+ assert.equal((await invoke('quote',priceBody,{'x-lumi-csrf':'forged'})).status,401);
+ assert.equal((await invoke('quote',{...priceBody,generate:true})).status,409);
+ assert.deepEqual(f.counts(),{quotes:0,calls:0});
+ assert.equal((await invoke('quote',priceBody)).value.status,'QUOTE_RECORDED');
+ assert.deepEqual(f.counts(),{quotes:1,calls:0});assert.equal(Object.keys((await f.getCp(f.cpId)).metadata.budget_reservations).length,1);
 });
 
 test('MINI_APP_RISK_UI / STALE_UI_RESPONSE: explicit unchecked consent and separate generation; progress is GET only',async()=>{
  const {runInNewContext}=await import('node:vm');const elements=new Map(),get=id=>{if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',disabled:false,checked:false});return elements.get(id);};
  let pending;const requests=[];
- const box={document:{querySelector:get,addEventListener(){},querySelectorAll:()=>[]},window:{},localStorage:{getItem:()=>null},setInterval(){},setTimeout(){return 1;},clearTimeout(){},AbortController,
+ const box={document:{querySelector:get,addEventListener(){},querySelectorAll:()=>[]},window:{},crypto:{randomUUID},localStorage:{getItem:()=>null},setInterval(){},setTimeout(){return 1;},clearTimeout(){},AbortController,
   fetch:async(url,options)=>{requests.push({url,method:options.method});return new Promise(resolve=>{pending=v=>resolve({ok:true,json:async()=>v});});}};
  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8');
- runInNewContext(js.replace('navigation();login();','')+`\nglobalThis.init=s=>{state=s;csrf='local';};globalThis.openRisk=reviewReplacement;globalThis.bump=()=>mutationEpoch++;globalThis.card=()=>quoteCard();`,box);
+ runInNewContext(js.replace('navigation();login();','')+`\nglobalThis.init=s=>{state=s;csrf='local';};globalThis.openRisk=reviewReplacement;globalThis.openQuote=confirmReplacementQuote;globalThis.bump=()=>mutationEpoch++;globalThis.card=()=>quoteCard();`,box);
  get('#confirmation').showModal=()=>{get('#confirmation').open=true;};get('#confirmation').close=()=>{get('#confirmation').open=false;};
  const state={episode:{id:'ep005_synthetic',checkpoint_version:23},supervised_replacement:{proposal_id:'p',risk_review_available:true,status:'REPLACEMENT_PROPOSAL',previous_reservation_usd:.3275,estimated_new_reservation_usd:.3275,combined_exposure_usd:.655,available_budget_usd:6.77375,authorization_status:'NOT_GRANTED',generation_enabled:false},budget:{ceiling_usd:8},capabilities:{}};
  box.init(state);assert.match(box.card(),/Revisar riesgo y autorización/);assert.match(box.card(),/disabled>Generar reemplazo/);
@@ -190,6 +203,11 @@ test('MINI_APP_RISK_UI / STALE_UI_RESPONSE: explicit unchecked consent and separ
  assert.equal(get('#dialog-confirm').disabled,true);assert.equal(get('#replacement-risk-check').checked,false);
  assert.equal(requests.length,2);assert.ok(requests.every(r=>r.method==='GET'));
  get('#replacement-risk-check').onchange({target:{checked:true}});assert.equal(get('#dialog-confirm').disabled,false);assert.equal(requests.length,2);
+ state.supervised_replacement={...state.supervised_replacement,authorization_status:'HUMAN_RISK_ACCEPTANCE',authorization_reference:'valid',quote_only_available:true,
+   economic_decision:{status:'BLOCKED',quote_amount_usd:.271,reservation_multiplier:1.25,calculated_reservation_usd:.33875,authorized_max_usd:.3275,episode_remaining_usd:6.77375}};
+ assert.match(box.card(),/Aceptación específica registrada/);assert.match(box.card(),/Consultar cotización sin generar/);assert.match(box.card(),/0,33875/);
+ assert.match(box.card(),/disabled>Generar reemplazo/);box.openQuote();assert.equal(get('#dialog-confirm').textContent,'Consultar y guardar cotización');
+ assert.equal(requests.length,2);assert.ok(requests.every(r=>r.method==='GET'));
 });
 
 test('QUOTE_EXPIRATION_AT_DISPATCH: final SQL guard rejects an expired quote after reservation and before transport',async t=>{
@@ -248,7 +266,7 @@ test('QUOTE_EXPIRATION / APPROVED_CONTENT_BINDING: renew exact transport with sa
  const f=await fixture({episode:'ep006_transport',stage:'VIDEO'});t.after(f.close);await f.accept();
  const original=(await f.reviewStore.get()).state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
  f.controls.content='changed creative';await assert.rejects(f.generate(),/APPROVED_CONTENT_CHANGED/);assert.equal(f.counts().quotes,0);
- f.controls.content='Synthetic only';f.controls.quoteExpired=true;await assert.rejects(f.generate(),/FRESH_BOUND_QUOTE/);
+ f.controls.content='Synthetic only';f.controls.quoteExpired=true;await assert.rejects(f.generate(),/CURRENT_EXACT_PAYLOAD_QUOTE/);
  assert.equal((await projection(f)).authorization_status,'HUMAN_RISK_ACCEPTANCE');assert.equal(f.counts().calls,0);
  f.controls.quoteExpired=false;f.controls.token='fresh-transport';await f.generate();
  const journal=await f.getJ(f.proposal.planned_attempt_id);assert.notEqual(journal.payload_fingerprint,original.payload_sha256);
@@ -307,4 +325,36 @@ test('EXPIRED_IN_FLIGHT_CONFIRMATION: only a new explicit confirmation may super
  };
  await f.generate();assert.equal(f.counts().calls,1);assert.equal(Object.keys((await f.getCp(f.cpId)).metadata.budget_reservations).length,2);
  assert.equal(globalThis.LUMI_OFFLINE_GUARD.attempts.length,0);
+});
+
+
+test('QUOTE_OVER_LIMIT / RESERVATION_MULTIPLIER: real estimator adapter preserves exact rejected economics before any generation claim',async t=>{
+ const f=await fixture();t.after(f.close);await f.accept();f.controls.realEstimator=true;f.controls.quoteAmount=.271;
+ const before=await f.getCp(f.cpId),original=await f.getJ(f.attempt),grant=(await f.reviewStore.get()).state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
+ await assert.rejects(f.generate(),/Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED/);
+ const state=(await f.reviewStore.get()).state,claim=state.supervised_replacement_quote_claims[grant.authorization_reference],d=claim.quote.economic_decision;
+ assert.equal(claim.error_phase,'QUOTE');assert.equal(claim.generation_boundary,'NO_JOURNAL_NO_GENERATION');
+ assert.equal(d.quote_amount_usd,.271);assert.equal(d.reservation_multiplier,1.25);assert.equal(d.calculated_reservation_usd,.33875);
+ assert.equal(d.authorized_max_usd,.3275);assert.equal(d.episode_remaining_usd,7.6725);assert.equal(d.reason,'RESERVATION_MARGIN_OVER_AUTHORIZED_MAX');
+ assert.equal(claim.quote.provider_request_id,'synthetic-estimate-id');assert.ok(claim.quote.quote_id);assert.ok(claim.quote.expires_at);
+ assert.deepEqual(await f.getCp(f.cpId),before);assert.deepEqual(await f.getJ(f.attempt),original);assert.equal(await f.getJ(f.proposal.planned_attempt_id),undefined);
+ assert.deepEqual(state.supervised_replacement_grants[f.proposal.replacement_proposal_id],grant);assert.equal(f.counts().calls,0);
+ const view=await projection(f);assert.equal(view.generation_enabled,false);assert.equal(view.quote_only_available,true);assert.equal(view.authorization_status,'HUMAN_RISK_ACCEPTANCE');
+ assert.equal(view.economic_decision.calculated_reservation_usd,.33875);
+});
+test('QUOTE_ONLY / SESSION_REOPEN / CROSS_SHOT_IDENTITY: explicit quote persists without reserve, then a distinct human confirmation may generate within the same consent',async t=>{
+ const f=await fixture({episode:'ep006_cost',stage:'VIDEO'});t.after(f.close);await f.accept();f.controls.realEstimator=true;
+ const before=await f.getCp(f.cpId),g=(await f.reviewStore.get()).state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
+ const body={proposal_id:f.proposal.replacement_proposal_id,authorization_reference:g.authorization_reference,confirmation_id:randomUUID(),confirm:true};
+ const result=await f.adapter.quoteSupervisedReplacement(f.principal,body);assert.equal(result.status,'QUOTE_RECORDED');assert.equal(result.economic_decision.calculated_reservation_usd,.3275);
+ assert.deepEqual(await f.getCp(f.cpId),before);assert.equal(await f.getJ(f.proposal.planned_attempt_id),undefined);assert.equal(f.counts().calls,0);
+ await assert.rejects(f.adapter.quoteSupervisedReplacement(f.principal,body),/BINDING|ALREADY|CONFIRMATION/);
+ const row=await f.reviewStore.get(),claim=row.state.supervised_replacement_quote_claims[g.authorization_reference];
+ await assert.rejects(f.manager.requestCostDecision({episodeId:f.cpId,actionKey:f.action,quote:{...claim.quote,action_id:'video:s99'},payloadSha:g.payload_sha256,payloadExpiresAt:g.expires_at,maximumReservationUsd:.3275}),/IDENTITY/);
+ const login=await f.auth.login(initData('cost-reopen')),p=await f.auth.authenticate(login.cookie,login.csrf);
+ await f.generate(p);assert.equal(f.counts().calls,1);const j=await f.getJ(f.proposal.planned_attempt_id);
+ assert.equal(j.payload_descriptor.trace.idempotency_key,f.proposal.planned_idempotency_key);
+ assert.equal(j.payload_descriptor.trace.reservation_id,'replacement:'+f.proposal.planned_attempt_id);
+ assert.ok(j.payload_descriptor.trace.quote_id);assert.equal(j.payload_descriptor.trace.payload_hash,j.payload_fingerprint);
+ assert.deepEqual((await f.reviewStore.get()).state.supervised_replacement_grants[f.proposal.replacement_proposal_id],g);
 });

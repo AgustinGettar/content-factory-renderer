@@ -1,54 +1,56 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-19T00:41:27.938785Z.
+Evidence cutoff: 2026-10-19T01:20:15.040407+00:00.
 
 ## Qué pidió el prompt anterior
 
-- Recuperar el estado real tras confirmación fallida y corregir consentimiento durable; no generar, reservar, reintentar ni alterar la aceptación existente.
+- Corregir integralmente costos, cotizaciones, trazabilidad y recuperación dentro de la arquitectura existente; preservar USD8 y no emitir ni reservar.
 
 ## Qué se completó realmente
 
-- Lectura inicial de continuidad, HEAD/live y evidencia durable. Se encontraron dos aceptaciones reales, dos quote claims y cero operaciones/reservas/journals nuevos.
-- Separación de consentimiento nuevo explícito (24h), challenge corto y cotización; fingerprint de contenido verificado, renovación sólo del transporte, confirmaciones con ID único, fencing y resultado/error durable. Historial y expiraciones anteriores intactos.
-- UI muestra decisión guardada, razón/fecha de vencimiento y códigos seguros. Generador de continuidad ya no afirma aceptación ausente cuando existe.
+- Último rechazo recuperado de claim durable y Render: QUOTE / Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED, sin operación/reserva/journal nuevo. Consentimiento real de 24h vigente conservado.
+- Cálculo decimal exacto del margen25%, razones separadas, cotización durable antes de admisión y consulta autenticada sin generación. Fuentes de costo vinculadas generalizadas por target_episode.
+- Identidad/idempotencia/quote/reserve antes del transporte, correlación antes de parsear; estados derivados de journal/receipts/reviews; presupuesto completo y biblioteca con evidencia de costos desconocidos.
 
 ## Qué quedó pendiente
 
-- Error primario histórico UNKNOWN: no se guardó el resultado del estimador ni código backend. Ambas confirmaciones empezaron antes del vencimiento; no atribuir automáticamente el popup a caducidad.
-- Decisión humana nueva sólo porque el consentimiento actual venció explícitamente. Cotización real dentro de USD 0.3275 y resultado EP004 no verificados; progreso sigue 8/50.
+- Importe/ID/vencimiento de la cotización rechazada: no persistidos históricamente. No puede recuperarse fabricando otra cotización.
+- Precio vigente, cargo/resultado original, costo total de EP004 y dispositivo real tras deploy. Producción continúa8/50.
 
 ## Qué trabajo se repitió innecesariamente
 
-- No se reconstruyó arquitectura ni historia. Se repitieron únicamente pruebas afectadas por la corrección, con red bloqueada. Las pruebas anteriores reemplazaban todo el estimador: no demostraban el éxito de una cotización real.
+- Se incluyó un archivo histórico completo en una regresión ampliada: ejecutó fixtures locales de medios/master innecesarios, sin red ni proveedor real. No repetirlo. CI ahora selecciona únicamente11 casos de presupuesto/cotización de ese archivo.
+- La nueva exigencia de plan completo bloqueó correctamente el fixture antiguo de episodio nuevo sin pronóstico. Se agregó evidencia económica sintética al fixture; el master completo no se volvió a ejecutar.
 
 ## Qué instrucciones evitaron errores
 
-- No interpretar popup como prueba de no emisión: se verificó ausencia del journal atómico y operación de reemplazo. Mantener reserva original, q41 y USD8.
-- Respetar caducidad explícita impidió prolongar retroactivamente las aceptaciones reales; distinguir vigencia de consentimiento de vigencia del transporte evita pedir decisiones válidas otra vez.
+- No inferir emisión desde popup ni ausencia de logs; se comprobó frontera atómica y journal. No confundir Q41 en un código con identidad de toma.
+- No elevar el máximo específico ni reutilizar el presupuesto8 como permiso de gasto. No repetir el consentimiento vigente.
 
 ## Qué instrucciones generaron fricción
 
-- No es posible recuperar un código que el backend anterior no persistió. La corrección registra futuros fallos; no se repitió una llamada real para inferir el error pasado.
+- El importe de un rechazo que el backend descartó no puede reconstruirse. Se reporta la limitación y se prepara consulta separada de generación.
 
 ## Qué evidencia faltó
 
-- Código exacto/recibo de las cotizaciones fallidas; precio vigente real; resultado/cargo original q42; validación Telegram/iPhone después del fix.
+- Cotización histórica exacta y recibo/correlación del estimador; cargo original; precios de6 imágenes,6 clips,voz y asignación de infraestructura.
 
 ## Qué decisión humana se necesita
 
-- Conservar las dos decisiones originales y explicar sus vencimientos. Una nueva aceptación sólo si el usuario desea continuar desde la ya vencida; nunca repetir una aceptación todavía válida. Confirmar generación continúa siendo otra acción explícita.
+- Consultar cotización sin generar desde la sesión autenticada. No volver a aceptar riesgo vigente. Si la reserva resultante supera.3275, revisar el importe exacto y autorizar expresamente otro máximo antes de cualquier cambio; no basta cap8.
 
 ## Qué pruebas pasaron
 
-- 79/79 focalizadas, incluyendo 20 de SQL/auth/consentimiento; EP005/EP006 sintéticos. Proyección de snapshot EP004 PASS_INTEGRATION sin escrituras. CI final pendiente de verificar por SHA.
+- Casos focalizados de SQL/auth/adaptador real con HTTP simulado, presupuesto, journal, biblioteca y feedback. Última regresión afectada38/38; subconjunto de cotizaciones11/11. CI exacto validará184 casos, sin ejecutar masters históricos.
 
 ## Qué riesgos permanecen
 
-- Cargo original desconocido y posible duplicación; reserva interna no es gasto real. No se promete precio dentro del máximo ni un cargo único.
-- Error primario anterior desconocido. Si una cotización supera el máximo, permanece bloqueada; una cotización nueva no amplía permisos. Operación generativa iniciada o ambigua nunca se reintenta.
+- Original q42 ambiguo y cargo desconocido; no liberar su reserva. Idempotencia oficial documentada, pero replay real no verificado ni habilitado.
+- Persistencia local puede fallar después de una respuesta remota; conservar claim y recuperar evidencia, nunca emitir automáticamente.
+- Faltan costos completos y revisión real de dispositivo; simulaciones no prueban rentabilidad ni completan EP004.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: d4753cc74198912544fad8b4fcdd5cbeb972e82c0039551128f4b4143f128ea9. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 4e9ac06606f1708a010d2415bb8a46bbf8d3f5d03a7d8166dda3e905487f56b9. Outputs are inert drafts; generating them cannot expand authorization.

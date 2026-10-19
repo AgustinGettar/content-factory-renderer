@@ -21,6 +21,10 @@ async function fixture({stage='IMAGE'}={}){
  f.objects.set(a.bucket+'/'+a.path,bytes);
  await f.manager.checkpoint(f.episodeId,s=>{
    for(const x of s.actions){if(x.stage===stage)break;x.status='COMPLETE';x.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};}
+   // This fixture authorizes a NEW synthetic production; provide its complete
+   // planning estimates so the test still reaches the intended balance fault.
+   s.metadata.episode_ledger={entries:Object.fromEntries(s.actions.filter(x=>['IMAGE','VIDEO','TTS'].includes(x.stage)).map(x=>[x.key,{estimated_cost:{currency:'USD',usd:.05}}])),
+     overhead_estimates:{STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'MOCK_STORAGE_INCLUDED'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'MOCK_INFRA_INCLUDED'}}};
    s.metadata.artifacts={canonical:a};const action=s.actions.find(x=>x.stage===stage);
    s.metadata.provider_quotes={[action.key]:{currency:'USD',usd:0.2,expires_at:new Date(Date.now()+60000).toISOString(),episode_id:f.episodeId,action_key:action.key}};
  });

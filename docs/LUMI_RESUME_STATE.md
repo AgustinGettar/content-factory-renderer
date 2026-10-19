@@ -1,10 +1,10 @@
 # Lumi resume state
 
-Observed: 2026-10-19T00:41:27.938785Z. Input SHA-256: 9c97b600d43a8be3d5c4db331b75eb5b640701b010b0b0b035848dca115e9d96.
+Observed: 2026-10-19T00:41:27.938785Z. Input SHA-256: d4753cc74198912544fad8b4fcdd5cbeb972e82c0039551128f4b4143f128ea9.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 323326d552330a1ed64c39cff29e07787c1ca69b.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: f20a0c85b77ddcc7aa53442a76fb3c11a7661b66.
 
-Deployment evidence: Baseline remote and staging 323326d552330a1ed64c39cff29e07787c1ca69b verified LIVE. Durable-consent fix validated locally; exact release CI and deployed SHA must be verified at handoff. This file does not infer deployment success from tests.. Always resolve current HEAD/live before writing.
+Deployment evidence: Implementation f20a0c85b77ddcc7aa53442a76fb3c11a7661b66 validated locally. Baseline remote/staging 323326d552330a1ed64c39cff29e07787c1ca69b verified LIVE; exact release CI and live SHA must be checked at handoff. No deployment inferred from tests.. Always resolve current HEAD/live before writing.
 
 Episode: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50.
 

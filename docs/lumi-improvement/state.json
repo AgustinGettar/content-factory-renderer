@@ -3,10 +3,10 @@
   "observed_at": "2026-10-19T00:41:27.938785Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "323326d552330a1ed64c39cff29e07787c1ca69b",
+  "source_commit": "f20a0c85b77ddcc7aa53442a76fb3c11a7661b66",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Baseline remote and staging 323326d552330a1ed64c39cff29e07787c1ca69b verified LIVE. Durable-consent fix validated locally; exact release CI and deployed SHA must be verified at handoff. This file does not infer deployment success from tests.",
+  "deployment_evidence": "Implementation f20a0c85b77ddcc7aa53442a76fb3c11a7661b66 validated locally. Baseline remote/staging 323326d552330a1ed64c39cff29e07787c1ca69b verified LIVE; exact release CI and live SHA must be checked at handoff. No deployment inferred from tests.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "PAUSED_INCIDENT",
   "last_completed_action": "shot_review:q41",
@@ -301,6 +301,10 @@
     }
   ],
   "recent_commits": [
+    {
+      "sha": "f20a0c85b77ddcc7aa53442a76fb3c11a7661b66",
+      "subject": "durable bounded consent, fenced quote confirmations and safe failure diagnostics"
+    },
     {
       "sha": "608e21d880e203c6a737e84e8d5fce412559d905",
       "subject": "authenticated supervised replacement; atomic dual exposure and safe result recovery"

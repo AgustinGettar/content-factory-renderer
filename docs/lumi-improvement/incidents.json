@@ -163,7 +163,7 @@
     "AFFECTED_ACTION": "image:q42 / generic supervised replacement",
     "USER_IMPACT": "Real confirmation failed; EP004 remains 8/50 and the user saw an expired-content message.",
     "FINANCIAL_RISK": "Original USD0.3275 remains reserved; no replacement operation/reserve/journal exists; no new spend in this correction.",
-    "FIX_COMMIT": null,
+    "FIX_COMMIT": "f20a0c85b77ddcc7aa53442a76fb3c11a7661b66",
     "TEST_EVIDENCE": [
       "79/79 focused offline checks; actual SQL/auth, EP005 IMAGE/EP006 VIDEO; real EP004 read-only projection."
     ],

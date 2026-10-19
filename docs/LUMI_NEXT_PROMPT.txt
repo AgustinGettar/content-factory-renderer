@@ -3,7 +3,7 @@ BORRADOR. No es autorización económica y no se ejecuta automáticamente.
 MODELO: ASTRA — RAZONAMIENTO MUY ALTO.
 MISIÓN ÚNICA: continuar EP004 desde evidencia durable, conservando las decisiones reales y evitando toda repetición generativa; acompañar la decisión humana que corresponda y recuperar sólo operaciones existentes.
 Repositorio: AgustinGettar/content-factory-renderer; rama exclusiva: lumi-telegram-review-v1; staging: content-factory-av2-staging; Supabase: mofjhwathxzfnjapvvst.
-Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-19T00:41:27.938785Z; base: 323326d552330a1ed64c39cff29e07787c1ca69b.
+Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-19T00:41:27.938785Z; base: f20a0c85b77ddcc7aa53442a76fb3c11a7661b66.
 Verificá HEAD remoto, CI y SHA live actuales; conservá cambios concurrentes. No repitas la investigación histórica.
 Episodio: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50; último shot_review:q41; pendiente image:q42.
 Operación original: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; intento journal: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE; reserva USD 0.3275.
@@ -34,6 +34,7 @@ PASS_REAL: Supabase staging read-only SELECT + Render deployment/log inspection;
 PASS_INTEGRATION: replacementPresentation(actual EP004 snapshot); CONSENT_EXPIRED with consent_recorded=true, explicit expiry/reason, NOT_CREATED, generation=false, reserve.3275 and available6.77375; no state writes.
 PASS_OFFLINE: node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-supervised-replacement.test.js test/lumi-mini-app-auth.test.js test/lumi-library-v1.test.js test/higgsfield-usd-budget-v1.test.js; 79/79; 20 activation/consent cases; no provider network. CI validates final affected regression.
 NOT_TESTED_REAL: New consent / quote / generation / device after correction; Not executed. No provider calls, reservations or synthetic fixtures in staging.
+Commit f20a0c85b77ddcc7aa53442a76fb3c11a7661b66: durable bounded consent, fenced quote confirmations and safe failure diagnostics
 Commit 608e21d880e203c6a737e84e8d5fce412559d905: authenticated supervised replacement; atomic dual exposure and safe result recovery
 Commit 5ebe6b246e9304ab7c95613112233cf648de7436: previous verified recovery proposal and durable feedback
 Commit bb3f142dfa6770a93243e373c8c1b3282aca5b9c: supervised ambiguous recovery and durable improvement loop; local validated implementation
@@ -47,4 +48,4 @@ Focused tests and exact-release CI GREEN; staging-only deployment and isolated S
 Historical primary error UNKNOWN remains clearly separated from confirmed consent/diagnostic defects; no simulated productive progress.
 Separá PASS_REAL, PASS_INTEGRATION, PASS_OFFLINE y NOT_TESTED_REAL. Las simulaciones no avanzan el checkpoint ni prueban cobros o generación real.
 Actualizá incidentes, feedback y estado una vez al cierre; generá un solo borrador siguiente. No lo ejecutes automáticamente.
-INPUT_SHA256: 9c97b600d43a8be3d5c4db331b75eb5b640701b010b0b0b035848dca115e9d96
+INPUT_SHA256: d4753cc74198912544fad8b4fcdd5cbeb972e82c0039551128f4b4143f128ea9

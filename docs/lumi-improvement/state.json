@@ -3,10 +3,10 @@
   "observed_at": "2026-10-19T01:20:15.040407+00:00",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "c593646daaa4b72efc85819f7f72522f067c3690",
+  "source_commit": "72012bd0e53b53fc2a7b14034f7edd73eacafc7e",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Baseline c593646daaa4b72efc85819f7f72522f067c3690 verified remote and LIVE. Cost-engine patch validated locally; exact-release CI and staging deployment are separate gates to verify at handoff.",
+  "deployment_evidence": "Implementation 72012bd0e53b53fc2a7b14034f7edd73eacafc7e validated offline. Baseline remote/staging c593646daaa4b72efc85819f7f72522f067c3690 verified LIVE. Resolve the final docs-release commit CI and live SHA at handoff; deployment is not inferred from tests.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "PAUSED_INCIDENT",
   "last_completed_action": "shot_review:q41",
@@ -310,6 +310,10 @@
     {
       "sha": "c593646daaa4b72efc85819f7f72522f067c3690",
       "subject": "Verified baseline: durable consent and confirmation recovery deployed"
+    },
+    {
+      "sha": "72012bd0e53b53fc2a7b14034f7edd73eacafc7e",
+      "subject": "Durable economic decisions, quote-only consent reuse, decimal Budget Gate, linked source liabilities and provider traceability"
     }
   ],
   "activation": {

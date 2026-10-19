@@ -196,7 +196,7 @@
     "USER_IMPACT": "Specific generation remains blocked without exact historical economic explanation; EP004 remains8/50.",
     "FINANCIAL_RISK": "No replacement reserve or generation in latest attempt. Original USD.3275 remains uncertain; no confirmed incident charge.",
     "FIX_STATUS": "RESOLVED",
-    "FIX_COMMIT": null,
+    "FIX_COMMIT": "72012bd0e53b53fc2a7b14034f7edd73eacafc7e",
     "TEST_EVIDENCE": [
       "Actual quote adapter + mocked HTTP + actual PGlite transaction; no real provider calls."
     ],
@@ -218,7 +218,7 @@
     "USER_IMPACT": "Specific generation remains blocked without exact historical economic explanation; EP004 remains8/50.",
     "FINANCIAL_RISK": "No replacement reserve or generation in latest attempt. Original USD.3275 remains uncertain; no confirmed incident charge.",
     "FIX_STATUS": "RESOLVED",
-    "FIX_COMMIT": null,
+    "FIX_COMMIT": "72012bd0e53b53fc2a7b14034f7edd73eacafc7e",
     "TEST_EVIDENCE": [
       "Actual quote adapter + mocked HTTP + actual PGlite transaction; no real provider calls."
     ],

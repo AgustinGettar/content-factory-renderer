@@ -3,7 +3,7 @@ BORRADOR. No autoriza nuevos gastos ni se ejecuta automáticamente.
 MODELO: ASTRA — RAZONAMIENTO MUY ALTO.
 MISIÓN ÚNICA: obtener/revisar una cotización durable de q42 sin generación y resolver la decisión económica exacta que permite avanzar EP004, conservando el consentimiento vigente y la operación original.
 Repositorio: AgustinGettar/content-factory-renderer; rama exclusiva: lumi-telegram-review-v1; staging: content-factory-av2-staging; Supabase: mofjhwathxzfnjapvvst.
-Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-19T01:20:15.040407+00:00; base: c593646daaa4b72efc85819f7f72522f067c3690.
+Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-19T01:20:15.040407+00:00; base: 72012bd0e53b53fc2a7b14034f7edd73eacafc7e.
 Verificá HEAD remoto, CI y SHA live actuales; conservá cambios concurrentes. No repitas la investigación histórica.
 Episodio: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50; último shot_review:q41; pendiente image:q42.
 Operación original: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; intento journal: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE; reserva USD 0.3275.
@@ -36,6 +36,7 @@ PASS_INTEGRATION: replacementPresentation + episodeCostProjection + reuseCompati
 PASS_OFFLINE: Focused cost/recovery/SQL/auth/journal tests with director-offline-guard; exact CI test counts recorded at release; 43 library/auth +130 cost/recovery cases covered offline. Latest affected SQL/routes/feedback38/38 and price-boundary subset11/11 passed; final exact-release CI checks184 cases. All provider HTTP is mocked and external network blocked.
 NOT_TESTED_REAL: Real provider quote/generation/billing and post-release Telegram/iPhone interaction; Not executed; zero budget reservations and no production advancement.
 Commit c593646daaa4b72efc85819f7f72522f067c3690: Verified baseline: durable consent and confirmation recovery deployed
+Commit 72012bd0e53b53fc2a7b14034f7edd73eacafc7e: Durable economic decisions, quote-only consent reuse, decimal Budget Gate, linked source liabilities and provider traceability
 PROHIBICIONES: no main/producción/Make; no multimedia, reenvíos, variantes, reintentos automáticos ni nuevos gastos bajo este borrador; no superar USD 8; runners OFF; autorun false; publicación deshabilitada; no tocar q41 ni el journal original.
 ACEPTACIÓN:
 EXACT_Q42_REJECTION_CAUSE_IDENTIFIED_OR_EVIDENCE_LIMITATION_REPORTED: branch/error/phase confirmed; historical quote and computed reservation UNKNOWN.
@@ -46,4 +47,4 @@ CI_GREEN and STAGING_LIVE must be verified by exact release SHA; no inference fr
 EP004 remains8/50; real quote, generation, charge and device result NOT_TESTED_REAL.
 Separá PASS_REAL, PASS_INTEGRATION, PASS_OFFLINE y NOT_TESTED_REAL. Las simulaciones no avanzan el checkpoint ni prueban cobros o generación real.
 Actualizá incidentes, feedback y estado una vez al cierre; generá un solo borrador siguiente. No lo ejecutes automáticamente.
-INPUT_SHA256: 4e9ac06606f1708a010d2415bb8a46bbf8d3f5d03a7d8166dda3e905487f56b9
+INPUT_SHA256: 2dc942bb3dd8c8441aae0f1cad2efa916eb573d107027203bf7498dbabfbbcba

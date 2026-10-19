@@ -21,7 +21,7 @@
     ],
     "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
     "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
-    "NEXT_ACTION": "User reviews the risk in authenticated Lumi Studio; no assistant acceptance or new emission. Prefer original result recovery if verifiable evidence appears."
+    "NEXT_ACTION": "Use the durable consent status; the real grant is recorded but explicitly expired. Prefer original recovery when verifiable evidence exists. Never accept or emit on behalf of the user."
   },
   {
     "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
@@ -134,5 +134,51 @@
     "REGRESSION_GUARD": "lumi-stage-result-v2.test.js SUPERVISED_REPLACEMENT_COST",
     "REUSABILITY": "Any episode/shot with a supervised ambiguous replacement; concrete IMAGE/VIDEO adapters installed.",
     "NEXT_ACTION": "Use the existing authenticated UI and retain original liability; do not rebuild or repeat validated tests unless affected."
+  },
+  {
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42 / generic supervised replacement",
+    "USER_IMPACT": "Real confirmation failed; EP004 remains 8/50 and the user saw an expired-content message.",
+    "FINANCIAL_RISK": "Original USD0.3275 remains reserved; no replacement operation/reserve/journal exists; no new spend in this correction.",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "79/79 focused offline checks; actual SQL/auth, EP005 IMAGE/EP006 VIDEO; real EP004 read-only projection."
+    ],
+    "REGRESSION_GUARD": "test/lumi-supervised-activation.test.js RISK_ACCEPTANCE_RECOVERY, CONSENT_EXPIRATION, QUOTE_EXPIRATION, FAILED_CONFIRMATION, fencing and binding cases",
+    "REUSABILITY": "All episodes/shots with supervised IMAGE/VIDEO replacement.",
+    "INCIDENT_ID": "LUMI-Q42-CONFIRMATION-PRIMARY-007",
+    "SYMPTOM": "Two human generation confirmations created quote claims but no replacement journal, operation or reservation.",
+    "ROOT_CAUSE": null,
+    "CONFIDENCE": "UNKNOWN",
+    "EVIDENCE": [
+      "Claims at 2026-10-19T00:00:58.129546Z and 00:03:10.247197Z; corresponding grants had not expired when claims were written.",
+      "Only original and q41 video journals exist in the episode. Transport requires an atomic replacement journal before dispatch.",
+      "Render application logs contain no confirmation error; PostgreSQL window shows no corresponding database error. Old quote claims persist no result or error. Exact estimator response is unavailable."
+    ],
+    "FIX_STATUS": "EVIDENCE_UNAVAILABLE_NO_REPLAY",
+    "NEXT_ACTION": "Do not replay to diagnose. If a future explicit human confirmation fails, read its new durable error/phase/receipt and journal; act only on that evidence."
+  },
+  {
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q42 / generic supervised replacement",
+    "USER_IMPACT": "Real confirmation failed; EP004 remains 8/50 and the user saw an expired-content message.",
+    "FINANCIAL_RISK": "Original USD0.3275 remains reserved; no replacement operation/reserve/journal exists; no new spend in this correction.",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "79/79 focused offline checks; actual SQL/auth, EP005 IMAGE/EP006 VIDEO; real EP004 read-only projection."
+    ],
+    "REGRESSION_GUARD": "test/lumi-supervised-activation.test.js RISK_ACCEPTANCE_RECOVERY, CONSENT_EXPIRATION, QUOTE_EXPIRATION, FAILED_CONFIRMATION, fencing and binding cases",
+    "REUSABILITY": "All episodes/shots with supervised IMAGE/VIDEO replacement.",
+    "INCIDENT_ID": "LUMI-DURABLE-CONSENT-008",
+    "SYMPTOM": "Human acceptance expired with a short signed source; one failed quote claim blocked continuation without a durable diagnostic.",
+    "ROOT_CAUSE": "acceptSupervisedReplacement copied challenge.expires_at (min source URL/session/3 minutes) into the human grant; QUOTE_CLAIM was permanently single-use and preflight failures occurred outside the outcome catch.",
+    "CONFIDENCE": "CONFIRMED",
+    "EVIDENCE": [
+      "Deployed code at 323326d: grant expiry inherited challenge, not a separately disclosed consent term; quote claim persisted before estimator with no terminal outcome writer.",
+      "Two real grants preserve authorized_at/expires_at; latest 00:02:48.554Z / 00:05:40.315Z.",
+      "Focused SQL/auth tests reproduce short-expiry and failed-quote behavior and validate separate bounded consent/fenced explicit confirmations."
+    ],
+    "FIX_STATUS": "RESOLVED",
+    "NEXT_ACTION": "Deploy exact validated fix; preserve old grants including expiration. Human reviews a new explicit 24-hour decision only when expired or materially changed; no automatic generation."
   }
 ]

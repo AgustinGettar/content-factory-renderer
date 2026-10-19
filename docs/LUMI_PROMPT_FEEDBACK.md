@@ -1,57 +1,54 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-18T23:48:24.502328Z.
+Evidence cutoff: 2026-10-19T00:41:27.938785Z.
 
 ## Qué pidió el prompt anterior
 
-- Completar y desplegar staging de la activación supervisada autenticada/transaccional, sin aceptación económica, generación ni reservas nuevas.
+- Recuperar el estado real tras confirmación fallida y corregir consentimiento durable; no generar, reservar, reintentar ni alterar la aceptación existente.
 
 ## Qué se completó realmente
 
-- Se reutilizan la propuesta existente, Recovery Manager, session CAS, journals, materializador, estimador, transporte y recuperación. UI con aceptación explícita y generación separada; referencia de consentimiento y antireplay.
-- Transacción service_role con preservación de la reserva original, clave nueva independiente y un único sucesor. Reconciliación de costos por intento; recuperación original prioritaria antes de emisión y preservación de ambas después.
+- Lectura inicial de continuidad, HEAD/live y evidencia durable. Se encontraron dos aceptaciones reales, dos quote claims y cero operaciones/reservas/journals nuevos.
+- Separación de consentimiento nuevo explícito (24h), challenge corto y cotización; fingerprint de contenido verificado, renovación sólo del transporte, confirmaciones con ID único, fencing y resultado/error durable. Historial y expiraciones anteriores intactos.
+- UI muestra decisión guardada, razón/fecha de vencimiento y códigos seguros. Generador de continuidad ya no afirma aceptación ausente cuando existe.
 
 ## Qué quedó pendiente
 
-- Decisión humana real sobre el posible doble cargo; cotización/ejecución/recuperación real no realizadas ni autorizadas aquí. EP004 continúa 8/50; imágenes, clips, revisiones, TTS, ensamblado y master pendientes.
-- Proveedor original q42 y cargo efectivo desconocidos. Flujo real de dispositivo Telegram no probado.
+- Error primario histórico UNKNOWN: no se guardó el resultado del estimador ni código backend. Ambas confirmaciones empezaron antes del vencimiento; no atribuir automáticamente el popup a caducidad.
+- Decisión humana nueva sólo porque el consentimiento actual venció explícitamente. Cotización real dentro de USD 0.3275 y resultado EP004 no verificados; progreso sigue 8/50.
 
 ## Qué trabajo se repitió innecesariamente
 
-- No se rehizo la investigación histórica. Se ejecutó regresión afectada una vez y se repitieron sólo pruebas tocadas por correcciones. No hay base para cuantificar repetición histórica.
+- No se reconstruyó arquitectura ni historia. Se repitieron únicamente pruebas afectadas por la corrección, con red bloqueada. Las pruebas anteriores reemplazaban todo el estimador: no demostraban el éxito de una cotización real.
 
 ## Qué instrucciones evitaron errores
 
-- Leer los cuatro archivos de continuidad primero; distinguir autorización técnica de consentimiento económico; no transformar timeout en no emisión; no tocar reservas ni journals reales.
-- Probar el SQL real en PGlite y exigir rollback permitió validar que reserva, operación y claim se escriben juntos. Inspeccionar la recuperación reveló que la conciliación anterior usaba sólo action.key.
+- No interpretar popup como prueba de no emisión: se verificó ausencia del journal atómico y operación de reemplazo. Mantener reserva original, q41 y USD8.
+- Respetar caducidad explícita impidió prolongar retroactivamente las aceptaciones reales; distinguir vigencia de consentimiento de vigencia del transporte evita pedir decisiones válidas otra vez.
 
 ## Qué instrucciones generaron fricción
 
-- La recuperación futura debe manejar la aparición tardía del original, pero hoy no existe request ID verificable. Se implementa el camino seguro para evidencia durable vinculada; no se inventa esa evidencia.
-- Generación real y aceptación humana están prohibidas durante la intervención: el despliegue técnico no puede declararse avance productivo.
+- No es posible recuperar un código que el backend anterior no persistió. La corrección registra futuros fallos; no se repitió una llamada real para inferir el error pasado.
 
 ## Qué evidencia faltó
 
-- Request ID, resultado y cobro original q42; decisión humana específica; cotización vigente y resultado real del reemplazo; interacción real Telegram/iPhone.
-- Cuota TTS y aceptación real del master futuro.
+- Código exacto/recibo de las cotizaciones fallidas; precio vigente real; resultado/cargo original q42; validación Telegram/iPhone después del fix.
 
 ## Qué decisión humana se necesita
 
-- En Lumi Studio, Producción, abrir Revisar riesgo y autorización. Leer el posible doble cargo y máximo USD 0.3275. La casilla inicia desmarcada. Decidir personalmente; el asistente no acepta por el usuario.
-- Aceptar sólo registra consentimiento; una confirmación posterior separada cotiza y puede generar. No se ejecuta automáticamente ni desde este borrador.
+- Conservar las dos decisiones originales y explicar sus vencimientos. Una nueva aceptación sólo si el usuario desea continuar desde la ya vencida; nunca repetir una aceptación todavía válida. Confirmar generación continúa siendo otra acción explícita.
 
 ## Qué pruebas pasaron
 
-- 155/155 pruebas locales focalizadas; después de la última vinculación antireplay, 39/39 afectadas; 13/13 adversariales finales de activación con el SQL real. CI exacta de release se verifica por GitHub.
-- Snapshot real EP004 en sólo lectura: propuesta válida, revisión23, 8/50, riesgo revisable, generate=false, exposición conjunta estimada USD 0.655, disponible USD 6.77375.
+- 79/79 focalizadas, incluyendo 20 de SQL/auth/consentimiento; EP005/EP006 sintéticos. Proyección de snapshot EP004 PASS_INTEGRATION sin escrituras. CI final pendiente de verificar por SHA.
 
 ## Qué riesgos permanecen
 
-- Posible doble cargo; reserva interna no equivale a gasto. La aceptación y cotización caducan: hace falta nueva revisión explícita si cambian los bytes del payload.
-- Un claim ya reservado y bloqueado antes del transporte se conserva; requiere conciliación y nunca dispara un retry. Si el original aparece después de la emisión, se conservan ambos registros.
+- Cargo original desconocido y posible duplicación; reserva interna no es gasto real. No se promete precio dentro del máximo ni un cargo único.
+- Error primario anterior desconocido. Si una cotización supera el máximo, permanece bloqueada; una cotización nueva no amplía permisos. Operación generativa iniciada o ambigua nunca se reintenta.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 8d38175c51160fb9f7977b91f062f6696e2e5783c00eb7426f0190bc0405e880. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 9c97b600d43a8be3d5c4db331b75eb5b640701b010b0b0b035848dca115e9d96. Outputs are inert drafts; generating them cannot expand authorization.

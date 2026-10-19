@@ -1,0 +1,67 @@
+{
+  "classification": "PASS_REAL_READ_ONLY",
+  "observed_at": "2026-10-19 00:41:27.938785+00",
+  "baseline_commit": "323326d552330a1ed64c39cff29e07787c1ca69b",
+  "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "proposal_id": "02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670",
+  "human_decisions": [
+    {
+      "authorized_at": "2026-10-18T23:58:54.343Z",
+      "expires_at": "2026-10-19T00:01:47.635Z",
+      "payload_sha256": "105a4c1cc0ba89b7091cbfbc1bdbe77022528e0a0728e7792bb565066e383876",
+      "maximum_reservation_usd": 0.3275,
+      "status": "RECORDED_EXPIRED"
+    },
+    {
+      "authorized_at": "2026-10-19T00:02:48.554Z",
+      "expires_at": "2026-10-19T00:05:40.315Z",
+      "payload_sha256": "7a355732c46467b12b21416575e5ad4a43669c0c3e55bb3e9ead15ee4e217978",
+      "maximum_reservation_usd": 0.3275,
+      "status": "RECORDED_EXPIRED"
+    }
+  ],
+  "quote_claims": [
+    {
+      "created_at": "2026-10-19T00:00:58.129546+00:00",
+      "status": "CLAIMED",
+      "outcome": "NOT_PERSISTED_IN_OLD_RELEASE"
+    },
+    {
+      "created_at": "2026-10-19T00:03:10.247197+00:00",
+      "status": "CLAIMED",
+      "outcome": "NOT_PERSISTED_IN_OLD_RELEASE"
+    }
+  ],
+  "replacement_operation": "ABSENT",
+  "replacement_journal": "ABSENT",
+  "replacement_reservation": "ABSENT",
+  "provider_request_id": null,
+  "generation_boundary": "No replacement journal or operation; deployed journal-before-transport contract excludes replacement generation dispatch. This does not resolve original emission ambiguity.",
+  "primary_error": {
+    "confidence": "UNKNOWN",
+    "code": null,
+    "evidence": "No terminal estimator result/error was persisted; available Render app and PostgreSQL logs do not identify it. No request replayed."
+  },
+  "preservation_fingerprints": {
+    "observed_at": "2026-10-19 00:41:27.938785+00",
+    "checkpoint_hash": "fcdf4f7a9760788f5000e22431a0688f",
+    "review_hash": "6ab3e910810d724a1a1a61852935e4a8",
+    "reservations_hash": "44ec5963a9476405d9e72100ea66db09",
+    "source_hash": "9db50472ae7d3d318078c7e3c517d422",
+    "journal_hash": "08dc84d959716316b7e0fed401108178",
+    "proposals_hash": "0d8d513a8d0f13277fd08d9d3a87330b",
+    "grants_hash": "0438e448e9b62c1a495bddeed58c9109",
+    "history_hash": "9355cf6149dcb9c85baf1433a4a25263",
+    "quote_claims_hash": "7cd1399d8aa5c46b12ec45fcd07aaf64",
+    "operations_hash": "e7b6174afbbb35a9e6c7b3c421630881",
+    "authorizations_hash": "935337e97a869381678975d54c34dbc7",
+    "status": "PAUSED_INCIDENT",
+    "first_pending_action": "image:q42",
+    "revision": 23,
+    "authorized_ceiling_usd": "8.000000",
+    "journal_count": 2
+  },
+  "no_data_mutation": true,
+  "new_provider_generation_calls": 0,
+  "new_budget_reservations": 0
+}

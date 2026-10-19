@@ -133,7 +133,9 @@ test('INCIDENT_REGISTRY PROMPT_FEEDBACK RESUME_STATE NEXT_PROMPT_GENERATION: det
  const incidents=JSON.parse(await readFile(new URL('../docs/lumi-improvement/incidents.json',import.meta.url),'utf8'));
  assert.equal(validateImprovementState(state,incidents),true);const a=generateImprovementArtifacts(state,incidents),b=generateImprovementArtifacts(structuredClone(state),structuredClone(incidents));assert.deepEqual(a,b);
  for(const field of ['prompt','resume','feedback'])assert.ok(a[field].length>500);
- assert.match(a.prompt,/aceptación de riesgo NO OTORGADA/);assert.match(a.prompt,/no autoriza/i);assert.match(a.prompt,/USD 8/);
+ assert.ok(a.prompt.includes('aceptación de riesgo '+state.consent.status));assert.doesNotMatch(a.prompt,/aceptación de riesgo NO OTORGADA/);
+ const absent=generateImprovementArtifacts({...state,consent:null},incidents);assert.match(absent.prompt,/aceptación de riesgo NOT_GRANTED/);
+ const valid=generateImprovementArtifacts({...state,consent:{status:'HUMAN_RISK_ACCEPTANCE',explanation:'Still valid'}},incidents);assert.match(valid.resume,/risk acceptance HUMAN_RISK_ACCEPTANCE/);assert.match(a.prompt,/no autoriza/i);assert.match(a.prompt,/USD 8/);
  assert.match(a.resume,/PRODUCTION_PROGRESS/);assert.match(a.feedback,/qué evidencia faltó/i);
  assert.throws(()=>generateImprovementArtifacts({...state,authorizations:{provider_generation:true}},incidents),/PREPARATION_SCOPE/);
  assert.throws(()=>validateImprovementState(state,[{...incidents[0],CONFIDENCE:'CONFIRMED_BY_GUESS'}]),/EVIDENCE/);

@@ -1,6 +1,6 @@
 {
-  "observed_at": "2026-10-20",
-  "scope": "Structural inventory; full configurations/connections/history remain unchanged in Make. Secret-bearing mappings and webhook URLs intentionally not exported.",
+  "observed_at": "2026-10-20T22:08:26Z",
+  "scope": "Original structural inventory retained below. Current cutover facts are explicit; secret-bearing mappings, tokens and old webhook URL are not exported.",
   "scenarios": [
     {
       "scenario": {
@@ -299,18 +299,88 @@
       "2026-10-15T15:24:44.606Z",
       "2026-10-14T11:55:20.141Z"
     ],
-    "queue_payload": "Not exposed by available queue inspection; retain for review, no replay or deletion."
+    "queue_payload": "Not exposed by available queue inspection; retain for review, no replay or deletion.",
+    "disposition": "Make queue retained in inactive panel, no replay/import/delete. Unexposed payload and historical pending entries are unresolved delivery evidence, not executable work."
   },
   "bot": {
     "id": 8843261381,
     "username": "AppMultimedia_VideosBot",
     "getMe_execution": "17147f5d1ee346169b4850089f60cca1",
-    "webhook_host": "hook.us2.make.com",
-    "webhook_changed": false
+    "webhook_host": "content-factory-av2-staging.onrender.com",
+    "webhook_changed": true,
+    "verification_source": "BACKEND_GETME",
+    "allowed_updates": [
+      "message",
+      "callback_query"
+    ],
+    "drop_pending_updates": false
   },
   "rollback": {
     "performed": false,
     "original_configuration": "retained in Make 6224860",
-    "availability": "NOT_PREVALIDATED: panel status error; no claim of operational fallback"
-  }
+    "availability": "NOT_PREVALIDATED: original Make configuration retained, but panel error is not operational fallback. No automatic restoration; preserve Studio access and pending events if transport fails."
+  },
+  "inventory_observed_at": "2026-10-20",
+  "current_scenarios": [
+    {
+      "id": 6224860,
+      "active": false,
+      "reported_status": "error",
+      "evidence": "scenario_deactivate returned already inactive; config/queue/history unchanged"
+    },
+    {
+      "id": 6532649,
+      "active": false,
+      "reported_status": "inactive",
+      "evidence": "deactivated after direct delivery verified; readback inactive"
+    }
+  ],
+  "cutover": {
+    "commit": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
+    "ci_run": 39505178929,
+    "status": "VERIFIED",
+    "dispatch_id": "c0e2eda4-4d6b-48cf-8f0a-e93c45c4e702",
+    "finished_at": "2026-10-20T22:05:37.349Z",
+    "backend_identity_verified": true,
+    "telegram_acknowledged": true,
+    "destination_verified": true,
+    "telegram_pending": 0,
+    "telegram_error_present": false,
+    "studio_menu_verified": true,
+    "webhook_secret_sent_to_make": false,
+    "operator_control": "KEY_CLEARED_EXPIRED",
+    "configuration_after_closure_deploy": "dep-dbbucdg473hc73cj2un0",
+    "failed_make_mutation": "AUTO_REVIEW_REJECTED_BEFORE_EXECUTION; getWebhookInfo proved destination unchanged; no retry via Make"
+  },
+  "direct_delivery": {
+    "origin": "EXPLICIT_OPERATOR_NOTICE_NOT_TELEGRAM_UPDATE",
+    "count": 1,
+    "notice_digest": "839aa3b4740a27cd1b41559a04d05cac715e3d0ff62ce0bea23381a57438e04e",
+    "message_id": 151,
+    "dispatch_id": "3ab056cd-beed-40f2-87a0-bafd648a2fee",
+    "dispatch_at": "2026-10-20T22:06:15.135Z",
+    "status": "DELIVERED",
+    "transport": "BACKEND_TELEGRAM_BOT_API",
+    "incoming_telegram_update_tested": false,
+    "iphone_visual_acceptance": "NOT_TESTED_REAL"
+  },
+  "preservation": {
+    "checkpoint_equal": true,
+    "journals_equal": true,
+    "source_checkpoints_equal": true,
+    "session_protected_fields_equal": true,
+    "allowed_session_difference": "make_requests transport receipts only",
+    "ep004_completed": 8,
+    "ep004_total": 50,
+    "budget_usd": 8,
+    "exposure_usd": 1.22625,
+    "original_q42_reservation_usd": 0.3275,
+    "new_provider_generation_calls": 0,
+    "new_reservations": 0,
+    "patch_sha256": "289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1",
+    "patch_applied": false
+  },
+  "remaining_make_runtime_dependencies": [],
+  "make_subscription_cancelled": false,
+  "next_safe_action": "Enviar /start una sola vez y abrir Lumi Studio."
 }

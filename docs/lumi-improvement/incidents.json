@@ -235,19 +235,44 @@
     "EVIDENCE": [
       "Render2026-10-20T15:35:43Z bot_credentialfalse/callback_secrettrue.",
       "Make6224860 error/queue1;6532649 active; getMe confirms8843261381; getWebhookInfo pending0 and Make host.",
-      "Baseline auth.js credential priority and focused token-addition regression."
+      "Baseline auth.js credential priority and focused token-addition regression.",
+      "2026-10-20T22:05:37Z backend getMe/setWebhook/getWebhookInfo verified; receipt151 delivered; Make scenarios inactive; protected state unchanged."
     ],
     "CONFIDENCE": "CONFIRMED",
     "USER_IMPACT": "Direct migration cannot activate until token is safely configured; Studio remains available.",
     "FINANCIAL_RISK": "No generation/quote/reserve/new service; q42 unchanged. Old Telegram delivery status must not be inferred from empty Telegram queue.",
-    "FIX_STATUS": "IMPLEMENTED_CUTOVER_BLOCKED_TOKEN",
-    "FIX_COMMIT": null,
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "dbe8f5c305c4b67205a5969af326392188dff78e",
     "TEST_EVIDENCE": [
       "8 actual-SQL/direct transport tests;43 library/auth;23 affected HMAC/receipts;11 budget/recovery subset.",
       "Real protected checkpoint/session/journal/source snapshot identical after schema-only migration."
     ],
     "REGRESSION_GUARD": "test/lumi-direct-telegram.test.js; existing auth/private library tests",
     "REUSABILITY": "All episodes on the same authenticated bot; transport-only durable receipts and future result notifications.",
-    "NEXT_ACTION": "Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42."
+    "NEXT_ACTION": "No reinvestigar: token backend, corte y entrega verificados2026-10-20. Falta aceptación iPhone, no configuración de token."
+  },
+  {
+    "INCIDENT_ID": "LUMI-DIRECT-CUTOVER-012",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "Explicit webhook administration",
+    "SYMPTOM": "Existing cutover procedure lacked a secure backend operator path; automatic review rejected sending webhook secret through Make execution history.",
+    "ROOT_CAUSE": "Receiver supported Telegram transport but had no explicit authenticated operator endpoint. The Make shell path would expose the new secret to an unnecessary external execution log.",
+    "EVIDENCE": [
+      "Automatic approval rejection; immediate getWebhookInfo confirmed old destination unchanged.",
+      "Commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 adds expiring independent HMAC control, exact bot/SHA checks, existing session CAS and one configuration claim.",
+      "Backend receipt c0e2eda4-4d6b-48cf-8f0a-e93c45c4e702 VERIFIED, acknowledged true, direct destination checked. Temporary operator key removed after cutover."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Cutover completed without asking for token or another authorization; iPhone acceptance still pending.",
+    "FINANCIAL_RISK": "No quote, generation, new reservation or service; EP004/q42 unchanged.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
+    "TEST_EVIDENCE": [
+      "11 focal offline tests; CI39505178929 GREEN.",
+      "Real backend cutover and direct Telegram receipt151; protected snapshot equality; Make queue1 retained."
+    ],
+    "REGRESSION_GUARD": "DIRECT_CUTOVER_AUTH, DIRECT_CUTOVER_CAS, DIRECT_CUTOVER_RESPONSE_LOSS in test/lumi-direct-telegram.test.js",
+    "REUSABILITY": "Existing bot transport administration across episodes; no new production engine, table or journal.",
+    "NEXT_ACTION": "Enviar /start una sola vez y abrir Lumi Studio."
   }
 ]

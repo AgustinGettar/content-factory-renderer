@@ -1,12 +1,12 @@
 # Lumi resume state
 
-Observed: 2026-10-20T15:58:35Z. Input SHA-256: be4e861953335dfde3cda516171a8666643d662b7bece1120e0773072d7b935c.
+Observed: 2026-10-20T22:08:26Z. Input SHA-256: 5499b24a562720cf33f1f17c1171842ce4d8d5aa1e976ef816ed811c983f1d2e.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: d695bc56cf5f691e5f55ceee032dbe5840d796af.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1.
 
-Deployment evidence: Remote/live baseline d695bc5 verified. Direct transport release is prepared with CI/deployment gates; resolve exact final release SHA from GitHub Actions and Render at handoff. DIRECT remains inactive pending backend credential and controlled cutover.. Always resolve current HEAD/live before writing.
+Deployment evidence: Backend cutover commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 CI GREEN run39505178929. Live deploy dep-dbbucdg473hc73cj2un0 after removal of temporary operator key. Final documentation commit follows; resolve current remote/live SHA before writes.. Always resolve current HEAD/live before writing.
 
-Transport: SPECIFIC_MAKE_REMOVAL_BLOCKER. Bot 8843261381 verified via getMe. Backend token absent. Webhook still Make; Telegram queue0, Make queue1 retained. Panel6224860 error; shell6532649 active; neither changed. Receiver and schema prepared; no direct real delivery. See docs/LUMI_DIRECT_TELEGRAM.md.
+Transport: DIRECT_TRANSPORT_CONFIGURED_HUMAN_ACCEPTANCE_PENDING. Backend identity8843261381 verified. DIRECT live; webhook to staging, Telegram0 pending/no errors, allowed message/callback_query. One real outbound notice receipt151. Make panel inactive/error, shell inactive, queue1 retained. Operator control closed; no runtime Make dependency. Device /start and opening pending.
 
 Recovered work: Local one-tap commit7c0e130; exact inert patch docs/recovery/one-tap-20261020.patch, archival commit4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b. Executable changes and USD.375 migration are not applied; original checkout preserved.
 
@@ -24,23 +24,23 @@ Budget USD 8; exposure 1.22625; proposed additional maximum 0.3275; charges UNKN
 
 PRODUCTION_PROGRESS: {"completed":8,"total":50,"delta_this_intervention":0,"evidence":"unchanged real checkpoint revision 23"}
 
-BLOCKERS_RESOLVED: {"production":0,"technical":1,"scope":"Prevent bot credential addition from rotating existing Studio signatures; direct adapter tested offline but cutover blocked."}
+BLOCKERS_RESOLVED: {"production":0,"technical":1,"scope":"Direct bot transport cutover verified; Make runtime dependency removed. iPhone acceptance remains pending."}
 
-REGRESSIONS_INTRODUCED: {"observed_in_focused_acceptance":0,"scope":"Transport and affected auth/library/recovery checks only; real direct transport NOT_TESTED_REAL."}
+REGRESSIONS_INTRODUCED: {"observed_in_focused_acceptance":0,"scope":"11 offline transport tests, exact-commit CI, real direct outbound receipt, negative HTTP guards and protected snapshot equality; inbound/device acceptance not tested real."}
 
 DUPLICATE_EMISSIONS: {"this_intervention":0,"historical":"UNKNOWN_PROVIDER_OUTCOME"}
 
 UNAUTHORIZED_SPENDING: {"this_intervention":0,"historical_charges":"UNVERIFIED"}
 
-HUMAN_INTERVENTIONS: {"new_decisions_recorded_this_intervention":0,"pending":["configure existing bot token directly in Render secret store","one /start and Studio device check after controlled cutover"],"historical_total":null}
+HUMAN_INTERVENTIONS: {"new_decisions_recorded_this_intervention":0,"pending":["Enviar /start una sola vez y abrir Lumi Studio."],"historical_total":null}
 
-REUSABLE_FIXES: {"implemented":3,"validated_offline":3,"scope":"durable direct transport receipt/CAS; safe legacy redirects and future review notifications; stable Studio signing/auth across token addition"}
+REUSABLE_FIXES: {"implemented":1,"validated_offline":1,"validated_real":1,"scope":"Expiring HMAC operator control over existing transport/CAS; webhook secret only Render-to-Telegram; no startup registration or replay."}
 
-SIMULATED_PROGRESS: {"status":"Synthetic EP005/EP006 and actual SQL, no production progress or real direct Telegram delivery","productive_delta":0}
+SIMULATED_PROGRESS: {"status":"Concurrent/replayed updates and failure cases offline; one real backend outbound notification does not advance production","productive_delta":0}
 
 ## Blockers
 
-1. INFRASTRUCTURE / BACKEND_BOT_TOKEN_MISSING: Configurar LUMI_TELEGRAM_BOT_TOKEN directamente en secretos de staging. Preparar secreto webhook independiente; conciliar cola Make y corte posterior. No webhook cambiado; Make aún requerido.
+1. INFRASTRUCTURE / DIRECT_LIVE_NO_MAKE_RUNTIME_DEPENDENCY: Backend getMe exacto; webhook directo confirmado, Telegram0 pendientes/sin errores. Panel Make ya inactivo por error; shell desactivada. Cola Make1 aislada, sin replay. Control temporal cerrado. Render free puede dormir.
 
 2. BUDGET / ONE_TAP_MAX_CHANGE_PRESERVED_NOT_APPLIED: Consulta posterior .276; reserva calculada.345; máximo durable.3275. Diferencia.0175. Trabajo .375 recuperado sin aplicar; no modificar q42 en esta intervención.
 
@@ -56,9 +56,9 @@ SIMULATED_PROGRESS: {"status":"Synthetic EP005/EP006 and actual SQL, no producti
 
 8. DELIVERY / WAITING_MASTER: Master real no disponible; entrega y reproducción completa en dispositivo pendientes. Publicación sigue deshabilitada.
 
-9. MINI_APP_UX / AUTH_PRESERVED_DIRECT_DEVICE_PENDING: Studio, biblioteca y medios privados conservados; adición del token no cambia clave ni replay Ed25519. One-tap recuperado como patch inerte. Interacción directa iPhone no probada.
+9. MINI_APP_UX / IPHONE_ACCEPTANCE_PENDING: Studio200; auth Ed25519 preservada; rutas de medios privados401 sin sesión; menú Abrir Lumi Studio verificado desde backend. Falta /start real y apertura iPhone. Patch one-tap preservado sin aplicar.
 
-Next safe action: Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42.
+Next safe action: Enviar /start una sola vez y abrir Lumi Studio.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

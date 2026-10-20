@@ -1,22 +1,32 @@
-# Direct Telegram transport — prepared, cutover blocked
+# Direct Telegram transport — configured, human acceptance pending
 
 Observed 2026-10-20. Same bot 8843261381 / AppMultimedia_VideosBot, same Studio,
 same staging service and Supabase. No new hosting, production engine, budget
 ledger or provider journal. No generation, quote or economic write was made.
 
-## Actual evidence and remaining prerequisite
+## Actual evidence — cutover completed, device acceptance pending
 
-Remote and live baseline: d695bc56cf5f691e5f55ceee032dbe5840d796af.
-getMe through the existing shell verified the exact bot. Render startup logs
-at 2026-10-20T15:35:43Z report bot_credential=false, callback_secret=true.
-The token exists in Make connection 11003632; it was not extracted. Configure
-LUMI_TELEGRAM_BOT_TOKEN directly in Environment for content-factory-av2-staging
-(srv-dapgakqd0e5s73fottig). Never paste it in chat. Do not revoke/regenerate it.
+Backend loaded the token on 2026-10-20 and verified getMe for bot8843261381 /
+AppMultimedia_VideosBot. The existing callback/session/media keys and Ed25519
+verification were preserved. Independent webhook secret configured by merge.
 
-This release intentionally leaves transport authority unchanged and DIRECT
-inactive. No webhook change or Make deactivation is claimed. No test Telegram
-message was sent. The existing Studio menu remains configured as previously
-verified; device interaction after this release is NOT_TESTED_REAL.
+Code commit1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 passed CI39505178929.
+Explicit backend setWebhook acknowledged and getWebhookInfo confirmed the direct
+staging endpoint at22:05:37Z, message/callback_query only, pending0, no errors.
+No pending updates were dropped. The temporary operator control was then closed
+by clearing its independent key and expiring it; no startup registration exists.
+
+One explicitly authorized operator notice was sent by the backend, real Telegram
+message151, with DELIVERED receipt. It was NOT a synthetic Telegram update or a
+human /start. Menu “Abrir Lumi Studio” was verified from the backend.
+Panel6224860 was already inactive (reported error); shell6532649 is now inactive.
+Make queue1 and histories/configurations remain intact and isolated. Its payload
+is not exposed by the inspection tool; do not replay it or claim it was delivered.
+
+Studio returns200, protected media/library/state reject unauthenticated access,
+and retired Make/callback routes return410. Technical runtime dependency on Make
+is removed. Device acceptance remains NOT_TESTED_REAL. One human step:
+Enviar /start una sola vez y abrir Lumi Studio.
 
 ## Functions and boundaries
 
@@ -78,7 +88,7 @@ The webhook secret must be independent of both the callback secret and bot token
 DIRECT disables the old Make/legacy callback endpoints with HTTP 410. Existing
 CAS, reviews, Budget Gate and Provider Emission Journal remain authoritative.
 
-## Cutover procedure — not executed
+## Cutover reference procedure — executed; do not repeat
 
 1. Configure the bot token in the target Render secret store. Verify getMe from
    the backend, not merely the historical Make connection. Prepare a random
@@ -114,23 +124,21 @@ CAS, reviews, Budget Gate and Provider Emission Journal remain authoritative.
    Confirm the real message receipt. Then deactivate shell 6532649, preserve
    everything, and verify both consumers are inactive. No subscription changes.
 
-There is currently NO prevalidated operational Make rollback: panel status is
-error, not a verified working backup. This intervention changes no webhook and
-therefore requires no rollback. If a later cutover fails, do not improvise or buy
-a plan. Only restore a separately prevalidated transport configuration; otherwise
-keep Studio accessible and retain pending events while reporting the interruption.
+There is NO prevalidated operational Make rollback. Original configurations are
+retained, but an inactive/error panel is not a working backup. Do not reactivate
+it, buy a plan, clear queues or restore its webhook automatically. If transport
+fails, keep Studio accessible and preserve pending work for reconciliation.
 
 ## Validation and recovery handoff
 
-PASS_OFFLINE: actual SQL in PGlite, concurrent/repeated updates, cross-owner
-identity, CAS conflicts, database reopen, response/ACK loss, legacy callbacks,
-notification baseline, authentic response receipts, token-addition signatures.
-PASS_OFFLINE: affected HMAC, binary receipt, library/auth/private master tests.
-PASS_REAL: getMe/getWebhookInfo via existing shell; Make queue/history inspection;
-staging schema-only migration, service-only privileges; protected snapshot equality.
-NOT_TESTED_REAL: direct authenticated delivery, actual webhook cutover, device
-/start and Studio opening, hosting suspend/resume. Missing backend token blocks
-these. Synthetic events were not inserted in staging or presented as Telegram.
+PASS_OFFLINE:11 focal SQL/transport tests including expiring HMAC, concurrent
+cutover CAS, lost ACK/persistence, restart, legacy callbacks and no duplicate send.
+PASS_INTEGRATION:CI39505178929 GREEN, affected auth/library/private media and
+budget/recovery gates; final documentation publication requires its own GREEN.
+PASS_REAL:backend getMe/setWebhook/getWebhookInfo, one authentic outbound receipt,
+Make queue/status inspection, protected snapshot equality and HTTP access guards.
+NOT_TESTED_REAL:incoming owner /start, iPhone visual acceptance and prolonged
+hosting suspension. No synthetic Telegram updates inserted in staging.
 
 EP004 remains PAUSED_INCIDENT 8/50. Q41 approval, Q42 original, proposal,
 consent history, USD 0.3275 reserve, USD 8 cap and all journals are unchanged.

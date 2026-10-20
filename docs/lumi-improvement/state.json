@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "observed_at": "2026-10-20T15:58:35Z",
+  "observed_at": "2026-10-20T22:08:26Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "d695bc56cf5f691e5f55ceee032dbe5840d796af",
+  "source_commit": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Remote/live baseline d695bc5 verified. Direct transport release is prepared with CI/deployment gates; resolve exact final release SHA from GitHub Actions and Render at handoff. DIRECT remains inactive pending backend credential and controlled cutover.",
+  "deployment_evidence": "Backend cutover commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 CI GREEN run39505178929. Live deploy dep-dbbucdg473hc73cj2un0 after removal of temporary operator key. Final documentation commit follows; resolve current remote/live SHA before writes.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "PAUSED_INCIDENT",
   "last_completed_action": "shot_review:q41",
@@ -38,15 +38,13 @@
     "new_reservations": false,
     "automatic_prompt_execution": false,
     "allowed": [
-      "recover interrupted work",
-      "direct Telegram technical migration on same staging bot/service",
-      "controlled webhook cutover after gates",
-      "preserve/reconcile Make pending events without replay",
-      "deactivate substituted Lumi scenarios after validation",
-      "focused tests",
-      "branch-only publish and CI GREEN",
-      "staging-only schema and deployment",
-      "one minimal owner test message if necessary"
+      "complete existing direct Telegram cutover on staging",
+      "preserve Make queues and configurations",
+      "one real operator notification to authorized owner",
+      "minimal backend-only secret control correction",
+      "focused validation and branch-only publication",
+      "staging deployment and expiring operator configuration",
+      "no one-tap economic patch application in this intervention"
     ],
     "risk_acceptance": "EXPIRED_ORIGINAL_GRANTS_PRESERVED_NO_NEW_DECISION"
   },
@@ -162,32 +160,27 @@
     {
       "priority": 9,
       "category": "MINI_APP_UX",
-      "status": "AUTH_PRESERVED_DIRECT_DEVICE_PENDING",
-      "description": "Studio, biblioteca y medios privados conservados; adición del token no cambia clave ni replay Ed25519. One-tap recuperado como patch inerte. Interacción directa iPhone no probada.",
+      "status": "IPHONE_ACCEPTANCE_PENDING",
+      "description": "Studio200; auth Ed25519 preservada; rutas de medios privados401 sin sesión; menú Abrir Lumi Studio verificado desde backend. Falta /start real y apertura iPhone. Patch one-tap preservado sin aplicar.",
       "dependencies": [
-        "CI GREEN",
-        "staging LIVE"
+        "one human /start and Studio opening"
       ],
       "resolution_cost": "USD 0 provider generation",
-      "time_estimate": "Current intervention",
+      "time_estimate": "One human interaction; response time unknown",
       "production_impact": "HIGH",
       "financial_risk": "HIGH_IF_LOCK_FAILS",
       "recurrence_probability": "GUARDED_BY_TESTS",
-      "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
+      "evidence": "docs/LUMI_DIRECT_TELEGRAM.md; docs/lumi-improvement/make-cutover-evidence.json"
     },
     {
       "priority": 1,
       "category": "INFRASTRUCTURE",
-      "status": "BACKEND_BOT_TOKEN_MISSING",
-      "description": "Configurar LUMI_TELEGRAM_BOT_TOKEN directamente en secretos de staging. Preparar secreto webhook independiente; conciliar cola Make y corte posterior. No webhook cambiado; Make aún requerido.",
-      "dependencies": [
-        "backend token",
-        "CI GREEN and staging live",
-        "Make pending disposition"
-      ],
+      "status": "DIRECT_LIVE_NO_MAKE_RUNTIME_DEPENDENCY",
+      "description": "Backend getMe exacto; webhook directo confirmado, Telegram0 pendientes/sin errores. Panel Make ya inactivo por error; shell desactivada. Cola Make1 aislada, sin replay. Control temporal cerrado. Render free puede dormir.",
+      "dependencies": [],
       "resolution_cost": "No new services or paid resources",
-      "time_estimate": "Deploy typically minutes; no guarantee",
-      "production_impact": "RELEASE_GATE",
+      "time_estimate": "Technical cutover completed; hosting wake time not guaranteed",
+      "production_impact": "TECHNICAL_GATE_RESOLVED",
       "financial_risk": "LOW",
       "recurrence_probability": "UNKNOWN",
       "evidence": "docs/LUMI_DIRECT_TELEGRAM.md; docs/lumi-improvement/make-cutover-evidence.json"
@@ -203,11 +196,11 @@
     "BLOCKERS_RESOLVED": {
       "production": 0,
       "technical": 1,
-      "scope": "Prevent bot credential addition from rotating existing Studio signatures; direct adapter tested offline but cutover blocked."
+      "scope": "Direct bot transport cutover verified; Make runtime dependency removed. iPhone acceptance remains pending."
     },
     "REGRESSIONS_INTRODUCED": {
       "observed_in_focused_acceptance": 0,
-      "scope": "Transport and affected auth/library/recovery checks only; real direct transport NOT_TESTED_REAL."
+      "scope": "11 offline transport tests, exact-commit CI, real direct outbound receipt, negative HTTP guards and protected snapshot equality; inbound/device acceptance not tested real."
     },
     "DUPLICATE_EMISSIONS": {
       "this_intervention": 0,
@@ -220,98 +213,114 @@
     "HUMAN_INTERVENTIONS": {
       "new_decisions_recorded_this_intervention": 0,
       "pending": [
-        "configure existing bot token directly in Render secret store",
-        "one /start and Studio device check after controlled cutover"
+        "Enviar /start una sola vez y abrir Lumi Studio."
       ],
       "historical_total": null
     },
     "REUSABLE_FIXES": {
-      "implemented": 3,
-      "validated_offline": 3,
-      "scope": "durable direct transport receipt/CAS; safe legacy redirects and future review notifications; stable Studio signing/auth across token addition"
+      "implemented": 1,
+      "validated_offline": 1,
+      "validated_real": 1,
+      "scope": "Expiring HMAC operator control over existing transport/CAS; webhook secret only Render-to-Telegram; no startup registration or replay."
     },
     "SIMULATED_PROGRESS": {
-      "status": "Synthetic EP005/EP006 and actual SQL, no production progress or real direct Telegram delivery",
+      "status": "Concurrent/replayed updates and failure cases offline; one real backend outbound notification does not advance production",
       "productive_delta": 0
     }
   },
   "feedback": {
     "Qué pidió el prompt anterior": [
-      "Recuperar one-tap interrumpido y retirar Make del mismo bot/backend, sin tocar producción ni economía de q42."
+      "Completar corte después de configurar token, sin reconstruir receptor, alterar q42 ni aplicar patch one-tap."
     ],
     "Qué se completó realmente": [
-      "Recuperados10 archivos con cambios; commit local7c0e130 y patch completo versionado. Checkout anterior y temporal CLI conservados.",
-      "getMe y getWebhookInfo verificados mediante shell existente; token ausente confirmado por Render. Cola Make1 y Telegram0 identificadas por separado.",
-      "Receptor directo, deduplicación bot/update, CAS y entregas durables dentro de la sesión existente; claves y método Ed25519 conservados. Migración sólo de función aplicada en Supabase staging.",
-      "Snapshot completo de checkpoint, sesión, fuentes y journals idéntico antes/después de la migración."
+      "Token cargado y getMe validado por backend; bot8843261381/AppMultimedia_VideosBot. Secreto webhook independiente guardado con merge de variables.",
+      "Corte explícito backend a Telegram con ACK y getWebhookInfo; destino directo, message/callback_query, drop_pending_updates=false, pendientes0/sin errores.",
+      "Un aviso operador real enviado por backend y recibo151 DELIVERED conservado. No es una actualización entrante de Telegram ni una interacción humana simulada.",
+      "Panel6224860 confirmado ya inactivo; shell6532649 desactivada. Cola Make1, configuración e historial preservados.",
+      "Checkpoint, fuentes, journals y sesión protegida idénticos antes/después; sólo recibos de transporte añadidos."
     ],
     "Qué quedó pendiente": [
-      "Token backend, secreto webhook independiente, corte controlado y desactivación posterior de los dos escenarios. No se cambiaron ni borraron.",
-      "Un pendiente Make sin payload accesible y dos entradas históricas pending sinID se conservan para revisión, sin replay. Rollback Make no validado: panel error.",
-      "One-tap completo y revisión de continuación tras rechazo preflight siguen pendientes; .375 no aplicado."
+      "Enviar /start una sola vez y abrir Lumi Studio.",
+      "Reanudar posteriormente revisión del patch one-tap preservado; USD.375 no aplicado.",
+      "Pendiente Make sin contenido accesible conservado para revisión; no acreditado como entregado ni ejecutable."
     ],
     "Qué trabajo se repitió innecesariamente": [
-      "Una lectura agrupada demasiado grande fue truncada y requirió lecturas pequeñas. Evitar volcar registros/configuraciones completos.",
-      "No se repitieron investigaciones históricas de q42 ni suites completas/master."
+      "Evitar lecturas agrupadas demasiado grandes; provocaron salidas truncadas.",
+      "No reinvestigar q42 ni repetir suites completas. CI ejecutó únicamente el alcance afectado requerido."
     ],
     "Qué instrucciones evitaron errores": [
-      "Preservar antes de modificar y usar checkout separado; no asumir pérdida por falta de push.",
-      "No extraer token de Make; no vaciar colas ni interpretar cola Telegram vacía como cola Make vacía.",
-      "No aplicar cambios económicos de one-tap durante la migración."
+      "Verificar proceso activo además de confirmación humana del token.",
+      "Tras rechazo del cambio vía Make, consultar getWebhookInfo y no asumir emisión ni reintentar por el mismo canal.",
+      "No compartir secreto webhook con Make; añadir control backend temporal con HMAC, SHA esperado y claim CAS único.",
+      "No drop_pending_updates, replay, getUpdates ni cambios económicos."
     ],
     "Qué instrucciones generaron fricción": [
-      "La credencial del bot no está disponible al backend; su traslado requiere configuración directa del propietario en Render. La autorización técnica no permite extraerla de Make."
+      "El procedimiento previo no incluía un control operador seguro del backend para setWebhook. La revisión automática rechazó transmitir el secreto por Make; se corrigió sólo esa brecha."
     ],
     "Qué evidencia faltó": [
-      "Token válido del backend, recepción/entrega Telegram directa, detalle del elemento en cola Make, rollback operacional, apertura iPhone después del corte."
+      "Recepción auténtica de /start y aceptación visual iPhone.",
+      "Contenido del pendiente Make y rollback operativo acreditado; se conserva la limitación.",
+      "Suspensión prolongada del hosting no ensayada realmente."
     ],
     "Qué decisión humana se necesita": [
-      "Configurar LUMI_TELEGRAM_BOT_TOKEN en Environment del servicio staging; no pegar token en chat ni revocarlo. No se necesita otra autorización técnica."
+      "Ninguna nueva autorización técnica. Falta únicamente la comprobación humana: Enviar /start una sola vez y abrir Lumi Studio."
     ],
     "Qué pruebas pasaron": [
-      "8 pruebas nuevas de SQL/transporte;43 biblioteca/auth;23 HMAC/medios/recibos;11 presupuesto/recuperación afectada. CI debe confirmar el SHA exacto. Generaciones HTTP simuladas o ausentes; ningún proveedor pago real."
+      "11 pruebas focalizadas offline, incluidas HMAC/expiración, CAS concurrente, pérdida de ACK/reinicio y ausencia de reenvío.",
+      "CI GREEN39505178929; getMe/backend, setWebhook/getWebhookInfo, recibo151 y controles HTTP reales.",
+      "Snapshot protegido igual; parche SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 intacto."
     ],
     "Qué riesgos permanecen": [
-      "Render free puede dormir; trabajo QUEUED persiste pero no hay disponibilidad instantánea. DISPATCHING/UNKNOWN nunca se reenvía automáticamente.",
-      "Make panel en error no es respaldo operativo validado. No afirmar independencia hasta verificar corte y escenarios inactivos.",
-      "q42 original sigue ambiguo; progreso productivo8/50 y presupuesto8 intactos."
+      "Render free puede dormir. QUEUED persiste; DISPATCHING/UNKNOWN no se reenvía. No garantía exactly-once extremo a extremo.",
+      "Make no es rollback operativo validado. Cola histórica aislada sin borrar.",
+      "q42 original ambiguo; EP0048/50; presupuesto8, exposición1.22625, reserva original.3275 sin cambios."
     ]
   },
-  "first_safe_action": "Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42.",
+  "first_safe_action": "Enviar /start una sola vez y abrir Lumi Studio.",
   "acceptance": [
-    "RECOVERED_WORK_PRESERVED: patch inerte versionado y checkout original conservado.",
-    "DIRECT_RECEIVER_CAS_AND_AUTH_PASS_OFFLINE; MINI_APP_AUTH_PRIVATE_MEDIA_PASS_OFFLINE.",
-    "NO_GENERATION; NO_QUOTES; NO_NEW_RESERVATIONS; Q41_Q42_CHECKPOINT_JOURNALS_BUDGET_PRESERVED.",
-    "CI_GREEN y STAGING_LIVE del SHA exacto; no inferir desde pruebas locales.",
-    "MAKE_DEPENDENCY_REMOVED sólo después de getMe backend, webhook directo verificado y escenarios sustituidos inactivos. Actualmente BLOCKED_TOKEN_MISSING.",
-    "Telegram pending0 y Make pending1 son evidencias separadas. Sin drop_pending_updates, replay ni borrado.",
+    "BACKEND_TOKEN_AND_BOT_IDENTITY_PASS_REAL; WEBHOOK_DIRECT_VERIFIED; ALLOWED_UPDATES_MESSAGE_CALLBACK; DROP_PENDING_FALSE.",
+    "DIRECT_OUTBOUND_PASS_REAL: one operator notification, authentic Telegram receipt151; inbound/device acceptance NOT_TESTED_REAL.",
+    "MAKE_RUNTIME_DEPENDENCY_REMOVED: panel already inactive, shell inactive, old backend routes410; queue1 retained.",
+    "TEMPORARY_OPERATOR_CONTROL_CLOSED; NO_SECRET_SENT_TO_MAKE; NO_AUTOMATIC_WEBHOOK_REGISTRATION.",
+    "EP0048/50_Q41_Q42_JOURNALS_CONSENTS_RESERVATIONS_BUDGET8_PRESERVED; NO_GENERATION_NO_QUOTES_NO_NEW_RESERVATIONS.",
+    "ONE_TAP_PATCH_PRESERVED_NOT_APPLIED; NO_PRODUCTION_PROGRESS.",
+    "CI_GREEN_AND_STAGING_LIVE: verify exact final SHA after documentation publication.",
     "MAKE_SUBSCRIPTION_CANCELLED: NOT_REQUESTED_NOT_PERFORMED."
   ],
   "tests": [
     {
-      "status": "PASS_REAL",
-      "command": "Render readiness logs; Make getMe/getWebhookInfo; queue/history inspection; Supabase schema/privilege readback and protected snapshot comparison",
-      "result": "Bot8843261381; token backendfalse; webhookMake; Telegram0/Make1; anonymous/authenticated execute false; service role true. Protected rows identical."
+      "status": "PASS_OFFLINE",
+      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-direct-telegram.test.js",
+      "result": "11 passed. Existing receiver cases plus expiring HMAC/SHA-bound cutover, concurrent CAS, response/persistence loss; simulated providers only."
     },
     {
-      "status": "PASS_OFFLINE",
-      "command": "director-offline-guard targeted direct Telegram + library/auth + Make/HMAC/multipart +11 affected recovery cases",
-      "result": "85 targeted cases passed locally; real SQL, concurrency, DB reopen, transport response/ACK loss, expired legacy and no duplicate send. CI verifies release."
+      "status": "PASS_INTEGRATION",
+      "command": "GitHub Actions39505178929 for 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
+      "result": "GREEN; focused direct transport and affected auth/library/private-media/budget recovery gates."
+    },
+    {
+      "status": "PASS_REAL",
+      "command": "Backend getMe, explicit setWebhook and getWebhookInfo, direct notification, Supabase protected-state comparison, negative HTTP guards",
+      "result": "Correct bot; direct destination, Telegram0 pending/no errors; receipt151 DELIVERED; Make queue1 held. Media/auth401, retired Make/callback410. Protected state equal excluding transport receipt map."
     },
     {
       "status": "NOT_TESTED_REAL",
-      "command": "Direct webhook cutover/delivery, iPhone /start and Studio opening, Render sleep/resume",
-      "result": "Blocked by backend token; no real test message or synthetic staging event. No production advancement."
+      "command": "Owner /start, iPhone Studio visual acceptance and extended hosting suspension",
+      "result": "One human check remains. No synthetic Telegram updates inserted; operator outbound notice is explicitly identified as operator-origin."
     }
   ],
   "recent_commits": [
     {
-      "sha": "d695bc56cf5f691e5f55ceee032dbe5840d796af",
-      "subject": "Verified remote/live baseline before recovery"
+      "sha": "dbe8f5c305c4b67205a5969af326392188dff78e",
+      "subject": "Existing direct receiver and auth preservation, reused without reconstruction"
+    },
+    {
+      "sha": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
+      "subject": "Backend-only explicit cutover control and focused adversarial tests"
     },
     {
       "sha": "4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b",
-      "subject": "Preserve interrupted one-tap diff as inert recovery patch; no economic migration"
+      "subject": "Inert one-tap recovery patch preserved, not applied"
     }
   ],
   "activation": {
@@ -330,11 +339,11 @@
     "other_provider_bindings": "FAIL_CLOSED_PENDING_VERIFIED_ADAPTER"
   },
   "continuation": {
-    "title": "LUMI APP — COMPLETE DIRECT TELEGRAM CUTOVER AFTER SECRET CONFIGURATION",
-    "mission": "MISIÓN ÚNICA: verificar la credencial ya configurada y completar el corte del mismo bot a staging, conservando pendientes, Studio y q42. No reconstruir el receptor ni reiniciar la investigación histórica.",
-    "integration_status": "Receptor implementado en lib/telegram-review-v1/direct-transport.js; función lumi_direct_telegram_v1 ya aplicada a staging; conserva state.make_requests. Backend token ausente al corte. Ver docs/LUMI_DIRECT_TELEGRAM.md y make-cutover-evidence.json.",
-    "decision_rule": "No ejecutar automáticamente este borrador. Si falta token, no extraerlo de Make. Una vez presente, preparar secreto independiente y verificar identidad, CI, staging y pendientes. Suspender consumidor viejo y realizar setWebhook explícito sin drop_pending_updates; verificar y después desactivar shell. No prometer rollback Make sin validarlo. Un único /start y apertura Studio basta para aceptación humana; no generar.",
-    "prohibitions": "PROHIBICIONES: no main/producción; no quotes, multimedia, gastos, reservas, retries ni desbloqueo/alteración de q42; no borrar/descartar colas o configuraciones; no drop_pending_updates=true; no getUpdates con webhook; no cambiar planes, revocar token ni cancelar Make; runners OFF, autorun false. Sólo escenarios Lumi6224860/6532649 autorizados para desactivación después de sustitución verificada."
+    "title": "LUMI APP — DIRECT TELEGRAM HUMAN ACCEPTANCE AND ONE-TAP RESUME",
+    "mission": "MISIÓN ÚNICA: verificar la comprobación humana pendiente del transporte directo y dejar preparada la reanudación del trabajo one-tap ya recuperado, sin generar ni modificar q42 en esta comprobación.",
+    "integration_status": "Transporte directo ya configurado, probado con entrega real y Make desactivado. No rehacer receptor/corte ni reabrir control temporal. Reutilizar docs/LUMI_DIRECT_TELEGRAM.md y make-cutover-evidence.json. Patch one-tap preservado, aún no aplicado.",
+    "decision_rule": "Primera comprobación humana única: Enviar /start una sola vez y abrir Lumi Studio. Si el usuario confirma que ya la hizo, consultar el recibo real existente y no exigir otro envío. Distinguir recepción de Telegram, entrega y aceptación visual. Luego revisar el patch recuperado para la siguiente intervención one-tap; no ejecutarlo automáticamente ni modificar máximos/consentimientos bajo esta comprobación.",
+    "prohibitions": "PROHIBICIONES: no main/producción, multimedia, quotes, gastos, reservas, retries, cambios de q42 o presupuesto8; no aplicar patch one-tap en la comprobación de transporte; no reactivar Make, vaciar colas ni getUpdates; no volver a cambiar webhook sin defecto concreto; no compartir secretos; runners OFF, autorun false, publicación deshabilitada."
   },
   "consent": {
     "status": "EXPIRED_PRESERVED",
@@ -398,8 +407,9 @@
     "method": "read-only real library/checkpoint metadata through existing compatibility function; no bytes changed or generation"
   },
   "transport": {
-    "status": "SPECIFIC_MAKE_REMOVAL_BLOCKER",
-    "summary": "Bot 8843261381 verified via getMe. Backend token absent. Webhook still Make; Telegram queue0, Make queue1 retained. Panel6224860 error; shell6532649 active; neither changed. Receiver and schema prepared; no direct real delivery. See docs/LUMI_DIRECT_TELEGRAM.md.",
-    "recovered_work": "Local one-tap commit7c0e130; exact inert patch docs/recovery/one-tap-20261020.patch, archival commit4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b. Executable changes and USD.375 migration are not applied; original checkout preserved."
+    "status": "DIRECT_TRANSPORT_CONFIGURED_HUMAN_ACCEPTANCE_PENDING",
+    "summary": "Backend identity8843261381 verified. DIRECT live; webhook to staging, Telegram0 pending/no errors, allowed message/callback_query. One real outbound notice receipt151. Make panel inactive/error, shell inactive, queue1 retained. Operator control closed; no runtime Make dependency. Device /start and opening pending.",
+    "recovered_work": "Local one-tap commit7c0e130; exact inert patch docs/recovery/one-tap-20261020.patch, archival commit4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b. Executable changes and USD.375 migration are not applied; original checkout preserved.",
+    "first_one_tap_task": "Review docs/recovery/one-tap-20261020.patch and existing local recovery commit; do not reconstruct or apply it during transport acceptance."
   }
 }

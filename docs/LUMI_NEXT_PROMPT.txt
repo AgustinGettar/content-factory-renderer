@@ -1,11 +1,11 @@
-LUMI APP — COMPLETE DIRECT TELEGRAM CUTOVER AFTER SECRET CONFIGURATION
+LUMI APP — DIRECT TELEGRAM HUMAN ACCEPTANCE AND ONE-TAP RESUME
 BORRADOR. No autoriza nuevos gastos ni se ejecuta automáticamente.
 MODELO: ASTRA — RAZONAMIENTO MUY ALTO.
-MISIÓN ÚNICA: verificar la credencial ya configurada y completar el corte del mismo bot a staging, conservando pendientes, Studio y q42. No reconstruir el receptor ni reiniciar la investigación histórica.
+MISIÓN ÚNICA: verificar la comprobación humana pendiente del transporte directo y dejar preparada la reanudación del trabajo one-tap ya recuperado, sin generar ni modificar q42 en esta comprobación.
 Repositorio: AgustinGettar/content-factory-renderer; rama exclusiva: lumi-telegram-review-v1; staging: content-factory-av2-staging; Supabase: mofjhwathxzfnjapvvst.
-Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-20T15:58:35Z; base: d695bc56cf5f691e5f55ceee032dbe5840d796af.
+Leé primero docs/LUMI_RESUME_STATE.md, docs/LUMI_PROMPT_FEEDBACK.md y docs/lumi-improvement/incidents.json. Estado observado: 2026-10-20T22:08:26Z; base: 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1.
 Verificá HEAD remoto, CI y SHA live actuales; conservá cambios concurrentes. No repitas la investigación histórica.
-TRANSPORTE: SPECIFIC_MAKE_REMOVAL_BLOCKER. Bot 8843261381 verified via getMe. Backend token absent. Webhook still Make; Telegram queue0, Make queue1 retained. Panel6224860 error; shell6532649 active; neither changed. Receiver and schema prepared; no direct real delivery. See docs/LUMI_DIRECT_TELEGRAM.md.
+TRANSPORTE: DIRECT_TRANSPORT_CONFIGURED_HUMAN_ACCEPTANCE_PENDING. Backend identity8843261381 verified. DIRECT live; webhook to staging, Telegram0 pending/no errors, allowed message/callback_query. One real outbound notice receipt151. Make panel inactive/error, shell inactive, queue1 retained. Operator control closed; no runtime Make dependency. Device /start and opening pending.
 TRABAJO RECUPERADO: Local one-tap commit7c0e130; exact inert patch docs/recovery/one-tap-20261020.patch, archival commit4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b. Executable changes and USD.375 migration are not applied; original checkout preserved.
 Episodio: ep_lumi_granja_004_20261008_ee7ab4b3; PAUSED_INCIDENT; 8/50; último shot_review:q41; pendiente image:q42.
 Operación original: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; intento journal: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE; reserva USD 0.3275.
@@ -13,12 +13,12 @@ Propuesta: 02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670; est
 Techo USD 8; exposición interna USD 1.22625; disponible USD 6.77375; máximo nuevo propuesto USD 0.3275. No son cargos reales ni garantía del proveedor.
 Último rechazo: Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED, fase QUOTE; cotización USD 0.276; reserva calculada USD 0.345; multiplicador 1.25. Consulta de precio posterior y ya vencida del2026-10-19T01:44:30.319Z: .276×1.25=.345, diferencia .0175 sobre máximo.3275. No reconstruye el rechazo antiguo sin precio. Reutilizar esta evidencia; no cotizar ni investigar q42 durante la migración.
 Usá sólo el consentimiento específico vigente del reemplazo; no reutilices la autorización original de q42 ni la ampliación a USD 8. No simules ni importes aceptación humana. No liberes la reserva ambigua.
-PRIMERA ACCIÓN SEGURA: Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42.
-Receptor implementado en lib/telegram-review-v1/direct-transport.js; función lumi_direct_telegram_v1 ya aplicada a staging; conserva state.make_requests. Backend token ausente al corte. Ver docs/LUMI_DIRECT_TELEGRAM.md y make-cutover-evidence.json.
+PRIMERA ACCIÓN SEGURA: Enviar /start una sola vez y abrir Lumi Studio.
+Transporte directo ya configurado, probado con entrega real y Make desactivado. No rehacer receptor/corte ni reabrir control temporal. Reutilizar docs/LUMI_DIRECT_TELEGRAM.md y make-cutover-evidence.json. Patch one-tap preservado, aún no aplicado.
 Antes de cualquier emisión futura: evidencia fresca del original, aprobación específica de riesgo vinculada a propuesta/importe, cotización vigente ligada al nuevo payload, presupuesto para ambas reservas, identidad e idempotencia nuevas, claim único y validación final justo antes del transporte.
-No ejecutar automáticamente este borrador. Si falta token, no extraerlo de Make. Una vez presente, preparar secreto independiente y verificar identidad, CI, staging y pendientes. Suspender consumidor viejo y realizar setWebhook explícito sin drop_pending_updates; verificar y después desactivar shell. No prometer rollback Make sin validarlo. Un único /start y apertura Studio basta para aceptación humana; no generar.
+Primera comprobación humana única: Enviar /start una sola vez y abrir Lumi Studio. Si el usuario confirma que ya la hizo, consultar el recibo real existente y no exigir otro envío. Distinguir recepción de Telegram, entrega y aceptación visual. Luego revisar el patch recuperado para la siguiente intervención one-tap; no ejecutarlo automáticamente ni modificar máximos/consentimientos bajo esta comprobación.
 BLOQUEOS PRIORIZADOS:
-1. INFRASTRUCTURE: BACKEND_BOT_TOKEN_MISSING — Configurar LUMI_TELEGRAM_BOT_TOKEN directamente en secretos de staging. Preparar secreto webhook independiente; conciliar cola Make y corte posterior. No webhook cambiado; Make aún requerido.; depende de backend token, CI GREEN and staging live, Make pending disposition; costo No new services or paid resources; tiempo Deploy typically minutes; no guarantee.
+1. INFRASTRUCTURE: DIRECT_LIVE_NO_MAKE_RUNTIME_DEPENDENCY — Backend getMe exacto; webhook directo confirmado, Telegram0 pendientes/sin errores. Panel Make ya inactivo por error; shell desactivada. Cola Make1 aislada, sin replay. Control temporal cerrado. Render free puede dormir.; depende de ninguno; costo No new services or paid resources; tiempo Technical cutover completed; hosting wake time not guaranteed.
 2. BUDGET: ONE_TAP_MAX_CHANGE_PRESERVED_NOT_APPLIED — Consulta posterior .276; reserva calculada.345; máximo durable.3275. Diferencia.0175. Trabajo .375 recuperado sin aplicar; no modificar q42 en esta intervención.; depende de ninguno; costo USD 0 generation in this intervention; future quotes required; tiempo Quote timing must be just before authorized emission.
 3. PROVIDER_EVIDENCE: ORIGINAL_STILL_AMBIGUOUS — q42 original EMISSION_UNKNOWN/NO_RESPONSE, sin ID verificable. Su reserva .3275 permanece; el último intento de reemplazo no llegó a ACTIVATE. Correlación e idempotencia quedan registradas para operaciones futuras.; depende de original provider evidence; costo Original charge UNKNOWN; tiempo External evidence: unknown.
 4. GENERATION: BLOCKED_PENDING_PRICE_REVIEW — Motor técnico guarda cotización y decisión antes de reservar. Consulta sin generación disponible con consentimiento vigente. Un precio mayor requiere una decisión específica posterior; el cap8 no la reemplaza.; depende de exact quote, specific maximum, original evidence; costo Future authorized generation only; tiempo Human decision and provider duration unknown.
@@ -26,28 +26,30 @@ BLOQUEOS PRIORIZADOS:
 6. TTS: PENDING_USD_COST_EVIDENCE — La cuota de caracteres no demuestra un costo en USD. Falta presupuesto completo de voz y posterior revisión del audio.; depende de visual progression, voice quote/quota; costo Unknown USD; tiempo Provider and review duration unknown.
 7. ASSEMBLY: WAITING_REAL_ASSETS — Faltan clips aprobados y voz para ensamblar el master real. Pruebas y material sintético no completan el episodio.; depende de approved clips, approved audio; costo Infrastructure allocation unknown; tiempo Estimate 1 assembly/review cycle after inputs.
 8. DELIVERY: WAITING_MASTER — Master real no disponible; entrega y reproducción completa en dispositivo pendientes. Publicación sigue deshabilitada.; depende de approved master; costo No new provider spend authorized; tiempo Human check estimate 2–5 minutes.
-9. MINI_APP_UX: AUTH_PRESERVED_DIRECT_DEVICE_PENDING — Studio, biblioteca y medios privados conservados; adición del token no cambia clave ni replay Ed25519. One-tap recuperado como patch inerte. Interacción directa iPhone no probada.; depende de CI GREEN, staging LIVE; costo USD 0 provider generation; tiempo Current intervention.
+9. MINI_APP_UX: IPHONE_ACCEPTANCE_PENDING — Studio200; auth Ed25519 preservada; rutas de medios privados401 sin sesión; menú Abrir Lumi Studio verificado desde backend. Falta /start real y apertura iPhone. Patch one-tap preservado sin aplicar.; depende de one human /start and Studio opening; costo USD 0 provider generation; tiempo One human interaction; response time unknown.
 INCIDENTES ABIERTOS:
 LUMI-Q42-AMBIGUOUS-001 [UNKNOWN]: Original Mini App operation BLOCKED with Q41_EMISSION_BINDING_CHANGED; provider journal EMISSION_UNKNOWN/NO_RESPONSE.. Próximo: Preserve original ambiguity and valid current replacement consent; consult exact price separately without generation. Prefer verifiable original result when available.
 LUMI-Q42-DEADLINE-HYPOTHESIS-002 [PROBABLE]: Binding error surfaced after historical quote expiry.. Próximo: Use the implemented atomic deadline/CAS guard. Preserve original UNKNOWN classification; do not repeat historical cause investigation without new evidence.
 LUMI-FLORES-DEVICE-004 [UNKNOWN]: Telegram/iPhone playback and download after transport fix have no recorded human acceptance.. Próximo: Human opens Flores in iPhone Telegram and confirms play plus original download; record exact symptom if failing.
 LUMI-Q42-CONFIRMATION-PRIMARY-007 [UNKNOWN]: Two human generation confirmations created quote claims but no replacement journal, operation or reservation.. Próximo: Do not replay to diagnose. If a future explicit human confirmation fails, read its new durable error/phase/receipt and journal; act only on that evidence.
-LUMI-DIRECT-TELEGRAM-011 [CONFIRMED]: Make panel error, one queued event; backend has no bot token. Adding token would change existing session/media signing key and initData replay method.. Próximo: Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42.
 EVIDENCIA A REUTILIZAR:
-PASS_REAL: Render readiness logs; Make getMe/getWebhookInfo; queue/history inspection; Supabase schema/privilege readback and protected snapshot comparison; Bot8843261381; token backendfalse; webhookMake; Telegram0/Make1; anonymous/authenticated execute false; service role true. Protected rows identical.
-PASS_OFFLINE: director-offline-guard targeted direct Telegram + library/auth + Make/HMAC/multipart +11 affected recovery cases; 85 targeted cases passed locally; real SQL, concurrency, DB reopen, transport response/ACK loss, expired legacy and no duplicate send. CI verifies release.
-NOT_TESTED_REAL: Direct webhook cutover/delivery, iPhone /start and Studio opening, Render sleep/resume; Blocked by backend token; no real test message or synthetic staging event. No production advancement.
-Commit d695bc56cf5f691e5f55ceee032dbe5840d796af: Verified remote/live baseline before recovery
-Commit 4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b: Preserve interrupted one-tap diff as inert recovery patch; no economic migration
-PROHIBICIONES: no main/producción; no quotes, multimedia, gastos, reservas, retries ni desbloqueo/alteración de q42; no borrar/descartar colas o configuraciones; no drop_pending_updates=true; no getUpdates con webhook; no cambiar planes, revocar token ni cancelar Make; runners OFF, autorun false. Sólo escenarios Lumi6224860/6532649 autorizados para desactivación después de sustitución verificada.
+PASS_OFFLINE: node --import ./scripts/director-offline-guard.mjs --test test/lumi-direct-telegram.test.js; 11 passed. Existing receiver cases plus expiring HMAC/SHA-bound cutover, concurrent CAS, response/persistence loss; simulated providers only.
+PASS_INTEGRATION: GitHub Actions39505178929 for 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1; GREEN; focused direct transport and affected auth/library/private-media/budget recovery gates.
+PASS_REAL: Backend getMe, explicit setWebhook and getWebhookInfo, direct notification, Supabase protected-state comparison, negative HTTP guards; Correct bot; direct destination, Telegram0 pending/no errors; receipt151 DELIVERED; Make queue1 held. Media/auth401, retired Make/callback410. Protected state equal excluding transport receipt map.
+NOT_TESTED_REAL: Owner /start, iPhone Studio visual acceptance and extended hosting suspension; One human check remains. No synthetic Telegram updates inserted; operator outbound notice is explicitly identified as operator-origin.
+Commit dbe8f5c305c4b67205a5969af326392188dff78e: Existing direct receiver and auth preservation, reused without reconstruction
+Commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1: Backend-only explicit cutover control and focused adversarial tests
+Commit 4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b: Inert one-tap recovery patch preserved, not applied
+PROHIBICIONES: no main/producción, multimedia, quotes, gastos, reservas, retries, cambios de q42 o presupuesto8; no aplicar patch one-tap en la comprobación de transporte; no reactivar Make, vaciar colas ni getUpdates; no volver a cambiar webhook sin defecto concreto; no compartir secretos; runners OFF, autorun false, publicación deshabilitada.
 ACEPTACIÓN:
-RECOVERED_WORK_PRESERVED: patch inerte versionado y checkout original conservado.
-DIRECT_RECEIVER_CAS_AND_AUTH_PASS_OFFLINE; MINI_APP_AUTH_PRIVATE_MEDIA_PASS_OFFLINE.
-NO_GENERATION; NO_QUOTES; NO_NEW_RESERVATIONS; Q41_Q42_CHECKPOINT_JOURNALS_BUDGET_PRESERVED.
-CI_GREEN y STAGING_LIVE del SHA exacto; no inferir desde pruebas locales.
-MAKE_DEPENDENCY_REMOVED sólo después de getMe backend, webhook directo verificado y escenarios sustituidos inactivos. Actualmente BLOCKED_TOKEN_MISSING.
-Telegram pending0 y Make pending1 son evidencias separadas. Sin drop_pending_updates, replay ni borrado.
+BACKEND_TOKEN_AND_BOT_IDENTITY_PASS_REAL; WEBHOOK_DIRECT_VERIFIED; ALLOWED_UPDATES_MESSAGE_CALLBACK; DROP_PENDING_FALSE.
+DIRECT_OUTBOUND_PASS_REAL: one operator notification, authentic Telegram receipt151; inbound/device acceptance NOT_TESTED_REAL.
+MAKE_RUNTIME_DEPENDENCY_REMOVED: panel already inactive, shell inactive, old backend routes410; queue1 retained.
+TEMPORARY_OPERATOR_CONTROL_CLOSED; NO_SECRET_SENT_TO_MAKE; NO_AUTOMATIC_WEBHOOK_REGISTRATION.
+EP0048/50_Q41_Q42_JOURNALS_CONSENTS_RESERVATIONS_BUDGET8_PRESERVED; NO_GENERATION_NO_QUOTES_NO_NEW_RESERVATIONS.
+ONE_TAP_PATCH_PRESERVED_NOT_APPLIED; NO_PRODUCTION_PROGRESS.
+CI_GREEN_AND_STAGING_LIVE: verify exact final SHA after documentation publication.
 MAKE_SUBSCRIPTION_CANCELLED: NOT_REQUESTED_NOT_PERFORMED.
 Separá PASS_REAL, PASS_INTEGRATION, PASS_OFFLINE y NOT_TESTED_REAL. Las simulaciones no avanzan el checkpoint ni prueban cobros o generación real.
 Actualizá incidentes, feedback y estado una vez al cierre; generá un solo borrador siguiente. No lo ejecutes automáticamente.
-INPUT_SHA256: be4e861953335dfde3cda516171a8666643d662b7bece1120e0773072d7b935c
+INPUT_SHA256: 5499b24a562720cf33f1f17c1171842ce4d8d5aa1e976ef816ed811c983f1d2e

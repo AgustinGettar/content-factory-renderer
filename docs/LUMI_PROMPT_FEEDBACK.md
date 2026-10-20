@@ -1,59 +1,65 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-20T15:58:35Z.
+Evidence cutoff: 2026-10-20T22:08:26Z.
 
 ## Qué pidió el prompt anterior
 
-- Recuperar one-tap interrumpido y retirar Make del mismo bot/backend, sin tocar producción ni economía de q42.
+- Completar corte después de configurar token, sin reconstruir receptor, alterar q42 ni aplicar patch one-tap.
 
 ## Qué se completó realmente
 
-- Recuperados10 archivos con cambios; commit local7c0e130 y patch completo versionado. Checkout anterior y temporal CLI conservados.
-- getMe y getWebhookInfo verificados mediante shell existente; token ausente confirmado por Render. Cola Make1 y Telegram0 identificadas por separado.
-- Receptor directo, deduplicación bot/update, CAS y entregas durables dentro de la sesión existente; claves y método Ed25519 conservados. Migración sólo de función aplicada en Supabase staging.
-- Snapshot completo de checkpoint, sesión, fuentes y journals idéntico antes/después de la migración.
+- Token cargado y getMe validado por backend; bot8843261381/AppMultimedia_VideosBot. Secreto webhook independiente guardado con merge de variables.
+- Corte explícito backend a Telegram con ACK y getWebhookInfo; destino directo, message/callback_query, drop_pending_updates=false, pendientes0/sin errores.
+- Un aviso operador real enviado por backend y recibo151 DELIVERED conservado. No es una actualización entrante de Telegram ni una interacción humana simulada.
+- Panel6224860 confirmado ya inactivo; shell6532649 desactivada. Cola Make1, configuración e historial preservados.
+- Checkpoint, fuentes, journals y sesión protegida idénticos antes/después; sólo recibos de transporte añadidos.
 
 ## Qué quedó pendiente
 
-- Token backend, secreto webhook independiente, corte controlado y desactivación posterior de los dos escenarios. No se cambiaron ni borraron.
-- Un pendiente Make sin payload accesible y dos entradas históricas pending sinID se conservan para revisión, sin replay. Rollback Make no validado: panel error.
-- One-tap completo y revisión de continuación tras rechazo preflight siguen pendientes; .375 no aplicado.
+- Enviar /start una sola vez y abrir Lumi Studio.
+- Reanudar posteriormente revisión del patch one-tap preservado; USD.375 no aplicado.
+- Pendiente Make sin contenido accesible conservado para revisión; no acreditado como entregado ni ejecutable.
 
 ## Qué trabajo se repitió innecesariamente
 
-- Una lectura agrupada demasiado grande fue truncada y requirió lecturas pequeñas. Evitar volcar registros/configuraciones completos.
-- No se repitieron investigaciones históricas de q42 ni suites completas/master.
+- Evitar lecturas agrupadas demasiado grandes; provocaron salidas truncadas.
+- No reinvestigar q42 ni repetir suites completas. CI ejecutó únicamente el alcance afectado requerido.
 
 ## Qué instrucciones evitaron errores
 
-- Preservar antes de modificar y usar checkout separado; no asumir pérdida por falta de push.
-- No extraer token de Make; no vaciar colas ni interpretar cola Telegram vacía como cola Make vacía.
-- No aplicar cambios económicos de one-tap durante la migración.
+- Verificar proceso activo además de confirmación humana del token.
+- Tras rechazo del cambio vía Make, consultar getWebhookInfo y no asumir emisión ni reintentar por el mismo canal.
+- No compartir secreto webhook con Make; añadir control backend temporal con HMAC, SHA esperado y claim CAS único.
+- No drop_pending_updates, replay, getUpdates ni cambios económicos.
 
 ## Qué instrucciones generaron fricción
 
-- La credencial del bot no está disponible al backend; su traslado requiere configuración directa del propietario en Render. La autorización técnica no permite extraerla de Make.
+- El procedimiento previo no incluía un control operador seguro del backend para setWebhook. La revisión automática rechazó transmitir el secreto por Make; se corrigió sólo esa brecha.
 
 ## Qué evidencia faltó
 
-- Token válido del backend, recepción/entrega Telegram directa, detalle del elemento en cola Make, rollback operacional, apertura iPhone después del corte.
+- Recepción auténtica de /start y aceptación visual iPhone.
+- Contenido del pendiente Make y rollback operativo acreditado; se conserva la limitación.
+- Suspensión prolongada del hosting no ensayada realmente.
 
 ## Qué decisión humana se necesita
 
-- Configurar LUMI_TELEGRAM_BOT_TOKEN en Environment del servicio staging; no pegar token en chat ni revocarlo. No se necesita otra autorización técnica.
+- Ninguna nueva autorización técnica. Falta únicamente la comprobación humana: Enviar /start una sola vez y abrir Lumi Studio.
 
 ## Qué pruebas pasaron
 
-- 8 pruebas nuevas de SQL/transporte;43 biblioteca/auth;23 HMAC/medios/recibos;11 presupuesto/recuperación afectada. CI debe confirmar el SHA exacto. Generaciones HTTP simuladas o ausentes; ningún proveedor pago real.
+- 11 pruebas focalizadas offline, incluidas HMAC/expiración, CAS concurrente, pérdida de ACK/reinicio y ausencia de reenvío.
+- CI GREEN39505178929; getMe/backend, setWebhook/getWebhookInfo, recibo151 y controles HTTP reales.
+- Snapshot protegido igual; parche SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 intacto.
 
 ## Qué riesgos permanecen
 
-- Render free puede dormir; trabajo QUEUED persiste pero no hay disponibilidad instantánea. DISPATCHING/UNKNOWN nunca se reenvía automáticamente.
-- Make panel en error no es respaldo operativo validado. No afirmar independencia hasta verificar corte y escenarios inactivos.
-- q42 original sigue ambiguo; progreso productivo8/50 y presupuesto8 intactos.
+- Render free puede dormir. QUEUED persiste; DISPATCHING/UNKNOWN no se reenvía. No garantía exactly-once extremo a extremo.
+- Make no es rollback operativo validado. Cola histórica aislada sin borrar.
+- q42 original ambiguo; EP0048/50; presupuesto8, exposición1.22625, reserva original.3275 sin cambios.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: be4e861953335dfde3cda516171a8666643d662b7bece1120e0773072d7b935c. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 5499b24a562720cf33f1f17c1171842ce4d8d5aa1e976ef816ed811c983f1d2e. Outputs are inert drafts; generating them cannot expand authorization.

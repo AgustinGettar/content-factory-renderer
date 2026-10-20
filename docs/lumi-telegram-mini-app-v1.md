@@ -1,5 +1,14 @@
 # Lumi Telegram Mini App V1
 
+## Direct transport preparation (2026-10-20)
+
+See docs/LUMI_DIRECT_TELEGRAM.md for the current migration boundary. The same
+Studio is preserved. The direct receiver is implemented but inactive until the
+bot token and independent webhook secret are configured and a controlled cutover
+is verified. Make remains the current webhook destination. Adding the token now
+preserves the existing callback-secret session/media key and Ed25519 replay
+identity. No Q42 economic change or generation accompanies this release.
+
 ## EP004 q41 one-tap consent (2026-10-15)
 
 The primary q41 card now offers **Generar primera animación**. Its authenticated,

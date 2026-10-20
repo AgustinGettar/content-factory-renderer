@@ -1,56 +1,59 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-19T01:20:15.040407+00:00.
+Evidence cutoff: 2026-10-20T15:58:35Z.
 
 ## Qué pidió el prompt anterior
 
-- Corregir integralmente costos, cotizaciones, trazabilidad y recuperación dentro de la arquitectura existente; preservar USD8 y no emitir ni reservar.
+- Recuperar one-tap interrumpido y retirar Make del mismo bot/backend, sin tocar producción ni economía de q42.
 
 ## Qué se completó realmente
 
-- Último rechazo recuperado de claim durable y Render: QUOTE / Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED, sin operación/reserva/journal nuevo. Consentimiento real de 24h vigente conservado.
-- Cálculo decimal exacto del margen25%, razones separadas, cotización durable antes de admisión y consulta autenticada sin generación. Fuentes de costo vinculadas generalizadas por target_episode.
-- Identidad/idempotencia/quote/reserve antes del transporte, correlación antes de parsear; estados derivados de journal/receipts/reviews; presupuesto completo y biblioteca con evidencia de costos desconocidos.
+- Recuperados10 archivos con cambios; commit local7c0e130 y patch completo versionado. Checkout anterior y temporal CLI conservados.
+- getMe y getWebhookInfo verificados mediante shell existente; token ausente confirmado por Render. Cola Make1 y Telegram0 identificadas por separado.
+- Receptor directo, deduplicación bot/update, CAS y entregas durables dentro de la sesión existente; claves y método Ed25519 conservados. Migración sólo de función aplicada en Supabase staging.
+- Snapshot completo de checkpoint, sesión, fuentes y journals idéntico antes/después de la migración.
 
 ## Qué quedó pendiente
 
-- Importe/ID/vencimiento de la cotización rechazada: no persistidos históricamente. No puede recuperarse fabricando otra cotización.
-- Precio vigente, cargo/resultado original, costo total de EP004 y dispositivo real tras deploy. Producción continúa8/50.
+- Token backend, secreto webhook independiente, corte controlado y desactivación posterior de los dos escenarios. No se cambiaron ni borraron.
+- Un pendiente Make sin payload accesible y dos entradas históricas pending sinID se conservan para revisión, sin replay. Rollback Make no validado: panel error.
+- One-tap completo y revisión de continuación tras rechazo preflight siguen pendientes; .375 no aplicado.
 
 ## Qué trabajo se repitió innecesariamente
 
-- Se incluyó un archivo histórico completo en una regresión ampliada: ejecutó fixtures locales de medios/master innecesarios, sin red ni proveedor real. No repetirlo. CI ahora selecciona únicamente11 casos de presupuesto/cotización de ese archivo.
-- La nueva exigencia de plan completo bloqueó correctamente el fixture antiguo de episodio nuevo sin pronóstico. Se agregó evidencia económica sintética al fixture; el master completo no se volvió a ejecutar.
+- Una lectura agrupada demasiado grande fue truncada y requirió lecturas pequeñas. Evitar volcar registros/configuraciones completos.
+- No se repitieron investigaciones históricas de q42 ni suites completas/master.
 
 ## Qué instrucciones evitaron errores
 
-- No inferir emisión desde popup ni ausencia de logs; se comprobó frontera atómica y journal. No confundir Q41 en un código con identidad de toma.
-- No elevar el máximo específico ni reutilizar el presupuesto8 como permiso de gasto. No repetir el consentimiento vigente.
+- Preservar antes de modificar y usar checkout separado; no asumir pérdida por falta de push.
+- No extraer token de Make; no vaciar colas ni interpretar cola Telegram vacía como cola Make vacía.
+- No aplicar cambios económicos de one-tap durante la migración.
 
 ## Qué instrucciones generaron fricción
 
-- El importe de un rechazo que el backend descartó no puede reconstruirse. Se reporta la limitación y se prepara consulta separada de generación.
+- La credencial del bot no está disponible al backend; su traslado requiere configuración directa del propietario en Render. La autorización técnica no permite extraerla de Make.
 
 ## Qué evidencia faltó
 
-- Cotización histórica exacta y recibo/correlación del estimador; cargo original; precios de6 imágenes,6 clips,voz y asignación de infraestructura.
+- Token válido del backend, recepción/entrega Telegram directa, detalle del elemento en cola Make, rollback operacional, apertura iPhone después del corte.
 
 ## Qué decisión humana se necesita
 
-- Consultar cotización sin generar desde la sesión autenticada. No volver a aceptar riesgo vigente. Si la reserva resultante supera.3275, revisar el importe exacto y autorizar expresamente otro máximo antes de cualquier cambio; no basta cap8.
+- Configurar LUMI_TELEGRAM_BOT_TOKEN en Environment del servicio staging; no pegar token en chat ni revocarlo. No se necesita otra autorización técnica.
 
 ## Qué pruebas pasaron
 
-- Casos focalizados de SQL/auth/adaptador real con HTTP simulado, presupuesto, journal, biblioteca y feedback. Última regresión afectada38/38; subconjunto de cotizaciones11/11. CI exacto validará184 casos, sin ejecutar masters históricos.
+- 8 pruebas nuevas de SQL/transporte;43 biblioteca/auth;23 HMAC/medios/recibos;11 presupuesto/recuperación afectada. CI debe confirmar el SHA exacto. Generaciones HTTP simuladas o ausentes; ningún proveedor pago real.
 
 ## Qué riesgos permanecen
 
-- Original q42 ambiguo y cargo desconocido; no liberar su reserva. Idempotencia oficial documentada, pero replay real no verificado ni habilitado.
-- Persistencia local puede fallar después de una respuesta remota; conservar claim y recuperar evidencia, nunca emitir automáticamente.
-- Faltan costos completos y revisión real de dispositivo; simulaciones no prueban rentabilidad ni completan EP004.
+- Render free puede dormir; trabajo QUEUED persiste pero no hay disponibilidad instantánea. DISPATCHING/UNKNOWN nunca se reenvía automáticamente.
+- Make panel en error no es respaldo operativo validado. No afirmar independencia hasta verificar corte y escenarios inactivos.
+- q42 original sigue ambiguo; progreso productivo8/50 y presupuesto8 intactos.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 2dc942bb3dd8c8441aae0f1cad2efa916eb573d107027203bf7498dbabfbbcba. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: be4e861953335dfde3cda516171a8666643d662b7bece1120e0773072d7b935c. Outputs are inert drafts; generating them cannot expand authorization.

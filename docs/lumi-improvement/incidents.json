@@ -225,5 +225,29 @@
     "REGRESSION_GUARD": "higgsfield-usd-budget-v1.test.js RESERVATION_MULTIPLIER plus SQL exact numeric policy",
     "REUSABILITY": "Any episode/action using the existing shared Budget Gate and supervised recovery.",
     "NEXT_ACTION": "Deploy validated staging code; retrieve a new quote only by explicit authenticated consultation, never infer the old amount or expand authorization."
+  },
+  {
+    "INCIDENT_ID": "LUMI-DIRECT-TELEGRAM-011",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "Telegram transport and Studio session continuity",
+    "SYMPTOM": "Make panel error, one queued event; backend has no bot token. Adding token would change existing session/media signing key and initData replay method.",
+    "ROOT_CAUSE": "Backend transport is configured through Make; miniAppSecret and credential selection preferred bot token over existing callback-secret/Ed25519 configuration.",
+    "EVIDENCE": [
+      "Render2026-10-20T15:35:43Z bot_credentialfalse/callback_secrettrue.",
+      "Make6224860 error/queue1;6532649 active; getMe confirms8843261381; getWebhookInfo pending0 and Make host.",
+      "Baseline auth.js credential priority and focused token-addition regression."
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Direct migration cannot activate until token is safely configured; Studio remains available.",
+    "FINANCIAL_RISK": "No generation/quote/reserve/new service; q42 unchanged. Old Telegram delivery status must not be inferred from empty Telegram queue.",
+    "FIX_STATUS": "IMPLEMENTED_CUTOVER_BLOCKED_TOKEN",
+    "FIX_COMMIT": null,
+    "TEST_EVIDENCE": [
+      "8 actual-SQL/direct transport tests;43 library/auth;23 affected HMAC/receipts;11 budget/recovery subset.",
+      "Real protected checkpoint/session/journal/source snapshot identical after schema-only migration."
+    ],
+    "REGRESSION_GUARD": "test/lumi-direct-telegram.test.js; existing auth/private library tests",
+    "REUSABILITY": "All episodes on the same authenticated bot; transport-only durable receipts and future result notifications.",
+    "NEXT_ACTION": "Configurar el token existente en LUMI_TELEGRAM_BOT_TOKEN dentro de Render Environment de content-factory-av2-staging, sin compartirlo en chat. Después verificar getMe backend y completar el corte siguiendo docs/LUMI_DIRECT_TELEGRAM.md, conservando colas. No tocar q42."
   }
 ]

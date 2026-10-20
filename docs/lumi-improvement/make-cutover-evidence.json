@@ -1,0 +1,316 @@
+{
+  "observed_at": "2026-10-20",
+  "scope": "Structural inventory; full configurations/connections/history remain unchanged in Make. Secret-bearing mappings and webhook URLs intentionally not exported.",
+  "scenarios": [
+    {
+      "scenario": {
+        "id": 6224860,
+        "name": "LUMI | 01 | Panel de control Telegram",
+        "teamId": 545770,
+        "folderId": 277620,
+        "status": "error",
+        "isLockedForEditing": false,
+        "isWaitingOnIncompleteExecutions": false,
+        "incompleteExecutions": 0,
+        "lastEdit": "2026-10-14T23:20:18.147Z"
+      },
+      "trigger": {
+        "moduleId": 1,
+        "module": "telegram:WatchUpdates",
+        "kind": "webhook",
+        "scheduling": {
+          "type": "immediately",
+          "maximum_runs_per_minute": 100
+        }
+      },
+      "modules": [
+        {
+          "id": 1,
+          "module": "telegram:WatchUpdates",
+          "version": 1,
+          "root": "main"
+        },
+        {
+          "id": 16,
+          "module": "json:TransformToJSON",
+          "version": 1,
+          "label": "Serializar actualización Telegram",
+          "follows": 1
+        },
+        {
+          "id": 8,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "label": "Procesar menú en Supabase",
+          "follows": 16
+        },
+        {
+          "id": 9,
+          "module": "builtin:BasicRouter",
+          "version": 1,
+          "label": "Menús y consultas de IA",
+          "follows": 8
+        },
+        {
+          "id": 10,
+          "module": "builtin:BasicFeeder",
+          "version": 1,
+          "label": "Acciones de Telegram",
+          "parent": {
+            "moduleId": 9,
+            "kind": "route",
+            "index": 0
+          }
+        },
+        {
+          "id": 12,
+          "module": "telegram:UniversalAPICall",
+          "version": 1,
+          "label": "Mostrar menú y responder botones",
+          "follows": 10
+        },
+        {
+          "id": 19,
+          "module": "builtin:Ignore",
+          "version": 1,
+          "label": "No detener el panel por un mensaje vencido",
+          "parent": {
+            "moduleId": 12,
+            "kind": "errorHandler"
+          }
+        },
+        {
+          "id": 21,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "label": "Recordar mensaje único del panel",
+          "follows": 12,
+          "filter": {
+            "name": "Record canonical menu or review delivery",
+            "conditions": "RETAINED_IN_MAKE"
+          }
+        },
+        {
+          "id": 11,
+          "module": "openai-gpt-3:makeApiCall",
+          "version": 1,
+          "label": "Ideas IA con resumen de temas sin mensajes privados",
+          "parent": {
+            "moduleId": 9,
+            "kind": "route",
+            "index": 1
+          },
+          "filter": {
+            "name": "Solo consultas de IA",
+            "conditions": "RETAINED_IN_MAKE"
+          }
+        },
+        {
+          "id": 18,
+          "module": "builtin:Resume",
+          "version": 1,
+          "label": "Mantener el bot disponible si falla la IA",
+          "parent": {
+            "moduleId": 11,
+            "kind": "errorHandler"
+          }
+        },
+        {
+          "id": 17,
+          "module": "json:TransformToJSON",
+          "version": 1,
+          "label": "Serializar respuesta IA",
+          "follows": 11
+        },
+        {
+          "id": 13,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "label": "Guardar propuestas verificadas",
+          "follows": 17
+        },
+        {
+          "id": 14,
+          "module": "builtin:BasicFeeder",
+          "version": 1,
+          "label": "Notificar propuestas listas",
+          "follows": 13
+        },
+        {
+          "id": 15,
+          "module": "telegram:UniversalAPICall",
+          "version": 1,
+          "label": "Entregar propuestas",
+          "follows": 14
+        },
+        {
+          "id": 20,
+          "module": "builtin:Ignore",
+          "version": 1,
+          "label": "No detener el panel por un mensaje vencido",
+          "parent": {
+            "moduleId": 15,
+            "kind": "errorHandler"
+          }
+        },
+        {
+          "id": 22,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "label": "Confirmar el mismo panel de review",
+          "follows": 15,
+          "filter": {
+            "name": "Sólo entrega review",
+            "conditions": "RETAINED_IN_MAKE"
+          }
+        },
+        {
+          "id": 23,
+          "module": "telegram:EditMediaMessage",
+          "version": 1,
+          "label": "Editar imagen original sin convertir bytes",
+          "parent": {
+            "moduleId": 9,
+            "kind": "route",
+            "index": 2
+          },
+          "filter": {
+            "name": "Only verified native binary photo",
+            "conditions": "RETAINED_IN_MAKE"
+          }
+        },
+        {
+          "id": 24,
+          "module": "http:MakeRequest",
+          "version": 4,
+          "label": "Registrar ACK durable de imagen original",
+          "follows": 23,
+          "filter": {
+            "name": "Only canonical binary review ACK",
+            "conditions": "RETAINED_IN_MAKE"
+          }
+        }
+      ],
+      "connections": [
+        {
+          "id": 11003632,
+          "label": "Bot content factory",
+          "app": "telegram",
+          "usedByModules": [
+            12,
+            15,
+            23
+          ],
+          "status": "ok"
+        },
+        {
+          "id": 11004312,
+          "label": "PROYECTO AGUSTIN OPEN IA",
+          "app": "openai-gpt-3",
+          "usedByModules": [
+            11
+          ],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "id": 6532649,
+        "name": "API shell: telegram | Lumi staging canonical panel 138",
+        "teamId": 545770,
+        "status": "active",
+        "isLockedForEditing": false,
+        "isWaitingOnIncompleteExecutions": false,
+        "incompleteExecutions": 0,
+        "lastEdit": "2026-10-06T17:24:46.704Z"
+      },
+      "trigger": {
+        "moduleId": 1,
+        "module": "scenario-service:StartSubscenario",
+        "kind": "on-demand",
+        "scheduling": {
+          "type": "on-demand"
+        }
+      },
+      "modules": [
+        {
+          "id": 1,
+          "module": "scenario-service:StartSubscenario",
+          "version": 2,
+          "root": "main"
+        },
+        {
+          "id": 2,
+          "module": "telegram:UniversalAPICall",
+          "version": 1,
+          "follows": 1
+        },
+        {
+          "id": 3,
+          "module": "scenario-service:ReturnData",
+          "version": 2,
+          "follows": 2
+        }
+      ],
+      "interface": {
+        "input": [
+          {
+            "name": "path",
+            "type": "text",
+            "required": true
+          },
+          {
+            "name": "body",
+            "type": "text",
+            "required": true,
+            "multiline": true
+          }
+        ],
+        "output": [
+          {
+            "name": "data",
+            "type": "any"
+          }
+        ]
+      },
+      "connections": [
+        {
+          "id": 11003632,
+          "label": "Bot content factory",
+          "app": "telegram",
+          "usedByModules": [
+            2
+          ],
+          "status": "ok"
+        }
+      ]
+    }
+  ],
+  "pending": {
+    "telegram": 0,
+    "make_queue": 1,
+    "incomplete_executions": 0,
+    "latest_execution": "0672edcb5b394115a23575f0db7a243c",
+    "latest_execution_status": "error",
+    "latest_update_id": 830558974,
+    "latest_update_disposition": "Matching durable Make request exists; held, no replay. Does not prove delivery.",
+    "history_pending_without_id": [
+      "2026-10-15T15:24:44.606Z",
+      "2026-10-14T11:55:20.141Z"
+    ],
+    "queue_payload": "Not exposed by available queue inspection; retain for review, no replay or deletion."
+  },
+  "bot": {
+    "id": 8843261381,
+    "username": "AppMultimedia_VideosBot",
+    "getMe_execution": "17147f5d1ee346169b4850089f60cca1",
+    "webhook_host": "hook.us2.make.com",
+    "webhook_changed": false
+  },
+  "rollback": {
+    "performed": false,
+    "original_configuration": "retained in Make 6224860",
+    "availability": "NOT_PREVALIDATED: panel status error; no claim of operational fallback"
+  }
+}

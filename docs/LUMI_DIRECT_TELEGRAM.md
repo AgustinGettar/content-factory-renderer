@@ -102,10 +102,12 @@ CAS, reviews, Budget Gate and Provider Emission Journal remain authoritative.
    Set LUMI_TELEGRAM_TRANSPORT_AUTHORITY=DIRECT on staging and verify the new
    backend identity/readiness before changing Telegram. The shell can remain
    available only through the controlled cutover; deactivate it after success.
-5. Make exactly one explicit setWebhook call for this bot to the staging HTTPS
+5. Make exactly one explicit setWebhook call FROM THE BACKEND for this bot to the staging HTTPS
    endpoint above, secret_token from the independent secret, allowed_updates
    ["message","callback_query"], drop_pending_updates=false. Never call
    getUpdates alongside a webhook. Never register a webhook on startup.
+   Do not pass secret_token through Make: its execution history is an unnecessary
+   disclosure. Use the temporary backend control described below.
 6. Immediately verify getWebhookInfo destination, pending count and errors.
    Use at most one owner /start interaction: it should return the Studio button;
    open Studio and verify existing private media. Do not click Generate.
@@ -138,3 +140,29 @@ See docs/recovery/README.md for the exact unfinished one-tap work. Transport wor
 is technical progress only and does not advance episode production.
 
 Official protocol reference: https://core.telegram.org/bots/api#setwebhook
+
+## Temporary backend cutover control
+
+The original procedure lacked a safe operator path for setWebhook. Automatic
+approval review rejected transmitting the independent webhook secret through
+Make. State inspection confirmed the rejected action did not change Telegram.
+The receiver itself is unchanged; the existing direct adapter now exposes an
+explicit staging-only control at `/lumi/telegram-review/telegram/cutover`.
+
+Configure a separate random `LUMI_TELEGRAM_CUTOVER_KEY` and a short explicit
+`LUMI_TELEGRAM_CUTOVER_EXPIRES_AT` in Render using a merge, never replacing env.
+The key must differ from the bot, callback and webhook secrets. Keep the local
+operator key in a private temporary file outside the repo. The CLI accepts only
+INSPECT or CONFIGURE, signs the body and timestamp, and pins the deployed SHA.
+INSPECT exposes only a hash of the previous destination and safe metadata.
+CONFIGURE requires that hash, checks the exact bot and existing Studio menu,
+claims once through the existing session CAS, then invokes Telegram using the
+backend credential. The webhook secret travels only from Render to Telegram.
+The receipt has kind OPERATOR_CUTOVER and cannot be drained as a notification.
+
+Run `node scripts/lumi-telegram-cutover.mjs INSPECT <sha> <private-key-file>`.
+After checking the response, run CONFIGURE with the same arguments and the
+returned destination_sha256. On any uncertainty, use INSPECT; never reissue the
+mutation. A DISPATCHING receipt after process loss is retained and blocks replay.
+There is no automatic retry or startup registration. Clear the temporary key
+and expire the control after verification. No bot, callback or Studio keys rotate.

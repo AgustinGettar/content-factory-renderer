@@ -212,6 +212,7 @@ const assetV2Store = supabase ? new SupabaseAssetV2Store(supabase) : null;
 
 const app = express();
 app.use('/lumi/telegram-review/telegram/webhook',express.json({limit:'16kb',strict:true}));
+app.use('/lumi/telegram-review/telegram/cutover',express.json({limit:'1kb',strict:true}));
 app.use(express.json({ limit: "1mb", verify(req,res,bytes) {
   if(req.originalUrl==='/lumi/telegram-review/make/v1')req.rawBody=Buffer.from(bytes);
 } }));

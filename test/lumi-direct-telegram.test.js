@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHmac} from 'node:crypto';
 import {PGlite} from '@electric-sql/pglite';
-import {DirectTelegram,mountDirectTelegram,DIRECT_PATH,directConfigured} from '../lib/telegram-review-v1/direct-transport.js';
+import {DirectTelegram,mountDirectTelegram,DIRECT_PATH,CUTOVER_PATH,directConfigured} from '../lib/telegram-review-v1/direct-transport.js';
 import {TelegramTransport} from '../lib/telegram-review-v1/runtime.js';
 import {miniAppSecret,miniAuthCredential,MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
 import {claimRequest} from '../lib/telegram-review-v1/make-transport.js';
@@ -102,4 +102,57 @@ test('DIRECT_HTTP_TRANSPORT: direct Bot API receipt, sanitized failures and no p
  assert.equal((await telegram.call('sendMessage',{chat_id:1,text:'Studio'})).message_id,99);assert.equal(calls.length,1);assert.match(calls[0].url,/^https:\/\/api.telegram.org\//);
  await assert.rejects(telegram.call('setWebhook',{drop_pending_updates:true}),/preservation/);await assert.rejects(telegram.call('getUpdates',{}),/forbidden/);
  const broken=new TelegramTransport({token:'OFFLINE_SECRET',fetchImpl:async()=>{throw Error('secret transport URL');}});await assert.rejects(broken.call('sendMessage',{}),e=>e.code==='TELEGRAM_DELIVERY_UNKNOWN'&&!e.message.includes('SECRET'));
+});
+
+async function cutoverSetup({lostResponse=false,lostPersistence=false}={}){
+ const f=await setup(),calls=[];let url='https://old.invalid/private-do-not-return';
+ const config={...env,LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',RENDER_GIT_COMMIT:'a'.repeat(40),
+  LUMI_TELEGRAM_CUTOVER_KEY:'offline-operator-key-independent-123456789',LUMI_TELEGRAM_CUTOVER_EXPIRES_AT:new Date(Date.now()+3600000).toISOString()};
+ const transport={call:async(method,body)=>{calls.push({method,body});
+  if(method==='getMe')return {id:8843261381,is_bot:true,username:'AppMultimedia_VideosBot'};
+  if(method==='getWebhookInfo')return {url,pending_update_count:3,allowed_updates:['message','callback_query']};
+  if(method==='getChatMenuButton')return {type:'web_app',text:'Abrir Lumi Studio',web_app:{url:'https://content-factory-av2-staging.onrender.com/lumi/studio'}};
+  assert.equal(method,'setWebhook');url=body.url;
+  if(lostPersistence)f.store.cas=async()=>{throw Error('storage_unavailable');};
+  if(lostResponse)throw Error('response lost');return true;
+ }};
+ const options={...f.options,env:config,transport};const service=new DirectTelegram(options);
+ return {...f,config,transport,options,service,calls};
+}
+test('DIRECT_CUTOVER_AUTH: separate expiring HMAC, timestamp, staging SHA, strict actions, no secret disclosure',async()=>{
+ const f=await cutoverSetup(),routes={},app={get:(p,h)=>routes[p]=h,post:(p,h)=>routes[p]=h};
+ mountDirectTelegram(app,{...f.options,startWorker:false});
+ const request=async({action='INSPECT',sha=f.config.RENDER_GIT_COMMIT,key=f.config.LUMI_TELEGRAM_CUTOVER_KEY,ts=String(Math.floor(Date.now()/1000))}={})=>{
+  const body={action,expected_staging_sha:sha},signature=createHmac('sha256',key).update(ts+'\n'+JSON.stringify(body)).digest('hex');
+  const res={statusCode:200,status(n){this.statusCode=n;return this;},json(x){this.body=x;return this;}};
+  await routes[CUTOVER_PATH]({body,headers:{'x-lumi-cutover-timestamp':ts,'x-lumi-cutover-signature':signature},is:()=>true},res);return res;
+ };
+ assert.equal((await request({key:env.LUMI_TELEGRAM_WEBHOOK_SECRET})).statusCode,401);
+ assert.equal((await request({ts:'1000000000'})).statusCode,401);
+ assert.equal((await request({action:'sendMessage'})).statusCode,400);
+ assert.equal((await request({sha:'b'.repeat(40)})).statusCode,400);
+ const result=await request();assert.equal(result.statusCode,200);assert.equal(result.body.pending_update_count,3);
+ assert.ok(!JSON.stringify(result).includes('private-do-not-return'));assert.ok(!JSON.stringify(result).includes(f.config.LUMI_TELEGRAM_WEBHOOK_SECRET));
+ f.config.LUMI_TELEGRAM_CUTOVER_EXPIRES_AT='2000-01-01T00:00:00Z';assert.equal((await request()).statusCode,404);
+ assert.equal(f.calls.filter(x=>x.method==='setWebhook').length,0);await f.sql.close();
+});
+test('DIRECT_CUTOVER_CAS: concurrent/replayed requests emit one configuration; no economic or episode effects',async()=>{
+ const f=await cutoverSetup(),prior=(await f.store.get('1')).state,info=await f.service.inspectCutover();
+ const results=await Promise.allSettled(Array.from({length:4},()=>f.service.configureCutover(info.destination_sha256)));
+ assert.ok(results.some(r=>r.status==='fulfilled'));assert.equal(f.calls.filter(x=>x.method==='setWebhook').length,1);
+ const after=await f.service.inspectCutover();assert.equal(after.destination_direct,true);assert.equal(after.cutover_receipt.status,'VERIFIED');
+ await f.service.configureCutover(after.destination_sha256);assert.equal(f.calls.filter(x=>x.method==='setWebhook').length,1);
+ const sent=f.calls.find(x=>x.method==='setWebhook').body;assert.equal(sent.drop_pending_updates,false);assert.deepEqual(sent.allowed_updates,['message','callback_query']);
+ const row=(await f.store.get('1')).state;delete row.make_requests;assert.deepEqual(row,prior);
+ assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,0);await f.sql.close();
+});
+test('DIRECT_CUTOVER_RESPONSE_LOSS: inspect after lost ACK or process interruption; never resubmit',async()=>{
+ for(const lostPersistence of [false,true]){
+  const f=await cutoverSetup({lostResponse:true,lostPersistence}),info=await f.service.inspectCutover();
+  await f.service.configureCutover(info.destination_sha256).catch(()=>{});
+  const restarted=new DirectTelegram(f.options),after=await restarted.inspectCutover();assert.equal(after.destination_direct,true);
+  assert.equal(after.cutover_receipt.status,lostPersistence?'DISPATCHING':'VERIFIED');
+  await restarted.configureCutover(after.destination_sha256);assert.equal(f.calls.filter(x=>x.method==='setWebhook').length,1);
+  await f.sql.close();
+ }
 });

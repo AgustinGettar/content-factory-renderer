@@ -1,0 +1,1087 @@
+From 7c0e13095f90f2172aff9cf7ea48369f28280c6e Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Tue, 20 Oct 2026 15:39:43 +0000
+Subject: [PATCH] wip(lumi): preserve interrupted one-tap work without applying
+ q42 changes
+
+---
+ lib/lumi-supervised-activation.js             |   2 +-
+ lib/lumi-supervised-replacement.js            |  32 +-
+ lib/lumi-v2-telegram-runtime.js               |  37 +-
+ lib/telegram-mini-app/q41-policy.js           |  73 ++++
+ lib/telegram-mini-app/runtime.js              |  91 ++++-
+ public/lumi-studio/app.js                     |  54 ++-
+ ...9015259_lumi_one_tap_proposal_revision.sql | 321 ++++++++++++++++++
+ test/lumi-q41-first-image.test.js             |  37 ++
+ test/lumi-supervised-activation.test.js       |  38 ++-
+ test/lumi-supervised-replacement.test.js      |   2 +-
+ 10 files changed, 641 insertions(+), 46 deletions(-)
+ create mode 100644 supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql
+
+diff --git a/lib/lumi-supervised-activation.js b/lib/lumi-supervised-activation.js
+index 2698902..89f5780 100644
+--- a/lib/lumi-supervised-activation.js
++++ b/lib/lumi-supervised-activation.js
+@@ -51,7 +51,7 @@ export function installSupervisedActivation(adapter,{manager,reviewStore,journal
+   adapter.reviewSupervisedReplacement=async(principal,proposalId)=>{
+     const c=await load(principal,proposalId),payload=await buildPayload(c,principal);
+     const prior=c.row.state.supervised_replacement_grants?.[proposalId];
+-    if(prior&&Date.parse(prior.expires_at)>Date.now()){
++    if(prior?.proposal_digest===c.proposal.proposal_digest&&prior.max_new_reservation_usd===c.proposal.maximum_new_reservation&&Date.parse(prior.expires_at)>Date.now()){
+       const {g}=grantFor(c);
+       if(g.approved_content_fingerprint===payload.approved_content_fingerprint&&g.consent_contract_version===3)
+         return {authorization_status:'HUMAN_RISK_ACCEPTANCE',consent_expires_at:g.expires_at,provider_calls:0,new_reservations:0};
+diff --git a/lib/lumi-supervised-replacement.js b/lib/lumi-supervised-replacement.js
+index a8eada0..9b1c473 100644
+--- a/lib/lumi-supervised-replacement.js
++++ b/lib/lumi-supervised-replacement.js
+@@ -68,6 +68,25 @@ export function assertReplacementProposal(p){
+   requireThat(new Set([p.original_operation_id,p.original_attempt_id,p.replacement_proposal_id,p.planned_operation_id,p.planned_attempt_id,p.planned_idempotency_key]).size===6,'REPLACEMENT_IDEMPOTENCY_COLLISION');
+ }
+ 
++// Revise only an unactivated proposal. The original and all prior consents are
++// immutable; the changed digest forces a new, explicit material-risk decision.
++export function reviseReplacementMaximum({proposal,maximumNewReservation,authorizationReference,createdAt}){
++  assertReplacementProposal(proposal);
++  requireThat(Number.isFinite(maximumNewReservation)&&maximumNewReservation>0
++    &&maximumNewReservation!==proposal.maximum_new_reservation
++    &&typeof authorizationReference==='string'&&authorizationReference.length>0
++    &&Number.isFinite(Date.parse(createdAt)),'REPLACEMENT_REVISION_INPUT_REQUIRED');
++  const maximum=usd(maximumNewReservation),exposure=sumUsd([proposal.existing_episode_exposure_usd,maximum]);
++  requireThat(exposure<=proposal.budget_ceiling_usd,'REPLACEMENT_DOUBLE_EXPOSURE_BUDGET_BLOCKED');
++  const {proposal_digest,...old}=proposal;
++  const value={...old,version:proposal.version+1,previous_proposal_digest:proposal_digest,
++    revision_authorization_reference:authorizationReference,created_at:createdAt,
++    maximum_new_reservation:maximum,potential_episode_exposure_usd:exposure,
++    potential_duplicate_cost:{...proposal.potential_duplicate_cost,proposed_additional_reservation_usd:maximum,
++      combined_q42_or_action_exposure_usd:sumUsd([proposal.original_reserved_usd,maximum])}};
++  return {...value,proposal_digest:recoveryDigest(value)};
++}
++
+ // Pure preflight for a future authorized implementation. Not an emission capability.
+ // Callers must load authenticated server-side grants, never request-body assertions.
+ export function replacementRiskGate({proposal:p,checkpoint,operation,journal,authorization,budget,riskGrant,quote,now=Date.now()}){
+@@ -108,14 +127,17 @@ export function replacementPresentation({checkpoint:cp,state,budget,current_emis
+   const valid=p.checkpoint_digest===recoveryDigest(cp)&&reservation?.attempt_id===p.original_attempt_id
+     &&current_emission?.state==='EMISSION_UNKNOWN'&&current_emission?.attempt_id===p.original_attempt_id;
+   const grant=state.supervised_replacement_grants?.[p.replacement_proposal_id],op=state.mini_app?.operations?.[p.planned_operation_id];
+-  const granted=grant?.status==='AUTHORIZED'&&grant.risk_disclosure_version===RISK_VERSION&&Date.parse(grant.expires_at)>Date.now();
++  const sameTerms=grant?.proposal_digest===p.proposal_digest&&grant.max_new_reservation_usd===p.maximum_new_reservation
++    &&grant.episode_id===p.episode_id&&grant.original_operation_id===p.original_operation_id;
++  const granted=sameTerms&&grant?.status==='AUTHORIZED'&&grant.risk_disclosure_version===RISK_VERSION&&Date.parse(grant.expires_at)>Date.now();
+   const originalVisible=!!state.production_commands?.[p.original_attempt_id]?.result?.provider_job_ids?.length;
+   const confirmation=state.supervised_replacement_quote_claims?.[grant?.authorization_reference];
+   const claimed=!!confirmation&&!(['PREFLIGHT_FAILED','QUOTE_RECORDED'].includes(confirmation.status)||confirmation.binding&&confirmation.status==='CLAIMED'&&Date.parse(confirmation.expires_at)<=Date.now());
+   const economic=confirmation?.quote?.economic_decision??null;
+   const priceBlocked=economic?.status==='BLOCKED'||confirmation?.error_code==='Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED';
+   return {proposal_id:p.replacement_proposal_id,status:op?'REPLACEMENT_CLAIMED':valid?p.proposal_status:'EVIDENCE_CHANGED_REVIEW_REQUIRED',
+-    risk_review_available:supervised_replacement_ready&&valid&&!op&&!originalVisible,
++    risk_review_available:supervised_replacement_ready&&valid&&!granted&&!op&&!originalVisible,
++    proposal_version:p.version,proposal_digest:p.proposal_digest,
+     combined_exposure_usd:sumUsd([p.original_reserved_usd,p.maximum_new_reservation]),
+     recover_available:supervised_replacement_ready&&!!(originalVisible||op&&current_emission?.state==='ACKNOWLEDGED'||!op&&current_emission?.request_id),
+     risk_disclosure:supervised_replacement_ready?RISK_TEXT.replace('esta imagen',cp.actions.find(a=>a.key===p.action_id)?.stage==='VIDEO'?'este video':'esta imagen'):p.risk_disclosure,duplicate_risk:true,previous_reservation_usd:reservation?.amount_usd??null,
+@@ -123,13 +145,13 @@ export function replacementPresentation({checkpoint:cp,state,budget,current_emis
+     projected_episode_exposure_usd:sumUsd([budget.required_total_usd,p.maximum_new_reservation]),
+     authorization_reference:grant?.authorization_reference??null,
+     consent_recorded:!!grant,consent_timestamp:grant?.consent_timestamp??null,consent_expires_at:grant?.expires_at??null,
+-    consent_expiration_reason:grant&&!granted?(grant.consent_contract_version===3?'EXPLICIT_24_HOUR_LIMIT':'LEGACY_CONSENT_BOUND_TO_SIGNED_CONTENT'):null,
+-    operation_status:op?.phase??'NOT_CREATED',confirmation_status:confirmation?.status??'NOT_STARTED',confirmation_outcome_unrecorded:!!confirmation&&!confirmation.binding&&!op,
++    consent_expiration_reason:grant&&!granted?(sameTerms?(grant.consent_contract_version===3?'EXPLICIT_24_HOUR_LIMIT':'LEGACY_CONSENT_BOUND_TO_SIGNED_CONTENT'):'MATERIAL_MAXIMUM_CHANGED'):null,
++    operation_status:op?.phase??'NOT_CREATED',confirmation_id:confirmation?.claim_id??null,confirmation_status:confirmation?.status??'NOT_STARTED',confirmation_outcome_unrecorded:!!confirmation&&!confirmation.binding&&!op,
+     confirmation_error:confirmation?.error_code??null,generation_boundary:confirmation?.generation_boundary??(op?'JOURNAL_RECOVERY_REQUIRED':'NO_OPERATION'),
+     economic_decision:economic,last_quote:confirmation?.quote?{quote_id:confirmation.quote.quote_id,created_at:confirmation.quote.created_at,expires_at:confirmation.quote.expires_at}:null,
+     economic_evidence_missing:priceBlocked&&!economic,
+     quote_only_available:supervised_replacement_ready&&valid&&granted&&!claimed&&!op&&!originalVisible,
+-    authorization_status:grant?(granted?'HUMAN_RISK_ACCEPTANCE':'CONSENT_EXPIRED'):'NOT_GRANTED',quote_status:claimed?'QUOTE_CLAIMED':'FRESH_QUOTE_REQUIRED',
++    authorization_status:grant?(granted?'HUMAN_RISK_ACCEPTANCE':sameTerms?'CONSENT_EXPIRED':'NEW_RISK_ACCEPTANCE_REQUIRED'):'NOT_GRANTED',quote_status:claimed?'QUOTE_CLAIMED':'FRESH_QUOTE_REQUIRED',
+     new_reservation_status:op?'RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED':'NOT_RESERVED',
+     generation_enabled:supervised_replacement_ready&&valid&&granted&&!claimed&&!op&&!originalVisible&&!priceBlocked};
+ }
+diff --git a/lib/lumi-v2-telegram-runtime.js b/lib/lumi-v2-telegram-runtime.js
+index c67ab96..082afba 100644
+--- a/lib/lumi-v2-telegram-runtime.js
++++ b/lib/lumi-v2-telegram-runtime.js
+@@ -804,12 +804,23 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+       throw Error('Q41_VIDEO_PRIOR_EMISSION_OR_RESERVATION');
+     return {cp,receipts,...await latestVideoQuote(user,cp),budget:await manager.budgetExposure({episodeId:cp.episode_id})};
+   };
+-  adapter.prepareEp004VideoQuote=async({user,chat,renew=false,expectedQuoteId,miniAppPrincipal=null,expectedAction,checkpointVersion})=>{
++  adapter.prepareEp004VideoQuote=async({user,chat,renew=false,expectedQuoteId,miniAppPrincipal=null,expectedAction,checkpointVersion,planOperationId=null})=>{
+     const ctx=await videoQuoteContext(user,chat,miniAppPrincipal),{cp,receipts,budget}=ctx;
++    let planLimit=null;
++    if(planOperationId){
++      if(!miniAppPrincipal)throw Error('MINI_OWNER_REQUIRED');
++      const state=(await reviewStore.get(user)).state,op=state.mini_app?.operations?.[planOperationId];
++      const consent=assertOneTapConsent(op,env,cp,null,false,state);
++      if(op?.kind!=='production_stage'||op.binding.next_action!==cp.first_pending_action)throw Error('EPISODE_PLAN_ACTION_NOT_AUTHORIZED');
++      planLimit=consent.per_action_limits[cp.first_pending_action];
++    }
+     // Read-only recommendations are checked before proposing new paid media.
+     // Selection/application remains a separate explicit human decision.
+     if(adapter.assetLibrary&&miniAppPrincipal){const next=cp.actions.find(a=>a.key===cp.first_pending_action);
+-      if(next?.scene_id)await adapter.assetLibrary.plan(miniAppPrincipal,cp.episode_id,next.scene_id);}
++      if(next?.scene_id){const reuse=await adapter.assetLibrary.plan(miniAppPrincipal,cp.episode_id,next.scene_id);
++        if(planOperationId&&!cp.metadata.library_reuse?.[next.key]&&reuse.suggestions?.some(s=>s.mode==='DIRECT_MEDIA_REUSE'
++          &&s.compatibility.status==='COMPATIBLE'&&(next.stage==='VIDEO'?s.asset.media_type==='video/mp4':s.asset.media_type?.startsWith('image/'))))
++          throw Error('LIBRARY_DIRECT_REUSE_REVIEW_REQUIRED');}}
+     if(expectedAction!==undefined&&(cp.first_pending_action!==expectedAction||cp.metadata.runtime_revision!==checkpointVersion))throw Error('MINI_STAGE_CHANGED');
+     let {id,version,previous}=ctx;
+     const finish=async()=>{await projectCheckpoint(user,cp.episode_id);return {
+@@ -819,8 +830,11 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+       const r=ctx.receipt,q=r.result;
+       // An unknown request/response is never eligible for renewal. Only a
+       // verified completed quote that has actually expired can be superseded.
+-      if(r.status!=='COMPLETE'||q?.status!=='AWAITING_HUMAN_AUTHORIZATION'
+-        ||!Number.isFinite(Date.parse(q.expires_at))||Date.parse(q.expires_at)>Date.now())return finish();
++      const revisedLimit=planOperationId&&q?.status==='BLOCKED'&&q.economic_decision?.status==='BLOCKED'
++        &&['QUOTE_OVER_AUTHORIZED_MAX','RESERVATION_MARGIN_OVER_AUTHORIZED_MAX'].includes(q.economic_decision.reason)
++        &&planLimit>=q.economic_decision.calculated_reservation_usd&&planLimit>q.economic_decision.authorized_max_usd;
++      if(r.status!=='COMPLETE'||!revisedLimit&&(q?.status!=='AWAITING_HUMAN_AUTHORIZATION'
++        ||!Number.isFinite(Date.parse(q.expires_at))||Date.parse(q.expires_at)>Date.now()))return finish();
+       previous={operation_id:id,receipt_sha:r.result_sha};id=nextVideoQuoteId(id,r);version++;
+     }
+     const action=cp.actions.find(a=>a.key===cp.first_pending_action),shot=cp.metadata.generic_v2.shot_plans.find(s=>s.shot_id===action.scene_id);
+@@ -904,7 +918,7 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+         expires_at:new Date(Math.min(sourceExpiry,Date.parse(q.quoted_at)+60000,q.quote_expiration?Date.parse(q.quote_expiration):Infinity)).toISOString()};
+       const gate=supervisedRequestGate({quote:{...result,status:'QUOTE_VERIFIED'},payloadSha,payloadExpiresAt:signed.expires_at,
+         episodeId:cp.episode_id,actionId:action.key,episodeCeilingUsd:cp.authorized_ceiling_usd,existingExposureUsd:budget.required_total_usd,
+-        maxReservationUsd:Math.max(0,result.remaining_before_usd)});
++        maxReservationUsd:planLimit??Math.max(0,result.remaining_before_usd)});
+       const fresh=await videoQuoteContext(user,chat,miniAppPrincipal);
+       if(checkpointIdentity(fresh.cp)!==checkpointIdentity(cp)||inputDigest(fresh.budget)!==inputDigest(budget))throw Error('STALE_CHECKPOINT');
+       result={...result,status:'AWAITING_HUMAN_AUTHORIZATION',budget_gate:'PASS',proposed_reserve_usd:gate.reserve_usd,
+@@ -929,8 +943,8 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+       if(!currentCommandTransport(row.state,command))throw Error('Q41_VIDEO_QUOTE_STALE_CALLBACK');
+       const {cp,id,budget}=await videoQuoteContext(command.user,command.chat,command.principal??null),r=row.state.production_commands?.[id],q=r?.result;
+       const oneTap=row.state.mini_app?.operations?.[command.operation_id];
+-      if(cp.first_pending_action==='image:q42'&&row.state.v2_authorizations?.[Q42_ONE_TAP_POLICY.authorization_id]&&oneTap?.kind!=='second_image')throw Error('Q42_ONE_TAP_REQUIRED');
+-      if(['first_animation','second_image'].includes(oneTap?.kind))assertOneTapConsent(oneTap,env,cp,q,true,row.state);
++      if(cp.first_pending_action==='image:q42'&&row.state.v2_authorizations?.[Q42_ONE_TAP_POLICY.authorization_id]&&!['second_image','production_stage'].includes(oneTap?.kind))throw Error('Q42_ONE_TAP_REQUIRED');
++      if(['first_animation','second_image','production_stage'].includes(oneTap?.kind))assertOneTapConsent(oneTap,env,cp,q,true,row.state);
+       if(r?.status!=='COMPLETE'||inputDigest(q)!==r.result_sha||q.status!=='AWAITING_HUMAN_AUTHORIZATION'
+         ||token.quote_id!==id||token.quote_sha!==r.result_sha||q.checkpoint_id!==checkpointIdentity(cp)
+         ||q.budget_fingerprint!==inputDigest(budget)||!Number.isFinite(Date.parse(q.expires_at))||Date.parse(q.expires_at)<=Date.now())
+@@ -939,7 +953,8 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+       // A decision on this quote only. No global/provider permission or reserve.
+       r.human_authorization={user:command.user,chat:command.chat,message_id:command.message_id,callback_id:command.callback_id,
+         ...(command.channel?{channel:command.channel,mini_app_operation_id:command.operation_id}:{}),
+-        ...(['first_animation','second_image'].includes(oneTap?.kind)?{one_tap_operation_id:oneTap.id,consent_seal:oneTap.consent.seal}:{}),
++        ...(['first_animation','second_image','production_stage'].includes(oneTap?.kind)?{one_tap_operation_id:oneTap.id,consent_seal:oneTap.consent?.seal??row.state.v2_authorizations[oneTap.plan_authorization_id].seal}:{}),
++        ...(oneTap?.kind==='production_stage'?{durable_authorization_id:oneTap.plan_authorization_id,decision_source:'EXPLICIT_APPROVED_EPISODE_PLAN',plan_version:oneTap.plan_version}:{}),
+         ...(oneTap?.kind==='second_image'?{durable_authorization_id:oneTap.consent.value.authorization_id,authorization_digest:oneTap.consent.value.authorization_digest,decision_source:'DURABLE_LIMIT_AUTHORIZATION'}:{}),
+         decision:'APPROVED',scope:q.action_key==='video:q41'?'VIDEO_Q41_QUOTED_SPEND':q.action_key==='tts'?'FERNANDA_SEGMENTED_QUOTA':'EP004_STAGE_QUOTED_SPEND',quote_sha:r.result_sha,payload_sha256:q.payload_sha256,
+         max_reservation_usd:q.proposed_reserve_usd,...(q.action_key==='tts'?{maximum_quota_units:q.quota_units,maximum_requests:q.request_count,continuation_scope:'FROZEN_TTS_REQUEST_SET_V1'}:{}),hard_budget_usd:Number(cp.authorized_ceiling_usd),expires_at:q.expires_at,created_at:new Date().toISOString()};
+@@ -963,8 +978,8 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+       ||q.status!=='AWAITING_HUMAN_AUTHORIZATION'||q.budget_gate!=='PASS')throw Error('Q41_VIDEO_CURRENT_QUOTE_REQUIRED');
+     const context=await authority.authorizeQuotedStage({command,quote:q,receiptSha:r.result_sha,requestSha:cp.metadata.generic_v2.binding_sha});
+     const oneTap=row.state.mini_app?.operations?.[command.operation_id];
+-    if(cp.first_pending_action==='image:q42'&&row.state.v2_authorizations?.[Q42_ONE_TAP_POLICY.authorization_id]&&oneTap?.kind!=='second_image')throw Error('Q42_ONE_TAP_REQUIRED');
+-    if(['first_animation','second_image'].includes(oneTap?.kind))assertOneTapConsent(oneTap,env,cp,q,true,row.state);
++    if(cp.first_pending_action==='image:q42'&&row.state.v2_authorizations?.[Q42_ONE_TAP_POLICY.authorization_id]&&!['second_image','production_stage'].includes(oneTap?.kind))throw Error('Q42_ONE_TAP_REQUIRED');
++    if(['first_animation','second_image','production_stage'].includes(oneTap?.kind))assertOneTapConsent(oneTap,env,cp,q,true,row.state);
+     const body=openPayload(r.private_payload,id);
+     if(sha256(body)!==q.payload_sha256)throw Error('Q41_PAYLOAD_RECEIPT_MISMATCH');
+     const dispatchReceipts=new ReviewStageReceiptStore({store:reviewStore,user:command.user});
+@@ -972,7 +987,7 @@ export function createGenericV2Runtime({manager,reviewStore,artifactStorage,jour
+     if(!await dispatchReceipts.claim('dispatch:'+id,{status:'CLAIMED',quote_id:id,token:command.token,callback_id:command.callback_id}))return {status:'ALREADY_AUTHORIZED_DISPATCH',provider_calls:0};
+     const o=forUser(command.user,false,{...q,currency:q.currency||'USD',usd:q.quote_usd,private_payload:r.private_payload,
+       receipt_sha:r.result_sha,decision_sha:inputDigest(r.human_authorization),mini_app_operation_id:command.operation_id??null,
+-      ...(['first_animation','second_image'].includes(oneTap?.kind)?{one_tap_operation_id:oneTap.id}:{})});
++      ...(['first_animation','second_image','production_stage'].includes(oneTap?.kind)?{one_tap_operation_id:oneTap.id}:{})});
+     try{const result=await o.orchestrator.resume({user:command.user,episodeId:cp.episode_id,execution_context:context});
+       await projectCheckpoint(command.user,cp.episode_id);return result;
+     }finally{await o.dispose();}
+diff --git a/lib/telegram-mini-app/q41-policy.js b/lib/telegram-mini-app/q41-policy.js
+index 9cc6915..428aa68 100644
+--- a/lib/telegram-mini-app/q41-policy.js
++++ b/lib/telegram-mini-app/q41-policy.js
+@@ -2,6 +2,77 @@ import {createHmac,timingSafeEqual} from 'node:crypto';
+ import {buildSceneImagePayload} from '../lumi-v2-executor-bindings.js';
+ import {miniAppSecret} from './auth.js';
+ import {inputDigest,FIRST_IMAGE_EPISODE} from '../lumi-v2-activation-context.js';
++import {supervisedReservation,sumUsd} from '../higgsfield-usd-budget-v1.js';
++import {LUMI_PRODUCTION_PROFILE_V2 as productionProfile,resolveLumiVoiceProfile} from '../lumi-production-profile-v2.js';
++
++const planMac=(value,env)=>createHmac('sha256',miniAppSecret({...env,LUMI_TELEGRAM_BOT_TOKEN:undefined})).update('lumi-episode-plan-v1:'+inputDigest(value)).digest('hex');
++const planNeed=(ok,code='EPISODE_PLAN_APPROVAL_REQUIRED')=>{if(!ok)throw Error(code);};
++export function episodePlanVersion(cp){
++  const g=cp.metadata.generic_v2;
++  planNeed(g?.binding_sha&&g.plan&&g.shot_plans);
++  return inputDigest({episode_id:cp.episode_id,binding_sha:g.binding_sha,plan:g.plan,shots:g.shot_plans,
++    source_contracts:g.source_contracts,profile_sha:g.profile_sha,narration:g.narration_request,
++    actions:cp.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)).map(a=>({key:a.key,stage:a.stage,shot:a.scene_id})),
++    reuse:Object.fromEntries(Object.entries(cp.metadata.library_reuse||{}).map(([key,r])=>[key,r.application_sha]))});
++}
++export function episodePlanContract(cp,projection){
++  planNeed(projection?.status==='PLANNING_WITHIN_BUDGET','EPISODE_PLAN_COST_EVIDENCE_REQUIRED');
++  const g=cp.metadata.generic_v2,actions=cp.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)&&a.status!=='COMPLETE');
++  const limits={},constraints={},models={};
++  for(const a of actions){
++    const item=projection.items.find(i=>i.action_id===a.key),shot=g.shot_plans.find(s=>s.shot_id===a.scene_id);
++    planNeed(Number.isFinite(item?.remaining_estimate_usd)&&item.remaining_estimate_usd>0,'EPISODE_PLAN_COST_EVIDENCE_REQUIRED');
++    models[a.key]=a.stage==='IMAGE'?productionProfile.image.model:a.stage==='VIDEO'?productionProfile.video.endpoint:resolveLumiVoiceProfile(g.narration_request.voice_profile_id).model_id;
++    limits[a.key]=supervisedReservation(item.remaining_estimate_usd);
++    constraints[a.key]={stage:a.stage,shot_id:a.scene_id??null,shot_sha:shot?inputDigest(shot):null,
++      duration_seconds:a.stage==='VIDEO'?shot.duration:null,sound:a.stage==='VIDEO'?'off':null,
++      source_policy:'HUMAN_APPROVED_SOURCE_FROM_SAME_FROZEN_PLAN',quality_profile:g.profile_sha,
++      narration_sha:a.stage==='TTS'?inputDigest(g.narration_request):null};
++  }
++  planNeed(actions.length>0&&sumUsd([projection.existing_exposure_usd,...Object.values(limits)])<=cp.authorized_ceiling_usd,'EPISODE_PLAN_LIMIT_EXCEEDED');
++  return {scope:'EPISODE_PLAN_SPEND_V1',episode_id:cp.episode_id,plan_version:episodePlanVersion(cp),
++    model:models,action_set:actions.map(a=>a.key),payload_constraints:constraints,per_action_limits:limits,
++    maximum_episode_exposure:Number(cp.authorized_ceiling_usd),maximum_provider_calls_per_action:1,
++    total_reservation_maximum_usd:sumUsd(Object.values(limits)),provider_charge_guaranteed:false,
++    estimate_minimum_usd:projection.minimum_estimated_total_usd,estimate_probable_usd:projection.probable_total_usd,
++    title:g.plan.episode.title};
++}
++export function sealEpisodePlanGrant({contract,user,chat,authorizationId,approvedAt,expiresAt},env){
++  const value={...contract,human_identity:user,chat_id:chat,authorization_id:authorizationId,
++    consent_timestamp:approvedAt,expires_at:expiresAt,decision:'APPROVED',channel:'TELEGRAM_MINI_APP'};
++  return {scope:contract.scope,status:'AUTHORIZED',value,seal:planMac(value,env)};
++}
++export function assertEpisodePlanGrant(grant,env,cp,state,{allowExpired=false,historical=false}={}){
++  const v=grant?.value,seal=grant?.seal;
++  planNeed(grant?.status==='AUTHORIZED'&&v?.scope==='EPISODE_PLAN_SPEND_V1'&&/^[a-f0-9]{64}$/.test(seal||'')
++    &&timingSafeEqual(Buffer.from(seal),Buffer.from(planMac(v,env))));
++  planNeed(v.episode_id===cp.episode_id&&v.human_identity===cp.metadata.user&&v.chat_id===state.chat_id
++    &&(historical||v.plan_version===episodePlanVersion(cp)&&v.maximum_episode_exposure===Number(cp.authorized_ceiling_usd))
++    &&v.decision==='APPROVED'&&v.maximum_provider_calls_per_action===1,'EPISODE_PLAN_MATERIAL_CHANGED');
++  planNeed(allowExpired||Date.parse(v.expires_at)>Date.now(),'EPISODE_PLAN_CONSENT_EXPIRED');return v;
++}
++export function findEpisodePlanGrant(state,cp,env){
++  return Object.values(state.v2_authorizations||{}).filter(g=>g.scope==='EPISODE_PLAN_SPEND_V1'&&g.value?.episode_id===cp.episode_id)
++    .sort((a,b)=>String(b.value.consent_timestamp).localeCompare(String(a.value.consent_timestamp)))
++    .find(g=>{try{assertEpisodePlanGrant(g,env,cp,state);return true;}catch{return false;}})??null;
++}
++export function assertEpisodeOneTap(op,env,cp,quote,requireBound,state,{recover=false}={}){
++  const grant=state.v2_authorizations?.[op?.plan_authorization_id],v=assertEpisodePlanGrant(grant,env,cp,state,{allowExpired:recover,historical:recover});
++  const key=op.binding?.next_action;
++  planNeed(op.kind==='production_stage'&&op.binding.proposal_id===cp.episode_id&&op.plan_version===v.plan_version
++    &&v.action_set.includes(key)&&op.activated_by==='AUTHENTICATED_MINI_APP_GENERATE_CLICK');
++  if(quote){
++    planNeed(quote.episode_id===cp.episode_id&&quote.action_key===key&&quote.model===v.model[key]
++      &&quote.hard_budget_usd===v.maximum_episode_exposure&&quote.budget_gate==='PASS'
++      &&Number.isFinite(quote.proposed_reserve_usd)&&quote.proposed_reserve_usd>=0
++      &&quote.proposed_reserve_usd<=v.per_action_limits[key],'EPISODE_PLAN_ACTION_LIMIT_EXCEEDED');
++    const c=v.payload_constraints[key];
++    planNeed(c.stage!=='VIDEO'||quote.duration===c.duration_seconds&&quote.sound===c.sound,'EPISODE_PLAN_MATERIAL_CHANGED');
++  }
++  if(requireBound)planNeed(quote&&op.binding.quote_id===quote.quote_id&&op.quote_binding?.quote_id===quote.quote_id
++    &&op.quote_binding.payload_sha256===quote.payload_sha256&&op.quote_binding.quote_sha===op.binding.quote_sha);
++  return v;
++}
+ 
+ // This is one explicitly approved UI consent contract, not a new Budget Gate.
+ export const Q41_ONE_TAP_POLICY=Object.freeze({version:'EP004_Q41_ONE_TAP_V1',episode_id:FIRST_IMAGE_EPISODE,
+@@ -90,6 +161,7 @@ export function sealQ42Consent({cp,state,policy,user,chat,operationId},env){
+   return {value,seal:q42Mac(value,env)};
+ }
+ export function assertOneTapConsent(op,env,cp,quote=null,requireBound=false,state=null){
++  if(op?.kind==='production_stage')return assertEpisodeOneTap(op,env,cp,quote,requireBound,state);
+   if(op?.kind!=='second_image')return assertQ41Consent(op,env,cp,quote,requireBound);
+   const value=op.consent?.value,seal=op.consent?.seal;
+   if(!value||typeof seal!=='string'||!/^[a-f0-9]{64}$/.test(seal)||!timingSafeEqual(Buffer.from(seal),Buffer.from(q42Mac(value,env))))q42Fail();
+@@ -108,6 +180,7 @@ export function assertOneTapConsent(op,env,cp,quote=null,requireBound=false,stat
+ // Read/recover the accepted ORIGINAL independently of newer prompt compilers.
+ // This validates the immutable historical consent/quote, and cannot grant POST.
+ export function assertOriginalRecoveryConsent(op,env,cp,state){
++  if(op?.kind==='production_stage')return assertEpisodeOneTap(op,env,cp,state.production_commands?.[op.binding.quote_id]?.result,true,state,{recover:true});
+   const value=op?.consent?.value,seal=op?.consent?.seal;
+   const digest=op?.kind==='second_image'?q42Mac:op?.kind==='first_animation'?mac:null;
+   if(!digest||!value||!/^[a-f0-9]{64}$/.test(seal||'')||!timingSafeEqual(Buffer.from(seal),Buffer.from(digest(value,env))))fail();
+diff --git a/lib/telegram-mini-app/runtime.js b/lib/telegram-mini-app/runtime.js
+index 8b7f4bf..334a646 100644
+--- a/lib/telegram-mini-app/runtime.js
++++ b/lib/telegram-mini-app/runtime.js
+@@ -1,18 +1,19 @@
+ import {mountLibrary} from './library.js';
+ import {replacementPresentation} from '../lumi-supervised-replacement.js';
+-import {createHash,createHmac,timingSafeEqual} from 'node:crypto';
++import {createHash,createHmac,timingSafeEqual,randomUUID} from 'node:crypto';
+ import {readFile} from 'node:fs/promises';
+ import {MiniAppAuth,MINI_COOKIE,MINI_ORIGIN,MINI_PATH,miniAppEnabled,miniAppSecret,miniAuthConfigured,mutateMiniState,sessionCookie} from './auth.js';
+ import {authenticateMiniAppCommand,FIRST_IMAGE_EPISODE,studioEpisodeId,inputDigest} from '../lumi-v2-activation-context.js';
+ import {persistStageDecision,validateArtifact} from '../telegram-review-v1/core.js';
+ import {Q41_ONE_TAP_POLICY,Q42_ONE_TAP_POLICY,assertQ41Policy,sealQ41Consent,assertQ42Authorization,sealQ42Consent,assertOneTapConsent,assertOriginalRecoveryConsent} from './q41-policy.js';
+ import {LUMI_PRODUCTION_PROFILE_V2 as profile} from '../lumi-production-profile-v2.js';
++import {episodePlanContract,episodePlanVersion,findEpisodePlanGrant,assertEpisodePlanGrant,sealEpisodePlanGrant} from './q41-policy.js';
+ 
+ const hash=s=>createHash('sha256').update(s).digest('hex');
+ const iso=()=>new Date().toISOString();
+ const envMenuVerified=env=>env.LUMI_TELEGRAM_BOT_ID==='8843261381'&&Number.isFinite(Date.parse(env.LUMI_MINI_APP_MENU_VERIFIED_AT||''));
+ const fail=(code,status=409)=>{throw Object.assign(Error(code),{status});};
+-const oneTapKind=kind=>['first_animation','second_image'].includes(kind);
++const oneTapKind=kind=>['first_animation','second_image','production_stage'].includes(kind);
+ const terminal=new Set(['COMPLETE','BLOCKED']);
+ const actions={quote:'q41_video_quote',authorize:'q41_video_authorize',generate:'q41_video_generate',recover:'q41_stage_recover',continue:'q41_local_continue',review:'mini_review'};
+ const labels={PLANNING:'Historia',SOURCE_PLANNING:'Plan de escenas',IMAGE:'Imagen',SOURCE_QA:'Revisión de imagen',DIRECTOR:'Dirección',VIDEO:'Animación',TEMPORAL_QA:'Calidad del clip',SHOT_REVIEW:'Revisión humana',TTS:'Voz',TTS_STORAGE:'Audio',CAPTIONS:'Subtítulos',ASSEMBLY:'Montaje',MASTER:'Master',MASTER_REVIEW:'Revisión final'};
+@@ -61,7 +62,7 @@ export function currentActionState({checkpoint:cp,state,quote:q,current_emission
+   const latest=kind=>ops.filter(o=>o.kind===kind).sort((a,b)=>String(b.started_at).localeCompare(String(a.started_at)))[0];
+   const commands=state.production_commands||{},quotes=Object.entries(commands).filter(([,r])=>r.result?.action_key===a.key&&r.result?.episode_id===cp.episode_id);
+   const receipt=commands[q?.quote_id],authorization=receipt?.human_authorization;
+-  const generate=latest('second_image')||latest('first_animation')||latest('generate'),pending=ops.find(o=>['quote','authorize'].includes(o.kind)&&!terminal.has(o.status));
++  const generate=latest('production_stage')||latest('second_image')||latest('first_animation')||latest('generate'),pending=ops.find(o=>['quote','authorize'].includes(o.kind)&&!terminal.has(o.status));
+   const attempt=a.active_attempt_id??hash(cp.episode_id+':'+cp.metadata.generic_v2.binding_sha+':'+a.key);
+   const stageReceipt=commands[attempt],dispatch=quotes.some(([id])=>commands['dispatch:'+id]);
+   const reserve=cp.metadata.budget_reservations?.[a.key];
+@@ -83,7 +84,12 @@ export function currentActionState({checkpoint:cp,state,quote:q,current_emission
+   else if(q?.quote_id)status=['AWAITING_HUMAN_AUTHORIZATION','QUOTE_EXPIRED'].includes(q.status)?'QUOTED':'AMBIGUOUS';
+   else if(latest('quote')||latest('authorize'))status='AMBIGUOUS';
+   const op=generate||pending||ops.find(o=>o.kind==='authorize'&&o.binding.quote_id===q?.quote_id)||latest('authorize')||latest('quote');
++  const preflightRejected=generate?.kind==='production_stage'&&generate.status==='BLOCKED'
++    &&['QUOTING','BUDGET_CHECK'].includes(generate.phase)
++    &&['Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED','EPISODE_PLAN_ACTION_LIMIT_EXCEEDED'].includes(generate.error)
++    &&!j&&!reserve&&!dispatch&&!stageReceipt&&!a.artifact&&a.dispatch_state==='NOT_DISPATCHED';
+   return {action_key:a.key,shot_id:a.scene_id,status,lifecycle:operationLifecycle(status,{action:a.key,attempt_id:attempt,checkpoint_revision:cp.metadata.runtime_revision}),locked:status!=='NOT_STARTED',emission_locked:emitted,
++    preflight_rejected:preflightRejected,
+     operation_id:op?.id??j?.attempt_id??null,attempt_id:attempt,provider_request_id:j?.request_id??a.provider_request_id??null,
+     quote_id:q?.quote_id??null,quote_status:q?.status??null,authorization_recorded:!!authorization,
+     authorization_expired:!!authorization&&Date.parse(authorization.expires_at)<=Date.now(),
+@@ -107,6 +113,37 @@ export class MiniAppService {
+     }
+     fail('MINI_STATE_CHANGED');
+   }
++  planPresentation(ctx){
++    const grant=findEpisodePlanGrant(ctx.state,ctx.checkpoint,this.env);
++    let contract=null,error=null;
++    try{contract=episodePlanContract(ctx.checkpoint,ctx.cost_projection);}catch(e){error=e.message;}
++    const higher=grant&&contract&&currentActionState(ctx)?.preflight_rejected
++      &&contract.action_set.some(k=>contract.per_action_limits[k]>grant.value.per_action_limits[k]);
++    return {status:higher?'NEW_LIMIT_APPROVAL_REQUIRED':grant?'AUTHORIZED':contract?'HUMAN_APPROVAL_REQUIRED':'COST_PLAN_INCOMPLETE',
++      contract:higher?contract:grant?.value??contract,approval_available:!!contract,expires_at:grant?.value.expires_at??null,error};
++  }
++  planSeal(value){return createHmac('sha256',miniAppSecret(this.env)).update('lumi-plan-review:'+inputDigest(value)).digest('hex');}
++  async reviewPlan(p){
++    const ctx=await this.context(p),contract=episodePlanContract(ctx.checkpoint,ctx.cost_projection);
++    const value={contract,user:p.user,session:p.session,challenge_id:randomUUID(),
++      expires_at:Math.min(p.expires_at,Date.now()+180000),consent_expires_at:new Date(Date.now()+86400000).toISOString()};
++    return {challenge:{...value,seal:this.planSeal(value)},provider_calls:0,new_reservations:0};
++  }
++  async acceptPlan(p,body){
++    if(Object.keys(body).sort().join(',')!=='challenge,confirm'||body.confirm!==true)fail('EPISODE_PLAN_EXPLICIT_APPROVAL_REQUIRED');
++    const {seal,...v}=body.challenge||{},expected=this.planSeal(v);
++    if(!/^[a-f0-9]{64}$/.test(seal||'')||!timingSafeEqual(Buffer.from(seal),Buffer.from(expected))
++      ||v.user!==p.user||v.session!==p.session||v.expires_at<=Date.now())fail('EPISODE_PLAN_REVIEW_EXPIRED');
++    const ctx=await this.context(p),contract=episodePlanContract(ctx.checkpoint,ctx.cost_projection);
++    if(inputDigest(contract)!==inputDigest(v.contract))fail('EPISODE_PLAN_MATERIAL_CHANGED');
++    const id='episode-plan:'+v.challenge_id,grant=sealEpisodePlanGrant({contract,user:p.user,chat:p.chat,authorizationId:id,
++      approvedAt:iso(),expiresAt:v.consent_expires_at},this.env);
++    await mutateMiniState(this.store,p.user,(_m,state)=>{
++      if(state.chat_id!==p.chat||!state.episodes?.[contract.episode_id])fail('MINI_OWNER_REQUIRED');
++      state.v2_authorizations||={};if(!state.v2_authorizations[id])state.v2_authorizations[id]=grant;
++    });
++    return {status:'EPISODE_PLAN_AUTHORIZED',provider_calls:0,new_reservations:0};
++  }
+   continuation(ctx,op){
+     if(op?.kind!=='continue'||op.binding?.proposal_id!==ctx.checkpoint.episode_id)return {};
+     const cp=ctx.checkpoint,a=cp.actions.find(a=>a.key===op.binding.next_action);
+@@ -176,11 +213,11 @@ export class MiniAppService {
+     if(!op||op.binding?.proposal_id!==ctx.checkpoint.episode_id)return null;
+     // Read-only projection. Recovery writes and provider GETs belong only to
+     // the existing recovery worker or an explicit recovery command.
+-    const action=op.kind==='second_image'?'image:q42':'video:q41',a=ctx.checkpoint.actions.find(a=>a.key===action);
++    const action=op.binding.next_action,a=ctx.checkpoint.actions.find(a=>a.key===action);
+     if(a?.artifact&&Object.values(ctx.checkpoint.metadata.review_requests||{}).some(r=>r.action_key===action)){
+       return {...op,status:'COMPLETE',phase:'REVIEW_READY'};
+     }
+-    const journal=op.kind==='second_image'?ctx.current_emission:ctx.q41_emission;
++    const journal=op.kind==='first_animation'?ctx.q41_emission:ctx.current_emission;
+     if(journal?.state==='ACKNOWLEDGED'&&journal.request_id&&(op.kind!=='second_image'||journal.accepted)){
+       return {...op,status:'RUNNING',phase:'GENERATING',binding:{...op.binding,action:'q41_stage_recover'}};
+     }
+@@ -249,9 +286,14 @@ export class MiniAppService {
+       [...Object.entries(capabilities).filter(([,enabled])=>enabled).map(([action])=>action.toUpperCase()),...(reviews.length?['REVIEW']:[])]);
+     if(actionState)actionState.lifecycle=lifecycle;
+     const replacement=replacementPresentation(ctx);
++    const plan=this.planPresentation(ctx),planGrant=findEpisodePlanGrant(state,cp,this.env);
++    const oldStage=actionState?.operations.find(o=>o.kind==='production_stage');
++    const revisedPreflight=actionState?.preflight_rejected&&oldStage
++      &&state.mini_app.operations[oldStage.id].plan_authorization_id!==planGrant?.value.authorization_id;
++    capabilities.production_stage=!replacement&&!!planGrant&&(canPrepare||revisedPreflight)&&planGrant.value.action_set.includes(current.key);
+     if(replacement){capabilities.generate=false;capabilities.authorize=false;capabilities.renew_quote=false;capabilities.quote=false;
+       lifecycle.allowed=lifecycle.allowed.filter(x=>['READ_PROGRESS','RECOVER','REVIEW'].includes(x));}
+-    return {version:3,cost_projection:ctx.cost_projection??null,provider_trace:ctx.provider_trace??null,supervised_replacement:replacement,review_revision:ctx.review_revision,lifecycle,current_action:actionState,production:presentation,server_time:Date.now(),episode:{id:cp.episode_id,title:cp.metadata.generic_v2.plan.episode.title,status:cp.status,
++    return {version:4,episode_plan_authorization:plan,cost_projection:ctx.cost_projection??null,provider_trace:ctx.provider_trace??null,supervised_replacement:replacement,review_revision:ctx.review_revision,lifecycle,current_action:actionState,production:presentation,server_time:Date.now(),episode:{id:cp.episode_id,title:cp.metadata.generic_v2.plan.episode.title,status:cp.status,
+       last_completed:cp.last_completed_action,next_action:cp.first_pending_action,checkpoint_version:cp.metadata.runtime_revision,director_complete:cp.actions.some(a=>a.key==='director:q41'&&a.status==='COMPLETE'),
+       source_approved:Object.values(cp.metadata.review_requests||{}).some(r=>r.action_key==='image:q41'&&r.status==='APPROVED'),
+       actions:cp.actions.map(a=>({key:a.key,label:labels[a.stage]||'Producción',shot:a.scene_id,status:a.status,current:a.key===cp.first_pending_action}))},
+@@ -266,7 +308,7 @@ export class MiniAppService {
+         entrypoint:state.mini_app?.entrypoint?.status||(envMenuVerified(this.env)?'CONFIGURED':'PENDING')}};
+   }
+   async enqueue(p,kind,body){
+-    if(['quote','authorize','generate','first_animation','second_image'].includes(kind)){
++    if(['quote','authorize','generate','first_animation','second_image','production_stage'].includes(kind)){
+       const {checkpoint:cp,state}=await this.context(p);
+       if(Object.values(state.supervised_replacement_proposals||{}).some(x=>x.episode_id===cp.episode_id&&x.action_id===cp.first_pending_action))
+         fail('SUPERVISED_REPLACEMENT_PROPOSAL_ONLY');
+@@ -281,6 +323,32 @@ export class MiniAppService {
+       });
+       return {operation:null,dispatch:async()=>{}};
+     }
++    if(kind==='production_stage'){
++      if(Object.keys(body).sort().join(',')!=='checkpoint_version,confirm,expected_action'||body.confirm!==true)fail('MINI_BODY_INVALID',400);
++      const ctx=await this.context(p),cp=ctx.checkpoint,a=cp.actions.find(a=>a.key===cp.first_pending_action);
++      const prior=Object.values(ctx.state.mini_app?.operations||{}).find(o=>o.binding?.proposal_id===cp.episode_id
++        &&o.binding.next_action===body.expected_action&&['generate','first_animation','second_image','production_stage'].includes(o.kind));
++      const grant=findEpisodePlanGrant(ctx.state,cp,this.env),revisedPreflight=prior?.kind==='production_stage'
++        &&currentActionState(ctx)?.preflight_rejected&&grant&&prior.plan_authorization_id!==grant.value.authorization_id;
++      if(prior&&!revisedPreflight)return {operation:publicOperation(prior),dispatch:async()=>{}};
++      if(body.expected_action!==a?.key||body.checkpoint_version!==cp.metadata.runtime_revision||cp.status!=='RUNNING'
++        ||a.status!=='PENDING'||a.dispatch_state!=='NOT_DISPATCHED'||currentActionState(ctx)?.emission_locked&&!revisedPreflight)fail('MINI_GENERATION_LOCKED');
++      const value=assertEpisodePlanGrant(grant,this.env,cp,ctx.state);
++      if(!value.action_set.includes(a.key))fail('EPISODE_PLAN_ACTION_NOT_AUTHORIZED');
++      const id=hash(cp.episode_id+':'+a.key+':PLAN_ONE_TAP_V1');
++      const claimed=await mutateMiniState(this.store,p.user,(m,state)=>{
++        const previous=m.operations[id];
++        if(previous&&(!revisedPreflight||previous.status!=='BLOCKED'||previous.plan_authorization_id===value.authorization_id))return {operation:structuredClone(previous),created:false};
++        assertEpisodePlanGrant(state.v2_authorizations?.[value.authorization_id],this.env,cp,state);
++        const active=this.settleCompletedOperation(p,ctx,m,state);if(active&&!terminal.has(active.status))fail('MINI_OPERATION_IN_PROGRESS');
++        const next={id,kind,status:'QUEUED',phase:'VERIFYING_SOURCE',plan_authorization_id:value.authorization_id,plan_version:value.plan_version,
++          ...(previous?{preflight_history:[...(previous.preflight_history||[]),{authorization_id:previous.plan_authorization_id,error:previous.error,quote_binding:previous.quote_binding,finished_at:previous.finished_at}]}:{}),
++          activated_by:'AUTHENTICATED_MINI_APP_GENERATE_CLICK',session_id:p.session,started_at:iso(),
++          binding:{action:'q41_video_authorize',proposal_id:cp.episode_id,next_action:a.key,checkpoint_version:cp.metadata.runtime_revision}};
++        m.operations[id]=next;m.active_operation=id;return {operation:structuredClone(next),created:true};
++      });
++      return {operation:publicOperation(claimed.operation),dispatch:claimed.created?()=>this.run(p,id):async()=>{}};
++    }
+     if(oneTapKind(kind)){
+       if(Object.keys(body).length!==1||body.confirm!==true)fail('MINI_BODY_INVALID',400);
+       const ctx=await this.context(p),image=kind==='second_image',action=image?'image:q42':'video:q41';
+@@ -445,7 +513,8 @@ export class MiniAppService {
+     for(let renewal=0;renewal<3;renewal++){
+       const ctx=await this.context(p),op=ctx.state.mini_app.operations[id];assertOneTapConsent(op,this.env,ctx.checkpoint,null,false,ctx.state);
+       await this.oneTapPhase(p,id,'QUOTING');
+-      const q=await this.adapter.prepareEp004VideoQuote({user:p.user,chat:p.chat,renew:true,expectedQuoteId:ctx.quote?.quote_id??null,miniAppPrincipal:p});
++      const q=await this.adapter.prepareEp004VideoQuote({user:p.user,chat:p.chat,renew:true,expectedQuoteId:ctx.quote?.quote_id??null,miniAppPrincipal:p,
++        expectedAction:op.binding.next_action,checkpointVersion:ctx.checkpoint.metadata.runtime_revision,planOperationId:op.kind==='production_stage'?id:null});
+       const fresh=await this.context(p);
+       if(q.status==='QUOTE_EXPIRED')continue;
+       if(!['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status))fail('Q41_ONE_TAP_QUOTE_UNCONFIRMED');
+@@ -463,7 +532,7 @@ export class MiniAppService {
+       catch(e){
+         const current=await this.context(p),a=current.checkpoint.actions.find(a=>a.key===op.binding.next_action);
+         if(Date.parse(q.expires_at)<=Date.now()&&!current.state.production_commands?.['dispatch:'+q.quote_id]
+-          &&!(op.kind==='second_image'?current.current_emission:current.q41_emission)&&a?.dispatch_state==='NOT_DISPATCHED'&&!current.checkpoint.metadata.budget_reservations?.[op.binding.next_action])continue;
++          &&!(op.kind==='first_animation'?current.q41_emission:current.current_emission)&&a?.dispatch_state==='NOT_DISPATCHED'&&!current.checkpoint.metadata.budget_reservations?.[op.binding.next_action])continue;
+         throw e;
+       }
+       if(!['IN_PROGRESS','WAITING_EXISTING_RESULT'].includes(result?.status))fail('Q41_ONE_TAP_DISPATCH_REQUIRES_RECOVERY');
+@@ -489,7 +558,7 @@ export class MiniAppService {
+         Object.assign(o,{status:'RUNNING',phase:'GENERATING',binding:op.binding,recovery_lease_until:Date.now()+120000,session_id:p.session});return true;});if(!claimed)return;
+       try{
+         const result=await this.adapter.recoverQuotedStage({command:authenticateMiniAppCommand({principal:p,operationId:id})});
+-        const fresh=await this.context(p),generation=op.kind==='second_image'?currentActionState(fresh):this.generation(fresh);
++        const fresh=await this.context(p),generation=op.kind==='first_animation'?this.generation(fresh):currentActionState(fresh);
+         if(['AWAITING_HUMAN_REVIEW','SUCCEEDED'].includes(generation.status))await this.oneTapPhase(p,id,'REVIEW_READY',{status:'COMPLETE',finished_at:iso(),result_status:result.status});
+         else this.scheduleRecovery(p,id); // A non-wait response alone is not proof of a saved clip.
+       }catch(e){
+@@ -541,6 +610,8 @@ export function mountMiniApp(app,{db,store,adapter,production,loadBytes,validate
+   }));
+   app.get(api+'/session',wrap(async(req,res)=>{const p=await principal(req);res.json({csrf:auth.csrf(sessionCookie(req)),expires_at:p.expires_at});}));
+   app.get(api+'/state',wrap(async(req,res)=>res.json(await service.view(await principal(req)))));
++  app.get(api+'/plan/review',wrap(async(req,res)=>res.json(await service.reviewPlan(await principal(req)))));
++  app.post(api+'/plan/accept',wrap(async(req,res)=>res.json(await service.acceptPlan(await principal(req),req.body||{}))));
+   app.get(api+'/replacement/:id/review',wrap(async(req,res)=>res.json(await adapter.reviewSupervisedReplacement(await principal(req),req.params.id))));
+   app.post(api+'/replacement/accept',wrap(async(req,res)=>res.json(await adapter.acceptSupervisedReplacement(await principal(req),req.body||{}))));
+   app.post(api+'/replacement/generate',wrap(async(req,res)=>res.json(await adapter.generateSupervisedReplacement(await principal(req),req.body||{}))));
+diff --git a/public/lumi-studio/app.js b/public/lumi-studio/app.js
+index fa7288b..cd98b6f 100644
+--- a/public/lumi-studio/app.js
++++ b/public/lumi-studio/app.js
+@@ -11,6 +11,10 @@ let actionIntent=null;
+ try{actionIntent=JSON.parse(localStorage.getItem(actionIntentKey)||'null');}catch{/* Durable server state remains authoritative. */}
+ function saveActionIntent(value){actionIntent=value;try{localStorage.setItem(actionIntentKey,JSON.stringify(value));}catch{/* Keep the in-memory intent. */}}
+ function unresolvedIntent(){
++ if(actionIntent?.kind==='replacement_generate'&&actionIntent.episode===state?.episode.id){
++   const r=state.supervised_replacement;
++   return !!r&&r.authorization_reference===actionIntent.authorization_reference&&r.confirmation_id!==actionIntent.confirmation_id&&r.operation_status==='NOT_CREATED';
++ }
+  if(!actionIntent||actionIntent.episode!==state?.episode.id||actionIntent.action!==state?.episode.next_action||state.current_action?.emission_locked)return false;
+  return !state.current_action?.operations?.some(o=>o.kind===actionIntent.kind&&(actionIntent.kind==='second_image'||o.quote_id===actionIntent.quote_id));
+ }
+@@ -36,7 +40,7 @@ async function request(path,{method='GET',body}={}){
+   }finally{clearTimeout(timeout);}
+ }
+ function errorText(e){
+-  if(/^(BUDGET_|REPLACEMENT_|HIGGSFIELD_|Q41_CURRENT_EXACT|Q41_REQUEST_RESERVATION)/.test(e.message)){
++  if(/^(EPISODE_PLAN_|BUDGET_|REPLACEMENT_|HIGGSFIELD_|Q41_CURRENT_EXACT|Q41_REQUEST_RESERVATION)/.test(e.message)){
+     const code=/^[A-Z0-9_]{1,100}$/.test(e.message)?e.message:'REPLACEMENT_CONFIRMATION_FAILED';
+     const detail=/FULL_EPISODE_PLAN_REQUIRED/.test(code)?'Falta completar el presupuesto del episodio antes de iniciar una producción nueva. Revisá imágenes, clips, voz y costos de infraestructura.':/CONSENT_EXPIRED/.test(code)?'La aceptación guardada venció en su fecha explícita. Podés revisar una nueva decisión.':/APPROVED_CONTENT_CHANGED/.test(code)?'Cambió el contenido autorizado. Revisá el nuevo contenido antes de decidir.':/LIMIT|BUDGET/.test(code)?'La cotización supera el límite autorizado o el presupuesto disponible. No se amplió tu autorización.':/ALREADY|CLAIM|RECOVERY/.test(code)?'Ya hay una confirmación o solicitud guardada. Consultá su estado; no se repetirá la generación.':'La confirmación se detuvo. Consultá el estado guardado antes de continuar.';
+     return detail+' Código: '+code;
+@@ -50,6 +54,7 @@ function errorText(e){
+ }
+ function navigation(){nav.innerHTML=Object.keys(paths).map(k=>`<button data-tab="${k}" class="${tab===k?'active':''}" ${tab===k?'aria-current="page"':''}>${icon(k)}<span>${({inicio:'Inicio',videos:'Videos',produccion:'Producción',biblioteca:'Biblioteca',ajustes:'Ajustes'})[k]}</span></button>`).join('');}
+ function banner(){const op=state.operation;if(!op||op.status==='COMPLETE')return '';
++  if(op.kind==='production_stage')return `<div class="async-banner" role="status"><strong>${op.status==='BLOCKED'?'Necesita atención':op.phase==='GENERATING'?'Esperando proveedor':op.phase==='REVIEW_READY'?'Listo para revisar':op.phase==='DISPATCHING'?'Generando':'Preparando'}</strong><p>Conservamos la misma operación al cerrar Telegram.</p></div>`;
+   if(op.kind==='first_animation'||op.kind==='second_image'){
+     if(op.kind==='second_image')return ''; // Its durable phase is shown once, beneath scene progress.
+     const text=({VERIFYING_SOURCE:'Preparando animación…',QUOTING:'Consultando precio…',BUDGET_CHECK:'Verificando presupuesto…',DISPATCHING:'Enviando a Kling…',GENERATING:'Generando video…',REVIEW_READY:'Video preparado para tu revisión'})[op.phase]||'Consultando el estado guardado…';
+@@ -64,11 +69,18 @@ function banner(){const op=state.operation;if(!op||op.status==='COMPLETE')return
+ function economicDetail(d){if(!d)return '';return `<div class="economic-detail">${row('Cotización recibida',usd(d.quote_amount_usd))}${row('Margen de reserva',esc(String(d.reservation_multiplier))+' ×')}${row('Reserva calculada',usd(d.calculated_reservation_usd))}${row('Máximo específico autorizado',usd(d.authorized_max_usd))}${row('Disponible del episodio',usd(d.episode_remaining_usd))}<p>${d.status==='PASS'?'El cálculo cabe en ambos límites; aún requiere precio vigente y confirmación.':d.reason==='ZERO_OR_MISSING_QUOTE'?'El proveedor no devolvió un precio positivo verificable.':d.reason==='EPISODE_EXPOSURE_OVER_CEILING'?'La exposición conjunta supera el presupuesto del episodio. Revisá recursos reutilizables antes de gastar.':'La reserva calculada supera el máximo de esta solicitud. Un importe mayor requiere otra decisión específica; el presupuesto del episodio no amplía esta autorización.'}</p></div>`;}
+ function episodeCostDetail(){const p=state.cost_projection;if(!p)return '';const names={IMAGE:'Imágenes',VIDEO:'Animaciones',TTS:'Voz',STORAGE:'Almacenamiento',INFRASTRUCTURE:'Infraestructura'};
+  return `<h3>Plan económico completo</h3>${Object.entries(names).map(([stage,name])=>{const items=p.items.filter(i=>i.stage===stage&&!i.completed);return row(name,items.every(i=>i.remaining_estimate_usd!==null)?usd(items.reduce((n,i)=>n+i.remaining_estimate_usd,0)):'Falta evidencia de costo');}).join('')}${row('Mínimo estimado total',usd(p.minimum_estimated_total_usd))}${row('Total probable',usd(p.probable_total_usd))}${row('Contingencia sobre costos conocidos',usd(p.contingency_known_usd))}${row('Reservas con costo sin conciliar',usd(p.uncertain_reserved_usd))}${row('Gasto verificado registrado',usd(p.verified_spend_usd))}${row('Ahorro verificado por reutilización',usd(p.verified_savings_usd))}<p class="budget-note">${p.status==='INCOMPLETE_COST_EVIDENCE'?'Todavía no puede confirmarse el costo de terminar el episodio. Faltan cotizaciones o asignaciones documentadas.':p.status==='PLAN_EXCEEDS_BUDGET'?'El plan supera el presupuesto. Revisá clips aprobados y escenarios compatibles antes de autorizar gastos.':'Proyección orientativa; las cotizaciones vencen y cada solicitud necesita su autorización.'} Las referencias no evitan por sí solas una nueva generación. La calidad y el modelo aprobados se conservan.</p>`;}
+-function budgetCard(){const b=state.budget;return `<section class="card"><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible interno antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Límite interno, no saldo Higgsfield. Cada generación necesita su autorización específica. Costo real no verificado; la exposición incluye reservas pendientes de conciliación.</p>${episodeCostDetail()}</section>`;}
++function budgetCard(){const b=state.budget;return `<section class="card"><details><summary>Presupuesto y detalles de costos</summary><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible interno antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Límite interno, no saldo Higgsfield. Cada generación debe estar incluida en una autorización específica o en el plan aprobado. Costo real no verificado; la exposición incluye reservas pendientes de conciliación.</p>${episodeCostDetail()}</details></section>`;}
+ function quoteCard(){const q=state.quote,c=state.capabilities,g=state.current_action;
+   const replacement=state.supervised_replacement;
+-  if(replacement){const scene=state.production?.shots.find(s=>s.current);return `<section class="card"><span class="tag">Recuperación supervisada</span><h2>${scene?'Escena '+scene.number+' — '+esc(scene.title||scene.goal):'Reemplazo supervisado'}</h2><h3>Solicitud anterior sin confirmación</h3><p>${esc(replacement.risk_disclosure)}</p>${row('Riesgo de duplicación','Existe; cargo anterior no verificado')}${row('Reserva anterior conservada',usd(replacement.previous_reservation_usd))}${row('Nueva reserva máxima propuesta',usd(replacement.estimated_new_reservation_usd))}${row('Posible exposición conjunta',usd(replacement.combined_exposure_usd))}${row('Presupuesto máximo del episodio',usd(state.budget.ceiling_usd))}${row('Disponible interno actual',usd(replacement.available_budget_usd))}${row('Autorización',replacement.authorization_status==='HUMAN_RISK_ACCEPTANCE'?'Aceptación específica registrada':replacement.authorization_status==='CONSENT_EXPIRED'?'Aceptación registrada; plazo explícito vencido':'No otorgada')}<p class="budget-note">La reserva es interna; el costo real no está verificado. Hace falta una cotización vigente. No podemos asegurar que Higgsfield no cobre ambas solicitudes.</p>${replacement.consent_expires_at?row('Vencimiento de la aceptación',new Date(replacement.consent_expires_at).toLocaleString()):''}${replacement.consent_expiration_reason==='LEGACY_CONSENT_BOUND_TO_SIGNED_CONTENT'?'<p>La versión anterior vinculó esta aceptación al enlace temporal del contenido. Conservamos tu decisión original y su vencimiento; no podemos extenderla automáticamente. La nueva revisión separa la cotización del plazo de aceptación.</p>':''}${economicDetail(replacement.economic_decision)}${replacement.economic_evidence_missing?'<p>El rechazo anterior no guardó el importe. Tu aceptación sigue registrada dentro de su plazo. Consultá una cotización sin generar para conocer el cálculo exacto.</p>':''}${replacement.quote_only_available?button('Consultar cotización sin generar','replacement_quote','secondary'):''}${replacement.confirmation_error?'<p>'+esc(errorText({message:replacement.confirmation_error}))+'</p>':''}${replacement.confirmation_outcome_unrecorded?'<p>El intento anterior de cotización no guardó el motivo del fallo. No hay una operación de reemplazo registrada.</p>':''}${replacement.confirmation_status==='CLAIMED'&&!replacement.confirmation_outcome_unrecorded&&!replacement.generation_enabled?'<p>Confirmación guardada. Consultá el progreso; no repitas el envío.</p>':''}${replacement.operation_status!=='NOT_CREATED'&&replacement.operation_status?row('Solicitud guardada',replacement.operation_status):''}${replacement.risk_review_available?button('Revisar riesgo y autorización','replacement_review','secondary'):''}${replacement.generation_enabled?button('Cotizar y generar reemplazo autorizado','replacement_generate'):'<button type="button" class="button primary" disabled>Generar reemplazo · Deshabilitado</button>'}${replacement.recover_available?button('Recuperar resultado de la solicitud','replacement_recover','secondary'):''}${replacement.status==='EVIDENCE_CHANGED_REVIEW_REQUIRED'?'<p>La evidencia cambió. Revisá el resultado original antes de continuar.</p>':''}${progressControl()}</section>`;}
++  if(replacement){const scene=state.production?.shots.find(s=>s.current),accepted=replacement.authorization_status==='HUMAN_RISK_ACCEPTANCE';
++    const attention=replacement.authorization_status==='NEW_RISK_ACCEPTANCE_REQUIRED'?'El máximo cambió. Hace falta una nueva aceptación específica.':replacement.authorization_status==='CONSENT_EXPIRED'?'Venció el plazo explícito de tu aceptación. Revisá una nueva decisión.':accepted?'Aceptación específica registrada.':'Necesitamos tu decisión sobre el riesgo.';
++    const primary=replacement.recover_available?button('Recuperar resultado','replacement_recover'):replacement.generation_enabled&&!unresolvedIntent()?button(state.production?.action?.stage==='VIDEO'?'Generar animación supervisada':'Generar imagen supervisada','replacement_generate'):replacement.risk_review_available?button('Revisar riesgo y autorización','replacement_review'):'<button class="button primary" disabled>Necesita atención · Generación bloqueada</button>';
++    return `<section class="card"><span class="tag">Recuperación supervisada</span><h2>${scene?'Escena '+scene.number+' — '+esc(scene.title||scene.goal):'Reemplazo supervisado'}</h2><h3>Solicitud anterior sin confirmación</h3><p>${esc(replacement.risk_disclosure)}</p>${row('Reserva anterior conservada',usd(replacement.previous_reservation_usd))}${row('Nueva reserva máxima',usd(replacement.estimated_new_reservation_usd))}${row('Posible exposición conjunta máxima',usd(replacement.combined_exposure_usd))}<p role="status">${esc(attention)}</p>${primary}<p>Lumi comprobará el precio y el presupuesto al generar. La reserva anterior se conserva; puede existir un cargo duplicado.</p><details><summary>Ver costos y evidencia</summary>${row('Presupuesto del episodio',usd(state.budget.ceiling_usd))}${row('Disponible interno',usd(replacement.available_budget_usd))}${replacement.consent_expires_at?row('Plazo de la aceptación anterior o vigente',new Date(replacement.consent_expires_at).toLocaleString()):''}${economicDetail(replacement.economic_decision)}${replacement.quote_only_available?button('Consultar cotización sin generar','replacement_quote','quiet'):''}${replacement.confirmation_error?'<p>'+esc(errorText({message:replacement.confirmation_error}))+'</p>':''}<p>Reserva interna, no cargo garantizado. La cotización histórica puede haber vencido.</p></details>${progressControl()}</section>`;}
+ 
++
++  const plan=state.episode_plan_authorization;
++  if(c.production_stage&&!unresolvedIntent())return `<section class="card quote-card"><span class="tag green">Plan y límites aprobados</span><h2>${esc(state.production?.action?.title||'Etapa lista')}</h2><p>Lumi busca recursos aprobados y comprueba el precio antes de generar.</p>${button(state.production?.action?.stage==='VIDEO'?'Generar animación':state.production?.action?.stage==='TTS'?'Generar voz':'Generar imagen','production_stage')}<details><summary>Ver autorización</summary>${row('Reserva máxima de esta etapa',usd(plan?.contract?.per_action_limits?.[state.episode.next_action]))}<p>Sin ampliaciones ni reintentos automáticos.</p></details>${progressControl()}</section>`;
++  if(plan?.approval_available&&plan.status!=='AUTHORIZED'&&(!g?.emission_locked||g.preflight_rejected)&&!state.reviews.length)return `<section class="card"><h2>Aprobar plan y presupuesto</h2><p>Revisá las tomas, los modelos y el límite de cada etapa. Una variación fuera del límite requiere esta nueva decisión.</p>${economicDetail(q?.economic_decision)}${button('Revisar plan y presupuesto','plan_review')}${progressControl()}</section>`;
+   const second=state.second_image;
+   if(unresolvedIntent())return '<section class="card"><h3>Verificando la acción enviada…</h3><p>Esperamos su registro guardado antes de permitir otra acción. Podés cerrar y reabrir el estudio.</p><button class="button secondary" data-action="refresh">Actualizar estado</button></section>';
+   if(state.episode.next_action==='image:q42'&&second?.available)return `<section class="card quote-card"><span class="tag green">Autorización económica disponible</span><h2>Escena 2 — La vaca</h2>${row('Reserva máxima',usd(second.max_reservation_usd))}<p>Un único clic prepara la imagen, comprueba el precio vigente y continúa dentro del límite autorizado.</p>${button('Generar segunda imagen','second_image')}<p class="budget-note">La reserva interna no garantiza el cobro máximo del proveedor.</p></section>`;
+@@ -91,12 +103,12 @@ function quoteCard(){const q=state.quote,c=state.capabilities,g=state.current_ac
+   }
+   const action=state.production?.action,title=action?.title||'Continuar producción',image=action?.stage==='IMAGE';
+   if(c.recover)return `<section class="card quote-card"><span class="tag blue">Solicitud en curso</span><h2>${image?'Tu imagen':'Tu animación'} está en camino.</h2><p>Recuperamos el resultado de la misma solicitud.</p>${button('Consultar resultado guardado','recover')}</section>`;
+-  if(c.continue)return `<section class="card quote-card"><h3>${esc(title)}</h3><p>Continuá con la preparación y revisión de esta escena.</p>${button(esc(title),'continue')}</section>`;
++  if(c.continue)return `<section class="card quote-card"><h3>${esc(title)}</h3><p>Continuá con la preparación y revisión de esta escena.</p>${button('Continuar producción','continue')}</section>`;
+   if(!c.quote&&!c.renew_quote&&!c.authorize&&!c.generate)return state.reviews.length?'':`<section class="card"><h3>${esc(title)}</h3><p role="status">${action?'Verificando el estado guardado de esta etapa.':'Producción completada.'}</p></section>`;
+   if(!q||q.status==='QUOTE_EXPIRED')return `<section class="card quote-card"><span class="tag gold">Próximo paso</span><h2>${esc(title)}</h2><p>Lumi comprobará automáticamente el precio y el presupuesto. Después podrás autorizar el importe específico de esta ${image?'imagen':'etapa'}.</p>${button(esc(title),'prepare')}</section>`;
+   if(!['AWAITING_HUMAN_AUTHORIZATION','HUMAN_SPEND_AUTHORIZED'].includes(q.status))return `<section class="card"><h3>Precio pendiente de verificación</h3><p>El resultado guardado requiere revisión antes de autorizar un gasto.</p>${economicDetail(q.economic_decision)}${button('Actualizar estado','refresh','secondary')}</section>`;
+   if(q.currency==='ELEVENLABS_CHARACTER_QUOTA')return `<section class="card quote-card"><span class="tag blue">Voz Fernanda</span><h3>${esc(title)}</h3>${row('Máximo de segmentos',esc(q.request_count))}${row('Máximo de caracteres',esc(q.quota_units))}${row('Cuota disponible observada',esc(q.quota_remaining))}<p>Una autorización para estos textos y esta voz. Se conserva al cerrar Telegram; cada segmento se procesa una sola vez y la cuota se verifica de nuevo.</p><p>El costo real en USD no está verificado.</p>${c.authorize?button('Autorizar estos segmentos','authorize'):button('Generar voz autorizada','generate')}</section>`;
+-  return `<section class="card quote-card"><span class="tag ${c.generate?'green':'blue'}">${c.generate?'Importe autorizado':'Precio disponible'}</span><h3>${esc(title)}</h3><div class="quote-price">${usd(q.quote_usd)}</div>${row('Reserva propuesta',usd(q.proposed_reserve_usd))}${row('Disponible tras la reserva',usd(q.remaining_after_usd))}${row('Vigencia','<span id="quote-countdown"></span>')}<p>Esta autorización corresponde únicamente a la escena y operación actuales.</p>${button(c.generate?(image?'Generar imagen':'Generar animación'):'Revisar y autorizar importe',c.generate?'generate':'authorize','primary',!c.generate&&!c.authorize)}<p class="budget-note">${c.generate?'La generación comienza al confirmar el siguiente paso.':'Autorizar el importe no inicia la generación.'}</p></section>`;
++  return `<section class="card quote-card"><span class="tag ${c.generate?'green':'blue'}">${c.generate?'Importe autorizado':'Precio disponible'}</span><h3>${esc(title)}</h3><div class="quote-price">${usd(q.quote_usd)}</div>${row('Reserva propuesta',usd(q.proposed_reserve_usd))}${row('Disponible tras la reserva',usd(q.remaining_after_usd))}${row('Vigencia','<span id="quote-countdown"></span>')}<p>Esta autorización corresponde únicamente a la escena y operación actuales.</p>${button(c.generate?(image?'Generar imagen':'Generar animación'):'Revisar y autorizar importe',c.generate?'generate':'authorize','primary',!c.generate&&!c.authorize)}<p class="budget-note">${c.generate?'Generar comprueba los límites y envía una única solicitud.':'Autorizar el importe no inicia la generación.'}</p></section>`;
+ }
+ function home(){const m=source(),current=state.production?.shots.find(s=>s.current);return `<section class="page-intro"><span class="eyebrow">HOLA, CREADOR DE MAGIA</span><h1>Una nueva historia<br>está por comenzar.</h1><p>Tu mundo de Lumi, un paso a la vez.</p></section>${banner()}<article class="card episode-cover"><div class="episode-copy"><span class="tag blue">EN PRODUCCIÓN</span><h2>${esc(state.episode.title)}</h2><p>${current?'Escena '+current.number+' · '+esc(current.goal):'Tu progreso está guardado.'}</p><button class="text-link" data-tab="produccion">Abrir producción <span aria-hidden="true">↗</span></button></div><div class="episode-visual">${m?`<img src="${esc(m.url)}" alt="Imagen aprobada del episodio">`:''}</div></article><div class="section-heading"><h2>Tu próximo paso</h2><span class="tag">Con vos al mando</span></div>${quoteCard()}${budgetCard()}<p class="footer-note">Pequeñas historias. Grandes descubrimientos.</p>`;}
+ function production(){const e=state.episode,p=state.production,scene=p?.shots.find(s=>s.current),stages=scene?.stages||e.actions.filter(a=>a.current);
+@@ -132,12 +144,12 @@ async function refresh({manual=false}={}){
+   }catch(e){if(epoch!==mutationEpoch){superseded=true;return;}feedback='No pudimos consultar el progreso. Podés volver a actualizar; el bloqueo se conserva.';if(e.status===401){csrf=null;authScreen(errorText(e));}else toast(errorText(e));}finally{polling=false;if(superseded)await refresh();else if(progressRequested){progressRequested=false;progressFeedback(feedback);}}}
+ async function login(){try{let s;try{s=await request('/session');}catch(e){if(e.status!==401)throw e;if(!tg?.initData)return authScreen('Abrí esta aplicación desde «Abrir Lumi Studio» en el menú del bot.');s=await request('/auth',{method:'POST',body:{initData:tg.initData}});}csrf=s.csrf;await refresh();if(['biblioteca','videos'].includes(tab))await loadLibrary();}catch(e){authScreen(errorText(e));}}
+ async function submit(kind,extra={}){if(sending||busy()&&!['resume','recover'].includes(kind))return;
+-  if(['quote','authorize','generate','second_image'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
++  if(['quote','authorize','generate','second_image','production_stage'].includes(kind)&&unresolvedIntent())return refresh();if((kind==='first_animation'||kind==='generate'&&state.episode.next_action==='video:q41')&&generationLocked())return refresh();
+   if(kind==='second_image'&&(!state.second_image?.available||state.current_action?.emission_locked))return refresh();
+   if(kind==='first_animation')rememberGenerationIntent();
+-  if(['quote','authorize','generate','second_image'].includes(kind))saveActionIntent({episode:state.episode.id,action:state.episode.next_action,kind,quote_id:kind==='second_image'?null:state.quote?.quote_id??null});
++  if(['quote','authorize','generate','second_image','production_stage'].includes(kind))saveActionIntent({episode:state.episode.id,action:state.episode.next_action,kind,quote_id:kind==='second_image'?null:state.quote?.quote_id??null});
+   mutationEpoch++;sending=true;render();toast(kind==='first_animation'?'Preparando animación…':kind==='quote'?'Consultando precio…':'Guardando tu acción…');
+-  try{const q=state.quote;await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...(['continue','quote','authorize','generate'].includes(kind)?{expected_action:state.episode.next_action,checkpoint_version:state.episode.checkpoint_version}:{}),...extra}});
++  try{const q=state.quote;await request('/actions/'+kind,{method:'POST',body:{...(['quote','authorize','generate'].includes(kind)?{quote_id:q?.quote_id??null,quote_sha:q?.quote_sha??null}:{}),...(['continue','quote','authorize','generate','production_stage'].includes(kind)?{expected_action:state.episode.next_action,checkpoint_version:state.episode.checkpoint_version}:{}),...extra}});
+     // Action responses can arrive after a newer checkpoint. Only /state may
+     // replace the view; the durable operation is recovered by the next read.
+   }
+@@ -160,7 +172,7 @@ function finishPreparation(){
+ }
+ async function replacementMutation(path,body){
+  if(sending)return;mutationEpoch++;sending=true;render();
+- try{await request('/replacement/'+path,{method:'POST',body});toast(path==='quote'?'Cotización guardada. No se generó ni se reservó dinero.':path==='accept'?'Aceptación registrada. La generación requiere otra confirmación.':'Acción registrada. Consultá el progreso guardado.');}
++ try{await request('/replacement/'+path,{method:'POST',body});toast(path==='quote'?'Cotización guardada. No se generó ni se reservó dinero.':path==='accept'?'Aceptación registrada. Ya podés usar Generar.':'Acción registrada. Consultá el progreso guardado.');}
+  catch(e){toast(errorText(e));}finally{sending=false;await refresh();render();}
+ }
+ async function reviewReplacement(){
+@@ -186,12 +198,24 @@ function confirmReplacementQuote(){
+  b.onclick=()=>{b.disabled=true;dialog.close();if(state.supervised_replacement?.proposal_id!==id||!state.supervised_replacement?.quote_only_available||state.supervised_replacement?.authorization_reference!==reference)return refresh();replacementMutation('quote',{proposal_id:id,authorization_reference:reference,confirmation_id:confirmationId,confirm:true});};dialog.showModal();
+ }
+ function confirmReplacementGeneration(){
+- const r=state?.supervised_replacement;if(!r?.generation_enabled)return refresh();const id=r.proposal_id,reference=r.authorization_reference,confirmationId=crypto.randomUUID();
+- document.querySelector('#dialog-title').textContent='¿Enviar el reemplazo autorizado?';
+- document.querySelector('#dialog-content').innerHTML=`<p>${esc(r.risk_disclosure)}</p>${row('Reserva nueva máxima',usd(r.estimated_new_reservation_usd))}<p>Lumi comprobará el precio, el presupuesto y la evidencia original antes de enviar una única solicitud. La reserva anterior se conserva.</p>`;
+- const b=document.querySelector('#dialog-confirm');b.textContent='Confirmar cotización y generación';b.disabled=false;
+- b.onclick=()=>{b.disabled=true;dialog.close();if(state.supervised_replacement?.proposal_id!==id||!state.supervised_replacement?.generation_enabled||state.supervised_replacement?.authorization_reference!==reference)return refresh();replacementMutation('generate',{proposal_id:id,authorization_reference:reference,confirmation_id:confirmationId,confirm:true});};dialog.showModal();
++ const r=state?.supervised_replacement;if(!r?.generation_enabled||sending||unresolvedIntent())return refresh();
++ const confirmation_id=crypto.randomUUID();
++ saveActionIntent({kind:'replacement_generate',episode:state.episode.id,action:state.episode.next_action,authorization_reference:r.authorization_reference,confirmation_id});
++ return replacementMutation('generate',{proposal_id:r.proposal_id,authorization_reference:r.authorization_reference,confirmation_id,confirm:true});
+ }
++async function reviewEpisodePlan(){
++ if(sending)return;
++ try{const result=await request('/plan/review'),challenge=result.challenge,c=challenge.contract,episode=state.episode.id;
++  document.querySelector('#dialog-title').textContent='Aprobar plan y presupuesto';
++  document.querySelector('#dialog-content').innerHTML=`<p>${esc(c.title)}</p>${c.action_set.map(key=>row(esc(key)+' · '+esc(c.model[key])+(c.payload_constraints[key].duration_seconds?' · '+c.payload_constraints[key].duration_seconds+' s':''),usd(c.per_action_limits[key]))).join('')}${row('Estimación mínima',usd(c.estimate_minimum_usd))}${row('Estimación probable',usd(c.estimate_probable_usd))}${row('Reserva máxima de las etapas',usd(c.total_reservation_maximum_usd))}${row('Exposición máxima del episodio',usd(c.maximum_episode_exposure))}<p>Autorizás únicamente estas etapas, modelos, contenidos y límites. Cada botón Generar comprobará el precio vigente. Sin variantes ni reintentos automáticos. Vigencia hasta ${esc(new Date(challenge.consent_expires_at).toLocaleString())}. Aprobar no genera ni reserva dinero.</p>`;
++  const b=document.querySelector('#dialog-confirm');b.textContent='Aprobar este plan y sus límites';b.disabled=false;b.onclick=async()=>{
++   if(sending||state.episode.id!==episode)return;dialog.close();sending=true;mutationEpoch++;render();
++   try{await request('/plan/accept',{method:'POST',body:{challenge,confirm:true}});toast('Plan aprobado. Elegí Generar cuando quieras continuar.');}
++   catch(e){toast(errorText(e));}finally{sending=false;await refresh();render();}
++  };dialog.showModal();
++ }catch(e){toast(errorText(e));}
++}
++
+ function confirmSpend(kind){const q=state?.quote;if(!q||Date.parse(q.expires_at)<=Date.now()+serverOffset)return prepareSpend();
+  const audio=q.currency==='ELEVENLABS_CHARACTER_QUOTA',generating=kind==='generate',image=state.production?.action?.stage==='IMAGE',action=state.episode.next_action,version=state.episode.checkpoint_version;
+  document.querySelector('#dialog-title').textContent=generating?(audio?'¿Generamos la voz de Fernanda?':image?'¿Creamos la imagen?':'¿Creamos la animación?'):'Autorización de gasto';
+@@ -206,7 +230,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab]
+   if(t.dataset.tab){tab=t.dataset.tab;if(['biblioteca','videos'].includes(tab))loadLibrary();render();window.scrollTo({top:0});tg?.HapticFeedback?.selectionChanged();return;}
+   if(t.dataset.review){const r=state.reviews.find(r=>r.id===t.dataset.review);if(!r)return;
+     return submit('review',{request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:t.dataset.decision,full_playback:!!document.querySelector('#playback-'+r.id)?.checked,source_comparison:!!document.querySelector('#source-'+r.id)?.checked,...(r.stage==='IMAGE'?{pose:document.querySelector('#pose-'+r.id)?.value,wand_hand:document.querySelector('#wand-'+r.id)?.value}:{})});}
+-  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh({manual:true});if(a==='replacement_review')return reviewReplacement();if(a==='replacement_quote')return confirmReplacementQuote();if(a==='replacement_generate')return confirmReplacementGeneration();if(a==='replacement_recover')return replacementMutation('recover',{proposal_id:state.supervised_replacement.proposal_id});if(a==='prepare')return prepareSpend();if(a==='first_animation'||a==='second_image')return submit(a,{confirm:true});if(['authorize','generate'].includes(a))return confirmSpend(a);return submit(a);});
++  const a=t.dataset.action;if(a==='login')return login();if(a==='refresh')return refresh({manual:true});if(a==='replacement_review')return reviewReplacement();if(a==='replacement_quote')return confirmReplacementQuote();if(a==='replacement_generate')return confirmReplacementGeneration();if(a==='replacement_recover')return replacementMutation('recover',{proposal_id:state.supervised_replacement.proposal_id});if(a==='prepare')return prepareSpend();if(a==='plan_review')return reviewEpisodePlan();if(a==='first_animation'||a==='second_image'||a==='production_stage')return submit(a,{confirm:true});if(a==='generate')return submit('generate',{confirm:true});if(a==='authorize')return confirmSpend(a);return submit(a);});
+ document.querySelector('#dialog-cancel').onclick=()=>dialog.close();
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+ try{tg?.ready();tg?.expand();tg?.setHeaderColor('#f6f7fb');tg?.setBackgroundColor('#f6f7fb');tg?.onEvent('activated',refresh);}catch{/* Older Telegram clients still support ordinary navigation. */}
+diff --git a/supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql b/supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql
+new file mode 100644
+index 0000000..16d6263
+--- /dev/null
++++ b/supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql
+@@ -0,0 +1,321 @@
++-- Version unactivated replacement limits in the existing transaction; preserve all historical evidence.
++begin;
++create or replace function public.lumi_supervised_replacement_v1(p jsonb) returns jsonb
++language plpgsql security invoker set search_path='' as $$
++<<replacement_tx>>
++declare cp public.lumi_pipeline_checkpoints; s public.lumi_telegram_review_sessions;
++ old public.lumi_provider_emission_journal; nr public.lumi_provider_emission_journal;
++ proposal jsonb; g jsonb; q jsonb; a jsonb; op jsonb; reservation jsonb; oldreceipt jsonb;
++ pid text:=p->>'proposal_id'; phase text:=p->>'phase'; uid text:=p->>'user_id'; sid text:=p->>'session_id';
++ episode text; attempt text; opid text; reservekey text; exposure numeric; t timestamptz:=clock_timestamp();
++ metadata jsonb; acts jsonb; state jsonb; qc jsonb; previous_claim jsonb; outcome jsonb;
++begin
++ -- Read identity, then lock checkpoints in a stable order, then session, journals.
++ select sess.state->'supervised_replacement_proposals'->pid->>'episode_id' into episode
++ from public.lumi_telegram_review_sessions sess where sess.user_id::text=uid;
++ if episode is null then raise exception 'REPLACEMENT_PROPOSAL_REQUIRED'; end if;
++ perform c.episode_id from public.lumi_pipeline_checkpoints c where c.episode_id=episode
++   or (c.metadata->>'target_episode'=episode) order by c.episode_id for update;
++ select * into strict cp from public.lumi_pipeline_checkpoints where episode_id=episode;
++ select * into strict s from public.lumi_telegram_review_sessions where user_id::text=uid for update;
++ state:=s.state; proposal:=state->'supervised_replacement_proposals'->pid;
++ attempt:=proposal->>'planned_attempt_id'; opid:=proposal->>'planned_operation_id'; reservekey:='replacement:'||attempt;
++ select * into strict old from public.lumi_provider_emission_journal where attempt_id=proposal->>'original_attempt_id' for update;
++ select e into a from jsonb_array_elements(cp.actions) e where e->>'key'=proposal->>'action_id';
++ oldreceipt:=state->'production_commands'->old.attempt_id;
++ if cp.metadata->>'user' is distinct from uid or s.chat_id::text is distinct from uid
++   or (phase<>'REVISE_MAXIMUM' and (coalesce((state->'mini_app'->'sessions'->sid->>'expires_at')::numeric,0)<=extract(epoch from t)*1000
++   or state->'mini_app'->'sessions'->sid->>'user' is distinct from uid
++   or state->'mini_app'->'sessions'->sid->>'chat' is distinct from uid))
++   or state->'episodes'->episode is null or coalesce(state->'mini_app'->>'active_episode_id',episode)<>episode
++   or cp.runner_enabled or cp.autorun or cp.metadata->>'provider_generation_authorized' is distinct from 'false'
++   or cp.metadata->>'publication_enabled' is distinct from 'false' then raise exception 'REPLACEMENT_OWNER_OR_SCOPE_REQUIRED'; end if;
++ if proposal->>'proposal_status' is distinct from 'REPLACEMENT_PROPOSAL' or proposal->>'risk_acceptance' is not null
++   or proposal->>'generation_enabled' is distinct from 'false' or proposal->>'new_reservation_status' is distinct from 'NOT_RESERVED'
++   or cp.authorized_ceiling_usd is distinct from (proposal->>'budget_ceiling_usd')::numeric
++   or old.episode_id<>episode or old.scene_id is distinct from proposal->>'shot_id'
++   or old.stage is distinct from a->>'stage' or old.provider is distinct from proposal->>'provider' or old.model is distinct from proposal->>'model'
++   or old.attempt_id=attempt or proposal->>'original_operation_id'=opid or attempt=opid
++   or proposal->>'planned_idempotency_key' in (old.attempt_id,attempt,opid,proposal->>'original_operation_id')
++   then raise exception 'REPLACEMENT_IDENTITY_REQUIRED'; end if;
++ -- Result recovery is authenticated but requires no spend/risk grant. It cannot submit.
++ if phase='SELECT_ORIGINAL' then
++   if cp.first_pending_action is distinct from proposal->>'action_id' or a->>'active_attempt_id' not in (old.attempt_id,attempt)
++     or a->>'status' is distinct from 'PENDING' or a->>'artifact' is not null
++     or cp.metadata->'budget_reservations'->(proposal->>'action_id')->>'attempt_id' is distinct from old.attempt_id
++     then raise exception 'REPLACEMENT_ORIGINAL_RECOVERY_SCOPE_CHANGED'; end if;
++   select * into nr from public.lumi_provider_emission_journal where attempt_id=attempt for update;
++   if nr.attempt_id is not null and not (nr.state='PREPARED' or
++     (nr.response_metadata->>'transport_invoked'='false' and nr.response_parsing_outcome='NOT_DISPATCHED'))
++     then raise exception 'REPLACEMENT_ALREADY_EMITTED_KEEP_BOTH'; end if;
++   if old.state='ACKNOWLEDGED' and old.response_metadata->'accepted_result'->>'request_id'=old.provider_request_id then
++     oldreceipt:=coalesce(oldreceipt,'{}')||jsonb_build_object('status','WAITING','episode_id',episode,'action_key',proposal->>'action_id',
++       'result',jsonb_build_object('episode_id',episode,'stage_id',old.stage,'status','IN_PROGRESS','artifacts','[]'::jsonb,
++       'provider_job_ids',jsonb_build_array(old.provider_request_id),'claims',jsonb_build_array(old.attempt_id),'output',old.response_metadata->'accepted_result'));
++   end if;
++   if oldreceipt->>'episode_id' is distinct from episode or oldreceipt->>'action_key' is distinct from proposal->>'action_id'
++     or oldreceipt->'result'->>'episode_id' is distinct from episode or oldreceipt->'result'->>'stage_id' is distinct from old.stage
++     or oldreceipt->'result'->'provider_job_ids'->>0 is null
++     or oldreceipt->'result'->'output'->>'request_id' is distinct from oldreceipt->'result'->'provider_job_ids'->>0
++     or coalesce(oldreceipt->'result'->'output'->>'status_url','') !~ '^https://api[.]higgsfield[.]ai/[A-Za-z0-9_/-]+$'
++     then raise exception 'REPLACEMENT_ORIGINAL_VERIFIED_RECEIPT_REQUIRED'; end if;
++   metadata:=jsonb_set(cp.metadata,'{supervised_original_recoveries}',coalesce(cp.metadata->'supervised_original_recoveries','{}')||
++     jsonb_build_object(old.attempt_id,jsonb_build_object('proposal_id',pid,'provider_request_id',oldreceipt->'result'->'provider_job_ids'->>0,
++       'original_incident_id',cp.active_incident_id,'selected_at',t)));
++   metadata:=jsonb_set(metadata,'{runtime_revision}',to_jsonb((cp.metadata->>'runtime_revision')::bigint+1));
++   select jsonb_agg(case when e->>'key'=proposal->>'action_id' then e||jsonb_build_object('active_attempt_id',old.attempt_id,
++     'dispatch_state','REQUEST_ACCEPTED','provider_request_id',oldreceipt->'result'->'provider_job_ids'->>0) else e end order by n)
++     into acts from jsonb_array_elements(cp.actions) with ordinality x(e,n);
++   update public.lumi_pipeline_checkpoints set metadata=replacement_tx.metadata,actions=acts,status='RUNNING',active_incident_id=null,updated_at=t where episode_id=episode;
++   state:=jsonb_set(state,'{production_commands}',coalesce(state->'production_commands','{}')||jsonb_build_object(old.attempt_id,oldreceipt));
++   if state->'mini_app'->'operations'->opid is not null then
++     state:=jsonb_set(state,array['mini_app','operations',opid],(state->'mini_app'->'operations'->opid)||jsonb_build_object('status','BLOCKED','phase','ORIGINAL_RESULT_PRIORITY'));
++   end if;
++   update public.lumi_telegram_review_sessions set state=replacement_tx.state,revision=s.revision+1,updated_at=t where user_id=s.user_id;
++   return jsonb_build_object('status','ORIGINAL_RESULT_SELECTED','provider_calls',0,'new_reservations',0);
++ end if;
++ -- Recording an outcome cannot authorize spending. It also works after a
++ -- deadline passes, and only changes the matching fenced confirmation record.
++ if phase='CONFIRMATION_OUTCOME' then
++   g:=p->'grant'; qc:=p->'quote_claim';
++   previous_claim:=state->'supervised_replacement_quote_claims'->(g->>'authorization_reference');
++   if state->'supervised_replacement_consent_history'->(g->>'authorization_reference') is distinct from g
++     or previous_claim->'binding' is distinct from qc or previous_claim->>'status'<>'CLAIMED'
++     or coalesce(p->>'error_code','') !~ '^[A-Z0-9_]{1,100}$'
++     or p->>'error_phase' not in ('QUOTE','PREFLIGHT','ACTIVATE','SUBMIT','DISPATCH','PROVIDER','RESULT_PERSISTENCE')
++     then raise exception 'REPLACEMENT_OUTCOME_CLAIM_CHANGED'; end if;
++   select * into nr from public.lumi_provider_emission_journal where attempt_id=attempt for update;
++   outcome:=previous_claim||jsonb_build_object('status',case when nr.attempt_id is null
++       and state->'mini_app'->'operations'->opid is null then 'PREFLIGHT_FAILED' else 'RECOVERY_REQUIRED' end,
++     'finished_at',t,'error_code',p->>'error_code','error_phase',p->>'error_phase',
++     'database_code',case when p->>'database_code' ~ '^[A-Z0-9]{5}$' then p->>'database_code' end,
++     'quote_receipt',p->'quote_receipt','generation_boundary',case when nr.attempt_id is null
++       then 'NO_JOURNAL_NO_GENERATION' else nr.state end);
++   state:=jsonb_set(state,array['supervised_replacement_quote_claims',g->>'authorization_reference'],outcome);
++   state:=jsonb_set(state,array['supervised_replacement_quote_history',qc->>'claim_id'],outcome);
++   if state->'mini_app'->'operations'->opid is not null
++     and cp.metadata->'supervised_replacement_activity'->attempt->'quote'->>'quote_claim_id'=qc->>'claim_id' then
++     state:=jsonb_set(state,array['mini_app','operations',opid],(state->'mini_app'->'operations'->opid)||
++       jsonb_build_object('status','BLOCKED','phase','RECOVERY_REQUIRED','error',p->>'error_code'));
++   end if;
++   update public.lumi_telegram_review_sessions set state=replacement_tx.state,revision=s.revision+1,updated_at=t where user_id=s.user_id;
++   return outcome;
++ end if;
++ if phase='QUOTE_RESULT' then
++   g:=p->'grant'; q:=p->'quote'; qc:=p->'quote_claim';
++   previous_claim:=state->'supervised_replacement_quote_claims'->(g->>'authorization_reference');
++   if state->'supervised_replacement_consent_history'->(g->>'authorization_reference') is distinct from g
++     or previous_claim->>'status' is distinct from 'CLAIMED' or previous_claim->'binding' is distinct from qc
++     or previous_claim ? 'quote'
++     or not coalesce(q @> jsonb_build_object('episode_id',episode,'action_id',proposal->>'action_id',
++       'replacement_proposal_id',pid,'operation_id',opid,'attempt_id',attempt,'model',old.model,
++       'currency','USD','status','QUOTED','payload_sha256',qc->>'payload_sha256','quote_claim_id',qc->>'claim_id'),false)
++     or coalesce(q->>'quote_id','')='' or coalesce((q->>'estimate_usd')::numeric,-1)<0
++     or (q->>'reserve_usd')::numeric is distinct from ceil((q->>'estimate_usd')::numeric*1.25*1000000)/1000000
++     or q->'economic_decision'->>'payload_sha256' is distinct from qc->>'payload_sha256'
++     or (q->'economic_decision'->>'authorized_max_usd')::numeric is distinct from (proposal->>'maximum_new_reservation')::numeric
++     then raise exception 'REPLACEMENT_QUOTE_EVIDENCE_BINDING_REQUIRED'; end if;
++   -- Service-only, exact allowlist: never store provider bodies, URLs or secrets.
++   select jsonb_object_agg(k,v) into q from jsonb_each(q) e(k,v) where k=any(array[
++     'episode_id','action_id','replacement_proposal_id','operation_id','attempt_id','model','currency','status','payload_sha256',
++     'quote_claim_id','quote_id','created_at','expires_at','estimate_usd','reserve_usd','http_status','provider_request_id',
++     'provider_quote_expiration','correlation_id','approved_content_fingerprint','economic_decision']);
++   outcome:=previous_claim||jsonb_build_object('quote',q,'quote_recorded_at',t,
++     'status',case when p->>'quote_only'='true' then 'QUOTE_RECORDED' else 'CLAIMED' end,
++     'generation_boundary','NO_JOURNAL_NO_GENERATION','quote_only',p->>'quote_only'='true');
++   state:=jsonb_set(state,array['supervised_replacement_quote_claims',g->>'authorization_reference'],outcome);
++   state:=jsonb_set(state,array['supervised_replacement_quote_history',qc->>'claim_id'],outcome);
++   update public.lumi_telegram_review_sessions set state=replacement_tx.state,revision=s.revision+1,updated_at=t where user_id=s.user_id;
++   return jsonb_build_object('status','QUOTE_RECORDED','provider_calls',0,'new_reservations',0);
++ end if;
++ if old.state is distinct from 'EMISSION_UNKNOWN' or old.response_parsing_outcome is distinct from 'NO_RESPONSE'
++   or old.http_status is not null or old.provider_request_id is not null or old.response_metadata->'accepted_result' is not null
++   or old.response_metadata->>'transport_invoked'='false'
++   or coalesce(jsonb_array_length(oldreceipt->'result'->'provider_job_ids'),0)>0
++   or coalesce(jsonb_array_length(oldreceipt->'result'->'artifacts'),0)>0
++   then raise exception 'REPLACEMENT_ORIGINAL_RESULT_OR_EVIDENCE_CHANGED'; end if;
++ reservation:=cp.metadata->'budget_reservations'->(proposal->>'action_id');
++ if reservation->>'attempt_id' is distinct from old.attempt_id
++   or reservation->>'status' is distinct from 'RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED'
++   or (reservation->>'amount_usd')::numeric is distinct from (proposal->>'original_reserved_usd')::numeric
++   then raise exception 'REPLACEMENT_ORIGINAL_RESERVATION_CHANGED'; end if;
++
++ -- Service-only administrative revision backed by an explicit user instruction.
++ -- This is NOT risk acceptance, cannot reserve and cannot create an operation.
++ if phase='REVISE_MAXIMUM' then
++   q:=p->'revised_proposal'; g:=p->'limit_authorization';
++   if s.revision is distinct from (p->>'expected_revision')::bigint or to_jsonb(cp) is distinct from p->'checkpoint'
++     or to_jsonb(old) is distinct from p->'original_journal' or proposal is distinct from p->'previous_proposal'
++     or state->'mini_app'->'operations'->(proposal->>'original_operation_id') is distinct from p->'original_operation'
++     or state->'v2_authorizations'->(proposal->>'original_authorization_id') is distinct from p->'original_authorization'
++     then raise exception 'REPLACEMENT_CAS_CONFLICT'; end if;
++   if cp.status<>'PAUSED_INCIDENT' or cp.first_pending_action is distinct from proposal->>'action_id'
++     or a->>'active_attempt_id' is distinct from old.attempt_id or a->>'status'<>'PENDING'
++     or a->>'artifact' is not null or a->>'provider_request_id' is not null
++     or exists(select 1 from public.lumi_provider_emission_journal where attempt_id=attempt
++       or original_attempt_snapshot->>'supervised_replacement_of'=old.attempt_id)
++     or state->'mini_app'->'operations'->opid is not null
++     or cp.metadata->'budget_reservations' ? reservekey
++     then raise exception 'REPLACEMENT_ALREADY_CLAIMED'; end if;
++   previous_claim:=state->'supervised_replacement_quote_claims'->(state->'supervised_replacement_grants'->pid->>'authorization_reference');
++   if previous_claim->>'status'='CLAIMED' and coalesce((previous_claim->>'expires_at')::timestamptz,'infinity')>t
++     then raise exception 'REPLACEMENT_QUOTE_ALREADY_CLAIMED'; end if;
++   if not coalesce(g @> jsonb_build_object('scope','REPLACEMENT_MAXIMUM_ONLY','channel','EXPLICIT_USER_REQUEST',
++     'episode_id',episode,'action_id',proposal->>'action_id','proposal_id',pid,'accepts_duplicate_risk',false,
++     'generation_authorized',false,'reservation_authorized',false),false)
++     or coalesce(g->>'authorization_reference','')='' or g->>'authorization_reference' is distinct from q->>'revision_authorization_reference'
++     or (g->>'previous_max_usd')::numeric is distinct from (proposal->>'maximum_new_reservation')::numeric
++     or (g->>'maximum_reservation_usd')::numeric is distinct from (q->>'maximum_new_reservation')::numeric
++     or state->'v2_authorizations'->(g->>'authorization_reference') is not null
++     or (q->>'version')::integer is distinct from (proposal->>'version')::integer+1
++     or q->>'previous_proposal_digest' is distinct from proposal->>'proposal_digest'
++     or coalesce(q->>'proposal_digest','') !~ '^[a-f0-9]{64}$'
++     or q->>'proposal_digest'=proposal->>'proposal_digest'
++     or (q->>'created_at')::timestamptz<= (proposal->>'created_at')::timestamptz
++     or (q->>'created_at')::timestamptz>t
++     or coalesce((q->>'maximum_new_reservation')::numeric,0)<=0
++     or (q->>'maximum_new_reservation')::numeric=(proposal->>'maximum_new_reservation')::numeric
++     or (q-array['version','previous_proposal_digest','revision_authorization_reference','created_at','proposal_digest',
++       'maximum_new_reservation','potential_episode_exposure_usd','potential_duplicate_cost'])
++       is distinct from (proposal-array['version','previous_proposal_digest','revision_authorization_reference','created_at','proposal_digest',
++       'maximum_new_reservation','potential_episode_exposure_usd','potential_duplicate_cost'])
++     or q->'potential_duplicate_cost' is distinct from (proposal->'potential_duplicate_cost'||jsonb_build_object(
++       'proposed_additional_reservation_usd',(q->>'maximum_new_reservation')::numeric,
++       'combined_q42_or_action_exposure_usd',(proposal->>'original_reserved_usd')::numeric+(q->>'maximum_new_reservation')::numeric))
++     then raise exception 'REPLACEMENT_LIMIT_REVISION_INVALID'; end if;
++   select coalesce(sum(c.current_cost_usd+coalesce((select sum((v->>'amount_usd')::numeric)
++     from jsonb_each(coalesce(c.metadata->'budget_reservations','{}')) r(k,v)),0)),0) into exposure
++     from public.lumi_pipeline_checkpoints c where c.episode_id=episode or c.metadata->>'target_episode'=episode;
++   if exposure is distinct from (proposal->>'existing_episode_exposure_usd')::numeric
++     or exposure+(q->>'maximum_new_reservation')::numeric>cp.authorized_ceiling_usd
++     or (q->>'potential_episode_exposure_usd')::numeric is distinct from exposure+(q->>'maximum_new_reservation')::numeric
++     then raise exception 'REPLACEMENT_DOUBLE_EXPOSURE_BUDGET_BLOCKED'; end if;
++   state:=jsonb_set(state,'{supervised_replacement_proposal_history}',coalesce(state->'supervised_replacement_proposal_history','{}')||
++     jsonb_build_object(proposal->>'proposal_digest',proposal,q->>'proposal_digest',q));
++   state:=jsonb_set(state,array['supervised_replacement_proposals',pid],q);
++   state:=jsonb_set(state,'{v2_authorizations}',coalesce(state->'v2_authorizations','{}')||jsonb_build_object(g->>'authorization_reference',g));
++   update public.lumi_telegram_review_sessions set state=replacement_tx.state,revision=s.revision+1,updated_at=t where user_id=s.user_id;
++   return jsonb_build_object('status','MAXIMUM_REVISED_NEW_RISK_ACCEPTANCE_REQUIRED','proposal_id',pid,'version',q->'version',
++     'maximum_reservation_usd',q->'maximum_new_reservation','provider_calls',0,'new_reservations',0);
++ end if;
++ g:=p->'grant'; q:=p->'quote'; qc:=p->'quote_claim';
++ if not coalesce(g @> jsonb_build_object('scope','SUPERVISED_REPLACEMENT_DUPLICATE_RISK','status','AUTHORIZED','decision','APPROVED',
++   'replacement_proposal_id',pid,'proposal_digest',proposal->>'proposal_digest','original_operation_id',proposal->>'original_operation_id',
++   'episode_id',episode,'shot_id',proposal->>'shot_id','action_id',proposal->>'action_id','human_identity',uid,'user_id',uid,
++   'risk_disclosure_version','LUMI_DUPLICATE_RISK_V2','accepts_possible_duplicate_charge',true,'preserve_original_reservation',true,'max_new_provider_calls',1),false)
++   or coalesce((g->>'max_new_reservation_usd')::numeric,0) is distinct from (proposal->>'maximum_new_reservation')::numeric
++   or g->>'maximum_reservation_usd' is distinct from g->>'max_new_reservation_usd'
++   or coalesce(g->>'payload_sha256','') !~ '^[a-f0-9]{64}$' or coalesce(g->>'seal','') !~ '^[a-f0-9]{64}$'
++   or coalesce((g->>'expires_at')::timestamptz,'-infinity')<=t
++   or coalesce((g->>'consent_timestamp')::timestamptz,'infinity')>t
++   or g->>'consent_timestamp' is distinct from g->>'authorized_at'
++   or coalesce((g->>'authorized_at')::timestamptz,'-infinity')<(proposal->>'created_at')::timestamptz
++   or g->>'authorization_reference' is null then raise exception 'REPLACEMENT_SPECIFIC_CONSENT_REQUIRED'; end if;
++ if g->>'consent_contract_version'='3' and (coalesce(g->>'approved_content_fingerprint','') !~ '^[a-f0-9]{64}$'
++   or (g->>'expires_at')::timestamptz>(g->>'authorized_at')::timestamptz+interval '24 hours')
++   then raise exception 'REPLACEMENT_CONSENT_CONTRACT_INVALID'; end if;
++ if phase<>'DISPATCH' then
++   if s.revision is distinct from (p->>'expected_revision')::bigint or to_jsonb(cp) is distinct from p->'checkpoint'
++     or to_jsonb(old) is distinct from p->'original_journal'
++     or state->'mini_app'->'operations'->(proposal->>'original_operation_id') is distinct from p->'original_operation'
++     or state->'v2_authorizations'->(proposal->>'original_authorization_id') is distinct from p->'original_authorization'
++     then raise exception 'REPLACEMENT_CAS_CONFLICT'; end if;
++   if cp.status<>'PAUSED_INCIDENT' or cp.first_pending_action is distinct from proposal->>'action_id'
++     or a->>'active_attempt_id' is distinct from old.attempt_id or a->>'status' is distinct from 'PENDING'
++     or a->>'artifact' is not null or a->>'provider_request_id' is not null
++     then raise exception 'REPLACEMENT_CHECKPOINT_CHANGED'; end if;
++   if exists(select 1 from public.lumi_provider_emission_journal where attempt_id=attempt
++     or original_attempt_snapshot->>'supervised_replacement_of'=old.attempt_id)
++     or state->'mini_app'->'operations'->opid is not null then raise exception 'REPLACEMENT_ALREADY_CLAIMED'; end if;
++ end if;
++ if phase='ACCEPT' then
++   if g->>'session_id' is distinct from sid then raise exception 'REPLACEMENT_CONSENT_SESSION_REQUIRED'; end if;
++   if state->'supervised_replacement_consent_history'->(g->>'authorization_reference') is not null then raise exception 'REPLACEMENT_CONSENT_REPLAY'; end if;
++   -- Preserve every consent; renewing an expired payload never changes a prior grant.
++   state:=jsonb_set(state,'{supervised_replacement_grants}',coalesce(state->'supervised_replacement_grants','{}')||jsonb_build_object(pid,g));
++   state:=jsonb_set(state,'{supervised_replacement_consent_history}',coalesce(state->'supervised_replacement_consent_history','{}')||jsonb_build_object(g->>'authorization_reference',g));
++ elsif phase='QUOTE_CLAIM' then
++   if state->'supervised_replacement_grants'->pid is distinct from g then raise exception 'REPLACEMENT_CONSENT_CHANGED'; end if;
++   previous_claim:=state->'supervised_replacement_quote_claims'->(g->>'authorization_reference');
++   if previous_claim is not null and not (previous_claim->>'status' in ('PREFLIGHT_FAILED','QUOTE_RECORDED') or
++     (previous_claim->'binding' is not null and previous_claim->>'status'='CLAIMED'
++      and (previous_claim->>'expires_at')::timestamptz<=t))
++     then raise exception 'REPLACEMENT_QUOTE_ALREADY_CLAIMED'; end if;
++   if coalesce(qc->>'claim_id','') !~ '^[a-f0-9-]{36}$'
++     or state->'supervised_replacement_quote_history'->(qc->>'claim_id') is not null
++     or qc->>'authorization_reference' is distinct from g->>'authorization_reference'
++     or coalesce(qc->>'seal','') !~ '^[a-f0-9]{64}$'
++     or coalesce(qc->>'payload_sha256','') !~ '^[a-f0-9]{64}$'
++     or coalesce((qc->>'expires_at')::timestamptz,'-infinity')<=t
++     or (qc->>'expires_at')::timestamptz>t+interval '60 seconds'
++     or (qc->>'expires_at')::timestamptz>(g->>'expires_at')::timestamptz
++     or (g->>'consent_contract_version'='3' and qc->>'approved_content_fingerprint' is distinct from g->>'approved_content_fingerprint')
++     or (g->>'consent_contract_version' is distinct from '3' and qc->>'payload_sha256' is distinct from g->>'payload_sha256')
++     then raise exception 'REPLACEMENT_CONFIRMATION_BINDING_REQUIRED'; end if;
++   outcome:=jsonb_build_object('status','CLAIMED','created_at',t,'claim_id',qc->>'claim_id','expires_at',qc->>'expires_at','binding',qc);
++   state:=jsonb_set(state,'{supervised_replacement_quote_claims}',coalesce(state->'supervised_replacement_quote_claims','{}')||jsonb_build_object(g->>'authorization_reference',outcome));
++   state:=jsonb_set(state,'{supervised_replacement_quote_history}',coalesce(state->'supervised_replacement_quote_history','{}')||jsonb_build_object(qc->>'claim_id',outcome));
++ elsif phase in ('ACTIVATE','DISPATCH') then
++   if state->'supervised_replacement_grants'->pid is distinct from g
++     or state->'supervised_replacement_quote_claims'->(g->>'authorization_reference')->>'status' is distinct from 'CLAIMED'
++     or state->'supervised_replacement_quote_claims'->(g->>'authorization_reference')->'binding' is distinct from qc
++     or coalesce((qc->>'expires_at')::timestamptz,'-infinity')<=t
++     then raise exception 'REPLACEMENT_CONSENT_OR_QUOTE_CLAIM_CHANGED'; end if;
++   if not coalesce(q @> jsonb_build_object('episode_id',episode,'action_id',proposal->>'action_id','replacement_proposal_id',pid,
++     'operation_id',opid,'attempt_id',attempt,'model',old.model,'currency','USD','status','QUOTED','payload_sha256',qc->>'payload_sha256','quote_claim_id',qc->>'claim_id'),false)
++     or coalesce((q->>'expires_at')::timestamptz,'-infinity')<=t or coalesce((q->>'created_at')::timestamptz,'infinity')>t
++     or (q->>'created_at')::timestamptz<(g->>'authorized_at')::timestamptz
++     or state->'supervised_replacement_quote_claims'->(g->>'authorization_reference')->'quote' is distinct from q
++     or (q->>'reserve_usd')::numeric is distinct from ceil((q->>'estimate_usd')::numeric*1.25*1000000)/1000000
++     or coalesce((q->>'estimate_usd')::numeric,0)<=0 or coalesce((q->>'reserve_usd')::numeric,0)<(q->>'estimate_usd')::numeric
++     or (q->>'reserve_usd')::numeric>(proposal->>'maximum_new_reservation')::numeric
++     then raise exception 'REPLACEMENT_FRESH_QUOTE_REQUIRED'; end if;
++   select coalesce(sum(c.current_cost_usd+(select coalesce(sum((v->>'amount_usd')::numeric),0)
++     from jsonb_each(coalesce(c.metadata->'budget_reservations','{}')) e(k,v))),0) into exposure
++     from public.lumi_pipeline_checkpoints c where c.episode_id=episode
++       or (c.metadata->>'target_episode'=episode);
++   if exposure+(case when phase='ACTIVATE' then (q->>'reserve_usd')::numeric else 0 end)>cp.authorized_ceiling_usd
++     then raise exception 'REPLACEMENT_DOUBLE_EXPOSURE_BUDGET_BLOCKED'; end if;
++   if phase='ACTIVATE' then
++     nr:=jsonb_populate_record(null::public.lumi_provider_emission_journal,p->'record');
++     if nr.attempt_id is distinct from attempt or nr.episode_id is distinct from episode or nr.scene_id is distinct from old.scene_id
++       or nr.stage is distinct from old.stage or nr.provider is distinct from old.provider or nr.model is distinct from old.model
++       or nr.payload_fingerprint is distinct from qc->>'payload_sha256' or nr.state is distinct from 'PREPARED'
++       or nr.expected_cost_usd is distinct from (q->>'estimate_usd')::numeric
++       or nr.original_attempt_snapshot->>'supervised_replacement_of' is distinct from old.attempt_id
++       or nr.original_attempt_snapshot->>'proposal_id' is distinct from pid
++       or nr.payload_descriptor->'identity'->>'idempotency_key' is distinct from proposal->>'planned_idempotency_key'
++       then raise exception 'REPLACEMENT_JOURNAL_BINDING_REQUIRED'; end if;
++     insert into public.lumi_provider_emission_journal select nr.*;
++     metadata:=jsonb_set(cp.metadata,'{budget_reservations}',coalesce(cp.metadata->'budget_reservations','{}')||jsonb_build_object(reservekey,
++       jsonb_build_object('status','RESERVED_UNTIL_ACTUAL_CHARGE_VERIFIED','amount_usd',(q->>'reserve_usd')::numeric,'attempt_id',attempt,'binding',qc->>'payload_sha256')));
++     metadata:=jsonb_set(metadata,'{supervised_replacement_activity}',coalesce(metadata->'supervised_replacement_activity','{}')||jsonb_build_object(attempt,
++       jsonb_build_object('proposal_id',pid,'original_action',a,'original_attempt_id',old.attempt_id,'original_incident_id',cp.active_incident_id,'reservation_key',reservekey,'quote',q)));
++     metadata:=jsonb_set(metadata,'{runtime_revision}',to_jsonb((cp.metadata->>'runtime_revision')::bigint+1));
++     select jsonb_agg(case when e->>'key'=proposal->>'action_id' then e||jsonb_build_object('active_attempt_id',attempt,'dispatch_state','DISPATCHING') else e end order by n)
++       into acts from jsonb_array_elements(cp.actions) with ordinality t(e,n);
++     update public.lumi_pipeline_checkpoints set metadata=replacement_tx.metadata,actions=acts,status='RUNNING',active_incident_id=null,updated_at=t where episode_id=episode;
++     op:=jsonb_build_object('id',opid,'kind','supervised_replacement','status','RUNNING','phase','DISPATCHING','session_id',sid,'started_at',t,
++       'replacement_proposal_id',pid,'original_operation_id',proposal->>'original_operation_id','binding',jsonb_build_object('proposal_id',episode,'next_action',proposal->>'action_id'));
++     state:=jsonb_set(state,array['mini_app','operations',opid],op);
++     state:=jsonb_set(state,'{mini_app,active_operation}',to_jsonb(opid));
++     state:=jsonb_set(state,'{production_commands}',coalesce(state->'production_commands','{}')||jsonb_build_object(attempt,
++       jsonb_build_object('status','STARTED','episode_id',episode,'action_key',proposal->>'action_id','quote',q)));
++   else
++     select * into strict nr from public.lumi_provider_emission_journal where attempt_id=attempt for update;
++     if p->>'attempt_id' is distinct from attempt or nr.state<>'PREPARED' or cp.status<>'RUNNING'
++       or cp.first_pending_action is distinct from proposal->>'action_id' or a->>'active_attempt_id' is distinct from attempt
++       or cp.metadata->'supervised_replacement_activity'->attempt->'quote' is distinct from q
++       or cp.metadata->'budget_reservations'->reservekey->>'binding' is distinct from qc->>'payload_sha256'
++       or state->'mini_app'->'operations'->opid->>'phase' is distinct from 'DISPATCHING'
++       then raise exception 'REPLACEMENT_DISPATCH_CAS_CONFLICT'; end if;
++     update public.lumi_provider_emission_journal set state='EMITTING',request_start_at=t where attempt_id=attempt returning * into nr;
++     state:=jsonb_set(state,array['mini_app','operations',opid,'phase'],to_jsonb('EMITTING'::text));
++   end if;
++ else raise exception 'REPLACEMENT_TRANSACTION_PHASE_INVALID'; end if;
++ update public.lumi_telegram_review_sessions set state=replacement_tx.state,revision=s.revision+1,updated_at=t where user_id=s.user_id;
++ return case when phase in ('ACTIVATE','DISPATCH') then to_jsonb(nr) else jsonb_build_object('status',phase,'provider_calls',0,'new_reservations',0) end;
++end $$;
++revoke all on function public.lumi_supervised_replacement_v1(jsonb) from public,anon,authenticated;
++grant execute on function public.lumi_supervised_replacement_v1(jsonb) to service_role;
++commit;
+diff --git a/test/lumi-q41-first-image.test.js b/test/lumi-q41-first-image.test.js
+index 37debe0..3c64b9d 100644
+--- a/test/lumi-q41-first-image.test.js
++++ b/test/lumi-q41-first-image.test.js
+@@ -1262,6 +1262,43 @@ async function oneTapFixture(t,options={}){
+  t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
+  return {...f,emitted,polls};
+ }
++async function approvedPlanFixture(t,options={}){
++ const f=await oneTapFixture(t,options);
++ await f.manager.checkpoint(episode,cp=>{
++  cp.metadata.episode_ledger||={};cp.metadata.episode_ledger.entries||={};
++  for(const a of cp.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)))cp.metadata.episode_ledger.entries[a.key]={
++   ...(cp.metadata.episode_ledger.entries[a.key]||{}),estimated_cost:{currency:'USD',usd:a.key==='video:q41'?.448:.01}};
++  cp.metadata.episode_ledger.overhead_estimates={STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'synthetic'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'synthetic'}};
++ });
++ const review=await f.service.reviewPlan(f.principal);
++ await f.service.acceptPlan(f.principal,{challenge:review.challenge,confirm:true});
++ return f;
++}
++test('PLAN_ONETAP AUTOMATIC_QUOTE DOUBLE_CLICK SESSION_REOPEN: approved plan drives existing runtime and journal once',async t=>{
++ const f=await approvedPlanFixture(t,{quoteUsd:.44}),before=await f.service.view(f.principal);
++ assert.equal(before.episode_plan_authorization.status,'AUTHORIZED');assert.equal(before.capabilities.production_stage,true);
++ assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
++ const p=await f.reopen(),body={confirm:true,expected_action:'video:q41',checkpoint_version:before.episode.checkpoint_version};
++ const clicks=await Promise.all([f.service.enqueue(p,'production_stage',body),f.service.enqueue(p,'production_stage',body)]);
++ await Promise.all(clicks.map(c=>c.dispatch()));
++ const view=await f.service.view(p);assert.equal(view.operation.phase,'GENERATING',JSON.stringify(view.operation));
++ assert.equal(f.quotes.length,1);assert.equal(f.emitted.length,1);
++ const state=(await f.reviewStore.get('1')).state,op=state.mini_app.operations[view.operation.id];
++ assert.equal(state.production_commands[op.binding.quote_id].human_authorization.decision_source,'EXPLICIT_APPROVED_EPISODE_PLAN');
++ const reopen=await f.reopen(),again=await f.service.enqueue(reopen,'production_stage',body);await again.dispatch();
++ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);
++});
++test('PLAN_ONETAP QUOTE_OVER_LIMIT EPISODE_BUDGET_GATE MATERIAL_BINDING: new consent cannot expand silently',async t=>{
++ const f=await approvedPlanFixture(t,{quoteUsd:.5}),v=await f.service.view(f.principal);
++ const after=await f.submit('production_stage',{confirm:true,expected_action:'video:q41',checkpoint_version:v.episode.checkpoint_version});
++ assert.equal(after.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
++ assert.equal(after.quote.economic_decision.calculated_reservation_usd,.625);assert.equal(after.quote.economic_decision.authorized_max_usd,.56);
++ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations?.['video:q41'],undefined);
++ const other=await approvedPlanFixture(t);await other.manager.checkpoint(episode,cp=>{cp.metadata.generic_v2.plan.episode.title+=' changed';});
++ const changed=await other.service.view(other.principal);assert.equal(changed.capabilities.production_stage,false);
++ await assert.rejects(other.service.enqueue(other.principal,'production_stage',{confirm:true,expected_action:'video:q41',checkpoint_version:changed.episode.checkpoint_version}),/PLAN_APPROVAL/);
++ assert.equal(other.quotes.length,0);assert.equal(other.emitted.length,0);
++});
+ test('ONETAP AUTOMATIC_QUOTE PRICE_VARIATION MAX_RESERVATION: one click binds consent and emits one mock request within .56',async t=>{
+  for(const price of [.40,.447,.448]){
+   const f=await oneTapFixture(t,{quoteUsd:price}),cp=await f.store.getEpisode(episode);
+diff --git a/test/lumi-supervised-activation.test.js b/test/lumi-supervised-activation.test.js
+index db9cf45..90a095f 100644
+--- a/test/lumi-supervised-activation.test.js
++++ b/test/lumi-supervised-activation.test.js
+@@ -6,7 +6,7 @@ import {PGlite} from '@electric-sql/pglite';
+ import {MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
+ import {LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
+ import {ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
+-import {buildReplacementProposal,recoveryDigest,replacementPresentation} from '../lib/lumi-supervised-replacement.js';
++import {buildReplacementProposal,reviseReplacementMaximum,recoveryDigest,replacementPresentation} from '../lib/lumi-supervised-replacement.js';
+ import {supervisedReservation,estimateHiggsfieldUsd} from '../lib/higgsfield-usd-budget-v1.js';
+ import {quoteSupervisedPayload} from '../lib/lumi-supervised-runtime-bindings.js';
+ import {installSupervisedActivation} from '../lib/lumi-supervised-activation.js';
+@@ -24,6 +24,7 @@ function initData(nonce){const p=new URLSearchParams({auth_date:String(Math.floo
+ async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,afterActivate=null}={}){
+  const db=new PGlite();await db.exec(schema);await db.exec(migration);await db.exec(await readFile(new URL('../supabase/migrations/20261019003616_lumi_supervised_durable_consent.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261019010401_lumi_cost_traceability.sql',import.meta.url),'utf8'));
++ await db.exec(await readFile(new URL('../supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql',import.meta.url),'utf8'));
+  const oldMigration=await readFile(new URL('../supabase/migrations/20261011215758_lumi_balance_recovery.sql',import.meta.url),'utf8');
+  await db.exec(oldMigration.slice(oldMigration.indexOf('create or replace function public.lumi_emission_immutable_v1()'),oldMigration.lastIndexOf('commit;')));
+  await db.exec('create trigger immutable before update on lumi_provider_emission_journal for each row execute function lumi_emission_immutable_v1()');
+@@ -70,6 +71,37 @@ async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,a
+  return {controls,db,json,insert,tx,getCp,getJ,cpId,action,attempt,operation,authorization,proposal,reviewStore,manager,journal,auth,login,principal,adapter,review,accept,generate,sent,counts:()=>({quotes,calls}),close:()=>db.close()};
+ }
+ 
++test('Q42_MAX_UPDATE / RISK_CONSENT_VERSIONING: CAS revision preserves original, old grant and identity; new acceptance is required',async t=>{
++ for(const episode of ['ep005_synthetic','ep006_synthetic']){
++  const f=await fixture({episode,stage:episode.includes('006')?'VIDEO':'IMAGE'});t.after(f.close);await f.accept();
++  const cp=await f.getCp(f.cpId),j=await f.getJ(f.attempt),s=await f.reviewStore.get(),g=s.state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
++  const next=reviseReplacementMaximum({proposal:f.proposal,maximumNewReservation:.375,authorizationReference:'explicit-limit-only',createdAt:new Date().toISOString()});
++  const request={phase:'REVISE_MAXIMUM',user_id:'1',proposal_id:f.proposal.replacement_proposal_id,expected_revision:s.revision,
++   checkpoint:cp,original_journal:j,original_operation:f.operation,original_authorization:f.authorization,previous_proposal:f.proposal,revised_proposal:next,
++   limit_authorization:{scope:'REPLACEMENT_MAXIMUM_ONLY',channel:'EXPLICIT_USER_REQUEST',episode_id:f.cpId,action_id:f.action,
++    proposal_id:f.proposal.replacement_proposal_id,authorization_reference:'explicit-limit-only',previous_max_usd:.3275,maximum_reservation_usd:.375,
++    accepts_duplicate_risk:false,generation_authorized:false,reservation_authorized:false}};
++  await assert.rejects(f.tx({...request,expected_revision:0}),/CAS_CONFLICT/);
++  await assert.rejects(f.tx({...request,revised_proposal:{...next,planned_attempt_id:'tampered'}}),/REVISION_INVALID/);
++  const results=await Promise.allSettled([f.tx(request),f.tx(request)]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
++  const state=(await f.reviewStore.get()).state;
++  assert.deepEqual(state.supervised_replacement_grants[next.replacement_proposal_id],g);
++  assert.deepEqual(state.supervised_replacement_proposal_history[f.proposal.proposal_digest],f.proposal);
++  assert.equal(state.supervised_replacement_proposals[next.replacement_proposal_id].maximum_new_reservation,.375);
++  assert.equal(next.potential_duplicate_cost.combined_q42_or_action_exposure_usd,.7025);
++  assert.deepEqual(await f.getCp(f.cpId),cp);assert.deepEqual(await f.getJ(f.attempt),j);assert.deepEqual(f.counts(),{quotes:0,calls:0});
++  const view=replacementPresentation({checkpoint:cp,state,budget:{episode_ceiling_usd:8,required_total_usd:.3275},current_emission:{state:j.state,attempt_id:j.attempt_id},supervised_replacement_ready:true});
++  assert.equal(view.authorization_status,'NEW_RISK_ACCEPTANCE_REQUIRED');assert.equal(view.generation_enabled,false);assert.equal(view.risk_review_available,true);
++  await assert.rejects(f.generate(),/CURRENT_CONSENT/);
++  const review=await f.review();assert.equal(review.challenge.maximum_reservation_usd,.375);
++  await f.adapter.acceptSupervisedReplacement(f.principal,{challenge:review.challenge,accept_duplicate_risk:true});
++  f.controls.quoteAmount=.276;await f.generate();assert.equal(f.counts().calls,1);
++  assert.equal((await f.getCp(f.cpId)).metadata.budget_reservations['replacement:'+next.planned_attempt_id].amount_usd,.345);
++  assert.deepEqual(await f.getJ(f.attempt),j);await assert.rejects(f.tx({...request,expected_revision:(await f.reviewStore.get()).revision}),/CAS|CLAIMED/);
++ }
++ assert.equal(globalThis.LUMI_OFFLINE_GUARD.attempts.length,0);
++});
++
+ test('AUTHENTICATED_RISK_GATE / ORIGINAL_JOURNAL_PRESERVED: read and consent do not reserve or emit; forged identities and altered disclosure fail',async t=>{
+  const f=await fixture();t.after(f.close);const before=await f.getCp(f.cpId),j=await f.getJ(f.attempt);
+  await assert.rejects(f.adapter.reviewSupervisedReplacement({...f.principal},f.proposal.replacement_proposal_id),/SESSION/);
+@@ -197,7 +229,7 @@ test('MINI_APP_RISK_UI / STALE_UI_RESPONSE: explicit unchecked consent and separ
+  runInNewContext(js.replace('navigation();login();','')+`\nglobalThis.init=s=>{state=s;csrf='local';};globalThis.openRisk=reviewReplacement;globalThis.openQuote=confirmReplacementQuote;globalThis.bump=()=>mutationEpoch++;globalThis.card=()=>quoteCard();`,box);
+  get('#confirmation').showModal=()=>{get('#confirmation').open=true;};get('#confirmation').close=()=>{get('#confirmation').open=false;};
+  const state={episode:{id:'ep005_synthetic',checkpoint_version:23},supervised_replacement:{proposal_id:'p',risk_review_available:true,status:'REPLACEMENT_PROPOSAL',previous_reservation_usd:.3275,estimated_new_reservation_usd:.3275,combined_exposure_usd:.655,available_budget_usd:6.77375,authorization_status:'NOT_GRANTED',generation_enabled:false},budget:{ceiling_usd:8},capabilities:{}};
+- box.init(state);assert.match(box.card(),/Revisar riesgo y autorización/);assert.match(box.card(),/disabled>Generar reemplazo/);
++ box.init(state);assert.match(box.card(),/Revisar riesgo y autorización/);assert.doesNotMatch(box.card(),/data-action="replacement_generate"/);
+  const late=box.openRisk();box.bump();pending({challenge:{expires_at:new Date(Date.now()+60000).toISOString()}});await late;assert.notEqual(get('#confirmation').open,true);
+  const current=box.openRisk();pending({challenge:{expires_at:new Date(Date.now()+60000).toISOString()},risk_disclosure:'Riesgo',maximum_reservation_usd:.3275});await current;
+  assert.equal(get('#dialog-confirm').disabled,true);assert.equal(get('#replacement-risk-check').checked,false);
+@@ -206,7 +238,7 @@ test('MINI_APP_RISK_UI / STALE_UI_RESPONSE: explicit unchecked consent and separ
+  state.supervised_replacement={...state.supervised_replacement,authorization_status:'HUMAN_RISK_ACCEPTANCE',authorization_reference:'valid',quote_only_available:true,
+    economic_decision:{status:'BLOCKED',quote_amount_usd:.271,reservation_multiplier:1.25,calculated_reservation_usd:.33875,authorized_max_usd:.3275,episode_remaining_usd:6.77375}};
+  assert.match(box.card(),/Aceptación específica registrada/);assert.match(box.card(),/Consultar cotización sin generar/);assert.match(box.card(),/0,33875/);
+- assert.match(box.card(),/disabled>Generar reemplazo/);box.openQuote();assert.equal(get('#dialog-confirm').textContent,'Consultar y guardar cotización');
++ assert.doesNotMatch(box.card(),/data-action="replacement_generate"/);box.openQuote();assert.equal(get('#dialog-confirm').textContent,'Consultar y guardar cotización');
+  assert.equal(requests.length,2);assert.ok(requests.every(r=>r.method==='GET'));
+ });
+ 
+diff --git a/test/lumi-supervised-replacement.test.js b/test/lumi-supervised-replacement.test.js
+index dc873d7..d0bf828 100644
+--- a/test/lumi-supervised-replacement.test.js
++++ b/test/lumi-supervised-replacement.test.js
+@@ -97,7 +97,7 @@ test('MINI_APP_UX: read-only proposal displays risk and amounts with no generati
+  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8');
+  runInNewContext(js.replace('navigation();login();','')+'\nglobalThis.card=s=>{state=s;return quoteCard();};',box);
+  const html=box.card({supervised_replacement:view,budget:{ceiling_usd:8},capabilities:{}});
+- assert.match(html,/cargo anterior no verificado/);assert.match(html,/Reserva anterior conservada/);assert.match(html,/disabled>Generar reemplazo/);assert.match(html,/Actualizar progreso/);
++ assert.match(html,/cargo anterior no verificado/);assert.match(html,/Reserva anterior conservada/);assert.match(html,/disabled>Necesita atención/);assert.match(html,/Actualizar progreso/);
+  assert.doesNotMatch(html,/data-action="(?:generate|authorize|second_image)"/);
+  const changed={...ctx,checkpoint:{...f.checkpoint,metadata:{...f.checkpoint.metadata,runtime_revision:24}}};
+  assert.equal(replacementPresentation(changed).status,'EVIDENCE_CHANGED_REVIEW_REQUIRED');
+-- 
+2.51.1
+

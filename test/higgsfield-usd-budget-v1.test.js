@@ -50,7 +50,7 @@ test('FULL_EPISODE_COST_ESTIMATE / DIRECT_MEDIA_REUSE: complete categories, unkn
   const cp={episode_id:'ep006_cost',actions:[{key:'image:s1',stage:'IMAGE',status:'COMPLETE'},{key:'video:s1',stage:'VIDEO',status:'PENDING'},{key:'tts',stage:'TTS',status:'PENDING'}],metadata:{runtime_revision:1,
     episode_ledger:{entries:{'video:s1':{estimated_cost:{currency:'USD',usd:.5}},tts:{estimated_cost:{currency:'ELEVENLABS_CHARACTER_QUOTA',units:500}}}},library_reuse:{'image:s1':{reuse_mode:'REFERENCE_REUSE',target_episode_id:'ep006_cost',target_action:'image:s1',application_sha:'a',expected_cost_impact:{basis:'EXISTING_CURRENT_QUOTE',potential_saving_usd:.2}}}}};
   const budget={required_total_usd:1,current_confirmed_spend_usd:.25,episode_ceiling_usd:8};
-  let p=episodeCostProjection({checkpoint:cp,budget});assert.equal(p.probable_total_usd,null);assert.equal(p.minimum_estimated_total_usd,null);
+  let p=episodeCostProjection({checkpoint:cp,budget});assert.equal(p.probable_total_usd,null);assert.equal(p.minimum_estimated_total_usd,.75);
   assert.deepEqual(p.missing_cost_evidence,['tts','storage','infrastructure']);assert.equal(p.known_remaining_subtotal_usd,.5);assert.equal(p.verified_savings_usd,null);
   cp.metadata.library_reuse['image:s1'].reuse_mode='DIRECT_MEDIA_REUSE';
   cp.metadata.episode_ledger.entries.tts.estimated_cost={currency:'USD',usd:.1};
@@ -59,4 +59,14 @@ test('FULL_EPISODE_COST_ESTIMATE / DIRECT_MEDIA_REUSE: complete categories, unkn
   assert.equal(p.projected_exposure_with_contingency_usd,1.7875);assert.equal(p.verified_savings_usd,.2);assert.equal(p.uncertain_reserved_usd,.75);
   assert.equal(p.items[0].remaining_estimate_usd,0);assert.equal(p.generation_authorized,false);assert.equal(p.price_guarantee,false);
   assert.equal(episodeCostProjection({checkpoint:cp,budget:{...budget,episode_ceiling_usd:1.7}}).status,'PLAN_EXCEEDS_BUDGET');
+});
+
+test('FULL_EPISODE_FORECAST: historical model rates are labeled assumptions across episodes, never current prices or free voice',()=>{
+ const cp={episode_id:'ep006',actions:[{key:'image:s1',stage:'IMAGE',scene_id:'s1',status:'PENDING'},{key:'video:s1',stage:'VIDEO',scene_id:'s1',status:'PENDING'},{key:'tts',stage:'TTS',status:'PENDING'}],metadata:{generic_v2:{shot_plans:[{shot_id:'s1',duration:5}]}}};
+ const budget={required_total_usd:0,current_confirmed_spend_usd:0,episode_ceiling_usd:8};
+ const quotes=[{episode_id:'ep004',action_key:'image:q42',model:'marketing-studio/image',currency:'USD',estimate_usd:.276,quote_id:'historical-image'},
+ {episode_id:'ep004',action_key:'video:q41',model:'kling-video/v3.0/pro/image-to-video',currency:'USD',quote_usd:.448,duration:4,quote_id:'historical-video'}];
+ const p=episodeCostProjection({checkpoint:cp,budget,quotes});assert.equal(p.items[0].remaining_estimate_usd,.276);assert.equal(p.items[1].remaining_estimate_usd,.56);
+ assert.equal(p.items[0].price_basis,'HISTORICAL_MODEL_RATE_ASSUMPTION');assert.equal(p.items[0].reference_episode_id,'ep004');
+ assert.equal(p.items[2].remaining_estimate_usd,null);assert.equal(p.probable_total_usd,null);assert.equal(p.generation_authorized,false);assert.equal(p.verified_savings_usd,null);
 });

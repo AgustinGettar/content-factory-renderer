@@ -1958,24 +1958,23 @@ test('MULTI_EPISODE_INTEGRATION: two independent seven-shot Mini App episodes re
   const selection=await f.service.enqueue(principal,'select_episode',{episode_id:name});await selection.dispatch();
   principal=await f.reopen();
   const submit=async(kind,body={})=>{const r=await f.service.enqueue(principal,kind,body);await r.dispatch();const v=await f.service.view(principal);assert.notEqual(v.operation?.status,'BLOCKED',JSON.stringify(v.operation));return v;};
+  const challenge=(await f.service.reviewPlan(principal)).challenge;
+  await f.service.acceptPlan(principal,{challenge,confirm:true});
+  const first=await f.service.enqueue(principal,'produce_episode',{confirm:true}),double=await f.service.enqueue(principal,'produce_episode',{confirm:true});
+  assert.equal(first.operation.id,double.operation.id);await Promise.all([first.dispatch(),double.dispatch()]);
   const seen=[];
   for(let step=0;step<125;step++){
    const cp=await f.store.getEpisode(name),v=await f.service.view(principal);assert.equal(v.episode.id,name);if(!cp.first_pending_action)break;
    seen.push(cp.first_pending_action);
    const review=v.reviews[0];
    if(review){assert.ok(review.media_id,'review must resolve exact original media');await submit('review',{request_id:review.id,artifact_sha:review.artifact_sha,review_version:review.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT',full_playback:true,source_comparison:true});continue;}
-   const a=cp.actions.find(a=>a.key===cp.first_pending_action),scope={expected_action:a.key,checkpoint_version:cp.metadata.runtime_revision};
-   if(v.capabilities.recover){await submit('recover');continue;}
-   if(['IMAGE','VIDEO','TTS'].includes(a.stage)){
-    let view=await submit('quote',{...scope,quote_id:v.quote?.quote_id??null,quote_sha:v.quote?.quote_sha??null});
-    const body={...scope,quote_id:view.quote.quote_id,quote_sha:view.quote.quote_sha,confirm:true};
-    await submit('authorize',body);
-    const left=await f.service.enqueue(principal,'generate',body),right=await f.service.enqueue(principal,'generate',body);
-    assert.equal(left.operation.id,right.operation.id);await Promise.all([left.dispatch(),right.dispatch()]);
-    const after=await f.service.view(principal);assert.notEqual(after.operation?.status,'BLOCKED',JSON.stringify(after.operation));
-    if(a.stage==='TTS')t.mock.timers.tick(360001); // Original bounded consent survives quote observation expiry.
-    principal=await f.reopen();
-   }else{assert.equal(v.capabilities.continue,true,a.key+' '+JSON.stringify(v.operation));await submit('continue',scope);}
+   // The real durable executor advances all technical stages. No manual
+   // quote/authorize/generate/recover/continue operation is used here.
+   t.mock.timers.tick(16000);
+   const restarted=new f.service.constructor({...f.service});await restarted.processPending({user:'1',chat:'1'});
+   const saved=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[name];
+   assert.notEqual(saved.status,'NEEDS_ATTENTION',JSON.stringify(saved));
+   principal=await f.reopen();
   }
   const end=await f.store.getEpisode(name);assert.equal(end.first_pending_action,null,seen.join(' -> '));assert.ok(end.actions.every(a=>a.status==='COMPLETE'));
   const master=end.metadata.stage_results.master.result.artifacts[0];assert.equal(master.width,1080);assert.equal(master.height,1920);assert.ok(Math.abs(master.duration-29)<.1);
@@ -2025,4 +2024,74 @@ test('HUMAN_REVIEW SESSION_REOPEN: recover a saved decision across checkpoint an
  const next=await svc.enqueue(p,'continue',{expected_action:cp.first_pending_action,checkpoint_version:cp.metadata.runtime_revision});await next.dispatch();
  assert.equal((await svc.view(p)).operation.status,'COMPLETE');assert.equal(f.control.emitted,1);
  assert.equal((await f.reviewStore.get('1')).state.reviews.length,decisions);
+});
+
+test('DURABLE_RESULT_RECOVERY REAL_Q42_SHAPE: stored result survives lost response, expired session, concurrent restart and CAS without a new request',async t=>{
+ let crash=false;
+ const f=await secondImageFixture(t,{inject:async({point})=>{if(crash&&point==='QA_PERSISTED_BEFORE_CHECKPOINT'){crash=false;throw Error('OFFLINE_PROCESS_EXIT_AFTER_STORAGE');}}});
+ const view=await f.submit('second_image',{confirm:true});f.control.ready=true;crash=true;
+ await assert.rejects(f.videoAdapter.recoverAcceptedStage({user:'1',chat:'1',episodeId:episode,actionKey:'image:q42'}),/OFFLINE_PROCESS_EXIT/);
+ const cp=await f.store.getEpisode(episode),a=cp.actions.find(a=>a.key==='image:q42'),id=a.active_attempt_id;
+ assert.equal(a.dispatch_state,'DISPATCHING');
+ await f.edit(s=>{
+  const receipt=s.production_commands[id];assert.equal(receipt.status,'COMPLETE');
+  receipt.result.estimated_cost={currency:'USD',estimate_usd:.276,reserve_usd:.345};
+  Object.assign(s.mini_app.operations[view.operation.id],{kind:'supervised_replacement',status:'WAITING',phase:'GENERATING'});
+  s.mini_app.operations['synthetic-ambiguous-original']={id:'synthetic-ambiguous-original',kind:'second_image',status:'BLOCKED',phase:'DISPATCHING',binding:{proposal_id:episode,next_action:'image:q42',quote_id:'different-original-quote'}};
+  for(const session of Object.values(s.mini_app.sessions))session.expires_at=0;
+ });
+ const original={amount_usd:.3275,attempt_id:'synthetic-ambiguous-original'};
+ await f.manager.checkpoint(episode,d=>{
+  d.metadata.budget_reservations['image:q42']=original;
+  d.metadata.budget_reservations['replacement:'+id]={amount_usd:.345,attempt_id:id};
+  d.metadata.supervised_replacement_activity={[id]:{original_attempt_id:'synthetic-ambiguous-original',reservation_key:'replacement:'+id,quote:{operation_id:view.operation.id,attempt_id:id}}};
+ });
+ const before=await f.store.getEpisode(episode),budget=await f.manager.budgetExposure({episodeId:episode}),journal=structuredClone([...f.journalRows]),objects=f.objects.size,polls=f.control.polls;
+ const left=await f.restart(),right=await f.restart(),cas=f.reviewStore.cas.bind(f.reviewStore);let conflict=true;
+ f.reviewStore.cas=async(...args)=>{if(conflict){conflict=false;throw Error('concurrent_update');}return cas(...args);};
+ await Promise.all([left.processPending({user:'1',chat:'1'}),right.processPending({user:'1',chat:'1'})]);
+ await left.processPending({user:'1',chat:'1'});
+ const after=await f.store.getEpisode(episode),row=await f.reviewStore.get('1');
+ assert.equal(after.actions.find(a=>a.key==='image:q42').status,'HUMAN_REVIEW_REQUIRED');
+ assert.equal(after.first_pending_action,'image:q42');
+ assert.equal(Object.values(after.metadata.review_requests).filter(r=>r.action_key==='image:q42').length,1);
+ assert.equal(row.state.mini_app.operations[view.operation.id].status,'COMPLETE');
+ assert.equal(row.state.mini_app.operations[view.operation.id].phase,'REVIEW_READY');
+ assert.equal(row.state.mini_app.operations['synthetic-ambiguous-original'].status,'BLOCKED');assert.equal(row.state.mini_app.operations['synthetic-ambiguous-original'].phase,'DISPATCHING');
+ assert.deepEqual(after.metadata.budget_reservations,before.metadata.budget_reservations);
+ assert.deepEqual(await f.manager.budgetExposure({episodeId:episode}),budget);
+ assert.deepEqual([...f.journalRows],journal);assert.equal(f.control.emitted,1);assert.equal(f.control.polls,polls);assert.equal(f.objects.size,objects);
+ const p=await f.reopen(),visible=await left.view(p);assert.equal(visible.reviews.length,1);assert.ok(visible.reviews[0].media_id);
+ const unchanged=await f.store.getEpisode(episode);await left.processPending({user:'1',chat:'foreign'});assert.deepEqual(await f.store.getEpisode(episode),unchanged);
+});
+
+test('DURABLE_EPISODE_JOB: start receipt survives session expiration and restart; leases isolate concurrent workers and replay',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.44});
+ const [a,b]=await Promise.all([f.service.enqueue(f.principal,'produce_episode',{confirm:true}),f.service.enqueue(f.principal,'produce_episode',{confirm:true})]);
+ assert.equal(a.operation.id,b.operation.id);
+ await f.edit(s=>{for(const session of Object.values(s.mini_app.sessions))session.expires_at=0;});
+ const svc=()=>new f.service.constructor({...f.service});
+ await Promise.all([svc().processPending({user:'1',chat:'1'}),svc().processPending({user:'1',chat:'1'})]);
+ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);
+ const before=await f.store.getEpisode(episode);await svc().processPending({user:'1',chat:'1'});
+ assert.equal(f.emitted.length,1);assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
+ const {episodeWorkerPrincipal}=await import('../lib/lumi-v2-activation-context.js');
+ const fake=episodeWorkerPrincipal({user:'1',chat:'1',episodeId:episode,jobId:a.operation.id,leaseToken:'expired-or-forged'});
+ await assert.rejects(f.videoAdapter.miniAppStatus(fake),/OWNER_REQUIRED/);
+ await assert.rejects(f.videoAdapter.miniAppStatus(JSON.parse(JSON.stringify(fake))));
+});
+
+test('DURABLE_LOCAL_RESTART: expired executor lease reuses the local claim; no provider-stage claim is reset',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.44});
+ const cp=await f.store.getEpisode(episode),key='source_qa:q41',id=sha256(episode+':'+cp.metadata.generic_v2.binding_sha+':'+key);
+ const {PROFILE_SHA}=await import('../lib/lumi-production-profile-v2.js');
+ await f.manager.checkpoint(episode,d=>{const a=d.actions.find(a=>a.key===key);a.status='PENDING';a.dispatch_state='DISPATCHING';a.evidence={};delete d.metadata.stage_results[key];});
+ await f.edit(s=>{s.production_commands[id]={status:'STARTED',episode_id:episode,action_key:key,stage_id:'SOURCE_QA',profile_sha:PROFILE_SHA};});
+ const queued=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});
+ await f.edit(s=>{const j=s.mini_app.episode_jobs[episode];Object.assign(j,{status:'RUNNING',lease_until:0,lease_token:'crashed-worker'});for(const session of Object.values(s.mini_app.sessions))session.expires_at=0;});
+ await new f.service.constructor({...f.service}).runEpisodeJob({user:'1',chat:'1',episodeId:episode,maxSteps:1});
+ const after=await f.store.getEpisode(episode),row=await f.reviewStore.get('1');
+ assert.equal(after.actions.find(a=>a.key===key).status,'COMPLETE');assert.equal(row.state.production_commands[id].status,'COMPLETE');
+ assert.equal(row.state.mini_app.episode_jobs[episode].id,queued.operation.id);assert.notEqual(row.state.mini_app.episode_jobs[episode].status,'NEEDS_ATTENTION',JSON.stringify(row.state.mini_app.episode_jobs[episode]));assert.equal(f.emitted.length,0);
+ assert.equal([...f.journalRows.values()].filter(j=>j.stage==='VIDEO').length,0);
 });

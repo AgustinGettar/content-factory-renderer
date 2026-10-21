@@ -104,3 +104,21 @@ test('SUPERVISED_REPLACEMENT_COST: recovered actual charge reconciles only new r
  assert.equal(cp.current_cost_usd,.2);assert.equal(cp.first_pending_action,'tts');assert.equal(cp.actions[0].status,'HUMAN_REVIEW_REQUIRED');
  assert.equal(Object.values(cp.metadata.review_requests)[0].status,'PENDING');
 });
+
+test('Q42_REAL_RECEIPT_SHAPE: acknowledged replacement with saved artifact reconciles once without changing either reservation',async()=>{
+ const f=await fixture('SUCCEEDED');f.result.human_review_requirement=true;
+ f.result.estimated_cost={currency:'USD',estimate_usd:.276,reserve_usd:.345,quote_id:'persisted-quote'};
+ const reservations={tts:{amount_usd:.3275,attempt_id:'ambiguous-original'},'replacement:one-claim':{amount_usd:.345,attempt_id:'one-claim'}};
+ await f.manager.checkpoint(episodeId,d=>{
+  d.actions[0].active_attempt_id='one-claim';d.actions[0].dispatch_state='DISPATCHING';
+  d.metadata.budget_reservations=structuredClone(reservations);
+  d.metadata.supervised_replacement_activity={'one-claim':{original_attempt_id:'ambiguous-original',reservation_key:'replacement:one-claim'}};
+ });
+ assert.equal((await handleStageResult(f.args)).status,'HUMAN_REVIEW_REQUIRED');
+ assert.equal((await handleStageResult(f.args)).status,'HUMAN_REVIEW_REQUIRED');
+ const cp=await f.manager.store.getEpisode(episodeId);
+ assert.deepEqual(cp.metadata.budget_reservations,reservations);assert.equal(cp.current_cost_usd,0);
+ assert.equal(cp.metadata.episode_ledger.entries.tts.reserved_usd,.345);
+ assert.equal(Object.keys(cp.metadata.review_requests).length,1);
+ assert.equal(cp.actions[0].status,'HUMAN_REVIEW_REQUIRED');assert.equal(cp.first_pending_action,'tts');
+});

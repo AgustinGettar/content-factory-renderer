@@ -21,10 +21,12 @@ jobs:
           recovery_only=true
           direct_only=true
           one_tap_only=true
+          docs_only=true
           git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
+            case "$path" in docs/*) ;; *) docs_only=false ;; esac
             case "$path" in
-              lib/lumi-supervised-activation.js|lib/lumi-supervised-replacement.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/q41-policy.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|supabase/migrations/*_lumi_one_tap_proposal_revision.sql|test/lumi-q41-first-image.test.js|test/lumi-supervised-activation.test.js|test/lumi-supervised-replacement.test.js|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              lib/higgsfield-usd-budget-v1.js|lib/lumi-stage-result-v2.js|lib/lumi-v2-activation-context.js|lib/lumi-v2-execution-orchestrator.js|lib/telegram-mini-app/library.js|lib/lumi-improvement-loop.js|test/lumi-stage-result-v2.test.js|test/higgsfield-usd-budget-v1.test.js|test/lumi-mini-app-auth.test.js|docs/LUMI_PRODUCTION_RECOVERY.md|lib/lumi-supervised-activation.js|lib/lumi-supervised-replacement.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/q41-policy.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|supabase/migrations/*_lumi_one_tap_proposal_revision.sql|test/lumi-q41-first-image.test.js|test/lumi-supervised-activation.test.js|test/lumi-supervised-replacement.test.js|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) one_tap_only=false ;;
             esac
             case "$path" in
@@ -44,15 +46,18 @@ jobs:
           echo "recovery_only=$recovery_only" >> "$GITHUB_OUTPUT"
           echo "direct_only=$direct_only" >> "$GITHUB_OUTPUT"
           echo "one_tap_only=$one_tap_only" >> "$GITHUB_OUTPUT"
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Install media inspection dependency
+        if: steps.scope.outputs.docs_only != 'true'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - run: node --check server.js && node --check lib/telegram-mini-app/library.js && node --check lib/telegram-mini-app/runtime.js && node --check public/lumi-studio/app.js
       - name: Asset library, SQL, auth and protected production integration (offline)
+        if: steps.scope.outputs.docs_only != 'true'
         run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js test/lumi-mini-app-auth.test.js
       - name: Supervised recovery, budget, journal and durable continuation (offline)
         if: steps.scope.outputs.recovery_only == 'true' && steps.scope.outputs.one_tap_only != 'true'
@@ -71,11 +76,14 @@ jobs:
           node scripts/lumi-improvement-loop.mjs
           git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Recovered one-tap, transactional limits and preserved transport (offline)
-        if: steps.scope.outputs.one_tap_only == 'true'
+        if: steps.scope.outputs.one_tap_only == 'true' && steps.scope.outputs.docs_only != 'true'
         run: |
           node --check lib/telegram-mini-app/q41-policy.js && node --check lib/lumi-v2-telegram-runtime.js
-          node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-supervised-replacement.test.js test/lumi-direct-telegram.test.js test/higgsfield-usd-budget-v1.test.js test/provider-emission-journal-v1.test.js
-          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(PLAN_ONETAP|ONETAP |DURABLE_LOCK |Q42_ONE_TAP |READ_ONLY_PROGRESS|HUMAN_REVIEW |SUPERVISED|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE|MINI_MEDIA_ACCESS|MINI_END_TO_END_NON_GENERATIVE)" test/lumi-q41-first-image.test.js
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-supervised-replacement.test.js test/lumi-stage-result-v2.test.js test/lumi-direct-telegram.test.js test/higgsfield-usd-budget-v1.test.js test/provider-emission-journal-v1.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(DURABLE_RESULT_RECOVERY|DURABLE_EPISODE_JOB|DURABLE_LOCAL_RESTART|PLAN_ONETAP|ONETAP |DURABLE_LOCK |Q42_ONE_TAP |READ_ONLY_PROGRESS|HUMAN_REVIEW |SUPERVISED|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE|MINI_MEDIA_ACCESS|MINI_END_TO_END_NON_GENERATIVE)" test/lumi-q41-first-image.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^MULTI_EPISODE_INTEGRATION" test/lumi-q41-first-image.test.js
+      - name: Durable evidence documents reproduce exactly
+        run: |
           node scripts/lumi-improvement-loop.mjs
           git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Telegram, Recovery Manager and director regression with network disabled

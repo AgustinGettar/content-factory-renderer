@@ -309,3 +309,14 @@ test('READ_ONLY_PROGRESS PROGRESS_WHILE_BLOCKED PROGRESS_DURING_AMBIGUITY NETWOR
  ui.setRequest(async()=>stale);await ui.refresh({manual:true});assert.equal(ui.getState().review_revision,706);assert.equal(ui.getState().current_action.emission_locked,true);
  ui.setRequest(async()=>structuredClone(v));await ui.refresh({manual:true});assert.match(ui.quoteCard(),/Progreso actualizado/);
 });
+
+test('EPISODE_UX_V5: one contextual action, automatic recovery and visible human review; no manual economic controls',async()=>{
+ const f=await transitionFixture(),v=f.make();v.version=5;
+ v.episode_plan_authorization={status:'HUMAN_APPROVAL_REQUIRED',approval_available:true};
+ let ui=(await transitionUi(v)).ui,html=ui.quoteCard();assert.equal((html.match(/class="button primary"/g)||[]).length,1);assert.match(html,/Producir episodio/);
+ assert.doesNotMatch(html,/data-action="(?:quote|authorize|generate|recover|continue|prepare)"/);
+ v.episode_plan_authorization.status='AUTHORIZED';ui.setState(v);assert.match(ui.quoteCard(),/data-action="produce_episode"/);
+ v.episode_job={status:'WAITING_PROVIDER'};v.current_action={emission_locked:true,status:'SUBMITTED'};ui.setState(v);
+ html=ui.quoteCard();assert.match(html,/Preparando tu revisión/);assert.doesNotMatch(html,/data-action="(?:produce_episode|recover|generate)"/);assert.match(html,/data-action="refresh"/);
+ v.reviews=[{id:'authentic-artifact-review'}];ui.setState(v);assert.match(ui.quoteCard(),/Listo para revisar/);
+});

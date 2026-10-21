@@ -97,7 +97,7 @@ test('MINI_APP_UX: read-only proposal displays risk and amounts with no generati
  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8');
  runInNewContext(js.replace('navigation();login();','')+'\nglobalThis.card=s=>{state=s;return quoteCard();};',box);
  const html=box.card({supervised_replacement:view,budget:{ceiling_usd:8},capabilities:{}});
- assert.match(html,/cargo anterior no verificado/);assert.match(html,/Reserva anterior conservada/);assert.match(html,/disabled>Generar reemplazo/);assert.match(html,/Actualizar progreso/);
+ assert.match(html,/cargo anterior no verificado/);assert.match(html,/Reserva anterior conservada/);assert.match(html,/disabled>Necesita atención/);assert.match(html,/Actualizar progreso/);
  assert.doesNotMatch(html,/data-action="(?:generate|authorize|second_image)"/);
  const changed={...ctx,checkpoint:{...f.checkpoint,metadata:{...f.checkpoint.metadata,runtime_revision:24}}};
  assert.equal(replacementPresentation(changed).status,'EVIDENCE_CHANGED_REVIEW_REQUIRED');

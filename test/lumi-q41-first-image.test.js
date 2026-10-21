@@ -1262,6 +1262,103 @@ async function oneTapFixture(t,options={}){
  t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
  return {...f,emitted,polls};
 }
+async function approvedPlanFixture(t,options={}){
+ const f=await oneTapFixture(t,options);
+ await f.manager.checkpoint(episode,cp=>{
+  cp.metadata.episode_ledger||={};cp.metadata.episode_ledger.entries||={};
+  for(const a of cp.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)))cp.metadata.episode_ledger.entries[a.key]={
+   ...(cp.metadata.episode_ledger.entries[a.key]||{}),estimated_cost:{currency:'USD',usd:a.key==='video:q41'?.448:.01}};
+  cp.metadata.episode_ledger.overhead_estimates={STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'synthetic'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'synthetic'}};
+ });
+ const review=await f.service.reviewPlan(f.principal);
+ await f.service.acceptPlan(f.principal,{challenge:review.challenge,confirm:true});
+ return f;
+}
+test('PLAN_ONETAP AUTOMATIC_QUOTE DOUBLE_CLICK SESSION_REOPEN: approved plan drives existing runtime and journal once',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.44}),before=await f.service.view(f.principal);
+ assert.equal(before.episode_plan_authorization.status,'AUTHORIZED');assert.equal(before.capabilities.production_stage,true);
+ assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+ const p=await f.reopen(),body={confirm:true,expected_action:'video:q41',checkpoint_version:before.episode.checkpoint_version};
+ const clicks=await Promise.all([f.service.enqueue(p,'production_stage',body),f.service.enqueue(p,'production_stage',body)]);
+ await Promise.all(clicks.map(c=>c.dispatch()));
+ const view=await f.service.view(p);assert.equal(view.operation.phase,'GENERATING',JSON.stringify(view.operation));
+ assert.equal(f.quotes.length,1);assert.equal(f.emitted.length,1);
+ const state=(await f.reviewStore.get('1')).state,op=state.mini_app.operations[view.operation.id];
+ assert.equal(state.production_commands[op.binding.quote_id].human_authorization.decision_source,'EXPLICIT_APPROVED_EPISODE_PLAN');
+ const reopen=await f.reopen(),again=await f.service.enqueue(reopen,'production_stage',body);await again.dispatch();
+ assert.equal(f.emitted.length,1);assert.equal(f.quotes.length,1);
+});
+test('PLAN_ONETAP QUOTE_OVER_LIMIT EPISODE_BUDGET_GATE MATERIAL_BINDING: new consent cannot expand silently',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.5}),v=await f.service.view(f.principal);
+ const after=await f.submit('production_stage',{confirm:true,expected_action:'video:q41',checkpoint_version:v.episode.checkpoint_version});
+ assert.equal(after.operation.status,'BLOCKED');assert.equal(f.emitted.length,0);
+ assert.equal(after.quote.economic_decision.calculated_reservation_usd,.625);assert.equal(after.quote.economic_decision.authorized_max_usd,.56);
+ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations?.['video:q41'],undefined);
+ const other=await approvedPlanFixture(t);await other.manager.checkpoint(episode,cp=>{cp.metadata.generic_v2.plan.episode.title+=' changed';});
+ const changed=await other.service.view(other.principal);assert.equal(changed.capabilities.production_stage,false);
+ await assert.rejects(other.service.enqueue(other.principal,'production_stage',{confirm:true,expected_action:'video:q41',checkpoint_version:changed.episode.checkpoint_version}),/PLAN_APPROVAL/);
+ assert.equal(other.quotes.length,0);assert.equal(other.emitted.length,0);
+});
+test('PLAN_ONETAP PREFLIGHT_REJECTION_CONTINUATION: new explicit limit permits one request, old grant and rejection remain auditable',async t=>{
+ let sends=0;
+ const f=await approvedPlanFixture(t,{quoteUsd:.48,providerFetch:async(url,o)=>{
+  if(o.method==='POST'){sends++;return Response.json({request_id:'offline-revised-plan',status_url:'https://api.higgsfield.ai/requests/offline-revised-plan'});}
+  return Response.json({request_id:'offline-revised-plan',status:'processing'});
+ }});
+ const initial=await f.service.view(f.principal),body={confirm:true,expected_action:'video:q41',checkpoint_version:initial.episode.checkpoint_version};
+ const rejected=await f.submit('production_stage',body);
+ assert.equal(rejected.current_action.preflight_rejected,true,JSON.stringify({op:rejected.operation,current:rejected.current_action,quote:rejected.quote}));
+ assert.equal(rejected.quote.economic_decision.calculated_reservation_usd,.6);
+ assert.equal(sends,0);
+ const oldState=(await f.reviewStore.get('1')).state,oldGrant=structuredClone(Object.values(oldState.v2_authorizations).find(g=>g.scope==='EPISODE_PLAN_SPEND_V1'));
+ const oldQuoteId=rejected.quote.quote_id,oldQuote=structuredClone(oldState.production_commands[oldQuoteId]);
+ const retry=await f.service.enqueue(await f.reopen(),'production_stage',body);await retry.dispatch();
+ assert.equal(f.quotes.length,1);assert.equal(sends,0);
+ const review=await f.service.reviewPlan(f.principal);
+ assert.equal(review.challenge.contract.per_action_limits['video:q41'],.6);
+ await f.service.acceptPlan(f.principal,{challenge:review.challenge,confirm:true});
+ const fresh=await f.service.view(f.principal);
+ assert.equal(fresh.capabilities.production_stage,true);
+ const clicks=await Promise.all([f.service.enqueue(f.principal,'production_stage',body),f.service.enqueue(f.principal,'production_stage',body)]);
+ await Promise.all(clicks.map(c=>c.dispatch()));
+ const after=await f.service.view(f.principal),state=(await f.reviewStore.get('1')).state;
+ assert.equal(after.operation.phase,'GENERATING',JSON.stringify(after.operation));assert.equal(sends,1);assert.equal(f.quotes.length,2);
+ assert.deepEqual(state.v2_authorizations[oldGrant.value.authorization_id],oldGrant);
+ assert.deepEqual(state.production_commands[oldQuoteId],oldQuote);
+ assert.equal(state.mini_app.operations[after.operation.id].preflight_history.length,1);
+ assert.equal((await f.store.getEpisode(episode)).metadata.budget_reservations['video:q41'].amount_usd,.6);
+});
+test('PLAN_ONETAP QUOTE_EXPIRATION CONSENT_BINDING CROSS_EPISODE: renewal uses the same bounded grant, expired and foreign grants cannot spend',async t=>{
+ const f=await approvedPlanFixture(t),q=(await f.submit('quote')).quote;await expireQuote(f,q.quote_id);
+ const original=(await f.reviewStore.get('1')).state.v2_authorizations;
+ const v=await f.service.view(f.principal),after=await f.submit('production_stage',{confirm:true,expected_action:'video:q41',checkpoint_version:v.episode.checkpoint_version});
+ assert.equal(after.operation.phase,'GENERATING');assert.equal(f.quotes.length,2);assert.equal(f.emitted.length,1);
+ assert.deepEqual((await f.reviewStore.get('1')).state.v2_authorizations,original);
+ const {episodePlanContract,sealEpisodePlanGrant,assertEpisodePlanGrant}=await import('../lib/telegram-mini-app/q41-policy.js');
+ const cp=await f.store.getEpisode(episode),state=(await f.reviewStore.get('1')).state;
+ const ctx=await f.service.context(f.principal);
+ for(const episodeId of ['ep005_synthetic','ep006_synthetic']){
+  const clone=structuredClone(cp);clone.episode_id=episodeId;
+  const contract=episodePlanContract(clone,ctx.cost_projection);
+  const grant=sealEpisodePlanGrant({contract,user:clone.metadata.user,chat:state.chat_id,authorizationId:episodeId,
+   approvedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+60000).toISOString()},f.miniEnv);
+  assert.equal(assertEpisodePlanGrant(grant,f.miniEnv,clone,state).episode_id,episodeId);
+  assert.throws(()=>assertEpisodePlanGrant(grant,f.miniEnv,cp,state),/MATERIAL_CHANGED/);
+  const expired=sealEpisodePlanGrant({contract,user:clone.metadata.user,chat:state.chat_id,authorizationId:episodeId,
+   approvedAt:new Date(Date.now()-120000).toISOString(),expiresAt:new Date(Date.now()-1000).toISOString()},f.miniEnv);
+  assert.throws(()=>assertEpisodePlanGrant(expired,f.miniEnv,clone,state),/CONSENT_EXPIRED/);
+ }
+});
+test('PLAN_ONETAP RESPONSE_LOSS RESTART: independent service keeps the submitted operation locked',async t=>{
+ let sends=0;const f=await approvedPlanFixture(t,{providerFetch:async()=>{sends++;throw Error('OFFLINE_RESPONSE_LOST');}});
+ const v=await f.service.view(f.principal),body={confirm:true,expected_action:'video:q41',checkpoint_version:v.episode.checkpoint_version};
+ await f.submit('production_stage',body);
+ const {MiniAppService}=await import('../lib/telegram-mini-app/runtime.js');
+ const restarted=new MiniAppService({store:f.reviewStore,adapter:f.videoAdapter,env:f.miniEnv});
+ const principal=await f.reopen(),after=await restarted.view(principal),again=await restarted.enqueue(principal,'production_stage',body);await again.dispatch();
+ assert.equal(after.current_action.emission_locked,true);assert.equal(after.current_action.preflight_rejected,false);
+ assert.equal(after.capabilities.production_stage,false);assert.equal(sends,1);assert.equal(f.quotes.length,1);
+});
 test('ONETAP AUTOMATIC_QUOTE PRICE_VARIATION MAX_RESERVATION: one click binds consent and emits one mock request within .56',async t=>{
  for(const price of [.40,.447,.448]){
   const f=await oneTapFixture(t,{quoteUsd:price}),cp=await f.store.getEpisode(episode);
@@ -1614,9 +1711,9 @@ test('MINI_END_TO_END_NON_GENERATIVE: mounted API requires official initData, co
  const f=await miniFixture(),{mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js'),routes=new Map(),middleware=[];
  const app={get:(path,fn)=>routes.set('GET '+path,fn),post:(path,fn)=>routes.set('POST '+path,fn),use:(_path,fn)=>middleware.push(fn)};
  const methods=[],db={from:()=>({select:()=>({eq:async()=>({data:[{user_id:1,chat_id:1}]})})})};
- let menu={type:'commands'};
- const mounted=mountMiniApp(app,{db,store:f.reviewStore,adapter:f.videoAdapter,production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:f.miniEnv,configureEntry:false,
-  fetchImpl:async(url,options)=>{const method=url.split('/').at(-1);methods.push(method);if(method==='setChatMenuButton')menu=JSON.parse(options.body).menu_button;return Response.json({ok:true,result:method==='getChatMenuButton'?menu:true});}});
+ let menu={type:'commands'};const entryEnv={...f.miniEnv,LUMI_TELEGRAM_BOT_ID:'1'};
+ const mounted=mountMiniApp(app,{db,store:f.reviewStore,adapter:f.videoAdapter,production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:entryEnv,configureEntry:false,
+  fetchImpl:async(url,options)=>{const method=url.split('/').at(-1);methods.push(method);if(method==='setChatMenuButton')menu=JSON.parse(options.body).menu_button;return Response.json({ok:true,result:method==='getMe'?{id:1,is_bot:true,username:'AppMultimedia_VideosBot'}:method==='getChatMenuButton'?menu:true});}});
  const response=()=>({code:200,headers:{},status(c){this.code=c;return this;},set(k,v){if(typeof k==='object')Object.assign(this.headers,k);else this.headers[k]=v;return this;},json(v){this.value=v;return this;}});
  const req={method:'GET',headers:{cookie:'__Secure-lumi_studio='+f.login.cookie}};
  let res=response();await routes.get('GET /lumi/studio/api/state')(req,res);assert.equal(res.code,200);assert.equal(res.value.episode.next_action,'video:q41');
@@ -1626,6 +1723,7 @@ test('MINI_END_TO_END_NON_GENERATIVE: mounted API requires official initData, co
  const before=(await f.reviewStore.get('1')).state;await mounted.configure();await mounted.configure();const after=(await f.reviewStore.get('1')).state;
  assert.equal(methods.filter(m=>m==='setChatMenuButton').length,1);assert.equal(after.message_id,before.message_id);assert.deepEqual(after.delivery,before.delivery);assert.deepEqual(after.tokens,before.tokens);
  assert.equal(after.mini_app.entrypoint.status,'CONFIGURED');assert.equal(f.quotes.length,0);
+ entryEnv.LUMI_TELEGRAM_TRANSPORT_AUTHORITY='DIRECT';const count=methods.length;await mounted.configure();assert.equal(methods.length,count);
 });
 test('MINI_GENERATION_BOUNDARY: separate explicit action reaches existing reservation/journal once; recovery only polls same mock job',async()=>{
  const emissions=[],polls=[];

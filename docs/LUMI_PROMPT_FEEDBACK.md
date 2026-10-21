@@ -1,65 +1,63 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-20T22:08:26Z.
+Evidence cutoff: 2026-10-21T01:29:42.873Z.
 
 ## Qué pidió el prompt anterior
 
-- Completar corte después de configurar token, sin reconstruir receptor, alterar q42 ni aplicar patch one-tap.
+- Retomar el parche recuperado, terminar one-tap y preparar máximo .375; preservar Telegram directo, consentimientos, presupuesto y q42 original sin generar.
 
 ## Qué se completó realmente
 
-- Token cargado y getMe validado por backend; bot8843261381/AppMultimedia_VideosBot. Secreto webhook independiente guardado con merge de variables.
-- Corte explícito backend a Telegram con ACK y getWebhookInfo; destino directo, message/callback_query, drop_pending_updates=false, pendientes0/sin errores.
-- Un aviso operador real enviado por backend y recibo151 DELIVERED conservado. No es una actualización entrante de Telegram ni una interacción humana simulada.
-- Panel6224860 confirmado ya inactivo; shell6532649 desactivada. Cola Make1, configuración e historial preservados.
-- Checkpoint, fuentes, journals y sesión protegida idénticos antes/después; sólo recibos de transporte añadidos.
+- Parche7c0e130 revisado y aplicado con three-way limpio en worktree aislado; parche original intacto.
+- Corregidos dos defectos demostrados: rechazo económico convertido en error genérico; moneda USD omitida del recibo e ignorada por proyección.
+- Consentimiento de plan acotado por episodio, versión, modelos, acciones y límites; cotización automática; nueva aprobación tras cambio material; bloqueo durable después del envío.
+- Propuesta q42 versión2 máximo .375 aplicada por CAS. Sólo propuesta, historial y registro de instrucción limitada cambiaron; cero consentimientos aceptados.
+- Confirmación humana de app normal registrada; /start probado por hash del descriptor en recibo auténtico, sin pedir otro mensaje.
 
 ## Qué quedó pendiente
 
-- Enviar /start una sola vez y abrir Lumi Studio.
-- Reanudar posteriormente revisión del patch one-tap preservado; USD.375 no aplicado.
-- Pendiente Make sin contenido accesible conservado para revisión; no acreditado como entregado ni ejecutable.
+- Nueva aceptación específica del riesgo para .375 en Studio; después una acción humana separada de generación supervisada.
+- Generación y revisión real de q42 y etapas posteriores; costos completos de voz e infraestructura siguen sin evidencia suficiente.
+- Aceptación visual de la nueva pantalla one-tap no realizada por el agente.
 
 ## Qué trabajo se repitió innecesariamente
 
-- Evitar lecturas agrupadas demasiado grandes; provocaron salidas truncadas.
-- No reinvestigar q42 ni repetir suites completas. CI ejecutó únicamente el alcance afectado requerido.
+- No se rehízo Make, q42 ni el receptor. Se repitió sólo la prueba fallida tras corregir un fixture antiguo de identidad del bot. Evitar salidas de lectura excesivas.
 
 ## Qué instrucciones evitaron errores
 
-- Verificar proceso activo además de confirmación humana del token.
-- Tras rechazo del cambio vía Make, consultar getWebhookInfo y no asumir emisión ni reintentar por el mismo canal.
-- No compartir secreto webhook con Make; añadir control backend temporal con HMAC, SHA esperado y claim CAS único.
-- No drop_pending_updates, replay, getUpdates ni cambios económicos.
+- No inferir recepción /start a partir de la confirmación visual; verificar recibo auténtico.
+- Cambiar sólo máximo propuesto con CAS, preservar grants y exigir nueva decisión económica.
+- No exigir prueba de no emisión para un reemplazo cuyo riesgo desconocido se acepta explícitamente.
+- Proveedores simulados y guard de red; no cotizaciones ni reservas reales.
 
 ## Qué instrucciones generaron fricción
 
-- El procedimiento previo no incluía un control operador seguro del backend para setWebhook. La revisión automática rechazó transmitir el secreto por Make; se corrigió sólo esa brecha.
+- La moneda faltante en el recibo y el error genérico dejaron incompleta la continuación del parche recuperado; pruebas focalizadas demostraron ambos defectos. No se necesitó otra autorización técnica.
 
 ## Qué evidencia faltó
 
-- Recepción auténtica de /start y aceptación visual iPhone.
-- Contenido del pendiente Make y rollback operativo acreditado; se conserva la limitación.
-- Suspensión prolongada del hosting no ensayada realmente.
+- Precio actual y resultado/cargo original de Higgsfield desconocidos; no se consultaron proveedores.
+- No se ensayó generación real ni la nueva pantalla en iPhone. La confirmación de app normal no cubre todos los flujos ni Flores/master.
 
 ## Qué decisión humana se necesita
 
-- Ninguna nueva autorización técnica. Falta únicamente la comprobación humana: Enviar /start una sola vez y abrir Lumi Studio.
+- En Producción, revisar y aceptar o rechazar el riesgo del reemplazo con máximo .375. El agente no acepta ni extiende consentimientos.
 
 ## Qué pruebas pasaron
 
-- 11 pruebas focalizadas offline, incluidas HMAC/expiración, CAS concurrente, pérdida de ACK/reinicio y ausencia de reenvío.
-- CI GREEN39505178929; getMe/backend, setWebhook/getWebhookInfo, recibo151 y controles HTTP reales.
-- Snapshot protegido igual; parche SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 intacto.
+- 105 pruebas de transacción/reemplazo, presupuesto, journal, DIRECT, Biblioteca y autenticación.
+- 43 pruebas afectadas de one-tap, límites, expiración, CAS, reinicio, respuesta perdida, medios privados y recuperación humana.
+- SQL staging: propuesta revisada con CAS y permisos service_role; comparación protegida exacta, excepto cambios autorizados de propuesta/auditoría.
 
 ## Qué riesgos permanecen
 
-- Render free puede dormir. QUEUED persiste; DISPATCHING/UNKNOWN no se reenvía. No garantía exactly-once extremo a extremo.
-- Make no es rollback operativo validado. Cola histórica aislada sin borrar.
-- q42 original ambiguo; EP0048/50; presupuesto8, exposición1.22625, reserva original.3275 sin cambios.
+- Posible cargo original no verificado; reservas no equivalen a gastos reales ni garantía exactly-once del proveedor.
+- Render puede suspenderse; ninguna pérdida de respuesta libera un claim ni provoca reenvío.
+- EP004 permanece8/50; el avance técnico no cuenta como avance productivo.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 5499b24a562720cf33f1f17c1171842ce4d8d5aa1e976ef816ed811c983f1d2e. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: e9f1cd78a7f96ab4960b51a6812e6df6556d02070866fa7defcc55163f9c4650. Outputs are inert drafts; generating them cannot expand authorization.

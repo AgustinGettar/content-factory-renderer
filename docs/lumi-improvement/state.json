@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "observed_at": "2026-10-20T22:08:26Z",
+  "observed_at": "2026-10-21T01:29:42.873Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
+  "source_commit": "ae1d57abf11bc9029098374c01cfd2a9e7d65e5f",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Backend cutover commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 CI GREEN run39505178929. Live deploy dep-dbbucdg473hc73cj2un0 after removal of temporary operator key. Final documentation commit follows; resolve current remote/live SHA before writes.",
+  "deployment_evidence": "Base ae1d57abf11bc9029098374c01cfd2a9e7d65e5f verified live with DIRECT and Ed25519. This snapshot includes the recovered one-tap changes and verified staging proposal revision. Release requires exact-commit CI GREEN and staging readiness; resolve the commit containing this snapshot and its live deployment, rather than treating the base as the new release.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "PAUSED_INCIDENT",
   "last_completed_action": "shot_review:q41",
@@ -29,8 +29,8 @@
   "budget": {
     "ceiling_usd": 8,
     "exposure_usd": 1.22625,
-    "proposed_new_reservation_usd": 0.3275,
-    "potential_total_exposure_usd": 1.55375,
+    "proposed_new_reservation_usd": 0.375,
+    "potential_total_exposure_usd": 1.60125,
     "actual_spend_usd": null
   },
   "authorizations": {
@@ -38,77 +38,75 @@
     "new_reservations": false,
     "automatic_prompt_execution": false,
     "allowed": [
-      "complete existing direct Telegram cutover on staging",
-      "preserve Make queues and configurations",
-      "one real operator notification to authorized owner",
-      "minimal backend-only secret control correction",
-      "focused validation and branch-only publication",
-      "staging deployment and expiring operator configuration",
-      "no one-tap economic patch application in this intervention"
+      "recover and complete existing one-tap patch",
+      "revise ONLY the unactivated q42 proposal maximum to USD .375 with CAS and audit",
+      "preserve original operation, reservations, consent history, DIRECT and inactive Make",
+      "focused offline testing, authorized-branch publication and staging deployment"
     ],
-    "risk_acceptance": "EXPIRED_ORIGINAL_GRANTS_PRESERVED_NO_NEW_DECISION"
+    "risk_acceptance": "NEW_SPECIFIC_RISK_DECISION_REQUIRED_FOR_USD_0_375"
   },
   "blockers": [
     {
       "priority": 3,
       "category": "PROVIDER_EVIDENCE",
       "status": "ORIGINAL_STILL_AMBIGUOUS",
-      "description": "q42 original EMISSION_UNKNOWN/NO_RESPONSE, sin ID verificable. Su reserva .3275 permanece; el último intento de reemplazo no llegó a ACTIVATE. Correlación e idempotencia quedan registradas para operaciones futuras.",
+      "description": "q42 original EMISSION_UNKNOWN/NO_RESPONSE sin ID verificable. No impide un futuro reemplazo con aceptación específica válida de duplicación, ambas exposiciones y todos los controles. Si aparece resultado original verificable, priorizar recuperarlo.",
       "dependencies": [
-        "original provider evidence"
+        "verifiable original evidence if available"
       ],
       "resolution_cost": "Original charge UNKNOWN",
       "time_estimate": "External evidence: unknown",
       "production_impact": "CRITICAL",
       "financial_risk": "HIGH",
       "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     },
     {
       "priority": 4,
       "category": "GENERATION",
-      "status": "BLOCKED_PENDING_PRICE_REVIEW",
-      "description": "Motor técnico guarda cotización y decisión antes de reservar. Consulta sin generación disponible con consentimiento vigente. Un precio mayor requiere una decisión específica posterior; el cap8 no la reemplaza.",
+      "status": "ONE_TAP_READY_PENDING_HUMAN_DECISION",
+      "description": "Tras aceptación específica válida, un botón de generación supervisada consulta automáticamente el precio y valida límite, presupuesto para ambas exposiciones, CAS, identidad independiente y journal. No se ejecutó ninguna generación real.",
       "dependencies": [
-        "exact quote",
-        "specific maximum",
-        "original evidence"
+        "specific valid duplicate-risk grant",
+        "future explicit generation click",
+        "fresh quote within limit"
       ],
       "resolution_cost": "Future authorized generation only",
       "time_estimate": "Human decision and provider duration unknown",
       "production_impact": "CRITICAL",
       "financial_risk": "HIGH",
       "recurrence_probability": "HIGH if ambiguous responses recur",
-      "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     },
     {
-      "priority": 5,
+      "priority": 1,
       "category": "HUMAN_REVIEW",
-      "status": "EXPLICIT_CONSENT_EXPIRED_PRESERVED",
-      "description": "Venció el plazo original2026-10-20T00:53:52.703Z. Historial y q41 preservados. No registrar nuevas decisiones para completar el transporte.",
+      "status": "NEW_SPECIFIC_RISK_ACCEPTANCE_REQUIRED",
+      "description": "La aceptación histórica .3275 está preservada y vencida; no cubre .375. El usuario debe revisar y decidir en Studio. La confirmación de funcionamiento normal de la app no es consentimiento económico.",
       "dependencies": [
-        "price consultation",
-        "future artifact"
+        "specific human decision for revised proposal"
       ],
       "resolution_cost": "USD 0 decisions",
       "time_estimate": "Human response time unknown",
       "production_impact": "CRITICAL",
       "financial_risk": "HIGH",
       "recurrence_probability": "EXPECTED_EACH_NEW_RESULT",
-      "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     },
     {
       "priority": 2,
       "category": "BUDGET",
-      "status": "ONE_TAP_MAX_CHANGE_PRESERVED_NOT_APPLIED",
-      "description": "Consulta posterior .276; reserva calculada.345; máximo durable.3275. Diferencia.0175. Trabajo .375 recuperado sin aplicar; no modificar q42 en esta intervención.",
-      "dependencies": [],
+      "status": "PROPOSED_MAXIMUM_0_375_PERSISTED",
+      "description": "Versión 2 de la misma propuesta: máximo .375, reserva original .3275, exposición conjunta potencial .7025. Exposición actual 1.22625; disponible 6.77375; techo8. Ninguna reserva nueva. El dato histórico .276×1.25=.345 superaba .3275 por .0175; no es precio vigente.",
+      "dependencies": [
+        "fresh automatic quote only on a future authorized human generation click"
+      ],
       "resolution_cost": "USD 0 generation in this intervention; future quotes required",
       "time_estimate": "Quote timing must be just before authorized emission",
       "production_impact": "HIGH",
       "financial_risk": "HIGH",
       "recurrence_probability": "EXPECTED_EACH_PAID_ACTION",
-      "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     },
     {
       "priority": 6,
@@ -158,32 +156,32 @@
       "evidence": "docs/lumi-improvement/q42-cost-recovery.json; docs/LUMI_COST_RELIABILITY.md; focused SQL/auth/quote/journal tests"
     },
     {
-      "priority": 9,
+      "priority": 8,
       "category": "MINI_APP_UX",
-      "status": "IPHONE_ACCEPTANCE_PENDING",
-      "description": "Studio200; auth Ed25519 preservada; rutas de medios privados401 sin sesión; menú Abrir Lumi Studio verificado desde backend. Falta /start real y apertura iPhone. Patch one-tap preservado sin aplicar.",
+      "status": "RECOVERED_ONE_TAP_VALIDATED_OFFLINE",
+      "description": "Aceptación humana de uso normal tras corte registrada; recibo auténtico /start830558975 y respuesta153 verificados. One-tap y pantalla excepcional .375 probados offline; la nueva pantalla no tiene aceptación visual iPhone todavía.",
       "dependencies": [
-        "one human /start and Studio opening"
+        "future human risk review in Studio"
       ],
       "resolution_cost": "USD 0 provider generation",
       "time_estimate": "One human interaction; response time unknown",
       "production_impact": "HIGH",
       "financial_risk": "HIGH_IF_LOCK_FAILS",
       "recurrence_probability": "GUARDED_BY_TESTS",
-      "evidence": "docs/LUMI_DIRECT_TELEGRAM.md; docs/lumi-improvement/make-cutover-evidence.json"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     },
     {
-      "priority": 1,
+      "priority": 9,
       "category": "INFRASTRUCTURE",
-      "status": "DIRECT_LIVE_NO_MAKE_RUNTIME_DEPENDENCY",
-      "description": "Backend getMe exacto; webhook directo confirmado, Telegram0 pendientes/sin errores. Panel Make ya inactivo por error; shell desactivada. Cola Make1 aislada, sin replay. Control temporal cerrado. Render free puede dormir.",
+      "status": "DIRECT_PRESERVED",
+      "description": "DIRECT, secreto configurado, identidad verificada y autenticación Ed25519 confirmados por readiness. Sin cambios de webhook, secretos ni Make. Cola histórica1 aislada según evidencia del corte, no reejecutada. Render free puede dormir.",
       "dependencies": [],
       "resolution_cost": "No new services or paid resources",
       "time_estimate": "Technical cutover completed; hosting wake time not guaranteed",
       "production_impact": "TECHNICAL_GATE_RESOLVED",
       "financial_risk": "LOW",
       "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/LUMI_DIRECT_TELEGRAM.md; docs/lumi-improvement/make-cutover-evidence.json"
+      "evidence": "docs/lumi-improvement/one-tap-resume-evidence.json"
     }
   ],
   "metrics": {
@@ -195,12 +193,12 @@
     },
     "BLOCKERS_RESOLVED": {
       "production": 0,
-      "technical": 1,
-      "scope": "Direct bot transport cutover verified; Make runtime dependency removed. iPhone acceptance remains pending."
+      "technical": 2,
+      "scope": "Recovered one-tap completion and authorized proposal-limit revision; human economic decision remains pending."
     },
     "REGRESSIONS_INTRODUCED": {
       "observed_in_focused_acceptance": 0,
-      "scope": "11 offline transport tests, exact-commit CI, real direct outbound receipt, negative HTTP guards and protected snapshot equality; inbound/device acceptance not tested real."
+      "scope": "148 focused offline tests passed after fixing the demonstrated preflight continuation defects and updating one obsolete bot-identity fixture. Real generation not tested."
     },
     "DUPLICATE_EMISSIONS": {
       "this_intervention": 0,
@@ -211,127 +209,116 @@
       "historical_charges": "UNVERIFIED"
     },
     "HUMAN_INTERVENTIONS": {
-      "new_decisions_recorded_this_intervention": 0,
+      "normal_app_acceptance_recorded": 1,
+      "new_economic_decisions_recorded": 0,
       "pending": [
-        "Enviar /start una sola vez y abrir Lumi Studio."
+        "Specific duplicate-risk decision for proposed USD .375 in Studio"
       ],
       "historical_total": null
     },
     "REUSABLE_FIXES": {
-      "implemented": 1,
-      "validated_offline": 1,
+      "implemented": 2,
+      "validated_offline": 2,
       "validated_real": 1,
-      "scope": "Expiring HMAC operator control over existing transport/CAS; webhook secret only Render-to-Telegram; no startup registration or replay."
+      "scope": "General one-tap plan-bound authorization/preflight continuation; CAS proposal-limit versioning applied to real EP004. No real provider execution."
     },
     "SIMULATED_PROGRESS": {
-      "status": "Concurrent/replayed updates and failure cases offline; one real backend outbound notification does not advance production",
+      "status": "Simulated normal/replacement operations, quote rejection and consent renewal, concurrency and response loss; EP005/EP006 isolation",
       "productive_delta": 0
     }
   },
   "feedback": {
     "Qué pidió el prompt anterior": [
-      "Completar corte después de configurar token, sin reconstruir receptor, alterar q42 ni aplicar patch one-tap."
+      "Retomar el parche recuperado, terminar one-tap y preparar máximo .375; preservar Telegram directo, consentimientos, presupuesto y q42 original sin generar."
     ],
     "Qué se completó realmente": [
-      "Token cargado y getMe validado por backend; bot8843261381/AppMultimedia_VideosBot. Secreto webhook independiente guardado con merge de variables.",
-      "Corte explícito backend a Telegram con ACK y getWebhookInfo; destino directo, message/callback_query, drop_pending_updates=false, pendientes0/sin errores.",
-      "Un aviso operador real enviado por backend y recibo151 DELIVERED conservado. No es una actualización entrante de Telegram ni una interacción humana simulada.",
-      "Panel6224860 confirmado ya inactivo; shell6532649 desactivada. Cola Make1, configuración e historial preservados.",
-      "Checkpoint, fuentes, journals y sesión protegida idénticos antes/después; sólo recibos de transporte añadidos."
+      "Parche7c0e130 revisado y aplicado con three-way limpio en worktree aislado; parche original intacto.",
+      "Corregidos dos defectos demostrados: rechazo económico convertido en error genérico; moneda USD omitida del recibo e ignorada por proyección.",
+      "Consentimiento de plan acotado por episodio, versión, modelos, acciones y límites; cotización automática; nueva aprobación tras cambio material; bloqueo durable después del envío.",
+      "Propuesta q42 versión2 máximo .375 aplicada por CAS. Sólo propuesta, historial y registro de instrucción limitada cambiaron; cero consentimientos aceptados.",
+      "Confirmación humana de app normal registrada; /start probado por hash del descriptor en recibo auténtico, sin pedir otro mensaje."
     ],
     "Qué quedó pendiente": [
-      "Enviar /start una sola vez y abrir Lumi Studio.",
-      "Reanudar posteriormente revisión del patch one-tap preservado; USD.375 no aplicado.",
-      "Pendiente Make sin contenido accesible conservado para revisión; no acreditado como entregado ni ejecutable."
+      "Nueva aceptación específica del riesgo para .375 en Studio; después una acción humana separada de generación supervisada.",
+      "Generación y revisión real de q42 y etapas posteriores; costos completos de voz e infraestructura siguen sin evidencia suficiente.",
+      "Aceptación visual de la nueva pantalla one-tap no realizada por el agente."
     ],
     "Qué trabajo se repitió innecesariamente": [
-      "Evitar lecturas agrupadas demasiado grandes; provocaron salidas truncadas.",
-      "No reinvestigar q42 ni repetir suites completas. CI ejecutó únicamente el alcance afectado requerido."
+      "No se rehízo Make, q42 ni el receptor. Se repitió sólo la prueba fallida tras corregir un fixture antiguo de identidad del bot. Evitar salidas de lectura excesivas."
     ],
     "Qué instrucciones evitaron errores": [
-      "Verificar proceso activo además de confirmación humana del token.",
-      "Tras rechazo del cambio vía Make, consultar getWebhookInfo y no asumir emisión ni reintentar por el mismo canal.",
-      "No compartir secreto webhook con Make; añadir control backend temporal con HMAC, SHA esperado y claim CAS único.",
-      "No drop_pending_updates, replay, getUpdates ni cambios económicos."
+      "No inferir recepción /start a partir de la confirmación visual; verificar recibo auténtico.",
+      "Cambiar sólo máximo propuesto con CAS, preservar grants y exigir nueva decisión económica.",
+      "No exigir prueba de no emisión para un reemplazo cuyo riesgo desconocido se acepta explícitamente.",
+      "Proveedores simulados y guard de red; no cotizaciones ni reservas reales."
     ],
     "Qué instrucciones generaron fricción": [
-      "El procedimiento previo no incluía un control operador seguro del backend para setWebhook. La revisión automática rechazó transmitir el secreto por Make; se corrigió sólo esa brecha."
+      "La moneda faltante en el recibo y el error genérico dejaron incompleta la continuación del parche recuperado; pruebas focalizadas demostraron ambos defectos. No se necesitó otra autorización técnica."
     ],
     "Qué evidencia faltó": [
-      "Recepción auténtica de /start y aceptación visual iPhone.",
-      "Contenido del pendiente Make y rollback operativo acreditado; se conserva la limitación.",
-      "Suspensión prolongada del hosting no ensayada realmente."
+      "Precio actual y resultado/cargo original de Higgsfield desconocidos; no se consultaron proveedores.",
+      "No se ensayó generación real ni la nueva pantalla en iPhone. La confirmación de app normal no cubre todos los flujos ni Flores/master."
     ],
     "Qué decisión humana se necesita": [
-      "Ninguna nueva autorización técnica. Falta únicamente la comprobación humana: Enviar /start una sola vez y abrir Lumi Studio."
+      "En Producción, revisar y aceptar o rechazar el riesgo del reemplazo con máximo .375. El agente no acepta ni extiende consentimientos."
     ],
     "Qué pruebas pasaron": [
-      "11 pruebas focalizadas offline, incluidas HMAC/expiración, CAS concurrente, pérdida de ACK/reinicio y ausencia de reenvío.",
-      "CI GREEN39505178929; getMe/backend, setWebhook/getWebhookInfo, recibo151 y controles HTTP reales.",
-      "Snapshot protegido igual; parche SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 intacto."
+      "105 pruebas de transacción/reemplazo, presupuesto, journal, DIRECT, Biblioteca y autenticación.",
+      "43 pruebas afectadas de one-tap, límites, expiración, CAS, reinicio, respuesta perdida, medios privados y recuperación humana.",
+      "SQL staging: propuesta revisada con CAS y permisos service_role; comparación protegida exacta, excepto cambios autorizados de propuesta/auditoría."
     ],
     "Qué riesgos permanecen": [
-      "Render free puede dormir. QUEUED persiste; DISPATCHING/UNKNOWN no se reenvía. No garantía exactly-once extremo a extremo.",
-      "Make no es rollback operativo validado. Cola histórica aislada sin borrar.",
-      "q42 original ambiguo; EP0048/50; presupuesto8, exposición1.22625, reserva original.3275 sin cambios."
+      "Posible cargo original no verificado; reservas no equivalen a gastos reales ni garantía exactly-once del proveedor.",
+      "Render puede suspenderse; ninguna pérdida de respuesta libera un claim ni provoca reenvío.",
+      "EP004 permanece8/50; el avance técnico no cuenta como avance productivo."
     ]
   },
-  "first_safe_action": "Enviar /start una sola vez y abrir Lumi Studio.",
+  "first_safe_action": "Abrir Lumi Studio > Producción > Revisar riesgo y autorización; decidir específicamente sobre el máximo adicional USD .375. No volver a enviar /start. Sólo después de una aceptación válida se ofrece Generar reemplazo supervisado.",
   "acceptance": [
-    "BACKEND_TOKEN_AND_BOT_IDENTITY_PASS_REAL; WEBHOOK_DIRECT_VERIFIED; ALLOWED_UPDATES_MESSAGE_CALLBACK; DROP_PENDING_FALSE.",
-    "DIRECT_OUTBOUND_PASS_REAL: one operator notification, authentic Telegram receipt151; inbound/device acceptance NOT_TESTED_REAL.",
-    "MAKE_RUNTIME_DEPENDENCY_REMOVED: panel already inactive, shell inactive, old backend routes410; queue1 retained.",
-    "TEMPORARY_OPERATOR_CONTROL_CLOSED; NO_SECRET_SENT_TO_MAKE; NO_AUTOMATIC_WEBHOOK_REGISTRATION.",
-    "EP0048/50_Q41_Q42_JOURNALS_CONSENTS_RESERVATIONS_BUDGET8_PRESERVED; NO_GENERATION_NO_QUOTES_NO_NEW_RESERVATIONS.",
-    "ONE_TAP_PATCH_PRESERVED_NOT_APPLIED; NO_PRODUCTION_PROGRESS.",
-    "CI_GREEN_AND_STAGING_LIVE: verify exact final SHA after documentation publication.",
-    "MAKE_SUBSCRIPTION_CANCELLED: NOT_REQUESTED_NOT_PERFORMED."
+    "Q42_MAXIMUM_0_375_VERSION_2_PASS_REAL; ORIGINAL_RESERVATION_0_3275_PRESERVED; NEW_RISK_ACCEPTANCE_REQUIRED.",
+    "EP0048/50_Q41_ORIGINAL_Q42_JOURNALS_BUDGET8_CONSENT_HISTORY_PRESERVED_PASS_REAL.",
+    "DIRECT_READINESS_AND_AUTH_PRESERVED_PASS_REAL; EXISTING_START_RECEIPT153_VERIFIED; HUMAN_NORMAL_APP_ACCEPTANCE_RECORDED.",
+    "ONE_TAP_AUTOMATIC_QUOTE_PREFLIGHT_REAPPROVAL_DOUBLE_CLICK_RESTART_MULTI_EPISODE_PASS_OFFLINE.",
+    "ZERO_REAL_PROVIDER_QUOTES_GENERATIONS_NEW_RESERVATIONS; NO_MAKE_WEBHOOK_SECRET_CHANGES.",
+    "CI_GREEN_EXACT_COMMIT_AND_STAGING_LIVE_REQUIRED: resolve release evidence for the commit containing this snapshot.",
+    "NEW_ONE_TAP_VISUAL_DEVICE_FLOW_AND_REAL_GENERATION_NOT_TESTED_REAL; NO_PRODUCTIVE_PROGRESS."
   ],
   "tests": [
     {
       "status": "PASS_OFFLINE",
-      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-direct-telegram.test.js",
-      "result": "11 passed. Existing receiver cases plus expiring HMAC/SHA-bound cutover, concurrent CAS, response/persistence loss; simulated providers only."
-    },
-    {
-      "status": "PASS_INTEGRATION",
-      "command": "GitHub Actions39505178929 for 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
-      "result": "GREEN; focused direct transport and affected auth/library/private-media/budget recovery gates."
+      "command": "Focused workflow one_tap_only: 7 boundary suites plus selected lumi-q41-first-image tests under director-offline-guard",
+      "result": "105 +43 =148 tests; providers simulated; obsolete getMe fixture corrected; no real API calls."
     },
     {
       "status": "PASS_REAL",
-      "command": "Backend getMe, explicit setWebhook and getWebhookInfo, direct notification, Supabase protected-state comparison, negative HTTP guards",
-      "result": "Correct bot; direct destination, Telegram0 pending/no errors; receipt151 DELIVERED; Make queue1 held. Media/auth401, retired Make/callback410. Protected state equal excluding transport receipt map."
+      "command": "Existing DIRECT receipt inspection; staging readiness; lumi_supervised_replacement_v1 REVISE_MAXIMUM CAS; protected snapshot comparison",
+      "result": "/start descriptor matched update830558975, reply153 DELIVERED. Proposal v2 .375; original checkpoint/journals/sources and all old grants unchanged. No reservation or generation."
     },
     {
       "status": "NOT_TESTED_REAL",
-      "command": "Owner /start, iPhone Studio visual acceptance and extended hosting suspension",
-      "result": "One human check remains. No synthetic Telegram updates inserted; operator outbound notice is explicitly identified as operator-origin."
+      "command": "New one-tap iPhone view and actual provider generation",
+      "result": "Normal app acceptance is human-confirmed separately. No claims of real generation success or provider billing."
     }
   ],
   "recent_commits": [
     {
-      "sha": "dbe8f5c305c4b67205a5969af326392188dff78e",
-      "subject": "Existing direct receiver and auth preservation, reused without reconstruction"
+      "sha": "ae1d57abf11bc9029098374c01cfd2a9e7d65e5f",
+      "subject": "Verified direct Telegram cutover baseline and preserved recovery patch"
     },
     {
-      "sha": "1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1",
-      "subject": "Backend-only explicit cutover control and focused adversarial tests"
-    },
-    {
-      "sha": "4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b",
-      "subject": "Inert one-tap recovery patch preserved, not applied"
+      "sha": "7c0e130",
+      "subject": "Recovered incomplete one-tap work; incorporated and completed in the commit containing this snapshot"
     }
   ],
   "activation": {
     "technical_status": "AUTHENTICATED_TRANSACTIONAL_INTEGRATION_READY",
-    "grant_status": "EXPIRED_PRESERVED",
+    "grant_status": "NEW_SPECIFIC_ACCEPTANCE_REQUIRED",
     "new_operation_status": "NONE",
     "new_reservation_status": "NONE",
     "provider_generation_calls_this_intervention": 0,
     "new_reservations_this_intervention": 0,
     "new_risk_acceptances_this_intervention": 0,
-    "real_human_device_flow": "NOT_TESTED_REAL",
+    "real_human_device_flow": "NORMAL_APP_CONFIRMED_NEW_ONE_TAP_NOT_TESTED",
     "concrete_provider_bindings": [
       "Higgsfield IMAGE",
       "Higgsfield VIDEO"
@@ -339,20 +326,20 @@
     "other_provider_bindings": "FAIL_CLOSED_PENDING_VERIFIED_ADAPTER"
   },
   "continuation": {
-    "title": "LUMI APP — DIRECT TELEGRAM HUMAN ACCEPTANCE AND ONE-TAP RESUME",
-    "mission": "MISIÓN ÚNICA: verificar la comprobación humana pendiente del transporte directo y dejar preparada la reanudación del trabajo one-tap ya recuperado, sin generar ni modificar q42 en esta comprobación.",
-    "integration_status": "Transporte directo ya configurado, probado con entrega real y Make desactivado. No rehacer receptor/corte ni reabrir control temporal. Reutilizar docs/LUMI_DIRECT_TELEGRAM.md y make-cutover-evidence.json. Patch one-tap preservado, aún no aplicado.",
-    "decision_rule": "Primera comprobación humana única: Enviar /start una sola vez y abrir Lumi Studio. Si el usuario confirma que ya la hizo, consultar el recibo real existente y no exigir otro envío. Distinguir recepción de Telegram, entrega y aceptación visual. Luego revisar el patch recuperado para la siguiente intervención one-tap; no ejecutarlo automáticamente ni modificar máximos/consentimientos bajo esta comprobación.",
-    "prohibitions": "PROHIBICIONES: no main/producción, multimedia, quotes, gastos, reservas, retries, cambios de q42 o presupuesto8; no aplicar patch one-tap en la comprobación de transporte; no reactivar Make, vaciar colas ni getUpdates; no volver a cambiar webhook sin defecto concreto; no compartir secretos; runners OFF, autorun false, publicación deshabilitada."
+    "title": "LUMI APP — Q42 HUMAN DECISION AND DURABLE RESULT FOLLOW-UP",
+    "mission": "MISIÓN ÚNICA: avanzar EP004 a partir de la decisión humana realizada en Studio sobre el reemplazo .375, leyendo primero su resultado durable y recuperando sólo la operación ya existente cuando corresponda.",
+    "integration_status": "One-tap recuperado e integrado. Propuesta v2 máximo .375 persistida; original ambiguo y reserva conservados. No rehacer Make, el receptor, el parche ni el motor económico. El código y pruebas están en el commit que contiene este estado.",
+    "decision_rule": "Si falta aceptación específica .375 o venció, dejar la decisión al usuario en Studio. No registrar/renovar consentimiento por chat ni por agente. Si ya hay una operación, consultar su journal y recuperar exclusivamente su resultado verificado; no reenviar. Si no hay operación, la futura generación requiere el botón humano y todos los controles. El original puede seguir desconocido si existe aceptación válida del riesgo: no exigir una prueba imposible de no emisión. Si aparece el original verificable antes del transporte, priorizarlo.",
+    "prohibitions": "PROHIBICIONES: este borrador no autoriza generación, cotizaciones reales, gastos, reservas ni nuevas decisiones humanas; no main/producción, cambios de presupuesto8, reenvíos, retries, q41, journal original, Make, webhook o secretos. Runners OFF, autorun false, publicación deshabilitada."
   },
   "consent": {
-    "status": "EXPIRED_PRESERVED",
+    "status": "NEW_SPECIFIC_RISK_ACCEPTANCE_REQUIRED",
     "authorization_reference": "54d88301-2c29-4ada-a8bd-36055c7403b3",
     "authorized_at": "2026-10-19T00:54:03.567Z",
     "expires_at": "2026-10-20T00:53:52.703Z",
     "contract_version": 3,
     "maximum_reservation_usd": 0.3275,
-    "explanation": "La aceptación original venció en su plazo explícito. Se conserva sin modificar; no se exige ni registra nueva aceptación en esta migración. USD.375 no se aplicó."
+    "explanation": "Historial .3275 preservado, con vencimiento original. No cubre el máximo materialmente distinto .375 de propuesta v2. No se aceptó ni extendió consentimiento alguno."
   },
   "replacement": {
     "operation_status": "NOT_CREATED",
@@ -374,7 +361,7 @@
     "authorized_max_usd": 0.3275,
     "episode_remaining_usd": 6.77375,
     "payload_sha256": "dee5c851a0cdccfb3dbd56d8dec6699b485b3b6eb66bec0b2eaea229148ee5e5",
-    "evidence_limitation": "Consulta de precio posterior y ya vencida del2026-10-19T01:44:30.319Z: .276×1.25=.345, diferencia .0175 sobre máximo.3275. No reconstruye el rechazo antiguo sin precio. Reutilizar esta evidencia; no cotizar ni investigar q42 durante la migración."
+    "evidence_limitation": "Evidencia histórica .276×1.25=.345, diferencia .0175 frente al anterior máximo .3275. No es precio vigente y no reconstruye un intento sin importe. Máximo propuesto ahora .375; precio fresco sólo dentro de una futura acción humana autorizada."
   },
   "cost_projection": {
     "status": "INCOMPLETE_COST_EVIDENCE",
@@ -407,9 +394,9 @@
     "method": "read-only real library/checkpoint metadata through existing compatibility function; no bytes changed or generation"
   },
   "transport": {
-    "status": "DIRECT_TRANSPORT_CONFIGURED_HUMAN_ACCEPTANCE_PENDING",
-    "summary": "Backend identity8843261381 verified. DIRECT live; webhook to staging, Telegram0 pending/no errors, allowed message/callback_query. One real outbound notice receipt151. Make panel inactive/error, shell inactive, queue1 retained. Operator control closed; no runtime Make dependency. Device /start and opening pending.",
-    "recovered_work": "Local one-tap commit7c0e130; exact inert patch docs/recovery/one-tap-20261020.patch, archival commit4ad5266c0f9c1f5b4d49f044ddd11e1aca2c321b. Executable changes and USD.375 migration are not applied; original checkout preserved.",
-    "first_one_tap_task": "Review docs/recovery/one-tap-20261020.patch and existing local recovery commit; do not reconstruct or apply it during transport acceptance."
+    "status": "DIRECT_PRESERVED_HUMAN_NORMAL_APP_ACCEPTED",
+    "summary": "DIRECT y Ed25519 verificados por readiness. Confirmación humana de uso normal registrada. Recibo /start830558975 y respuesta153 verificados sin reenvío. Sin cambios Make/webhook/secretos; cola histórica aislada. La aceptación no demuestra todos los flujos productivos.",
+    "recovered_work": "Parche original SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 conservado. Aplicación three-way revisada en worktree aislado, defectos de preflight corregidos y pruebas focalizadas aprobadas; máximo .375 aplicado por CAS.",
+    "first_one_tap_task": "Completada: validación de plan/consentimiento y continuación tras rechazo de preflight. Siguiente: decisión humana específica en Studio."
   }
 }

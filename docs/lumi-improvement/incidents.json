@@ -21,7 +21,7 @@
     ],
     "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
     "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
-    "NEXT_ACTION": "Preserve original ambiguity and valid current replacement consent; consult exact price separately without generation. Prefer verifiable original result when available."
+    "NEXT_ACTION": "Preservar ambigüedad y reserva. Decisión específica .375 en Studio; futura acción humana obtiene cotización automáticamente. No exigir prueba de no emisión si el riesgo desconocido fue aceptado válidamente; priorizar original verificable."
   },
   {
     "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
@@ -202,7 +202,7 @@
     ],
     "REGRESSION_GUARD": "lumi-supervised-activation.test.js QUOTE_OVER_LIMIT, QUOTE_ONLY, SESSION_REOPEN, CROSS_SHOT_IDENTITY; higgsfield-usd-budget-v1.test.js",
     "REUSABILITY": "Any episode/action using the existing shared Budget Gate and supervised recovery.",
-    "NEXT_ACTION": "Deploy validated staging code; retrieve a new quote only by explicit authenticated consultation, never infer the old amount or expand authorization."
+    "NEXT_ACTION": "No repetir investigación histórica ni consultar precios manualmente por defecto. Cotización automática dentro de una futura acción humana, bajo consentimiento válido y límite específico; no ampliar automáticamente."
   },
   {
     "INCIDENT_ID": "LUMI-RESERVATION-DECIMAL-010",
@@ -224,7 +224,7 @@
     ],
     "REGRESSION_GUARD": "higgsfield-usd-budget-v1.test.js RESERVATION_MULTIPLIER plus SQL exact numeric policy",
     "REUSABILITY": "Any episode/action using the existing shared Budget Gate and supervised recovery.",
-    "NEXT_ACTION": "Deploy validated staging code; retrieve a new quote only by explicit authenticated consultation, never infer the old amount or expand authorization."
+    "NEXT_ACTION": "No repetir investigación histórica ni consultar precios manualmente por defecto. Cotización automática dentro de una futura acción humana, bajo consentimiento válido y límite específico; no ampliar automáticamente."
   },
   {
     "INCIDENT_ID": "LUMI-DIRECT-TELEGRAM-011",
@@ -236,7 +236,8 @@
       "Render2026-10-20T15:35:43Z bot_credentialfalse/callback_secrettrue.",
       "Make6224860 error/queue1;6532649 active; getMe confirms8843261381; getWebhookInfo pending0 and Make host.",
       "Baseline auth.js credential priority and focused token-addition regression.",
-      "2026-10-20T22:05:37Z backend getMe/setWebhook/getWebhookInfo verified; receipt151 delivered; Make scenarios inactive; protected state unchanged."
+      "2026-10-20T22:05:37Z backend getMe/setWebhook/getWebhookInfo verified; receipt151 delivered; Make scenarios inactive; protected state unchanged.",
+      "docs/lumi-improvement/one-tap-resume-evidence.json"
     ],
     "CONFIDENCE": "CONFIRMED",
     "USER_IMPACT": "Direct migration cannot activate until token is safely configured; Studio remains available.",
@@ -249,7 +250,7 @@
     ],
     "REGRESSION_GUARD": "test/lumi-direct-telegram.test.js; existing auth/private library tests",
     "REUSABILITY": "All episodes on the same authenticated bot; transport-only durable receipts and future result notifications.",
-    "NEXT_ACTION": "No reinvestigar: token backend, corte y entrega verificados2026-10-20. Falta aceptación iPhone, no configuración de token."
+    "NEXT_ACTION": "No rehacer el corte ni solicitar otro /start: recibo auténtico830558975/respuesta153 y confirmación humana de app normal registrados. Conservar DIRECT."
   },
   {
     "INCIDENT_ID": "LUMI-DIRECT-CUTOVER-012",
@@ -260,7 +261,8 @@
     "EVIDENCE": [
       "Automatic approval rejection; immediate getWebhookInfo confirmed old destination unchanged.",
       "Commit 1959341d4e2bc6140ce3e3ad7727ab9e6a9bfcb1 adds expiring independent HMAC control, exact bot/SHA checks, existing session CAS and one configuration claim.",
-      "Backend receipt c0e2eda4-4d6b-48cf-8f0a-e93c45c4e702 VERIFIED, acknowledged true, direct destination checked. Temporary operator key removed after cutover."
+      "Backend receipt c0e2eda4-4d6b-48cf-8f0a-e93c45c4e702 VERIFIED, acknowledged true, direct destination checked. Temporary operator key removed after cutover.",
+      "docs/lumi-improvement/one-tap-resume-evidence.json"
     ],
     "CONFIDENCE": "CONFIRMED",
     "USER_IMPACT": "Cutover completed without asking for token or another authorization; iPhone acceptance still pending.",
@@ -273,6 +275,31 @@
     ],
     "REGRESSION_GUARD": "DIRECT_CUTOVER_AUTH, DIRECT_CUTOVER_CAS, DIRECT_CUTOVER_RESPONSE_LOSS in test/lumi-direct-telegram.test.js",
     "REUSABILITY": "Existing bot transport administration across episodes; no new production engine, table or journal.",
-    "NEXT_ACTION": "Enviar /start una sola vez y abrir Lumi Studio."
+    "NEXT_ACTION": "No rehacer el corte ni solicitar otro /start: recibo auténtico830558975/respuesta153 y confirmación humana de app normal registrados. Conservar DIRECT."
+  },
+  {
+    "INCIDENT_ID": "LUMI-ONE-TAP-PREFLIGHT-013",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "Generic plan-authorized IMAGE/VIDEO/TTS path; synthetic preflight continuation; protected q42 proposal limit revision",
+    "SYMPTOM": "Recovered one-tap code could not continue after a confirmed quote-limit rejection even after a new specific plan decision.",
+    "ROOT_CAUSE": "Confirmed offline: runFirstAnimation replaced persisted economic denial with Q41_ONE_TAP_QUOTE_UNCONFIRMED; verified USD quote receipt omitted currency, so episode cost projection ignored it and retained the insufficient estimate.",
+    "EVIDENCE": [
+      "docs/lumi-improvement/one-tap-resume-evidence.json",
+      "test/lumi-q41-first-image.test.js: PLAN_ONETAP PREFLIGHT_REJECTION_CONTINUATION",
+      "lib/lumi-v2-telegram-runtime.js: verified quote currency and persisted economic decision",
+      "lib/telegram-mini-app/runtime.js: bounded preflight continuation"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Without correction, the recovered UX would remain blocked after safe preflight rejection. No real generation attempted in this intervention.",
+    "FINANCIAL_RISK": "Zero new reserve or provider spend. Original unknown charge retained; proposed .375 requires a new human risk decision.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "Resolve the commit containing docs/lumi-improvement/one-tap-resume-evidence.json; recovered base7c0e130, integration baseae1d57abf11bc9029098374c01cfd2a9e7d65e5f.",
+    "TEST_EVIDENCE": [
+      "148 focused offline tests passed",
+      "SQL staging CAS revision v2; protected snapshot equality except proposal/history/limited instruction audit"
+    ],
+    "REGRESSION_GUARD": "Persist safe economic error and quote binding; reopen only after a new approved plan, completed rejected quote, no journal/reserve/dispatch/receipt/artifact; retain prior grant and rejected receipt.",
+    "REUSABILITY": "All episode plan-bound stages and unactivated supervised IMAGE/VIDEO replacement proposals; EP005/EP006 synthetic isolation.",
+    "NEXT_ACTION": "Abrir Lumi Studio > Producción > Revisar riesgo y autorización; decidir específicamente sobre el máximo adicional USD .375. No volver a enviar /start. Sólo después de una aceptación válida se ofrece Generar reemplazo supervisado."
   }
 ]

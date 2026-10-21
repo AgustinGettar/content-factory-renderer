@@ -1,0 +1,77 @@
+{
+  "observed_at": "2026-10-21T01:29:42.873Z",
+  "base_commit": "ae1d57abf11bc9029098374c01cfd2a9e7d65e5f",
+  "recovery": {
+    "source_commit": "7c0e130",
+    "patch": "docs/recovery/one-tap-20261020.patch",
+    "patch_sha256": "289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1",
+    "applied": "Reviewed three-way application in detached worktree; no conflicts; incomplete preflight continuation completed"
+  },
+  "human_app_acceptance": {
+    "status": "PASS_REAL_HUMAN_CONFIRMED",
+    "statement": "Sí, la app funciona normalmente",
+    "scope": "Normal Lumi Studio use following direct Telegram cutover; not all production flows or new one-tap visual acceptance"
+  },
+  "start_receipt": {
+    "start_descriptor_matches_authenticated_receipt": true,
+    "update_id": 830558975,
+    "incoming_message_id_verified_by_hash": 152,
+    "response_message_id": 153,
+    "status": "DELIVERED",
+    "provenance": "Existing authenticated DIRECT receipt; exact stored descriptor hash reconstructed with /start; no injected update or repeated message"
+  },
+  "proposal": {
+    "id": "02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670",
+    "version": 2,
+    "previous_digest": "0295962c614e434c807dcaf42d5b5804ad81335fe2065c07fb15cbf6370c44d6",
+    "digest": "6eca747c7b921ea56a6c3e1c7495f43bd358e0a7bbddf9183958a65248bf840e",
+    "maximum_usd": 0.375,
+    "original_reservation_usd": 0.3275,
+    "combined_potential_reservations_usd": 0.7025,
+    "episode_potential_exposure_usd": 1.60125,
+    "limited_instruction_reference": "EP004_Q42_MAXIMUM_ONLY_20261021_RESUMED_USER_AUTHORIZATION",
+    "new_risk_acceptance": "REQUIRED_NOT_GRANTED",
+    "operation": "NOT_CREATED"
+  },
+  "preservation": {
+    "checkpoint_preserved": true,
+    "journals_preserved": true,
+    "source_checkpoints_preserved": true,
+    "only_authorized_proposal_revision_and_audit_changed": true,
+    "new_reservations": 0,
+    "provider_generation_calls": 0,
+    "proposal_max_usd": 0.375
+  },
+  "tests": {
+    "offline_core": 105,
+    "offline_affected_boundaries": 43,
+    "real_generations": 0,
+    "real_quotes": 0,
+    "new_reservations": 0,
+    "synthetic_episodes": [
+      "EP005",
+      "EP006"
+    ],
+    "limitations": [
+      "No real generation",
+      "No fresh provider prices",
+      "New one-tap screen not visually accepted on iPhone",
+      "Complete EP004 cost evidence remains incomplete",
+      "Make historical queue and hosting suspension not re-audited"
+    ]
+  },
+  "release": {
+    "required": "CI GREEN exact commit; staging only; resolve commit containing this evidence and exact live SHA via GitHub/Render",
+    "pre_release_live_sha": "ae1d57abf11bc9029098374c01cfd2a9e7d65e5f"
+  },
+  "root_causes_confirmed": [
+    "Recovered plan path replaced persisted economic denial with Q41_ONE_TAP_QUOTE_UNCONFIRMED, preventing safe reapproval continuation",
+    "Verified USD quote receipt omitted currency, so the cost projection ignored the rejected quote and proposed the old insufficient limit"
+  ],
+  "controls": [
+    "Original EMISSION_UNKNOWN is allowed for a future explicitly risk-accepted replacement; no false proof of non-emission required",
+    "Late verified original result prevents unnecessary replacement",
+    "Fresh quote, both exposures, CAS, independent operation/idempotency and journal gates retained",
+    "No quote, generation, reserve or human risk acceptance performed by this intervention"
+  ]
+}

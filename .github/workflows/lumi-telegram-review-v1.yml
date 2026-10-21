@@ -20,8 +20,13 @@ jobs:
           library_only=true
           recovery_only=true
           direct_only=true
-          git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; }
+          one_tap_only=true
+          git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
+            case "$path" in
+              lib/lumi-supervised-activation.js|lib/lumi-supervised-replacement.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/q41-policy.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|supabase/migrations/*_lumi_one_tap_proposal_revision.sql|test/lumi-q41-first-image.test.js|test/lumi-supervised-activation.test.js|test/lumi-supervised-replacement.test.js|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              *) one_tap_only=false ;;
+            esac
             case "$path" in
               server.js|lib/telegram-review-v1/direct-transport.js|lib/telegram-review-v1/runtime.js|lib/telegram-review-v1/make-transport.js|lib/telegram-mini-app/auth.js|lib/telegram-mini-app/runtime.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-improvement-loop.js|test/lumi-direct-telegram.test.js|scripts/lumi-telegram-cutover.mjs|supabase/migrations/*_lumi_direct_telegram_transport.sql|docs/LUMI_DIRECT_TELEGRAM.md|docs/lumi-telegram-mini-app-v1.md|docs/recovery/*|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) direct_only=false ;;
@@ -38,6 +43,7 @@ jobs:
           echo "library_only=$library_only" >> "$GITHUB_OUTPUT"
           echo "recovery_only=$recovery_only" >> "$GITHUB_OUTPUT"
           echo "direct_only=$direct_only" >> "$GITHUB_OUTPUT"
+          echo "one_tap_only=$one_tap_only" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -49,7 +55,7 @@ jobs:
       - name: Asset library, SQL, auth and protected production integration (offline)
         run: node --import ./scripts/director-offline-guard.mjs --test test/lumi-library-v1.test.js test/lumi-mini-app-auth.test.js
       - name: Supervised recovery, budget, journal and durable continuation (offline)
-        if: steps.scope.outputs.recovery_only == 'true'
+        if: steps.scope.outputs.recovery_only == 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: |
           node --check lib/lumi-supervised-activation.js && node --check lib/lumi-supervised-runtime-bindings.js
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-stage-result-v2.test.js test/lumi-generic-runtime-integration.test.js test/lumi-materialization-v2.test.js test/lumi-supervised-replacement.test.js test/lumi-recovery-incident-manager-v1.test.js test/provider-emission-journal-v1.test.js test/higgsfield-usd-budget-v1.test.js test/lumi-generic-balance-recovery.test.js
@@ -57,15 +63,23 @@ jobs:
           node scripts/lumi-improvement-loop.mjs
           git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Direct Telegram transport and affected regression only (offline)
-        if: steps.scope.outputs.direct_only == 'true'
+        if: steps.scope.outputs.direct_only == 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: |
           node --check lib/telegram-review-v1/direct-transport.js
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-direct-telegram.test.js test/lumi-make-transport.test.js test/lumi-multipart-delivery.test.js
           node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(BUDGET_|ambiguous dispatch|request id is immutable|provider failure before|incident persists|FULL_EPISODE_COST_ESTIMATE|IMPROVEMENT|NEXT_PROMPT|INCIDENT|PROMPT_FEEDBACK|RESUME_STATE)" test/lumi-recovery-incident-manager-v1.test.js test/lumi-supervised-replacement.test.js
           node scripts/lumi-improvement-loop.mjs
           git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
+      - name: Recovered one-tap, transactional limits and preserved transport (offline)
+        if: steps.scope.outputs.one_tap_only == 'true'
+        run: |
+          node --check lib/telegram-mini-app/q41-policy.js && node --check lib/lumi-v2-telegram-runtime.js
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-supervised-replacement.test.js test/lumi-direct-telegram.test.js test/higgsfield-usd-budget-v1.test.js test/provider-emission-journal-v1.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(PLAN_ONETAP|ONETAP |DURABLE_LOCK |Q42_ONE_TAP |READ_ONLY_PROGRESS|HUMAN_REVIEW |SUPERVISED|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE|MINI_MEDIA_ACCESS|MINI_END_TO_END_NON_GENERATIVE)" test/lumi-q41-first-image.test.js
+          node scripts/lumi-improvement-loop.mjs
+          git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Telegram, Recovery Manager and director regression with network disabled
-        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
           test/lumi-mini-app-auth.test.js
@@ -111,13 +125,13 @@ jobs:
           test/lumi-six-shot-audio.test.js
 
       - name: Durable diagnostic recovery across real process termination (offline children)
-        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node --test test/lumi-durable-dry-run-restart.test.js test/lumi-generic-runtime-restart.test.js test/lumi-isolated-validation-restart.test.js test/lumi-diagnostic-http-restart.test.js
 
       - name: Future episode zero-provider dry run
-        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node scripts/lumi-production-readiness-v2.mjs /tmp/readiness-v2.json
 
       - name: Real executor boundaries and crash matrix (missing runners stay blocked)
-        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true'
+        if: steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node --import ./scripts/director-offline-guard.mjs scripts/lumi-real-executor-readiness-v2.mjs /tmp/real-executor-v2.json

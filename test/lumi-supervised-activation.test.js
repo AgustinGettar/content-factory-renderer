@@ -6,7 +6,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
 import {LumiRecoveryIncidentManager} from '../lib/lumi-recovery-incident-manager-v1.js';
 import {ReviewStageReceiptStore} from '../lib/lumi-v2-execution-orchestrator.js';
-import {buildReplacementProposal,recoveryDigest,replacementPresentation} from '../lib/lumi-supervised-replacement.js';
+import {buildReplacementProposal,reviseReplacementMaximum,recoveryDigest,replacementPresentation} from '../lib/lumi-supervised-replacement.js';
 import {supervisedReservation,estimateHiggsfieldUsd} from '../lib/higgsfield-usd-budget-v1.js';
 import {quoteSupervisedPayload} from '../lib/lumi-supervised-runtime-bindings.js';
 import {installSupervisedActivation} from '../lib/lumi-supervised-activation.js';
@@ -24,6 +24,7 @@ function initData(nonce){const p=new URLSearchParams({auth_date:String(Math.floo
 async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,afterActivate=null}={}){
  const db=new PGlite();await db.exec(schema);await db.exec(migration);await db.exec(await readFile(new URL('../supabase/migrations/20261019003616_lumi_supervised_durable_consent.sql',import.meta.url),'utf8'));
  await db.exec(await readFile(new URL('../supabase/migrations/20261019010401_lumi_cost_traceability.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20261019015259_lumi_one_tap_proposal_revision.sql',import.meta.url),'utf8'));
  const oldMigration=await readFile(new URL('../supabase/migrations/20261011215758_lumi_balance_recovery.sql',import.meta.url),'utf8');
  await db.exec(oldMigration.slice(oldMigration.indexOf('create or replace function public.lumi_emission_immutable_v1()'),oldMigration.lastIndexOf('commit;')));
  await db.exec('create trigger immutable before update on lumi_provider_emission_journal for each row execute function lumi_emission_immutable_v1()');
@@ -69,6 +70,37 @@ async function fixture({episode='ep005_synthetic',stage='IMAGE',fetchHook=null,a
  const generate=async(p=principal)=>adapter.generateSupervisedReplacement(p,{proposal_id:proposal.replacement_proposal_id,authorization_reference:(await reviewStore.get()).state.supervised_replacement_grants?.[proposal.replacement_proposal_id]?.authorization_reference??null,confirmation_id:randomUUID(),confirm:true});
  return {controls,db,json,insert,tx,getCp,getJ,cpId,action,attempt,operation,authorization,proposal,reviewStore,manager,journal,auth,login,principal,adapter,review,accept,generate,sent,counts:()=>({quotes,calls}),close:()=>db.close()};
 }
+
+test('Q42_MAX_UPDATE / RISK_CONSENT_VERSIONING: CAS revision preserves original, old grant and identity; new acceptance is required',async t=>{
+ for(const episode of ['ep005_synthetic','ep006_synthetic']){
+  const f=await fixture({episode,stage:episode.includes('006')?'VIDEO':'IMAGE'});t.after(f.close);await f.accept();
+  const cp=await f.getCp(f.cpId),j=await f.getJ(f.attempt),s=await f.reviewStore.get(),g=s.state.supervised_replacement_grants[f.proposal.replacement_proposal_id];
+  const next=reviseReplacementMaximum({proposal:f.proposal,maximumNewReservation:.375,authorizationReference:'explicit-limit-only',createdAt:new Date().toISOString()});
+  const request={phase:'REVISE_MAXIMUM',user_id:'1',proposal_id:f.proposal.replacement_proposal_id,expected_revision:s.revision,
+   checkpoint:cp,original_journal:j,original_operation:f.operation,original_authorization:f.authorization,previous_proposal:f.proposal,revised_proposal:next,
+   limit_authorization:{scope:'REPLACEMENT_MAXIMUM_ONLY',channel:'EXPLICIT_USER_REQUEST',episode_id:f.cpId,action_id:f.action,
+    proposal_id:f.proposal.replacement_proposal_id,authorization_reference:'explicit-limit-only',previous_max_usd:.3275,maximum_reservation_usd:.375,
+    accepts_duplicate_risk:false,generation_authorized:false,reservation_authorized:false}};
+  await assert.rejects(f.tx({...request,expected_revision:0}),/CAS_CONFLICT/);
+  await assert.rejects(f.tx({...request,revised_proposal:{...next,planned_attempt_id:'tampered'}}),/REVISION_INVALID/);
+  const results=await Promise.allSettled([f.tx(request),f.tx(request)]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  const state=(await f.reviewStore.get()).state;
+  assert.deepEqual(state.supervised_replacement_grants[next.replacement_proposal_id],g);
+  assert.deepEqual(state.supervised_replacement_proposal_history[f.proposal.proposal_digest],f.proposal);
+  assert.equal(state.supervised_replacement_proposals[next.replacement_proposal_id].maximum_new_reservation,.375);
+  assert.equal(next.potential_duplicate_cost.combined_q42_or_action_exposure_usd,.7025);
+  assert.deepEqual(await f.getCp(f.cpId),cp);assert.deepEqual(await f.getJ(f.attempt),j);assert.deepEqual(f.counts(),{quotes:0,calls:0});
+  const view=replacementPresentation({checkpoint:cp,state,budget:{episode_ceiling_usd:8,required_total_usd:.3275},current_emission:{state:j.state,attempt_id:j.attempt_id},supervised_replacement_ready:true});
+  assert.equal(view.authorization_status,'NEW_RISK_ACCEPTANCE_REQUIRED');assert.equal(view.generation_enabled,false);assert.equal(view.risk_review_available,true);
+  await assert.rejects(f.generate(),/CURRENT_CONSENT/);
+  const review=await f.review();assert.equal(review.challenge.maximum_reservation_usd,.375);
+  await f.adapter.acceptSupervisedReplacement(f.principal,{challenge:review.challenge,accept_duplicate_risk:true});
+  f.controls.quoteAmount=.276;await f.generate();assert.equal(f.counts().calls,1);
+  assert.equal((await f.getCp(f.cpId)).metadata.budget_reservations['replacement:'+next.planned_attempt_id].amount_usd,.345);
+  assert.deepEqual(await f.getJ(f.attempt),j);await assert.rejects(f.tx({...request,expected_revision:(await f.reviewStore.get()).revision}),/CAS|CLAIMED/);
+ }
+ assert.equal(globalThis.LUMI_OFFLINE_GUARD.attempts.length,0);
+});
 
 test('AUTHENTICATED_RISK_GATE / ORIGINAL_JOURNAL_PRESERVED: read and consent do not reserve or emit; forged identities and altered disclosure fail',async t=>{
  const f=await fixture();t.after(f.close);const before=await f.getCp(f.cpId),j=await f.getJ(f.attempt);
@@ -197,16 +229,16 @@ test('MINI_APP_RISK_UI / STALE_UI_RESPONSE: explicit unchecked consent and separ
  runInNewContext(js.replace('navigation();login();','')+`\nglobalThis.init=s=>{state=s;csrf='local';};globalThis.openRisk=reviewReplacement;globalThis.openQuote=confirmReplacementQuote;globalThis.bump=()=>mutationEpoch++;globalThis.card=()=>quoteCard();`,box);
  get('#confirmation').showModal=()=>{get('#confirmation').open=true;};get('#confirmation').close=()=>{get('#confirmation').open=false;};
  const state={episode:{id:'ep005_synthetic',checkpoint_version:23},supervised_replacement:{proposal_id:'p',risk_review_available:true,status:'REPLACEMENT_PROPOSAL',previous_reservation_usd:.3275,estimated_new_reservation_usd:.3275,combined_exposure_usd:.655,available_budget_usd:6.77375,authorization_status:'NOT_GRANTED',generation_enabled:false},budget:{ceiling_usd:8},capabilities:{}};
- box.init(state);assert.match(box.card(),/Revisar riesgo y autorización/);assert.match(box.card(),/disabled>Generar reemplazo/);
+ box.init(state);assert.match(box.card(),/Revisar riesgo y autorización/);assert.doesNotMatch(box.card(),/data-action="replacement_generate"/);
  const late=box.openRisk();box.bump();pending({challenge:{expires_at:new Date(Date.now()+60000).toISOString()}});await late;assert.notEqual(get('#confirmation').open,true);
  const current=box.openRisk();pending({challenge:{expires_at:new Date(Date.now()+60000).toISOString()},risk_disclosure:'Riesgo',maximum_reservation_usd:.3275});await current;
  assert.equal(get('#dialog-confirm').disabled,true);assert.equal(get('#replacement-risk-check').checked,false);
  assert.equal(requests.length,2);assert.ok(requests.every(r=>r.method==='GET'));
  get('#replacement-risk-check').onchange({target:{checked:true}});assert.equal(get('#dialog-confirm').disabled,false);assert.equal(requests.length,2);
  state.supervised_replacement={...state.supervised_replacement,authorization_status:'HUMAN_RISK_ACCEPTANCE',authorization_reference:'valid',quote_only_available:true,
-   economic_decision:{status:'BLOCKED',quote_amount_usd:.271,reservation_multiplier:1.25,calculated_reservation_usd:.33875,authorized_max_usd:.3275,episode_remaining_usd:6.77375}};
- assert.match(box.card(),/Aceptación específica registrada/);assert.match(box.card(),/Consultar cotización sin generar/);assert.match(box.card(),/0,33875/);
- assert.match(box.card(),/disabled>Generar reemplazo/);box.openQuote();assert.equal(get('#dialog-confirm').textContent,'Consultar y guardar cotización');
+   economic_decision:{status:'BLOCKED',quote_amount_usd:.276,reservation_multiplier:1.25,calculated_reservation_usd:.345,authorized_max_usd:.3275,episode_remaining_usd:6.77375}};
+ assert.match(box.card(),/Aceptación específica registrada/);assert.match(box.card(),/Consultar cotización sin generar/);assert.match(box.card(),/0,345/);assert.match(box.card(),/Diferencia sobre el máximo/);assert.match(box.card(),/0,0175/);
+ assert.doesNotMatch(box.card(),/data-action="replacement_generate"/);box.openQuote();assert.equal(get('#dialog-confirm').textContent,'Consultar y guardar cotización');
  assert.equal(requests.length,2);assert.ok(requests.every(r=>r.method==='GET'));
 });
 

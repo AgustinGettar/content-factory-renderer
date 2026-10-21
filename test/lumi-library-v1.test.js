@@ -300,17 +300,17 @@ test('V2 HUMAN_APPROVAL_CAPTURE DUPLICATE_EVENT: shared review controller captur
  assert.equal(registered.size,candidates.length);assert.ok([...registered.values()].every(a=>a.approval_status==='HUMAN_APPROVED'));assert.equal(f.objects.size,1);
 });
 
-test('V2 PRIVATE_MEDIA_PREVIEW SIGNED_URL_EXPIRATION TELEGRAM_WEBVIEW: fresh authenticated read, image/video MIME, no optimistic READY and retry never POSTs',async()=>{
- const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),f=await fixture(),a=(await f.library.list(f.p)).assets[0],calls=[],element={innerHTML:'',textContent:'',hidden:false};
- let accessError=false;
- const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,
-  URL:{createObjectURL:b=>'blob:verified-'+b.size,revokeObjectURL(){}},fetch:async(url,opts)=>{calls.push({url,opts});return {ok:true,headers:{get:()=>a.media_type},blob:async()=>new Blob([bytes],{type:a.media_type})};}};
- runInNewContext(js.replace('navigation();login();','')+`request=async path=>{if(globalThis.accessError)throw Object.assign(Error('MINI_SESSION_EXPIRED'),{status:401});globalThis.accessPaths.push(path);return {media:{media_url:'/fresh-authenticated-ticket'}};};globalThis.accessPaths=[];globalThis.ui={libraryMediaUrl,libraryPreview,clearLibraryMedia};`,ctx);
- const html=ctx.ui.libraryPreview(a);assert.match(html,/LOADING/);assert.doesNotMatch(html,/READY/);
- assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');assert.equal(calls[0].opts.credentials,'same-origin');assert.equal(calls[0].opts.cache,'no-store');
+test('V2 PRIVATE_MEDIA_PREVIEW SIGNED_URL_EXPIRATION: thumbnails verify own hash and source; bounded access renewal is GET-only',async()=>{
+ const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),f=await fixture(),a={...(await f.library.list(f.p)).assets[0],expires_at:0},calls=[],element={innerHTML:'',textContent:'',hidden:false};
+ const {webcrypto,createHash}=await import('node:crypto'),sha=createHash('sha256').update(bytes).digest('hex');
+ const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,crypto:webcrypto,
+  URL:{createObjectURL:b=>'blob:verified-'+b.size,revokeObjectURL(){}},fetch:async(url,opts)=>{calls.push({url,opts});return {ok:true,status:200,headers:{get:k=>({'x-content-sha256':sha,'x-original-sha256':a.sha256}[k]||'image/jpeg')},blob:async()=>new Blob([bytes],{type:'image/jpeg'})};}};
+ runInNewContext(js.replace('navigation();login();','')+`request=async path=>{if(globalThis.accessError)throw Object.assign(Error('MINI_SESSION_EXPIRED'),{status:401});globalThis.accessPaths.push(path);return {media:{media_url:'/fresh-authenticated-ticket?expires=next'}};};globalThis.accessPaths=[];globalThis.ui={libraryMediaUrl,libraryPreview,clearLibraryMedia};`,ctx);
+ assert.match(ctx.ui.libraryPreview(a),/LOADING/);assert.doesNotMatch(ctx.ui.libraryPreview(a),/READY/);
+ assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');assert.match(calls[0].url,/variant=thumb/);assert.equal(calls[0].opts.credentials,'same-origin');
  assert.deepEqual(Array.from(ctx.accessPaths),['/library/access/'+a.asset_id]);assert.ok(calls.every(c=>!c.opts.method||c.opts.method==='GET'));
  ctx.ui.clearLibraryMedia();ctx.accessError=true;await assert.rejects(ctx.ui.libraryMediaUrl(a),/SESSION_EXPIRED/);ctx.accessError=false;assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');
- assert.match(js,/EXPIRED_ACCESS/);assert.match(js,/data-library-retry/);assert.match(js,/m\.playsInline=true/);assert.match(js,/addEventListener\(video&&!poster\?'loadedmetadata':'load'/);
+ assert.match(js,/IntersectionObserver/);assert.match(js,/MEDIA_HASH/);assert.match(js,/m.playsInline=true/);
 });
 
 test('MASTER_PLAYBACK HTTP_RANGE PRIVATE_DOWNLOAD: strict valid ranges and native video never downloads a JS blob',async()=>{

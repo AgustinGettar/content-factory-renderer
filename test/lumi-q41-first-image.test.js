@@ -2131,3 +2131,18 @@ test('DURABLE_SAVED_REVIEW_ACK: persisted human approval reconciles automaticall
  const after=await f.store.getEpisode(episode);assert.equal(after.first_pending_action,'source_qa:q42');assert.equal(after.actions.find(a=>a.key==='image:q42').status,'COMPLETE');
  assert.equal((await f.reviewStore.get('1')).state.reviews.length,reviews);assert.deepEqual(after.metadata.budget_reservations,reservations);assert.equal(f.control.emitted,1);
 });
+
+test('HUMAN_REVIEW TEN_CONCURRENT_CLICKS: same receipt across devices and repeated approved review, no new economic effects',async t=>{
+ const f=await secondImageFixture(t),v=await f.submit('second_image',{confirm:true});f.control.ready=true;
+ await f.service.recoverFirstAnimation(f.principal,v.operation.id);
+ const r=(await f.service.view(f.principal)).reviews[0],other=await f.reopen(),body={request_id:r.id,artifact_sha:r.artifact_sha,review_version:r.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT'};
+ const before=await f.store.getEpisode(episode),count=(await f.reviewStore.get('1')).state.reviews.length,emitted=f.control.emitted;
+ const results=await Promise.allSettled(Array.from({length:10},(_,i)=>f.service.enqueue(i%2?other:f.principal,'review',body)));
+ const accepted=results.filter(x=>x.status==='fulfilled').map(x=>x.value);assert.ok(accepted.length);assert.equal(new Set(accepted.map(x=>x.operation.id)).size,1);
+ for(const rejected of results.filter(x=>x.status==='rejected'))assert.match(rejected.reason.message,/concurrent_update/);
+ await Promise.all(accepted.map(x=>x.dispatch()));
+ const saved=await f.service.view(f.principal),receipt=saved.review_receipts.find(x=>x.id===r.id);assert.equal(receipt.status,'APPROVED');
+ const again=await f.service.enqueue(other,'review',body);await again.dispatch();assert.equal(again.operation.id,accepted[0].operation.id);
+ assert.equal((await f.reviewStore.get('1')).state.reviews.length,count+1);assert.equal(f.control.emitted,emitted);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
+});

@@ -258,7 +258,7 @@ test('Q42_HTTP_TIMEOUT DOUBLE_CLICK SESSION_REOPEN STALE_RESPONSE: uncertain sub
  saved.clear();const timeout=make();timeout.setRequest(path=>{if(path.includes('/actions/')){posts++;throw Object.assign(Error('timeout'),{name:'AbortError'});}return Promise.resolve(initial);});
  await timeout.submit('generate',{confirm:true});assert.match(timeout.quoteCard(),/Verificando la acción enviada/);
  const reopenedTimeout=make();assert.match(reopenedTimeout.quoteCard(),/Verificando la acción enviada/);
- saved.clear();const rejected=make();rejected.setRequest(path=>{if(path.includes('/actions/'))throw Object.assign(Error('MINI_CURRENT_QUOTE_REQUIRED'),{status:409});return Promise.resolve(initial);});
+ saved.clear();const rejected=make();rejected.setRequest(path=>{if(path.includes('/actions/'))throw Object.assign(Error('MINI_CURRENT_QUOTE_REQUIRED'),{status:409,no_effect:true});return Promise.resolve(initial);});
  await rejected.submit('generate',{confirm:true});assert.doesNotMatch(rejected.quoteCard(),/Verificando la acción enviada/);
 });
 

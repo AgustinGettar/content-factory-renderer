@@ -319,4 +319,6 @@ test('EPISODE_UX_V5: one contextual action, automatic recovery and visible human
  v.episode_job={status:'WAITING_PROVIDER'};v.current_action={emission_locked:true,status:'SUBMITTED'};ui.setState(v);
  html=ui.quoteCard();assert.match(html,/Preparando tu revisión/);assert.doesNotMatch(html,/data-action="(?:produce_episode|recover|generate)"/);assert.match(html,/data-action="refresh"/);
  v.reviews=[{id:'authentic-artifact-review'}];ui.setState(v);assert.match(ui.quoteCard(),/Listo para revisar/);
+ v.reviews=[];v.current_action={emission_locked:false,status:'NOT_STARTED'};v.episode_job={status:'WAITING_HUMAN_REVIEW'};ui.setState(v);
+ assert.match(ui.quoteCard(),/Preparando tu revisión/);assert.doesNotMatch(ui.quoteCard(),/data-action="produce_episode"/,'the existing job resumes after approval without a second start button');
 });

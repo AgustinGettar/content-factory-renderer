@@ -2095,3 +2095,21 @@ test('DURABLE_LOCAL_RESTART: expired executor lease reuses the local claim; no p
  assert.equal(row.state.mini_app.episode_jobs[episode].id,queued.operation.id);assert.notEqual(row.state.mini_app.episode_jobs[episode].status,'NEEDS_ATTENTION',JSON.stringify(row.state.mini_app.episode_jobs[episode]));assert.equal(f.emitted.length,0);
  assert.equal([...f.journalRows.values()].filter(j=>j.stage==='VIDEO').length,0);
 });
+
+test('DURABLE_EPISODE_JOB_PREFLIGHT: rejection exposes exact amounts, preserves prior grant and continues only after a new plan decision',async t=>{
+ let sends=0;const f=await approvedPlanFixture(t,{quoteUsd:.48,providerFetch:async(url,o)=>{if(o.method==='POST'){sends++;return Response.json({request_id:'job-revised-limit',status_url:'https://api.higgsfield.ai/requests/job-revised-limit'});}return Response.json({request_id:'job-revised-limit',status:'processing'});}});
+ const start=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await start.dispatch();
+ const rejected=await f.service.view(f.principal);
+ assert.equal(rejected.episode_job.status,'NEEDS_ATTENTION');assert.equal(rejected.current_action.preflight_rejected,true);
+ assert.equal(rejected.quote.economic_decision.calculated_reservation_usd,.6);assert.equal(sends,0);
+ const before=(await f.reviewStore.get('1')).state,oldGrant=Object.values(before.v2_authorizations).find(g=>g.scope==='EPISODE_PLAN_SPEND_V1');
+ const quote=structuredClone(before.production_commands[rejected.quote.quote_id]);
+ const review=await f.service.reviewPlan(f.principal);assert.equal(review.challenge.contract.per_action_limits['video:q41'],.6);
+ await f.service.acceptPlan(f.principal,{challenge:review.challenge,confirm:true});
+ const resume=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await resume.dispatch();
+ assert.equal(sends,1,JSON.stringify((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode]));assert.equal(f.quotes.length,2);
+ const after=(await f.reviewStore.get('1')).state;
+ assert.deepEqual(after.v2_authorizations[oldGrant.value.authorization_id],oldGrant);
+ assert.deepEqual(after.production_commands[rejected.quote.quote_id],quote);
+ assert.equal(after.mini_app.episode_jobs[episode].previous_job_id,start.operation.id);
+});

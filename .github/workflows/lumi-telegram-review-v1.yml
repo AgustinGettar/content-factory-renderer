@@ -80,7 +80,7 @@ jobs:
         run: |
           node --check lib/telegram-mini-app/q41-policy.js && node --check lib/lumi-v2-telegram-runtime.js
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-supervised-activation.test.js test/lumi-supervised-replacement.test.js test/lumi-stage-result-v2.test.js test/lumi-direct-telegram.test.js test/higgsfield-usd-budget-v1.test.js test/provider-emission-journal-v1.test.js
-          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(DURABLE_RESULT_RECOVERY|DURABLE_EPISODE_JOB|DURABLE_LOCAL_RESTART|PLAN_ONETAP|ONETAP |DURABLE_LOCK |Q42_ONE_TAP |READ_ONLY_PROGRESS|HUMAN_REVIEW |SUPERVISED|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE|MINI_MEDIA_ACCESS|MINI_END_TO_END_NON_GENERATIVE)" test/lumi-q41-first-image.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(DURABLE_SAVED_REVIEW_ACK|DURABLE_RESULT_RECOVERY|DURABLE_EPISODE_JOB|DURABLE_LOCAL_RESTART|PLAN_ONETAP|ONETAP |DURABLE_LOCK |Q42_ONE_TAP |READ_ONLY_PROGRESS|HUMAN_REVIEW |SUPERVISED|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE|MINI_MEDIA_ACCESS|MINI_END_TO_END_NON_GENERATIVE)" test/lumi-q41-first-image.test.js
           node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^MULTI_EPISODE_INTEGRATION" test/lumi-q41-first-image.test.js
       - name: Durable evidence documents reproduce exactly
         run: |

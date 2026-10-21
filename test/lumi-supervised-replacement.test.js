@@ -123,6 +123,7 @@ for(const episode of ['ep005_synthetic','ep006_synthetic'])test('MULTI_EPISODE_R
  assert.equal(REPLACEMENT_FLOW.length,8);assert.equal(globalThis.LUMI_OFFLINE_GUARD?.attempts.length,0);
  const state=JSON.parse(await readFile(new URL('../docs/lumi-improvement/state.json',import.meta.url),'utf8'));
  const incidents=JSON.parse(await readFile(new URL('../docs/lumi-improvement/incidents.json',import.meta.url),'utf8'));
+ state.continuation={...state.continuation,generate_prompt:true};
  state.episode_id=episode;state.proposal_id=p.replacement_proposal_id;state.original={operation_id:p.original_operation_id,attempt_id:p.original_attempt_id,status:'EMISSION_UNKNOWN',response:'NO_RESPONSE',reserved_usd:0.3275};
  const output=generateImprovementArtifacts(state,incidents.map(i=>({...i,EPISODE_ID:episode})));
  assert.match(output.prompt,new RegExp(episode));assert.match(output.prompt,/BORRADOR/);
@@ -131,6 +132,7 @@ for(const episode of ['ep005_synthetic','ep006_synthetic'])test('MULTI_EPISODE_R
 test('INCIDENT_REGISTRY PROMPT_FEEDBACK RESUME_STATE NEXT_PROMPT_GENERATION: deterministic, evidence-based and cannot expand permissions',async()=>{
  const state=JSON.parse(await readFile(new URL('../docs/lumi-improvement/state.json',import.meta.url),'utf8'));
  const incidents=JSON.parse(await readFile(new URL('../docs/lumi-improvement/incidents.json',import.meta.url),'utf8'));
+ state.continuation={...state.continuation,generate_prompt:true};
  assert.equal(validateImprovementState(state,incidents),true);const a=generateImprovementArtifacts(state,incidents),b=generateImprovementArtifacts(structuredClone(state),structuredClone(incidents));assert.deepEqual(a,b);
  for(const field of ['prompt','resume','feedback'])assert.ok(a[field].length>500);
  assert.ok(a.prompt.includes('aceptación de riesgo '+state.consent.status));assert.doesNotMatch(a.prompt,/aceptación de riesgo NO OTORGADA/);
@@ -141,4 +143,11 @@ test('INCIDENT_REGISTRY PROMPT_FEEDBACK RESUME_STATE NEXT_PROMPT_GENERATION: det
  assert.throws(()=>validateImprovementState(state,[{...incidents[0],CONFIDENCE:'CONFIRMED_BY_GUESS'}]),/EVIDENCE/);
  assert.throws(()=>validateImprovementState(state,[{...incidents[0],CONFIDENCE:'UNKNOWN',ROOT_CAUSE:'timeout proves no charge'}]),/UNKNOWN_CAUSE/);
  const changed=structuredClone(incidents);changed[0].NEXT_ACTION+=' Evidence changed.';assert.notEqual(generateImprovementArtifacts(state,changed).input_sha256,a.input_sha256);
+});
+
+test('PROMPT_RETIRED: continuation stays in Studio and no new technical prompt is emitted',async()=>{
+ const state=JSON.parse(await readFile(new URL('../docs/lumi-improvement/state.json',import.meta.url),'utf8'));
+ const incidents=JSON.parse(await readFile(new URL('../docs/lumi-improvement/incidents.json',import.meta.url),'utf8'));
+ state.continuation={...state.continuation,generate_prompt:false};
+ const out=generateImprovementArtifacts(state,incidents);assert.match(out.prompt,/RETIRED/);assert.doesNotMatch(out.prompt,/BORRADOR|MISIÓN/);
 });

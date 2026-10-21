@@ -2113,3 +2113,21 @@ test('DURABLE_EPISODE_JOB_PREFLIGHT: rejection exposes exact amounts, preserves 
  assert.deepEqual(after.production_commands[rejected.quote.quote_id],quote);
  assert.equal(after.mini_app.episode_jobs[episode].previous_job_id,start.operation.id);
 });
+
+test('DURABLE_SAVED_REVIEW_ACK: persisted human approval reconciles automatically after response loss and session expiry',async t=>{
+ let crash=false;const f=await secondImageFixture(t,{inject:async({point})=>{if(crash&&point==='REVIEW_AFTER_PERSISTENCE'){crash=false;throw Error('OFFLINE_REVIEW_RESPONSE_LOST');}}});
+ const op=await f.submit('second_image',{confirm:true});f.control.ready=true;await f.service.recoverFirstAnimation(f.principal,op.operation.id);
+ const review=(await f.service.view(f.principal)).reviews[0];crash=true;
+ await f.submit('review',{request_id:review.id,artifact_sha:review.artifact_sha,review_version:review.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT'});
+ const before=await f.store.getEpisode(episode),row=await f.reviewStore.get('1'),reviews=row.state.reviews.length,reservations=structuredClone(before.metadata.budget_reservations);
+ assert.equal(before.first_pending_action,'image:q42');
+ await f.edit(s=>{for(const session of Object.values(s.mini_app.sessions))session.expires_at=0;});
+ const restarted=await f.restart(),saved=(await f.reviewStore.get('1')).state.episodes[episode].review_requests[review.id],reviewOp=saved.human_decision.mini_app_operation_id;
+ await f.edit(s=>{s.mini_app.operations[reviewOp].binding.artifact_sha='f'.repeat(64);});
+ await restarted.processPending({user:'1',chat:'1'});assert.equal((await f.store.getEpisode(episode)).first_pending_action,'image:q42');
+ await f.edit(s=>{s.mini_app.operations[reviewOp].binding.artifact_sha=review.artifact_sha;});
+ await Promise.all([restarted.processPending({user:'1',chat:'1'}),new restarted.constructor({...restarted}).processPending({user:'1',chat:'1'})]);
+ await restarted.processPending({user:'1',chat:'1'});
+ const after=await f.store.getEpisode(episode);assert.equal(after.first_pending_action,'source_qa:q42');assert.equal(after.actions.find(a=>a.key==='image:q42').status,'COMPLETE');
+ assert.equal((await f.reviewStore.get('1')).state.reviews.length,reviews);assert.deepEqual(after.metadata.budget_reservations,reservations);assert.equal(f.control.emitted,1);
+});

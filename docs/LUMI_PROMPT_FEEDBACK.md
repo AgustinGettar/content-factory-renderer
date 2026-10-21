@@ -1,63 +1,55 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-21T01:29:42.873Z.
+Evidence cutoff: 2026-10-21T11:34:48.825Z.
 
-## Qué pidió el prompt anterior
+## Qué pidió el encargo
 
-- Retomar el parche recuperado, terminar one-tap y preparar máximo .375; preservar Telegram directo, consentimientos, presupuesto y q42 original sin generar.
+- Recuperar la imagen q42 ya emitida y cerrar el circuito de episodio dentro de Studio, sin cotización manual ni otro prompt técnico.
 
 ## Qué se completó realmente
 
-- Parche7c0e130 revisado y aplicado con three-way limpio en worktree aislado; parche original intacto.
-- Corregidos dos defectos demostrados: rechazo económico convertido en error genérico; moneda USD omitida del recibo e ignorada por proyección.
-- Consentimiento de plan acotado por episodio, versión, modelos, acciones y límites; cotización automática; nueva aprobación tras cambio material; bloqueo durable después del envío.
-- Propuesta q42 versión2 máximo .375 aplicada por CAS. Sólo propuesta, historial y registro de instrucción limitada cambiaron; cero consentimientos aceptados.
-- Confirmación humana de app normal registrada; /start probado por hash del descriptor en recibo auténtico, sin pedir otro mensaje.
+- Causa reproducida: handleStageResult leía estimated_cost.usd, pero el recibo real contiene estimate_usd/reserve_usd; usd_amount_invalid aparecía como MINI_ACTION_UNAVAILABLE. Normalización y preservación de reserva por intento.
+- Recuperación real automática desde recibo COMPLETE y Storage, sin reenviar ni reservar; una revisión pendiente.
+- Trabajo durable por episodio con consentimiento de plan, leases, cotización interna, gates, revisiones, TTS y master. Dos episodios completos de integración con externos simulados.
+- Recuperación de decisión humana persistida tras pérdida de respuesta, con binding exacto y validación de bytes; nunca aprobación inventada.
 
 ## Qué quedó pendiente
 
-- Nueva aceptación específica del riesgo para .375 en Studio; después una acción humana separada de generación supervisada.
-- Generación y revisión real de q42 y etapas posteriores; costos completos de voz e infraestructura siguen sin evidencia suficiente.
-- Aceptación visual de la nueva pantalla one-tap no realizada por el agente.
+- Revisión visual humana de q42 y aprobación del plan restante dentro de Studio; futuras etapas y master real EP004.
+- Cargos y resultado histórico original desconocidos. Asignaciones de voz/infraestructura desconocidas.
 
 ## Qué trabajo se repitió innecesariamente
 
-- No se rehízo Make, q42 ni el receptor. Se repitió sólo la prueba fallida tras corregir un fixture antiguo de identidad del bot. Evitar salidas de lectura excesivas.
+- No se reinvestigó Make ni se reconstruyeron q42, Budget Gate o journals. CI repitió sólo regresiones afectadas cuando cambió su código. El fallo decimal de proyección se corrigió antes de desplegar.
 
 ## Qué instrucciones evitaron errores
 
-- No inferir recepción /start a partir de la confirmación visual; verificar recibo auténtico.
-- Cambiar sólo máximo propuesto con CAS, preservar grants y exigir nueva decisión económica.
-- No exigir prueba de no emisión para un reemplazo cuyo riesgo desconocido se acepta explícitamente.
-- Proveedores simulados y guard de red; no cotizaciones ni reservas reales.
+- Recuperar el recibo y archivo reales; un errorHTTP no prueba fallo del proveedor.
+- Preservar dos reservas y el original ambiguo; nunca crear tercer intento.
+- No inferir revisión humana o autorización de plan a partir del presupuesto8 ni del chat.
+- Procesamiento durable fuera de GET y de sesiones vencidas.
 
 ## Qué instrucciones generaron fricción
 
-- La moneda faltante en el recibo y el error genérico dejaron incompleta la continuación del parche recuperado; pruebas focalizadas demostraron ambos defectos. No se necesitó otra autorización técnica.
+- Los documentos antiguos seguían indicando reemplazo NOT_CREATED y riesgo pendiente. Se reemplazó ese estado por evidencia actual; no se produjo otro prompt de continuación.
 
 ## Qué evidencia faltó
 
-- Precio actual y resultado/cargo original de Higgsfield desconocidos; no se consultaron proveedores.
-- No se ensayó generación real ni la nueva pantalla en iPhone. La confirmación de app normal no cubre todos los flujos ni Flores/master.
+- Cobro real de ambos requests; resultado del original sin ID verificable.
+- Revisión artística/iPhone del nuevo resultado y futuras etapas productivas reales.
 
 ## Qué decisión humana se necesita
 
-- En Producción, revisar y aceptar o rechazar el riesgo del reemplazo con máximo .375. El agente no acepta ni extiende consentimientos.
-
-## Qué pruebas pasaron
-
-- 105 pruebas de transacción/reemplazo, presupuesto, journal, DIRECT, Biblioteca y autenticación.
-- 43 pruebas afectadas de one-tap, límites, expiración, CAS, reinicio, respuesta perdida, medios privados y recuperación humana.
-- SQL staging: propuesta revisada con CAS y permisos service_role; comparación protegida exacta, excepto cambios autorizados de propuesta/auditoría.
+- Revisar q42 en Studio. El plan restante se confirma una vez en la app cuando corresponde; decisiones posteriores editoriales también en Studio.
 
 ## Qué riesgos permanecen
 
-- Posible cargo original no verificado; reservas no equivalen a gastos reales ni garantía exactly-once del proveedor.
-- Render puede suspenderse; ninguna pérdida de respuesta libera un claim ni provoca reenvío.
-- EP004 permanece8/50; el avance técnico no cuenta como avance productivo.
+- No garantía exactly-once del proveedor. Ningún timeout libera claims ni habilita regeneración.
+- Suspensión de Render interrumpe ejecución hasta despertar; no continuidad ilimitada ni hosting adicional.
+- Un rechazo artístico o una operación realmente ambigua se conserva y no provoca otra generación automática.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: e9f1cd78a7f96ab4960b51a6812e6df6556d02070866fa7defcc55163f9c4650. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: fce6705086d65f139bbb4daf9ea03f0df126aea079360266328356499f8a3dac. Outputs are inert drafts; generating them cannot expand authorization.

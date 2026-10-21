@@ -13,7 +13,7 @@
     "CONFIDENCE": "UNKNOWN",
     "USER_IMPACT": "EP004 paused at 8/50; no second image available for review.",
     "FINANCIAL_RISK": "USD 0.3275 remains reserved, actual charge unknown; replacement may duplicate remote charge.",
-    "FIX_STATUS": "MITIGATED_READY_FOR_HUMAN_DECISION",
+    "FIX_STATUS": "ORIGINAL_UNKNOWN_REPLACEMENT_RECOVERED",
     "FIX_COMMIT": "608e21d880e203c6a737e84e8d5fce412559d905",
     "TEST_EVIDENCE": [
       "13/13 actual SQL/auth/UI adversarial tests; 155 focused local checks and affected final checks.",
@@ -21,7 +21,7 @@
     ],
     "REGRESSION_GUARD": "lumi-supervised-replacement.test.js: preservation, specific risk gate, double exposure, isolated IDs and journal integrity",
     "REUSABILITY": "Any paused IMAGE/VIDEO/TTS action with matching operation, journal, authorization and reservation evidence.",
-    "NEXT_ACTION": "Preservar ambigüedad y reserva. Decisión específica .375 en Studio; futura acción humana obtiene cotización automáticamente. No exigir prueba de no emisión si el riesgo desconocido fue aceptado válidamente; priorizar original verificable."
+    "NEXT_ACTION": "Conservar original/reserva; revisar imagen real del reemplazo en Studio. Sin tercer intento."
   },
   {
     "INCIDENT_ID": "LUMI-Q42-DEADLINE-HYPOTHESIS-002",
@@ -67,7 +67,7 @@
     ],
     "REGRESSION_GUARD": "Deterministic state/incident input digest, resume state and prompt generation tests.",
     "REUSABILITY": "Versioned per-episode evidence and bounded continuation draft generation.",
-    "NEXT_ACTION": "Use docs/LUMI_RESUME_STATE.md and verify current durable state once before writes."
+    "NEXT_ACTION": "Usar el estado actual y evidencia de recuperación; no volver al borrador histórico de aceptación pendiente."
   },
   {
     "INCIDENT_ID": "LUMI-FLORES-DEVICE-004",
@@ -301,5 +301,57 @@
     "REGRESSION_GUARD": "Persist safe economic error and quote binding; reopen only after a new approved plan, completed rejected quote, no journal/reserve/dispatch/receipt/artifact; retain prior grant and rejected receipt.",
     "REUSABILITY": "All episode plan-bound stages and unactivated supervised IMAGE/VIDEO replacement proposals; EP005/EP006 synthetic isolation.",
     "NEXT_ACTION": "Abrir Lumi Studio > Producción > Revisar riesgo y autorización; decidir específicamente sobre el máximo adicional USD .375. No volver a enviar /start. Sólo después de una aceptación válida se ofrece Generar reemplazo supervisado."
+  },
+  {
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "CONFIDENCE": "CONFIRMED",
+    "FINANCIAL_RISK": "No new real charge/reservation in correction; both historical q42 exposures remain. Provider billing UNKNOWN.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "16d2e1691c1882e30fbb16ae4201d6e0fc5a071d",
+    "REUSABILITY": "All generic IMAGE/VIDEO accepted receipts and explicit scoped episode jobs",
+    "NEXT_ACTION": "Lumi Studio > Producción > Revisar la imagen q42. Aprobarla únicamente si cumple la calidad esperada; si se rechaza no se cobra otra generación automáticamente. Las posteriores decisiones de plan y revisión están dentro de la app.",
+    "INCIDENT_ID": "LUMI-Q42-STORED-RESULT-014",
+    "AFFECTED_ACTION": "image:q42",
+    "SYMPTOM": "Stored SUCCEEDED PNG and ACKNOWLEDGED request, checkpoint DISPATCHING, UI WAITING; MINI_ACTION_UNAVAILABLE409.",
+    "ROOT_CAUSE": "handleStageResult read estimated_cost.usd but the real complete receipt uses estimate_usd/reserve_usd. usd_amount_invalid threw before checkpoint/review CAS; HTTP wrapper masked it as MINI_ACTION_UNAVAILABLE.",
+    "EVIDENCE": [
+      "Real request4af1ec1b-cd62-4c2c-9705-218ddde93f22, stored PNG SHA25338bc3a4857572f643a80164c485063e140623ac6492892ba2ff1f5b3eb4a0",
+      "Real-shape offline reproduction failed before normalization and passed after; deployed executor restored one pending review.",
+      "docs/lumi-improvement/production-recovery-evidence.json"
+    ],
+    "USER_IMPACT": "Image already generated but unavailable for review; repeated confirmations risked wasting effort and money.",
+    "TEST_EVIDENCE": [
+      "Q42_REAL_RECEIPT_SHAPE",
+      "DURABLE_RESULT_RECOVERY REAL_Q42_SHAPE",
+      "Real staging CAS reconciliation with zero new emissions/reservations"
+    ],
+    "REGRESSION_GUARD": "Preserve active-attempt reservation; complete receipt + verified stored bytes preferred; original operation identity never substituted."
+  },
+  {
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "CONFIDENCE": "CONFIRMED",
+    "FINANCIAL_RISK": "No new real charge/reservation in correction; both historical q42 exposures remain. Provider billing UNKNOWN.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "16d2e1691c1882e30fbb16ae4201d6e0fc5a071d",
+    "REUSABILITY": "All generic IMAGE/VIDEO accepted receipts and explicit scoped episode jobs",
+    "NEXT_ACTION": "Lumi Studio > Producción > Revisar la imagen q42. Aprobarla únicamente si cumple la calidad esperada; si se rechaza no se cobra otra generación automáticamente. Las posteriores decisiones de plan y revisión están dentro de la app.",
+    "INCIDENT_ID": "LUMI-DURABLE-EPISODE-015",
+    "AFFECTED_ACTION": "episode execution / saved review continuation",
+    "SYMPTOM": "Browser/session-scoped work and repeated economic controls required manual continuation; a saved human approval could remain unapplied after response loss.",
+    "ROOT_CAUSE": "No durable scoped episode drain existed; strict review reconciliation admitted only RUNNING/COMPLETE operation while the response-loss handler marked the persisted decision operation BLOCKED.",
+    "EVIDENCE": [
+      "DURABLE_SAVED_REVIEW_ACK initially failed AUTHENTIC_GENERIC_REVIEW_REQUIRED, then passed after exact-binding CAS recovery.",
+      "Two full synthetic episodes use the same real engine to reach reviewed masters/private download."
+    ],
+    "USER_IMPACT": "Technical action or quote/recovery button was needed between stages.",
+    "TEST_EVIDENCE": [
+      "DURABLE_EPISODE_JOB",
+      "DURABLE_LOCAL_RESTART",
+      "DURABLE_EPISODE_JOB_PREFLIGHT",
+      "DURABLE_SAVED_REVIEW_ACK",
+      "EPISODE_UX_V5",
+      "MULTI_EPISODE_INTEGRATION"
+    ],
+    "REGRESSION_GUARD": "Durable lease-bound internal principal is recovery/episode-scoped; no forged Mini App session, no generation on GET, explicit human plan limits, authenticated reviews, original claim reuse."
   }
 ]

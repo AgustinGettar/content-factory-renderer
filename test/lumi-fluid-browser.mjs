@@ -51,13 +51,15 @@ try{
    }
    throw Error('UNEXPECTED_FIXTURE_REQUEST:'+method+':'+path);
   });
-  await page.goto('https://lumi.test/lumi/studio');await page.locator('#navigation [data-tab=produccion]').click();
+  await page.goto('https://lumi.test/lumi/studio');const previewStarted=await page.evaluate(()=>performance.now());await page.locator('#navigation [data-tab=produccion]').click();
   await page.waitForFunction(()=>document.querySelector('#pose-review-1'));
+  await page.waitForFunction(()=>document.querySelector('#next-action img')?.naturalWidth>0);
+  const firstReviewPreview=await page.evaluate(async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return performance.now();})-previewStarted;
   if(version==='after')await page.waitForFunction(()=>!document.querySelector('[data-review="review-1"]').disabled);
   await page.selectOption('#pose-review-1','FRONT');await page.selectOption('#wand-review-1','RIGHT');
   await page.evaluate(()=>{window.originalImage=document.querySelector('#next-action img');window.originalSelect=document.querySelector('#pose-review-1');});
-  for(let n=0;n<3;n++){state={...state,server_time:Date.now()+n*5000,media:state.media.map(m=>({...m,url:'/lumi/studio/api/media/source?ticket=renewed-'+n,expires_at:Date.now()+300000}))};await page.evaluate(()=>window.fixtureUI.refresh());}
-  const nodePreserved=await page.evaluate(()=>window.originalImage===document.querySelector('#next-action img')&&window.originalSelect===document.querySelector('#pose-review-1'));
+  for(let n=0;n<3;n++){state={...state,review_revision:state.review_revision+1,server_time:Date.now()+n*5000,media:state.media.map(m=>({...m,url:'/lumi/studio/api/media/source?ticket=renewed-'+n,expires_at:Date.now()+300000}))};await page.evaluate(()=>window.fixtureUI.refresh());}
+  const nodePreserved=await page.evaluate(()=>!!window.originalImage&&window.originalImage===document.querySelector('#next-action img')&&window.originalSelect===document.querySelector('#pose-review-1'));
   await page.selectOption('#pose-review-1','FRONT');await page.selectOption('#wand-review-1','RIGHT');
   stalled=true;
   const feedback=await page.evaluate(async()=>{const b=document.querySelector('[data-review="review-1"]'),t=performance.now();for(let n=0;n<10;n++)b.click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {ms:performance.now()-t,disabled:document.querySelector('[data-review="review-1"]')?.disabled,text:document.querySelector('#app').textContent};});
@@ -71,13 +73,13 @@ try{
    await page.clock.uninstall?.();
    await page.reload();await page.locator('#navigation [data-tab=produccion]').click();await page.waitForFunction(()=>document.querySelector('#pose-review-1'));
    assert.equal(await page.locator('[data-review="review-1"]').first().isDisabled(),true);assert.equal(postCount,1);
-   state={...state,review_revision:2,review_receipts:[{id:'review-1',version:1,artifact_sha:hash,status:'APPROVED'}]};await page.evaluate(()=>window.fixtureUI.refresh());assert.equal(await page.locator('[data-review="review-1"]').first().innerText(),'Aprobada');
-   state={...state,review_revision:3,reviews:[{...state.reviews[0],id:'review-2',version:2}]};await page.evaluate(()=>window.fixtureUI.refresh());await page.waitForFunction(()=>!document.querySelector('[data-review="review-2"]').disabled);
+   state={...state,review_revision:state.review_revision+1,review_receipts:[{id:'review-1',version:1,artifact_sha:hash,status:'APPROVED'}]};await page.evaluate(()=>window.fixtureUI.refresh());assert.equal(await page.locator('[data-review="review-1"]').first().innerText(),'Aprobada');
+   state={...state,review_revision:state.review_revision+1,reviews:[{...state.reviews[0],id:'review-2',version:2}]};await page.evaluate(()=>window.fixtureUI.refresh());await page.waitForFunction(()=>!document.querySelector('[data-review="review-2"]').disabled);
   }
   const navigation=await page.evaluate(async()=>{const start=performance.now();document.querySelector('#navigation [data-tab=biblioteca]').click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return performance.now()-start;});
   await page.waitForFunction(()=>document.querySelector('[data-library-preview] img')?.complete);
   if(version==='after'){assert.ok(navigation<200);assert.equal(errors.length,0,errors.join(';'));}
-  observations.push({version,fixture:true,feedback_to_two_frames_ms:Math.round(feedback.ms),navigation_to_two_frames_ms:Math.round(navigation),media_node_preserved:nodePreserved,posts:postCount,effects,media_reads:mediaReads,client_metrics:version==='after'?await page.evaluate(()=>window.fixtureUI.metrics):null,errors});
+  observations.push({version,fixture:true,first_review_preview_ms:Math.round(firstReviewPreview),feedback_to_two_frames_ms:Math.round(feedback.ms),navigation_to_two_frames_ms:Math.round(navigation),media_node_preserved:nodePreserved,posts:postCount,effects,media_reads:mediaReads,client_metrics:version==='after'?await page.evaluate(()=>window.fixtureUI.metrics):null,errors});
   await context.close();
  }
  console.log('LUMI_BROWSER_MEASUREMENTS '+JSON.stringify(observations));

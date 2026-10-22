@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 20
       - name: Select focused library or supervised recovery validation
         id: scope
         shell: bash

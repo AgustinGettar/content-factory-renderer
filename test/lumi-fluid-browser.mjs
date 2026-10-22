@@ -51,7 +51,7 @@ try{
    }
    throw Error('UNEXPECTED_FIXTURE_REQUEST:'+method+':'+path);
   });
-  await page.goto('https://lumi.test/lumi/studio');await page.locator('[data-tab=produccion]').click();
+  await page.goto('https://lumi.test/lumi/studio');await page.locator('#navigation [data-tab=produccion]').click();
   await page.waitForFunction(()=>document.querySelector('#pose-review-1'));
   if(version==='after')await page.waitForFunction(()=>!document.querySelector('[data-review="review-1"]').disabled);
   await page.selectOption('#pose-review-1','FRONT');await page.selectOption('#wand-review-1','RIGHT');
@@ -69,12 +69,12 @@ try{
    for(const elapsed of [5000,20000,60000]){await page.clock.fastForward(elapsed);assert.equal(await page.locator('[data-review="review-1"]').first().isDisabled(),true);}
    for(const r of held)await r.abort().catch(()=>{});held.length=0;
    await page.clock.uninstall?.();
-   await page.reload();await page.locator('[data-tab=produccion]').click();await page.waitForFunction(()=>document.querySelector('#pose-review-1'));
+   await page.reload();await page.locator('#navigation [data-tab=produccion]').click();await page.waitForFunction(()=>document.querySelector('#pose-review-1'));
    assert.equal(await page.locator('[data-review="review-1"]').first().isDisabled(),true);assert.equal(postCount,1);
    state={...state,review_revision:2,review_receipts:[{id:'review-1',version:1,artifact_sha:hash,status:'APPROVED'}]};await page.evaluate(()=>window.fixtureUI.refresh());assert.equal(await page.locator('[data-review="review-1"]').first().innerText(),'Aprobada');
    state={...state,review_revision:3,reviews:[{...state.reviews[0],id:'review-2',version:2}]};await page.evaluate(()=>window.fixtureUI.refresh());await page.waitForFunction(()=>!document.querySelector('[data-review="review-2"]').disabled);
   }
-  const navigation=await page.evaluate(async()=>{const start=performance.now();document.querySelector('[data-tab=biblioteca]').click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return performance.now()-start;});
+  const navigation=await page.evaluate(async()=>{const start=performance.now();document.querySelector('#navigation [data-tab=biblioteca]').click();await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return performance.now()-start;});
   await page.waitForFunction(()=>document.querySelector('[data-library-preview] img')?.complete);
   if(version==='after'){assert.ok(navigation<200);assert.equal(errors.length,0,errors.join(';'));}
   observations.push({version,fixture:true,feedback_to_two_frames_ms:Math.round(feedback.ms),navigation_to_two_frames_ms:Math.round(navigation),media_node_preserved:nodePreserved,posts:postCount,effects,media_reads:mediaReads,client_metrics:version==='after'?await page.evaluate(()=>window.fixtureUI.metrics):null,errors});

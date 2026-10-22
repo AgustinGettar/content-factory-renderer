@@ -40,7 +40,7 @@ function beginIntent(kind,extra={}){
 function changeIntent(i,phase,extra={}){if(!i)return;Object.assign(i,{phase,...extra});if(i.owner)writeIntents();}
 const pendingIntent=i=>i&&!['DONE','REJECTED_NO_EFFECT'].includes(i.phase);
 function currentIntent(){return Object.values(uiIntents).find(i=>i.owner===state?.client_scope&&i.episode===state?.episode.id&&pendingIntent(i)&&!i.kind.startsWith('library_')&&i.kind!=='select_episode'&&!(i.kind==='first_animation'&&['AWAITING_HUMAN_REVIEW','SUCCEEDED'].includes(state?.first_animation?.status))&&
- (i.kind==='review'?state?.reviews?.some(r=>r.id===i.request_id&&r.version===i.review_version&&r.artifact_sha===i.artifact_sha):i.stage===state?.episode.next_action));}
+ (i.kind==='review'?[...(state?.reviews||[]),...(state?.optional_reviews||[])].some(r=>r.id===i.request_id&&r.version===i.review_version&&r.artifact_sha===i.artifact_sha):i.stage===state?.episode.next_action));}
 function reconcileIntents(next){
  for(const i of Object.values(uiIntents)){
   if(i.owner===next.client_scope&&i.kind==='select_episode'&&i.request_id===next.episode.id){changeIntent(i,'DONE');continue;}

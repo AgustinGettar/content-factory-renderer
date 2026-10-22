@@ -2270,5 +2270,11 @@ test('DRAFT_POLICY explicit once, version binding, no fabricated reviews, pause 
  await f.service.controlEpisodeJob(f.principal,{action:'pause'});await f.service.processPending({user:'1',chat:'1'});
  assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].status,'PAUSED');assert.equal(f.emitted.length,1);
  await f.service.controlEpisodeJob(f.principal,{action:'continue'});assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].id,jobId);
+ await f.edit(s=>Object.assign(s.mini_app.episode_jobs[episode],{status:'NEEDS_ATTENTION',error:'DRAFT_POLICY_CONSENT_EXPIRED'}));
+ const renewed=await f.service.reviewDraftPolicy(f.principal);await f.service.acceptDraftPolicy(f.principal,{challenge:renewed.challenge,confirm:true});
+ const resumed=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode];assert.equal(resumed.id,jobId);assert.equal(resumed.status,'QUEUED');assert.equal(resumed.error,null);
+ await f.edit(s=>Object.assign(s.mini_app.episode_jobs[episode],{status:'NEEDS_ATTENTION',error:'PROVIDER_EMISSION_UNKNOWN'}));
+ await f.service.acceptDraftPolicy(f.principal,{challenge:renewed.challenge,confirm:true});
+ assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].error,'PROVIDER_EMISSION_UNKNOWN');
  assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
 });

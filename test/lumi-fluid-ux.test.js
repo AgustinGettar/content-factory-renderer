@@ -49,6 +49,13 @@ for(const seconds of [5,20,60])test(`ACTION_LATENCY_${seconds}s: ten taps, lost 
  current={...current,review_revision:12,reviews:[{...current.reviews[0],id:'review2',version:2}]};reopened.ui.setRequest(async()=>current);await reopened.ui.refresh();assert.equal(reopened.document.querySelector('[data-review]').disabled,false);
  console.log(JSON.stringify({measurement:'DOM_SYNTHETIC',latency_s:seconds,first_feedback_ms:Number(feedback.toFixed(2)),posts}));
 });
+test('OPTIONAL_DRAFT_REVIEW: pending voluntary review keeps the same action lock after lost response',async()=>{
+ const s=makeState();s.optional_reviews=s.reviews;s.reviews=[];s.review_policy={mode:'DRAFT_FINAL_REVIEW_V1'};
+ const h=harness(s);h.ui.beginIntent('review',decision);h.ui.render();
+ assert.match(h.document.querySelector('#app').textContent,/Enviando aprobación/);
+ h.ui.reconcileIntents({...s,review_receipts:[{id:'review1',version:1,artifact_sha:decision.artifact_sha,status:'APPROVED'}]});h.ui.render();
+ assert.doesNotMatch(h.document.querySelector('#app').textContent,/Enviando aprobación/);
+});
 test('DOM_PRESERVATION: identical polls and refreshed tickets keep media, controls and selected values',async()=>{
  const h=harness(),root=h.document.querySelector('#app'),image=root.querySelector('[data-media-host]'),select=root.querySelector('select');
  select.querySelector('[value=THREE_QUARTER]').selected=true;const child=h.document.createElement('img');child.src='blob:verified';image.append(child);

@@ -353,5 +353,31 @@
       "MULTI_EPISODE_INTEGRATION"
     ],
     "REGRESSION_GUARD": "Durable lease-bound internal principal is recovery/episode-scoped; no forged Mini App session, no generation on GET, explicit human plan limits, authenticated reviews, original claim reuse."
+  },
+  {
+    "INCIDENT_ID": "LUMI-FLUID-ACTIONS-MEDIA-016",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "Studio action feedback, review decisions and private media display",
+    "SYMPTOM": "Controls could re-enable against old state; media redrawn or original catalog bytes fetched before display.",
+    "ROOT_CAUSE": "submit finally cleared sending and rendered before reconciliation; review intents were not persisted. Changed-state renders replaced root.innerHTML. Library fetched and hashed originals before adding lazy image loading.",
+    "EVIDENCE": [
+      "079fae88 source and focused reproduction",
+      "docs/lumi-improvement/fluid-ux-evidence.json",
+      "Code CI39697483174; deployed readiness a7cd305b"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Uncertain actions encouraged repeated taps; repeated media construction and large reads delayed display. No duplicate charge inferred.",
+    "FINANCIAL_RISK": "Zero new generation/reservations in correction; local UI does not authorize spending. Existing backend CAS/budget/provider journal retained.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "a7cd305b6547f2d65c08053abf517f022e7eb5a2",
+    "TEST_EVIDENCE": [
+      "55 focused offline/integration checks",
+      "Chromium10 taps→1 POST/1 effect;5/20/60s elapsed; loss/reopen/receipt/new review",
+      "Verified source448434B→thumb26857B/preview261107B; stable nodes across changed state",
+      "Anonymous private routes401; protected state fingerprints unchanged"
+    ],
+    "REGRESSION_GUARD": "Owner/episode/request+version+SHA identity; no timeout unlock; durable receipt/CAS; derivative own/source SHA; read-only progress; native Range media.",
+    "REUSABILITY": "All Studio episodes, reviews, private image/video previews and existing production actions.",
+    "NEXT_ACTION": "Lumi Studio > Producción > Revisar el resultado actual (q43 en este snapshot). Una pulsación basta; esperar la conciliación del recibo. No volver a iniciar EP004 ni regenerar q42."
   }
 ]

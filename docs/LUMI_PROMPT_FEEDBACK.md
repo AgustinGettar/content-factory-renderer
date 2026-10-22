@@ -1,55 +1,53 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-21T11:34:48.825Z.
+Evidence cutoff: 2026-10-22T00:08:40Z.
 
 ## Qué pidió el encargo
 
-- Recuperar la imagen q42 ya emitida y cerrar el circuito de episodio dentro de Studio, sin cotización manual ni otro prompt técnico.
+- Frontend fluido, imágenes progresivas y acciones que no se habiliten antes de conciliar el resultado.
 
 ## Qué se completó realmente
 
-- Causa reproducida: handleStageResult leía estimated_cost.usd, pero el recibo real contiene estimate_usd/reserve_usd; usd_amount_invalid aparecía como MINI_ACTION_UNAVAILABLE. Normalización y preservación de reserva por intento.
-- Recuperación real automática desde recibo COMPLETE y Storage, sin reenviar ni reservar; una revisión pendiente.
-- Trabajo durable por episodio con consentimiento de plan, leases, cotización interna, gates, revisiones, TTS y master. Dos episodios completos de integración con externos simulados.
-- Recuperación de decisión humana persistida tras pérdida de respuesta, con binding exacto y validación de bytes; nunca aprobación inventada.
+- Bloqueo por propietario, episodio y decisión exacta; revisiones incluidas; recibos durables y CAS conservados.
+- Actualizaciones parciales conservan medios, formularios y foco. Cotizaciones manuales no se reintrodujeron.
+- Miniaturas/previews JPEG deterministas desde originales verificados, privados, con hash y procedencia propios; no son recursos artísticos nuevos.
+- CI de código39697483174 GREEN y despliegue staging a7cd305b verificados; autorización anónima rechazada.
 
 ## Qué quedó pendiente
 
-- Revisión visual humana de q42 y aprobación del plan restante dentro de Studio; futuras etapas y master real EP004.
-- Cargos y resultado histórico original desconocidos. Asignaciones de voz/infraestructura desconocidas.
+- Aceptación visual en Telegram/iPhone y revisión editorial actual q43; master real EP004 no terminado.
+- Latencia real autenticada de previews e INP de campo no medidos.
 
 ## Qué trabajo se repitió innecesariamente
 
-- No se reinvestigó Make ni se reconstruyeron q42, Budget Gate o journals. CI repitió sólo regresiones afectadas cuando cambió su código. El fallo decimal de proyección se corrigió antes de desplegar.
+- No se repitieron recuperación de q42, migración de Make ni suites completas. El selector del fixture de navegador se corrigió; se repitió una vez CI por fallo TLS de descarga del navegador.
 
 ## Qué instrucciones evitaron errores
 
-- Recuperar el recibo y archivo reales; un errorHTTP no prueba fallo del proveedor.
-- Preservar dos reservas y el original ambiguo; nunca crear tercer intento.
-- No inferir revisión humana o autorización de plan a partir del presupuesto8 ni del chat.
-- Procesamiento durable fuera de GET y de sesiones vencidas.
+- No usar el fin de HTTP como finalización de la operación.
+- No probar con botones de producción; fixtures locales y transporte simulado.
+- Comprobar ventana sin despachos/montajes/leases antes de desplegar; no congelar EP004.
 
 ## Qué instrucciones generaron fricción
 
-- Los documentos antiguos seguían indicando reemplazo NOT_CREATED y riesgo pendiente. Se reemplazó ese estado por evidencia actual; no se produjo otro prompt de continuación.
+- La máquina local no pudo descargar Chromium; la medición se realizó en CI. Git local no tenía credenciales: se publicó el mismo árbol por GitHub, con expected_sha y sin force push.
 
 ## Qué evidencia faltó
 
-- Cobro real de ambos requests; resultado del original sin ID verificable.
-- Revisión artística/iPhone del nuevo resultado y futuras etapas productivas reales.
+- Aceptación visual de esta versión en iPhone; INP real y latencia autenticada de medios. No hay evidencia de doble cobro en este incidente.
 
 ## Qué decisión humana se necesita
 
-- Revisar q42 en Studio. El plan restante se confirma una vez en la app cuando corresponde; decisiones posteriores editoriales también en Studio.
+- Revisar el contenido actual dentro de Studio, sin otro prompt técnico.
 
 ## Qué riesgos permanecen
 
-- No garantía exactly-once del proveedor. Ningún timeout libera claims ni habilita regeneración.
-- Suspensión de Render interrumpe ejecución hasta despertar; no continuidad ilimitada ni hosting adicional.
-- Un rechazo artístico o una operación realmente ambigua se conserva y no provoca otra generación automática.
+- La respuesta inmediata indica envío o conciliación, nunca éxito inventado. Un resultado incierto conserva el bloqueo.
+- Render suspendido demora antes del HTML; no puede corregirse con JavaScript que todavía no llegó.
+- La primera creación de preview puede tardar; está acotada a un codificador y muestra fallback/error de lectura. El original se conserva para ampliar.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: fce6705086d65f139bbb4daf9ea03f0df126aea079360266328356499f8a3dac. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: a4c2863f792cbf0634d3d797ba464f6c51b4092b2b8ec74eca7db3f69b8cecc6. Outputs are inert drafts; generating them cannot expand authorization.

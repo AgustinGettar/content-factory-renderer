@@ -1,0 +1,260 @@
+{
+  "version": 1,
+  "observed_at": "2026-10-22T00:06:40Z",
+  "code_commit": "a7cd305b6547f2d65c08053abf517f022e7eb5a2",
+  "ci": {
+    "run_id": 39697483174,
+    "status": "SUCCESS"
+  },
+  "browser_fixture_measurements": [
+    {
+      "version": "before",
+      "fixture": true,
+      "first_review_preview_ms": 144,
+      "feedback_to_two_frames_ms": 18,
+      "navigation_to_two_frames_ms": 34,
+      "media_node_preserved": false,
+      "posts": 1,
+      "effects": 1,
+      "media_reads": [
+        {
+          "variant": "original",
+          "bytes": 448434
+        },
+        {
+          "variant": "original",
+          "bytes": 448434
+        },
+        {
+          "variant": "original",
+          "bytes": 448434
+        },
+        {
+          "variant": "original",
+          "bytes": 448434
+        },
+        {
+          "variant": "original",
+          "bytes": 448434
+        },
+        {
+          "variant": "original",
+          "bytes": 448434
+        }
+      ],
+      "client_metrics": null,
+      "errors": []
+    },
+    {
+      "version": "after",
+      "fixture": true,
+      "first_review_preview_ms": 121,
+      "feedback_to_two_frames_ms": 32,
+      "navigation_to_two_frames_ms": 25,
+      "media_node_preserved": true,
+      "posts": 1,
+      "effects": 1,
+      "media_reads": [
+        {
+          "variant": "thumb",
+          "bytes": 26857
+        },
+        {
+          "variant": "preview",
+          "bytes": 261107
+        },
+        {
+          "variant": "thumb",
+          "bytes": 26857
+        },
+        {
+          "variant": "preview",
+          "bytes": 261107
+        }
+      ],
+      "client_metrics": [
+        {
+          "phase": "state_latency",
+          "ms": 9
+        },
+        {
+          "phase": "media_headers",
+          "ms": 4,
+          "status": 200,
+          "variant": "thumb"
+        },
+        {
+          "phase": "media_transfer",
+          "ms": 1,
+          "bytes": 26857,
+          "variant": "thumb"
+        },
+        {
+          "phase": "media_integrity",
+          "ms": 1,
+          "variant": "thumb"
+        },
+        {
+          "phase": "media_decode_mount",
+          "ms": 1,
+          "variant": "thumb"
+        },
+        {
+          "phase": "first_preview",
+          "ms": 8,
+          "variant": "thumb",
+          "bytes": 26857
+        },
+        {
+          "phase": "navigation",
+          "ms": 1
+        },
+        {
+          "phase": "media_headers",
+          "ms": 13,
+          "status": 200,
+          "variant": "preview"
+        },
+        {
+          "phase": "media_transfer",
+          "ms": 2,
+          "bytes": 261107,
+          "variant": "preview"
+        },
+        {
+          "phase": "media_integrity",
+          "ms": 5,
+          "variant": "preview"
+        },
+        {
+          "phase": "media_decode_mount",
+          "ms": 10,
+          "variant": "thumb"
+        },
+        {
+          "phase": "first_preview",
+          "ms": 10,
+          "variant": "thumb",
+          "bytes": 26857
+        },
+        {
+          "phase": "media_decode_mount",
+          "ms": 3,
+          "variant": "preview"
+        },
+        {
+          "phase": "first_preview",
+          "ms": 24,
+          "variant": "preview",
+          "bytes": 261107
+        },
+        {
+          "phase": "state_latency",
+          "ms": 3
+        },
+        {
+          "phase": "state_latency",
+          "ms": 2
+        },
+        {
+          "phase": "media_decode_mount",
+          "ms": 2,
+          "variant": "preview"
+        },
+        {
+          "phase": "first_preview",
+          "ms": 2,
+          "variant": "preview",
+          "bytes": 261107
+        },
+        {
+          "phase": "navigation",
+          "ms": 0
+        },
+        {
+          "phase": "media_decode_mount",
+          "ms": 1,
+          "variant": "thumb"
+        },
+        {
+          "phase": "first_preview",
+          "ms": 1,
+          "variant": "thumb",
+          "bytes": 26857
+        }
+      ],
+      "errors": []
+    }
+  ],
+  "real_html_measurements": [
+    {
+      "status": 200,
+      "headers_ms": 30345,
+      "total_ms": 30346,
+      "bytes": 1623,
+      "classification": "STARTUP_CORRELATED",
+      "startup_log_utc": "2026-10-22T00:05:23.80825862Z"
+    },
+    {
+      "status": 200,
+      "headers_ms": 4184,
+      "total_ms": 4184,
+      "bytes": 1623,
+      "classification": "SECOND_READ_AFTER_STARTUP"
+    }
+  ],
+  "measurement_limits": [
+    "Browser fixture timings include automation and two animation frames; not field INP or iPhone acceptance.",
+    "No production media/action/session impersonated. Deterministic source is a local ffmpeg test pattern, not paid generation.",
+    "No causal attribution of all first-request latency to Render; process startup observed in that interval.",
+    "Actual private-user preview latency requires normal signed-in usage."
+  ],
+  "production_snapshot": {
+    "completed": 14,
+    "total": 50,
+    "first_pending_action": "image:q43",
+    "current_stage": "HUMAN_REVIEW_REQUIRED",
+    "q42": "SHOT_REVIEW_COMPLETE_PRESERVED",
+    "ceiling_usd": 8,
+    "exposure_usd": 2.47625,
+    "remaining_usd": 5.52375,
+    "actual_provider_charges": "NOT_VERIFIED",
+    "new_provider_generation_calls_by_this_intervention": 0,
+    "new_reservations_by_this_intervention": 0
+  },
+  "deployment": {
+    "status": "LIVE",
+    "sha": "a7cd305b6547f2d65c08053abf517f022e7eb5a2",
+    "deploy_id": "dep-dbcl7fbrjlhs73dsk54g",
+    "finished_at": "2026-10-22T00:08:14.845154Z",
+    "safe_window_checked_at": "2026-10-22T00:07:15Z",
+    "active_transports": 0,
+    "active_assemblies": 0,
+    "active_episode_leases": 0,
+    "active_recovery_leases": 0,
+    "supabase": "mofjhwathxzfnjapvvst",
+    "auth": "TELEGRAM_ED25519",
+    "anonymous_state_and_media": "401",
+    "served_files": {
+      "app.js": {
+        "sha256": "eec19be21f275250caaab844aaf5e55daf88b970f4fb6762ffe31dbf5f1ce5b7",
+        "bytes": 95591,
+        "matches_validated_tree": true
+      },
+      "style.css": {
+        "sha256": "d9efeab9a4ea0b9602f3ad5d6b787a2f9739aad8fd2a62df4edb1d3126bda908",
+        "bytes": 14703,
+        "matches_validated_tree": true
+      }
+    }
+  },
+  "iphone_acceptance": "NOT_TESTED_REAL",
+  "protected_after": {
+    "revision": 44,
+    "completed": 14,
+    "journal_count": 5,
+    "reservation_fingerprint": "261c650c3a178fd29abd19cd442690d4",
+    "approved_q41_q42_fingerprint": "e810f9ecc54f5bd763ce7a570cb9020d",
+    "fingerprints_match_before": true
+  }
+}

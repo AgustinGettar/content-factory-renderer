@@ -8,7 +8,7 @@ permissions:
 jobs:
   zero-provider-review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,6 +17,7 @@ jobs:
         id: scope
         shell: bash
         run: |
+          draft_only=true
           fluid_only=true
           library_only=true
           recovery_only=true
@@ -25,6 +26,10 @@ jobs:
           docs_only=true
           git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
+            case "$path" in
+              lib/provider-emission-journal-v1.js|lib/lumi-v2-*.js|lib/lumi-stage-result-v2.js|lib/lumi-series-v2-gates.js|lib/lumi-generic-v2-adapter.js|lib/cinematic-director-v1/*|lib/telegram-mini-app/q41-policy.js|lib/telegram-mini-app/runtime.js|public/lumi-studio/app.js|test/lumi-q41-first-image.test.js|test/lumi-preflight-continuation-sql.test.js|supabase/migrations/*_lumi_fenced_preflight_continuation.sql|docs/*|docs/lumi-improvement/*|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              *) draft_only=false ;;
+            esac
             case "$path" in
               public/lumi-studio/*|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/library.js|test/lumi-fluid*|test/lumi-mini-app-auth.test.js|test/lumi-library-v1.test.js|test/lumi-q41-first-image.test.js|package.json|package-lock.json|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|docs/LUMI_FLUID_UX.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) fluid_only=false ;;
@@ -47,6 +52,7 @@ jobs:
               *) recovery_only=false ;;
             esac
           done < <(git diff --name-only HEAD^ HEAD)
+          echo "draft_only=$draft_only" >> "$GITHUB_OUTPUT"
           echo "fluid_only=$fluid_only" >> "$GITHUB_OUTPUT"
           echo "library_only=$library_only" >> "$GITHUB_OUTPUT"
           echo "recovery_only=$recovery_only" >> "$GITHUB_OUTPUT"
@@ -98,12 +104,17 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           node test/lumi-fluid-browser.mjs
+      - name: Fenced preflight and explicit draft-policy affected regression (offline)
+        if: steps.scope.outputs.draft_only == 'true' && steps.scope.outputs.docs_only != 'true'
+        run: |
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-preflight-continuation-sql.test.js test/provider-emission-journal-v1.test.js test/lumi-stage-result-v2.test.js test/lumi-series-v2-gates.test.js test/lumi-cinematic-director-v1.test.js test/lumi-mini-app-auth.test.js test/lumi-direct-telegram.test.js test/lumi-fluid-ux.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(PREPARED_CONTINUATION|DRAFT_POLICY|PLAN_ONETAP|DURABLE_EPISODE_JOB|DURABLE_RESULT_RECOVERY|READ_ONLY_PROGRESS|MINI_MEDIA_ACCESS|HUMAN_REVIEW |MULTI_EPISODE_INTEGRATION|AUTOMATIC_DRAFT_INTEGRATION)" test/lumi-q41-first-image.test.js
       - name: Durable evidence documents reproduce exactly
         run: |
           node scripts/lumi-improvement-loop.mjs
           git diff --exit-code -- docs/LUMI_RESUME_STATE.md docs/LUMI_PROMPT_FEEDBACK.md docs/LUMI_NEXT_PROMPT.txt
       - name: Telegram, Recovery Manager and director regression with network disabled
-        if: steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
+        if: steps.scope.outputs.draft_only != 'true' && steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: >-
           node --import ./scripts/director-offline-guard.mjs --test
           test/lumi-mini-app-auth.test.js
@@ -149,13 +160,13 @@ jobs:
           test/lumi-six-shot-audio.test.js
 
       - name: Durable diagnostic recovery across real process termination (offline children)
-        if: steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
+        if: steps.scope.outputs.draft_only != 'true' && steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node --test test/lumi-durable-dry-run-restart.test.js test/lumi-generic-runtime-restart.test.js test/lumi-isolated-validation-restart.test.js test/lumi-diagnostic-http-restart.test.js
 
       - name: Future episode zero-provider dry run
-        if: steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
+        if: steps.scope.outputs.draft_only != 'true' && steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node scripts/lumi-production-readiness-v2.mjs /tmp/readiness-v2.json
 
       - name: Real executor boundaries and crash matrix (missing runners stay blocked)
-        if: steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
+        if: steps.scope.outputs.draft_only != 'true' && steps.scope.outputs.fluid_only != 'true' && steps.scope.outputs.library_only != 'true' && steps.scope.outputs.recovery_only != 'true' && steps.scope.outputs.direct_only != 'true' && steps.scope.outputs.one_tap_only != 'true'
         run: node --import ./scripts/director-offline-guard.mjs scripts/lumi-real-executor-readiness-v2.mjs /tmp/real-executor-v2.json

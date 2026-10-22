@@ -320,7 +320,7 @@
           "status": {
             "type": "string",
             "enum": [
-              "OBSERVED",
+              "PLANNED_REQUIREMENT", "OBSERVED",
               "APPROVED",
               "PROPOSED",
               "UNKNOWN"

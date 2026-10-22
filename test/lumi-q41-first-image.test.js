@@ -63,6 +63,23 @@ async function fixture({inject,mode='complete',imageBytes=image,estimateUsd=0.27
     assert.ok(await store.getEpisode(row.episode_id),'journal requires its durable checkpoint');
     if(journalRows.has(row.attempt_id))throw Error('DUPLICATE');journalRows.set(row.attempt_id,structuredClone(row));},
     transition:async(id,from,patch)=>{const row=journalRows.get(id);assert.equal(row.state,from);Object.assign(row,structuredClone(patch));return structuredClone(row);}};
+  journal.fencePreflight=async({attempt,nonce,user,job,lease,semantic,payloadHash})=>{
+    const j=journalRows.get(attempt),row=await reviewStore.get(user),cp=await store.getEpisode(j.episode_id),work=row.state.mini_app.episode_jobs[j.episode_id];
+    assert.equal(work.id,job);assert.equal(work.lease_token,lease);assert.ok(work.lease_until>Date.now());
+    if(!['PREPARED','FENCED_PREPARED'].includes(j.state)||j.request_start_at||j.payload_fingerprint!==payloadHash)throw Error('PREFLIGHT_FENCE_REJECTED');
+    Object.assign(j,{state:'FENCED_PREPARED',emission_nonce:nonce});j.payload_descriptor.preflight_semantic_sha256=semantic;
+    if(cp.status==='PAUSED_INCIDENT'){const i=await store.getIncident(cp.active_incident_id);assert.ok(['STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH','Q41_VIDEO_CURRENT_QUOTE_REQUIRED','PREFLIGHT_QUOTE_EXPIRED'].includes(i.reason));
+      await manager.checkpoint(cp.episode_id,d=>{d.status='RUNNING';d.active_incident_id=null;});await store.putIncident({...i,status:'RESOLVED'});}
+    return structuredClone(j);
+  };
+  journal.commitPreflight=async({attempt,nonce,user,job,lease,version})=>{
+    const j=journalRows.get(attempt),row=await reviewStore.get(user),work=row.state.mini_app.episode_jobs[j.episode_id];
+    if(j.state!=='FENCED_PREPARED'||j.emission_nonce!==nonce||work.id!==job||work.lease_token!==lease||work.lease_until<=Date.now())throw Error('PREFLIGHT_FINAL_ADMISSION_REJECTED');
+    if(Date.parse(version.expires_at)<=Date.now())throw Error('PREFLIGHT_QUOTE_EXPIRED');
+    await manager.checkpoint(j.episode_id,cp=>{const r=cp.metadata.budget_reservations[version.action_key];r.amount_usd=Math.max(r.amount_usd,version.reservation_usd);r.binding=version.payload_sha256;});
+    Object.assign(j,{state:'EMITTING',request_start_at:new Date().toISOString(),expected_cost_usd:version.quote_usd});
+    (j.payload_descriptor.preflight_versions??=[]).push(structuredClone(version));return structuredClone(j);
+  };
   const fetchImpl=async(url,options={})=>{
     calls.push({url,method:options.method||'GET',body:options.body});assert.equal(options.redirect,'error');
     if(url==='https://api.higgsfield.ai/estimate/marketing-studio/image'){
@@ -2111,7 +2128,7 @@ test('DURABLE_EPISODE_JOB_PREFLIGHT: rejection exposes exact amounts, preserves 
  const after=(await f.reviewStore.get('1')).state;
  assert.deepEqual(after.v2_authorizations[oldGrant.value.authorization_id],oldGrant);
  assert.deepEqual(after.production_commands[rejected.quote.quote_id],quote);
- assert.equal(after.mini_app.episode_jobs[episode].previous_job_id,start.operation.id);
+ assert.equal(after.mini_app.episode_jobs[episode].id,start.operation.id);assert.ok(after.mini_app.episode_jobs[episode].plan_history.includes(oldGrant.value.authorization_id));
 });
 
 test('DURABLE_SAVED_REVIEW_ACK: persisted human approval reconciles automatically after response loss and session expiry',async t=>{
@@ -2144,5 +2161,114 @@ test('HUMAN_REVIEW TEN_CONCURRENT_CLICKS: same receipt across devices and repeat
  const saved=await f.service.view(f.principal),receipt=saved.review_receipts.find(x=>x.id===r.id);assert.equal(receipt.status,'APPROVED');
  const again=await f.service.enqueue(other,'review',body);await again.dispatch();assert.equal(again.operation.id,accepted[0].operation.id);
  assert.equal((await f.reviewStore.get('1')).state.reviews.length,count+1);assert.equal(f.control.emitted,emitted);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
+});
+
+test('AUTOMATIC_DRAFT_INTEGRATION: two real executor episodes reach private draft masters without intermediate decisions',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-multi-')),jobs=new Map(),videos=new Map(),requests=[],audioRequests=[];
+ t.after(()=>rm(dir,{recursive:true,force:true}));
+ for(const duration of [3,4,5]){
+  const path=join(dir,duration+'.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=180x320:rate=30','-t',String(duration),'-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);videos.set(duration,await readFile(path));
+ }
+ const ap=join(dir,'tone.mp3');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','sine=frequency=440:sample_rate=44100','-t','1.2','-c:a','libmp3lame',ap]);const audioBytes=await readFile(ap);
+ const f=await miniFixture({quoteUsd:.01,ttsRuntime:{client:{preflight:async r=>({authenticated:true,currency:'ELEVENLABS_CHARACTER_QUOTA',units:r.text.length,character_count:r.text.length,quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:10000},provenance:'EXPLICIT_OFFLINE_FIXTURE',usd:null}),
+  submit:async(r,{onAcknowledged})=>{const id='multi-audio-'+audioRequests.length;audioRequests.push({id,r});const a={job_id:id,request_id:id,character_cost:r.text.length};await onAcknowledged(a);return a;},poll:async id=>({job_id:id,status:'completed',artifact_url:'https://media.example.test/audio'}),recoverOriginal:async()=>audioBytes}},
+  providerFetch:async(url,options)=>{
+   if(options.method==='POST'){const payload=JSON.parse(options.body),id='multi-job-'+jobs.size;requests.push({id,payload});jobs.set(id,url.includes('kling')?videos.get(payload.duration):image);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id});}
+   const id=url.split('/').at(-1);assert.ok(jobs.has(id));return url.includes('/requests/')?Response.json({request_id:id,status:'completed',video:{url:'https://media.example.test/'+id},images:[{url:'https://media.example.test/'+id}]}):new Response(jobs.get(id));
+  }});
+ t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
+ f.storage.remove=async(b,p)=>f.objects.delete(b+'/'+p);
+ const {prepareGenericV2Episode,ep004ProductionRequest}=await import('../lib/lumi-generic-v2-adapter.js');
+ const {LUMI_PRODUCTION_PROFILE_V2:profile,PROFILE_SHA}=await import('../lib/lumi-production-profile-v2.js');
+ const inventory=JSON.parse(await readFile(new URL('../episodes/ep_lumi_granja_004_20261008_ee7ab4b3/Q41_DIRECTOR_PREPARATION_REVIEW.json',import.meta.url))).inventory;
+ const original=await f.store.getEpisode(episode),snapshots=[];let principal=f.principal;
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ for(const name of ['ep_fixture_farm_005','ep_fixture_farm_006']){
+  const request=ep004ProductionRequest({episode_id:episode,sha256:'a'.repeat(64)});request.episodePlan.episode.id=name;
+  for(const [i,s] of request.shotPlans.entries()){
+   s.shot_id='take_'+(i+1);s.director_input.episode_id=name;s.director_input.contract.shot_id=s.shot_id;
+   s.director_input.contract.SOURCE_ARTIFACT={sha256:null,status:'NOT_CREATED'};s.director_input.contract.REQUIRED_OBJECTS=structuredClone(inventory);
+  }
+  const prepared=prepareGenericV2Episode(request);
+  await f.manager.startEpisode({episodeId:name,actions:prepared.actions,authorizedCeilingUsd:5,metadata:{user:'1',runtime_revision:1,dry_run:false,generic_v2:prepared,provider_generation_authorized:false,publication_enabled:false,episode_ledger:{currency:'USD',entries:Object.fromEntries(prepared.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)).map(a=>[a.key,{estimated_cost:{currency:'USD',usd:.02}}])),overhead_estimates:{STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_INCLUDED'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_INCLUDED'}},provider_units:[]}}});
+  await f.edit(s=>{s.episodes[name]={episode_id:name,title:'SYNTHETIC '+name,review_mode:'SUPERVISED',beats:7,pipeline:profile.id,profile_sha:PROFILE_SHA,binding_sha:prepared.binding_sha,shots:prepared.shot_plans.map(s=>({shot_id:s.shot_id})),artifacts:{},review_requests:{},reviews:{}};});
+  const selection=await f.service.enqueue(principal,'select_episode',{episode_id:name});await selection.dispatch();
+  principal=await f.reopen();
+  const submit=async(kind,body={})=>{const r=await f.service.enqueue(principal,kind,body);await r.dispatch();const v=await f.service.view(principal);assert.notEqual(v.operation?.status,'BLOCKED',JSON.stringify(v.operation));return v;};
+  const challenge=(await f.service.reviewPlan(principal)).challenge;
+  await f.service.acceptPlan(principal,{challenge,confirm:true});
+  const first=await f.service.enqueue(principal,'produce_episode',{confirm:true}),double=await f.service.enqueue(principal,'produce_episode',{confirm:true});
+  assert.equal(first.operation.id,double.operation.id);await Promise.all([first.dispatch(),double.dispatch()]);
+  const policy=await f.service.reviewDraftPolicy(principal);await f.service.acceptDraftPolicy(principal,{challenge:policy.challenge,confirm:true});
+  const seen=[];let finalReview;
+  for(let step=0;step<125;step++){
+   const cp=await f.store.getEpisode(name),v=await f.service.view(principal);assert.equal(v.episode.id,name);if(!cp.first_pending_action)break;
+   seen.push(cp.first_pending_action);
+   const review=v.reviews[0];
+   if(review){assert.ok(review.media_id);assert.ok(['MASTER','MASTER_REVIEW'].includes(review.stage),'no intermediate human review');finalReview=review;break;}
+   // The real durable executor advances all technical stages. No manual
+   // quote/authorize/generate/recover/continue operation is used here.
+   t.mock.timers.tick(16000);
+   const restarted=new f.service.constructor({...f.service});await restarted.processPending({user:'1',chat:'1'});
+   const saved=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[name];
+   assert.notEqual(saved.status,'NEEDS_ATTENTION',JSON.stringify(saved));
+   principal=await f.reopen();
+  }
+  const end=await f.store.getEpisode(name);assert.ok(finalReview,seen.join(' -> '));assert.equal(end.metadata.delivery_state,'DRAFT_AWAITING_FINAL_REVIEW');assert.ok(Object.values(end.metadata.review_requests).every(r=>r.status==='PENDING'&&!r.human_decision));assert.ok(Object.keys(end.metadata.draft_acceptances).length>=21);
+  const master=end.metadata.stage_results.master.result.artifacts[0];assert.equal(master.width,1080);assert.equal(master.height,1920);assert.ok(Math.abs(master.duration-29)<.1);
+  const view=await f.service.view(principal),media=view.media.find(m=>m.episode===name&&m.role==='master');assert.ok(media);
+  const u=new URL(media.url,'https://fixture.invalid'),download=await f.service.media(principal,media.id,u.searchParams.get('expires'),u.searchParams.get('ticket'));
+  assert.equal(sha256(download.bytes),master.sha256);assert.equal(end.runner_enabled,false);assert.equal(end.autorun,false);
+  for(const [id,snapshot] of snapshots)assert.deepEqual(await f.store.getEpisode(id),snapshot,'cross-episode contamination');
+  snapshots.push([name,end]);console.log('PASS_INTEGRATION '+name+': draft master ready; final human review pending, master and download SHA verified.');
+ }
+ assert.deepEqual(await f.store.getEpisode(episode),original);assert.equal(requests.length,28);assert.equal(audioRequests.length,14);
+ const rows=[...f.journalRows.values()].filter(j=>j.episode_id.startsWith('ep_fixture_'));assert.equal(rows.length,28);assert.equal(new Set(rows.map(j=>j.attempt_id)).size,28);
+ assert.ok(requests.filter(r=>r.payload.image_urls).every(r=>/Include Lumi in the scene/.test(r.payload.prompt)&&!/sin dibujar a Lumi/.test(r.payload.prompt)));
+ console.log('PASS_INTEGRATION: 2 synthetic episodes, 14 shots, 28 mocked visual emissions, 14 mocked audio emissions, authentic Mini App session/CAS; NO human content approvals, two local Full HD encodes and exact download SHA; real provider calls=0.');
+});
+
+
+test('PREPARED_CONTINUATION REAL_Q43_SHAPE: expired beforeDispatch resumes the same job, attempt and reservation after restart',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.448}),prepare=f.journal.prepare.bind(f.journal);let first=true;
+ f.journal.prepare=async r=>{await prepare(r);if(first&&r.stage==='VIDEO'){first=false;throw Error('STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH');}};
+ const start=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await start.dispatch();
+ const paused=await f.store.getEpisode(episode),a=paused.actions.find(a=>a.key==='video:q41'),attempt=a.active_attempt_id;
+ assert.equal(paused.status,'PAUSED_INCIDENT');assert.equal(f.journalRows.get(attempt).state,'PREPARED');assert.equal(f.emitted.length,0);
+ const old=structuredClone(f.journalRows.get(attempt)),reservations=structuredClone(paused.metadata.budget_reservations),job=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode];
+ await f.edit(s=>{for(const session of Object.values(s.mini_app.sessions))session.expires_at=0;});
+ t.mock.timers.enable({apis:['Date'],now:Date.now()+61000});
+ const restarted=new f.service.constructor({...f.service});await restarted.processPending({user:'1',chat:'1'});
+ const cp=await f.store.getEpisode(episode),j=f.journalRows.get(attempt),after=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode];
+ assert.equal(after.id,job.id);assert.equal(after.status,'WAITING_PROVIDER',JSON.stringify(after));assert.equal(f.emitted.length,1);
+ assert.equal(j.state,'ACKNOWLEDGED');assert.equal(j.payload_fingerprint,old.payload_fingerprint);assert.equal(j.payload_descriptor.preflight_versions.length,1);
+ assert.deepEqual(Object.keys(cp.metadata.budget_reservations),Object.keys(reservations));assert.equal(cp.metadata.budget_reservations['video:q41'].amount_usd,.56);
+ await restarted.processPending({user:'1',chat:'1'});assert.equal(f.emitted.length,1);assert.equal(f.journalRows.size,[...f.journalRows.values()].length);
+});
+test('PREPARED_CONTINUATION expired plan cannot be extended by the worker; same reservation remains',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.448}),prepare=f.journal.prepare.bind(f.journal);
+ f.journal.prepare=async r=>{await prepare(r);if(r.stage==='VIDEO')throw Error('STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH');};
+ const start=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await start.dispatch();
+ const cp=await f.store.getEpisode(episode);t.mock.timers.enable({apis:['Date'],now:Date.now()+86400001});
+ await f.service.processPending({user:'1',chat:'1'});
+ const job=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode];assert.equal(job.error,'EPISODE_PLAN_CONSENT_EXPIRED');
+ assert.equal(f.emitted.length,0);assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,cp.metadata.budget_reservations);
+});
+
+test('DRAFT_POLICY explicit once, version binding, no fabricated reviews, pause and same-job continuation',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.448}),start=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await start.dispatch();
+ const before=await f.store.getEpisode(episode),old=(await f.reviewStore.get('1')).state,jobId=old.mini_app.episode_jobs[episode].id;
+ assert.equal((await f.service.view(f.principal)).review_policy.mode,'SUPERVISED');
+ const {challenge}=await f.service.reviewDraftPolicy(f.principal),changed=structuredClone(challenge);changed.contract.maximum_episode_exposure=80;
+ await assert.rejects(f.service.acceptDraftPolicy(f.principal,{challenge:changed,confirm:true}),/DRAFT_POLICY_REVIEW_EXPIRED/);
+ await assert.rejects(f.service.acceptDraftPolicy(f.principal,{challenge,confirm:false}),/EXPLICIT_DECISION/);
+ await f.service.acceptDraftPolicy(f.principal,{challenge,confirm:true});await f.service.acceptDraftPolicy(f.principal,{challenge,confirm:true});
+ const state=(await f.reviewStore.get('1')).state;assert.equal(Object.values(state.v2_authorizations).filter(v=>v.scope==='DRAFT_FINAL_REVIEW_V1').length,1);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests,before.metadata.review_requests);assert.equal(f.emitted.length,1);
+ assert.equal((await f.service.view(await f.reopen())).review_policy.mode,'DRAFT_FINAL_REVIEW_V1');
+ await f.service.controlEpisodeJob(f.principal,{action:'pause'});await f.service.processPending({user:'1',chat:'1'});
+ assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].status,'PAUSED');assert.equal(f.emitted.length,1);
+ await f.service.controlEpisodeJob(f.principal,{action:'continue'});assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].id,jobId);
  assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
 });

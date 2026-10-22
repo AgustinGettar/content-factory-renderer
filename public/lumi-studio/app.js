@@ -1,6 +1,6 @@
 const api='/lumi/studio/api',tg=window.Telegram?.WebApp;
 const root=document.querySelector('#app'),nav=document.querySelector('#navigation'),dialog=document.querySelector('#confirmation');
-let state=null,csrf=null,tab=window.location?.hash==='#biblioteca'?'biblioteca':'inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false,mutationEpoch=0,progressMessage='',progressRequested=false,loggingIn=false,planReviewLoading=false;
+let state=null,csrf=null,tab=window.location?.hash==='#biblioteca'?'biblioteca':'inicio',sending=false,polling=false,serverOffset=0,timer=null,pendingSpend=null,scrollPending=false,mutationEpoch=0,progressMessage='',progressRequested=false,loggingIn=false,planReviewLoading=false,policyReviewLoading=false,controlMessage='';
 const intentKey='lumi:first-animation:ep004:q41';
 let generationIntent=false;
 try{generationIntent=localStorage.getItem(intentKey)==='pending';}catch{/* Server lock remains authoritative. */}
@@ -39,8 +39,10 @@ function beginIntent(kind,extra={}){
 }
 function changeIntent(i,phase,extra={}){if(!i)return;Object.assign(i,{phase,...extra});if(i.owner)writeIntents();}
 const pendingIntent=i=>i&&!['DONE','REJECTED_NO_EFFECT'].includes(i.phase);
+const configurationIntent=i=>i?.kind==='draft_policy_accept'||i?.kind==='job_pause'||i?.kind==='job_continue';
+const controlPending=kind=>Object.values(uiIntents).find(i=>i.owner===state?.client_scope&&i.episode===state?.episode.id&&pendingIntent(i)&&(kind==='job'?i.kind==='job_pause'||i.kind==='job_continue':i.kind===kind));
 function currentIntent(){return Object.values(uiIntents).find(i=>i.owner===state?.client_scope&&i.episode===state?.episode.id&&pendingIntent(i)&&!i.kind.startsWith('library_')&&i.kind!=='select_episode'&&!(i.kind==='first_animation'&&['AWAITING_HUMAN_REVIEW','SUCCEEDED'].includes(state?.first_animation?.status))&&
- (i.kind==='review'?[...(state?.reviews||[]),...(state?.optional_reviews||[])].some(r=>r.id===i.request_id&&r.version===i.review_version&&r.artifact_sha===i.artifact_sha):i.stage===state?.episode.next_action));}
+ (configurationIntent(i)||(i.kind==='review'?[...(state?.reviews||[]),...(state?.optional_reviews||[])].some(r=>r.id===i.request_id&&r.version===i.review_version&&r.artifact_sha===i.artifact_sha):i.stage===state?.episode.next_action)));}
 function reconcileIntents(next){
  for(const i of Object.values(uiIntents)){
   if(i.owner===next.client_scope&&i.kind==='select_episode'&&i.request_id===next.episode.id){changeIntent(i,'DONE');continue;}
@@ -51,7 +53,8 @@ function reconcileIntents(next){
   if(i.kind==='review'){if(op&&op.kind==='review'&&op.binding.request_id===i.request_id&&op.binding.review_version===i.review_version&&op.binding.artifact_sha===i.artifact_sha)changeIntent(i,op.status==='BLOCKED'?'ATTENTION':'ACKNOWLEDGED',{operation_id:op.id});continue;}
   if(i.kind==='produce_episode'&&next.episode_job){changeIntent(i,'DONE',{result:'EPISODE_STARTED'});continue;}
   if(i.kind.startsWith('replacement_')){const r=next.supervised_replacement;if(r&&(i.kind==='replacement_accept'&&r.authorization_status==='HUMAN_RISK_ACCEPTANCE'||i.kind==='replacement_quote'&&r.confirmation_id===i.confirmation_id||i.kind==='replacement_generate'&&r.operation_status!=='NOT_CREATED'||i.kind==='replacement_recover'&&r.operation_status==='COMPLETE'))changeIntent(i,'DONE');continue;}
-  if(i.kind==='draft_policy_accept'&&next.review_policy?.mode==='DRAFT_FINAL_REVIEW_V1'){changeIntent(i,'DONE',{result:'DRAFT_POLICY_REGISTERED'});continue;}
+  if(i.kind==='draft_policy_accept'){if(next.review_policy?.id===i.authorization_id||!i.authorization_id&&next.review_policy?.mode==='DRAFT_FINAL_REVIEW_V1')changeIntent(i,'DONE',{result:'DRAFT_POLICY_REGISTERED'});continue;}
+  if(i.kind==='job_pause'||i.kind==='job_continue'){if(next.episode_job?.id===i.job_id&&(i.kind==='job_pause'?next.episode_job.status==='PAUSED':next.episode_job.status!=='PAUSED'))changeIntent(i,'DONE',{result:'CONTROL_REGISTERED'});continue;}
   if(i.kind==='plan_accept'&&next.episode_plan_authorization?.status==='AUTHORIZED'){changeIntent(i,'DONE',{result:'PLAN_AUTHORIZED'});continue;}
   if(next.episode.next_action!==i.stage&&Number(next.episode.checkpoint_version)>i.baseline_checkpoint){changeIntent(i,'DONE');continue;}
   if(op)changeIntent(i,op.status==='BLOCKED'?'ATTENTION':op.status==='COMPLETE'&&!['GENERATING','DISPATCHING'].includes(op.phase)?'DONE':'ACKNOWLEDGED',{operation_id:op.id});
@@ -100,7 +103,12 @@ const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[n
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const usd=n=>n===null||n===undefined?'Sin verificar':'USD '+Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:6});
 const busy=()=>sending||!!currentIntent()||state?.operation&&['QUEUED','RUNNING','WAITING','RECOVERY_REQUIRED'].includes(state.operation.status);
-const button=(text,action,style='primary',disabled=false)=>`<button class="button ${style}" data-action="${action}" ${action!=='refresh'&&(disabled||sending||busy()&&!['recover','replacement_recover'].includes(action))?'disabled':''}>${text}</button>`;
+const configurationBlocked=action=>!state||!csrf||(action==='draft_policy_review'
+ ?!state.review_policy?.choice_available||policyReviewLoading||!!controlPending('draft_policy_accept')
+ :!state.episode_job||state.episode_job.status==='COMPLETE'||!!controlPending('job'));
+const button=(text,action,style='primary',disabled=false)=>{const configuration=['draft_policy_review','job_pause','job_continue'].includes(action);
+ const blocked=action!=='refresh'&&(disabled||(configuration?configurationBlocked(action):sending||busy()&&!['recover','replacement_recover'].includes(action)));
+ return `<button class="button ${style}" data-action="${action}" ${blocked?'disabled':''}>${text}</button>`;};
 const progressControl=()=>`<button type="button" class="button secondary progress-readonly" data-action="refresh">Actualizar progreso ↻</button><p class="budget-note" role="status" aria-live="polite" data-progress-status>${esc(progressMessage||'Consulta segura del estado guardado.')}</p>`;
 function progressFeedback(message){progressMessage=message;for(const n of document.querySelectorAll('[data-progress-status]'))n.textContent=message;}
 const source=()=>state?.media.find(m=>m.episode===state.episode.id&&m.role==='source');
@@ -114,6 +122,9 @@ async function request(path,{method='GET',body}={}){
   }finally{clearTimeout(timeout);if(path==='/state')metric('state_latency',tick()-began);}
 }
 function errorText(e){
+  if(/SESSION|INIT_DATA|SIGNATURE|OWNER/.test(e.message))return 'Abrí Lumi Studio desde el botón del bot de Telegram para verificar tu acceso. Código: '+e.message;
+  if(e.message==='EPISODE_PLAN_APPROVAL_REQUIRED')return 'Falta una autorización vigente del plan. Revisá el plan en Studio; no se renovó ni amplió ningún permiso.';
+  if(/^DRAFT_POLICY_/.test(e.message))return (e.message==='DRAFT_POLICY_REVIEW_EXPIRED'?'La confirmación venció. Abrí de nuevo la decisión para revisar sus condiciones.':'Las condiciones del modo cambiaron. Actualizá el estado y revisá la decisión.')+' Código: '+e.message;
   if(/^(EPISODE_|SAVED_RESULT_|RECOVERY_|BUDGET_|REPLACEMENT_|HIGGSFIELD_|Q41_CURRENT_EXACT|Q41_REQUEST_RESERVATION)/.test(e.message)){
     const code=/^[A-Z0-9_]{1,100}$/.test(e.message)?e.message:'REPLACEMENT_CONFIRMATION_FAILED';
     const detail=/FULL_EPISODE_PLAN_REQUIRED/.test(code)?'Falta completar el presupuesto del episodio antes de iniciar una producción nueva. Revisá imágenes, clips, voz y costos de infraestructura.':/CONSENT_EXPIRED/.test(code)?'La aceptación guardada venció en su fecha explícita. Podés revisar una nueva decisión.':/APPROVED_CONTENT_CHANGED/.test(code)?'Cambió el contenido autorizado. Revisá el nuevo contenido antes de decidir.':/LIMIT|BUDGET/.test(code)?'La cotización supera el límite autorizado o el presupuesto disponible. No se amplió tu autorización.':/ALREADY|CLAIM|RECOVERY/.test(code)?'Ya hay una confirmación o solicitud guardada. Consultá su estado; no se repetirá la generación.':'La confirmación se detuvo. Consultá el estado guardado antes de continuar.';
@@ -145,8 +156,9 @@ function episodeCostDetail(){const p=state.cost_projection;if(!p)return '';const
  return `<h3>Plan económico completo</h3>${Object.entries(names).map(([stage,name])=>{const items=p.items.filter(i=>i.stage===stage&&!i.completed);return row(name,items.every(i=>i.remaining_estimate_usd!==null)?usd(items.reduce((n,i)=>n+i.remaining_estimate_usd,0)):'Falta evidencia de costo');}).join('')}${row('Mínimo estimado total',usd(p.minimum_estimated_total_usd))}${row('Total probable',usd(p.probable_total_usd))}${row('Contingencia sobre costos conocidos',usd(p.contingency_known_usd))}${row('Reservas con costo sin conciliar',usd(p.uncertain_reserved_usd))}${row('Gasto verificado registrado',usd(p.verified_spend_usd))}${row('Ahorro verificado por reutilización',usd(p.verified_savings_usd))}<p class="budget-note">${p.status==='INCOMPLETE_COST_EVIDENCE'?'Todavía no puede confirmarse el costo de terminar el episodio. Faltan cotizaciones o asignaciones documentadas.':p.status==='PLAN_EXCEEDS_BUDGET'?'El plan supera el presupuesto. Revisá clips aprobados y escenarios compatibles antes de autorizar gastos.':'Proyección orientativa; Lumi comprueba el precio antes de cada envío dentro del plan autorizado.'} Las referencias no evitan por sí solas una nueva generación. La calidad y el modelo aprobados se conservan.</p>`;}
 function reviewPolicyCard(){
  const policy=state.review_policy,job=state.episode_job;if(!policy||!job)return '';
- const automatic=policy.mode==='DRAFT_FINAL_REVIEW_V1';
- return `<section class="card" data-ui-key="review-policy"><span class="tag">${automatic?'Borrador automático · revisión final':'Revisión por toma'}</span><p>${automatic?'Lumi avanza dentro del plan autorizado. Las verificaciones técnicas no sustituyen tu revisión artística final. Sin regeneraciones automáticas.':'Podés mantener la revisión por toma o elegir una sola revisión del borrador final.'}</p>${(!automatic||policy.expired)&&policy.choice_available?button(policy.expired?'Revisar vigencia del modo automático':'Elegir borrador automático','draft_policy_review','secondary'):''}${job.status!=='COMPLETE'?button(job.status==='PAUSED'?'Continuar el mismo trabajo':'Pausar nuevas emisiones',job.status==='PAUSED'?'job_continue':'job_pause','quiet'):''}<p>El trabajo se conserva al cerrar Telegram. En el alojamiento Free se reanuda cuando el servicio despierta; no puede trabajar mientras esté suspendido.</p></section>`;
+ const automatic=policy.mode==='DRAFT_FINAL_REVIEW_V1',pending=controlPending('draft_policy_accept')||controlPending('job');
+ const unavailable=(!automatic||policy.expired)&&!policy.choice_available&&job.status!=='COMPLETE';
+ return `<section class="card" data-ui-key="review-policy"><span class="tag">${automatic?'Borrador automático · revisión final':'Revisión por toma'}</span><p>${automatic?'Lumi avanza dentro del plan autorizado. Las verificaciones técnicas no sustituyen tu revisión artística final. Sin regeneraciones automáticas.':'Podés mantener la revisión por toma o elegir una sola revisión del borrador final.'}</p>${(!automatic||policy.expired)&&policy.choice_available?button(policyReviewLoading?'Preparando la decisión…':pending?.kind==='draft_policy_accept'?'Comprobando aceptación guardada…':policy.expired?'Revisar vigencia del modo automático':'Elegir borrador automático','draft_policy_review','secondary'):''}${unavailable?`<p role="status">${esc(errorText({message:policy.choice_unavailable_reason||'EPISODE_PLAN_APPROVAL_REQUIRED'}))}</p>${state.episode_plan_authorization?.approval_available?'<button class="button secondary" data-action="plan_review">Revisar plan vigente</button>':''}`:''}${job.status!=='COMPLETE'?button(job.status==='PAUSED'?'Continuar el mismo trabajo':'Pausar nuevas emisiones',job.status==='PAUSED'?'job_continue':'job_pause','quiet'):''}${pending||controlMessage?`<p role="status" data-control-status>${esc(pending?intentText(pending):controlMessage)}</p>`:''}<p>El trabajo se conserva al cerrar Telegram. En el alojamiento Free se reanuda cuando el servicio despierta; no puede trabajar mientras esté suspendido.</p></section>`;
 }
 function budgetCard(){const b=state.budget;return `<section class="card"><details><summary>Presupuesto y detalles de costos</summary><div class="progress-heading"><h3>Presupuesto del episodio</h3><span class="tag green">Supervisado</span></div><div class="stats"><div><small>Máximo autorizado</small><div class="quote-price">${usd(b.ceiling_usd)}</div></div><div><small>Exposición existente</small><div class="quote-price">${usd(b.exposure_usd)}</div></div></div>${row('Disponible interno antes de la próxima reserva',usd(b.remaining_usd))}<p class="budget-note">Límite interno, no saldo Higgsfield. Cada generación debe estar incluida en una autorización específica o en el plan aprobado. Costo real no verificado; la exposición incluye reservas pendientes de conciliación.</p>${episodeCostDetail()}</details></section>`;}
 function quoteCard(){
@@ -317,24 +329,32 @@ async function reviewEpisodePlan(){
  }catch(e){toast(errorText(e));}finally{planReviewLoading=false;}
 }
 
+const controlNoEffect=e=>e.no_effect===true||e.status===401||['MINI_SESSION_EXPIRED','EPISODE_PLAN_APPROVAL_REQUIRED','DRAFT_POLICY_EXPLICIT_DECISION_REQUIRED','DRAFT_POLICY_REVIEW_EXPIRED','DRAFT_POLICY_MATERIAL_CHANGED','EPISODE_JOB_REQUIRED'].includes(e.message);
 async function controlJob(action){
- if(sending)return;sending=true;mutationEpoch++;render();
- try{await request('/episode/control',{method:'POST',body:{action}});toast(action==='pause'?'Pausa guardada. Conservamos los trabajos ya enviados.':'El mismo trabajo continuará.');}
- catch(e){toast(errorText(e));}finally{sending=false;await refresh();render();}
+ if(configurationBlocked(action==='pause'?'job_pause':'job_continue'))return;
+ const i=beginIntent('job_'+action,{request_id:crypto.randomUUID()});if(!i)return;
+ changeIntent(i,'SENDING',{job_id:state.episode_job.id});mutationEpoch++;controlMessage='';render();
+ try{await request('/episode/control',{method:'POST',body:{action}});changeIntent(i,'ACKNOWLEDGED',{result:'CONTROL_REGISTERED'});controlMessage=action==='pause'?'Pausa guardada. Conservamos los trabajos ya enviados.':'El mismo trabajo continuará.';}
+ catch(e){changeIntent(i,controlNoEffect(e)?'REJECTED_NO_EFFECT':'UNKNOWN');controlMessage=errorText(e);}
+ finally{await refresh();render();}
 }
 async function reviewDraftPolicy(){
- if(sending||planReviewLoading)return;planReviewLoading=true;toast('Preparando la decisión…');
- try{const {challenge}=await request('/review-policy/review'),c=challenge.contract,episode=state.episode.id;
+ if(configurationBlocked('draft_policy_review')||dialog.open)return;
+ policyReviewLoading=true;controlMessage='';const episode=state.episode.id;render();
+ try{const {challenge}=await request('/review-policy/review'),c=challenge.contract;
+  if(state?.episode.id!==episode)return;
   document.querySelector('#dialog-title').textContent='Borrador automático · revisión final';
   document.querySelector('#dialog-content').innerHTML=`<p>Lumi continuará el mismo trabajo: ${esc(c.stages.join(' → '))}. Revisarás el master antes de aprobarlo o descargarlo como final.</p>${row('Techo del episodio',usd(c.maximum_episode_exposure))}<p>${esc(c.risk)} Las comprobaciones técnicas verifican archivos y contratos; no certifican anatomía, continuidad ni calidad artística. Podés intervenir antes del final. No hay regeneraciones automáticas ni publicación social. Se conservan los límites y el vencimiento del plan: ${esc(new Date(c.expires_at).toLocaleString())}.</p>`;
   const b=document.querySelector('#dialog-confirm');b.textContent='Aceptar el modo y continuar';b.disabled=false;b.onclick=async()=>{
-   if(sending||state.episode.id!==episode)return;const i=beginIntent('draft_policy_accept');if(!i)return;
-   dialog.close();sending=true;mutationEpoch++;render();
-   try{await request('/review-policy/accept',{method:'POST',body:{challenge,confirm:true}});changeIntent(i,'ACKNOWLEDGED');}
-   catch(e){changeIntent(i,e.no_effect?'REJECTED_NO_EFFECT':'UNKNOWN');toast(errorText(e));}
-   finally{sending=false;await refresh();render();}
+   if(state?.episode.id!==episode||controlPending('draft_policy_accept')||!state.review_policy?.choice_available)return;
+   const id='draft-policy:'+challenge.challenge_id,i=beginIntent('draft_policy_accept',{request_id:id});if(!i)return;
+   changeIntent(i,'SENDING',{authorization_id:id});b.disabled=true;dialog.close();mutationEpoch++;controlMessage='';render();
+   try{await request('/review-policy/accept',{method:'POST',body:{challenge,confirm:true}});changeIntent(i,'ACKNOWLEDGED');controlMessage='Aceptación específica registrada.';}
+   catch(e){changeIntent(i,controlNoEffect(e)?'REJECTED_NO_EFFECT':'UNKNOWN');controlMessage=errorText(e);}
+   finally{await refresh();render();}
   };dialog.showModal();
- }catch(e){toast(errorText(e));}finally{planReviewLoading=false;}
+ }catch(e){controlMessage=errorText(e);toast(controlMessage);}
+ finally{policyReviewLoading=false;render();}
 }
 function confirmSpend(kind){const q=state?.quote;if(!q||Date.parse(q.expires_at)<=Date.now()+serverOffset)return prepareSpend();
  const audio=q.currency==='ELEVENLABS_CHARACTER_QUOTA',generating=kind==='generate',image=state.production?.action?.stage==='IMAGE',action=state.episode.next_action,version=state.episode.checkpoint_version;

@@ -2266,7 +2266,7 @@ test('DRAFT_POLICY explicit once, version binding, no fabricated reviews, pause 
  await f.service.acceptDraftPolicy(f.principal,{challenge,confirm:true});await f.service.acceptDraftPolicy(f.principal,{challenge,confirm:true});
  const state=(await f.reviewStore.get('1')).state;assert.equal(Object.values(state.v2_authorizations).filter(v=>v.scope==='DRAFT_FINAL_REVIEW_V1').length,1);
  assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests,before.metadata.review_requests);assert.equal(f.emitted.length,1);
- assert.equal((await f.service.view(await f.reopen())).review_policy.mode,'DRAFT_FINAL_REVIEW_V1');
+ const policyView=await f.service.view(await f.reopen());assert.equal(policyView.review_policy.mode,'DRAFT_FINAL_REVIEW_V1');assert.equal(policyView.review_policy.id,'draft-policy:'+challenge.challenge_id);assert.equal(policyView.episode_job.id,jobId);
  await f.service.controlEpisodeJob(f.principal,{action:'pause'});await f.service.processPending({user:'1',chat:'1'});
  assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].status,'PAUSED');assert.equal(f.emitted.length,1);
  await f.service.controlEpisodeJob(f.principal,{action:'continue'});assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].id,jobId);
@@ -2277,4 +2277,7 @@ test('DRAFT_POLICY explicit once, version binding, no fabricated reviews, pause 
  await f.service.acceptDraftPolicy(f.principal,{challenge:renewed.challenge,confirm:true});
  assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].error,'PROVIDER_EMISSION_UNKNOWN');
  assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
+ const sealed=(await f.reviewStore.get('1')).state.v2_authorizations;t.mock.timers.enable({apis:['Date'],now:Date.now()+86400001});
+ const freshSession=await f.reopen(),expired=await f.service.view(freshSession);assert.equal(expired.review_policy.choice_available,false);assert.equal(expired.review_policy.choice_unavailable_reason,'EPISODE_PLAN_CONSENT_EXPIRED');
+ await assert.rejects(f.service.reviewDraftPolicy(freshSession),/EPISODE_PLAN_APPROVAL_REQUIRED/);assert.deepEqual((await f.reviewStore.get('1')).state.v2_authorizations,sealed);
 });

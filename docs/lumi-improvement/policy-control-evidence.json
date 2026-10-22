@@ -1,0 +1,64 @@
+{
+  "observed_at": "2026-10-22T19:05:27.880358Z",
+  "code_commit": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
+  "ci": {
+    "run_id": 39836679030,
+    "status": "SUCCESS",
+    "unit_tests": 27,
+    "browser": "PASS_POLICY_CONTROL_BROWSER Chromium 390x844; all HTTP fixture-only"
+  },
+  "deploy": {
+    "id": "dep-dbd5semq1p3s73ckqnk0",
+    "status": "live",
+    "finished_at": "2026-10-22T19:05:06.083347Z",
+    "readiness_sha": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
+    "served_app_sha256": "54e69d619633744da1b965b6bc2eaad90ad6475caf3079f0fa6674dd620c27f6",
+    "served_bytes_match": true,
+    "anonymous_state_http": 401,
+    "auth": "TELEGRAM_ED25519",
+    "compute": "free"
+  },
+  "scope": "Only configuration controls, durable client decision reconciliation and read-only capability projection. No backend mutation contract, dispatch, budget or recovery changes.",
+  "browser": {
+    "before_policy_and_pause_disabled": true,
+    "after_policy_confirmation_opens": true,
+    "generate_still_disabled": true,
+    "ten_clicks_accept_posts": 1,
+    "ten_clicks_pause_posts": 1,
+    "lost_response_reopen_same_decision": true,
+    "new_stage_without_decision_keeps_lock": true,
+    "expired_plan_not_extended": true,
+    "session_error_visible": true,
+    "generative_posts": 0,
+    "real_iphone": "NOT_TESTED_REAL"
+  },
+  "safe_deployment_window": {
+    "checked_at": "2026-10-22T19:04:00.234306Z",
+    "active_transport": 0,
+    "episode_leases": 0,
+    "result_leases": 0,
+    "operation_leases": 0,
+    "local_assembly_commands": []
+  },
+  "preservation": {
+    "checkpoint_revision": 55,
+    "checkpoint_status": "RUNNING",
+    "pending": "video:q43",
+    "completed": 17,
+    "total": 50,
+    "q43_request_id": "24aa9f24-8457-44dd-a9be-23dd662547e1",
+    "journal": "ACKNOWLEDGED",
+    "job_id": "ed9086013b8958ea92f34d9d833da0b8ffea6a1feafc0b870765a43db485e7e8",
+    "job_before": "WAITING_PROVIDER",
+    "job_after": "RUNNING with ordinary recovery lease; same job",
+    "actions_md5_before_and_after": "1abef89958d3ee531c77b9ea5cac4088",
+    "reserves_md5_before_and_after": "80231f1b5532fe0b5ab1ca2e511f1904",
+    "authorizations_md5_before_and_after": "b8daf913aed302dccfb05b8293ca9419",
+    "review_policy_id": null,
+    "ceiling_usd": 8,
+    "new_reservations": 0,
+    "agent_or_test_generations": 0,
+    "new_services": 0
+  },
+  "limitation": "No real human policy acceptance was submitted. iPhone visual acceptance is pending; simulated HTTP responses are not Telegram evidence."
+}

@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "observed_at": "2026-10-22T13:00:03.209238+00:00",
+  "observed_at": "2026-10-22T19:05:27.880358Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "087f8666ba13b9d7820d3065326d84da83c70e33",
+  "source_commit": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Code 087f8666ba13b9d7820d3065326d84da83c70e33; CI SUCCESS 39781245758. Render dep-dbd0fics728c738fl8s0 LIVE 2026-10-22T12:56:25.888719Z; served readiness SHA and app bytes verified. Migration lumi_fenced_preflight_continuation applied only mofjhwathxzfnjapvvst. Safe window: no active transport or episode lease before deployment. Evidence-only follow-up does not require another restart.",
+  "deployment_evidence": "Code c256051a5f25eed33e69c8bb606172ddfdc4dee0; CI SUCCESS39836679030. Render dep-dbd5semq1p3s73ckqnk0 LIVE 2026-10-22T19:05:06.083347Z; readiness SHA and served app bytes match. No active transport/leases/local assembly before deployment. Staging only, Free unchanged. Evidence-only follow-up requires no restart.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "RUNNING",
   "last_completed_action": "director:q43",
@@ -39,18 +39,23 @@
     "new_reservations": false,
     "automatic_prompt_execution": false,
     "allowed": [
-      "Technical staging correction, simulated tests and isolated schema migration",
-      "Continuation only by the existing user-started episode job under its still-valid sealed plan",
-      "No agent generation, consent extension or acceptance of the optional draft policy"
+      "Technical correction of policy/pause controls, simulated browser tests, branch publication and staging deployment",
+      "No policy acceptance, plan extension, generation, reservation or q43 reconciliation by agent"
     ],
     "risk_acceptance": "HISTORICAL_REPLACEMENT_CONSUMED_NO_NEW_ACCEPTANCE",
-    "existing_job_emission_evidence": {
+    "previous_intervention_emission_evidence": {
       "agent_generation_tests": 0,
       "existing_authorized_episode_worker_generations": 1,
       "existing_authorized_episode_worker_final_quote": 1,
       "plan_authorization_id": "episode-plan:f9c1d11c-52b7-4417-88c8-2975a2b93a44",
       "plan_explicit_expiry": "2026-10-22T20:26:06.570Z",
       "new_human_decisions": 0
+    },
+    "this_intervention": {
+      "agent_generation_tests": 0,
+      "new_reservations": 0,
+      "new_human_decisions": 0,
+      "budget_changes": 0
     }
   },
   "blockers": [
@@ -194,113 +199,103 @@
     "PRODUCTION_PROGRESS": {
       "completed": 17,
       "total": 50,
-      "delta_this_intervention": 0,
-      "evidence": "Same video:q43 attempt now ACKNOWLEDGED; provider queued. No completed clip or master claimed."
+      "delta_this_intervention": 0
     },
     "BLOCKERS_RESOLVED": {
-      "technical": 2,
-      "scope": "Final-price expiry with orphaned PREPARED; missing explicit draft-policy contract across intermediate validators."
+      "technical": 1,
+      "scope": "Policy/pause controls incorrectly shared generation lock"
     },
     "REGRESSIONS_INTRODUCED": {
-      "observed_in_final_focused_acceptance": 0,
-      "scope": "138 affected assertions plus 17 route-level tests, including 2 supervised and 2 automatic synthetic episodes. Exact commit CI GREEN."
+      "observed_in_focused_acceptance": 0,
+      "scope": "27 tests + Chromium fixture; no full-suite claim"
     },
     "DUPLICATE_EMISSIONS": {
-      "this_intervention": 0,
-      "evidence": "One fenced journal, same attempt/idempotency, one ACK after known before-transport rejection. Historical q42 remains UNKNOWN."
+      "this_intervention": 0
     },
     "UNAUTHORIZED_SPENDING": {
       "this_intervention": 0,
-      "historical_charges": "UNVERIFIED",
-      "authorized_existing_job_dispatches": 1
+      "historical_charges": "UNVERIFIED"
     },
     "HUMAN_INTERVENTIONS": {
       "new_decisions_recorded_by_agent": 0,
       "pending": [
-        "Optional explicit automatic-draft policy choice in Studio",
-        "Final human review; intermediate reviews remain required until policy choice"
-      ],
-      "historical_total": null
+        "Optional draft mode choice in Studio"
+      ]
     },
     "REUSABLE_FIXES": {
-      "implemented": 2,
-      "scope": "Fenced same-attempt preflight with atomic reservation delta; versioned draft final-review policy in the existing executor."
+      "implemented": 1,
+      "scope": "Per-control pending identities and authoritative decision/job reconciliation"
     },
     "SIMULATED_PROGRESS": {
       "productive_delta": 0,
-      "supervised_complete_episodes": 2,
-      "automatic_draft_episodes": 2,
-      "scope": "External services simulated; real handlers, validators, claims, local Full HD assembly, private download SHA. No fixture rows in staging."
+      "scope": "Browser fixture only; no staging fixtures"
     }
   },
   "feedback": {
     "Qué pidió el encargo": [
-      "Recuperar video:q43 sin repetir EP004 y preparar borrador automático con una sola decisión de política."
+      "Corregir únicamente Elegir borrador automático y comprobar Pausar nuevas emisiones mientras hay generación aceptada."
     ],
     "Qué se completó realmente": [
-      "Misma operación PREPARED cercada por nonce y lease; final-price preflight después de materiales, URL temporal y precio renovados bajo semántica/hash y plan originales. Reserva conservada atómicamente por diferencia.",
-      "q43 recibió un ACK real del proveedor mediante el trabajo ya iniciado; no fue una generación de prueba. Política automática versionada y autenticada atraviesa imagen, QA técnico, dirección, video, voz, montaje y master sin aprobaciones humanas ficticias.",
-      "Dos episodios supervisados y dos borradores completos con servicios externos simulados; descarga privada SHA comprobada. Despliegue exacto y guardas anónimas verificados."
+      "Causa confirmada: helper button() heredaba busy() de generación para controles de configuración. Bloqueos separados por control y capacidad server-side; Generar conserva su bloqueo.",
+      "Aceptación y pausa conservan intención pendiente tras timeout/reapertura; se concilian con ID de decisión o trabajo, no por cambio de etapa. Sesión y plan vencidos muestran motivo.",
+      "CI39836679030 GREEN; código c256051a5f25eed33e69c8bb606172ddfdc4dee0 LIVE; datos protegidos sin cambios."
     ],
     "Qué quedó pendiente": [
-      "Proveedor q43 queued al corte de evidencia; no hay clip final ni master real.",
-      "Decisión opcional de modo automático y futura revisión final dentro de Studio.",
-      "La continuidad durante suspensión de Render Free no existe; ningún cambio de hosting autorizado o efectuado."
+      "Elegir el modo voluntariamente dentro de Studio. No se registró aceptación por el agente.",
+      "Aceptación visual en Telegram/iPhone no probada; q43 sigue en su solicitud existente."
     ],
     "Qué trabajo se repitió innecesariamente": [
-      "Una combinación de archivos del segundo commit activó un ámbito CI más amplio; se corrigió el selector para conservar pruebas focalizadas. No se repitió migración Make ni recuperación q42 ni generación real de prueba."
+      "No se repitieron recuperación q43, auditoría, migración Make ni suites históricas. Descarga local de Chromium falló; prueba real de navegador ejecutada y aprobada en CI."
     ],
     "Qué instrucciones evitaron errores": [
-      "PREPARED se interpretó usando la invariante real anterior a fetch, no la mera ausencia de request ID. FENCED_PREPARED impide CAS del binario antiguo.",
-      "No usar revisión técnica como aprobación artística; no ampliar el consentimiento ni presupuesto."
-    ],
-    "Qué instrucciones generaron fricción": [
-      "No nuevas: la autorización de continuidad del trabajo existente fue suficiente; el agente no pidió otro permiso técnico."
+      "Separar capacidad de configuración de generación; no cambiar presupuesto ni consentimiento, no reenviar q43.",
+      "Desplegar solamente tras CI exacto y ventana sin transporte/lease local activo."
     ],
     "Qué evidencia faltó": [
-      "Tiempo real completo de proveedor/descarga/QA/master; cargos confirmados; capacidad de montaje bajo 512MB; aceptación visual iPhone.",
-      "El primer phase_timings de la operación reanudada arrastra el intervalo histórico bloqueado: no usarlo como tiempo de preparación. Los tiempos válidos del preflight y transporte están separados en evidence.json."
+      "Aceptación visual real del usuario en iPhone. Ningún test de navegador se presenta como interacción real de Telegram."
     ],
     "Qué decisión humana se necesita": [
-      "Elegir Borrador automático · revisión final en Studio si se desea omitir revisiones artísticas intermedias. Hasta entonces se conserva el modo supervisado."
+      "Elegir Borrador automático en Studio si desea esa política; confirmar sus condiciones."
     ],
     "Qué riesgos permanecen": [
-      "Un defecto artístico puede pasar a la animación en modo borrador; se informa antes de aceptar. QA de bytes no evalúa anatomía ni continuidad artística.",
-      "No garantía exactly-once extremo a extremo del proveedor. Una emisión realmente incierta no se reenvía.",
-      "Expiración explícita del plan y suspensión del alojamiento siguen siendo límites reales."
+      "El vencimiento explícito del plan sigue vigente; no se extiende automáticamente.",
+      "Free no ejecuta trabajo durante suspensión; no se modificó alojamiento."
     ]
   },
-  "first_safe_action": "En Studio, elegir Borrador automático · revisión final si se desea esa política. El trabajo q43 ya aceptado se consulta automáticamente; no reenviar, cotizar ni iniciar otro episodio.",
+  "first_safe_action": "En Studio, elegir Borrador automático y confirmar sus condiciones. No cotizar, reenviar q43 ni iniciar otro trabajo. Si el plan venció realmente, Studio muestra la decisión pendiente sin ampliarlo automáticamente.",
   "acceptance": [
-    "PASS_REAL: q43 same attempt fenced and ACKNOWLEDGED by existing authorized job; request24aa9f24-8457-44dd-a9be-23dd662547e1.",
-    "PASS_REAL: protected q41/q42 actions, reserves, original journal and all human authorizations unchanged; budget8; new reservations0/delta0.",
-    "PASS_REAL: isolated migration, CI exact087f866, staging live and served app SHA; anonymous state/library401; Ed25519 preserved.",
-    "PASS_INTEGRATION: 2 automatic drafts and 2 supervised synthetic complete routes, real local assembly/private downloads; external services simulated.",
-    "NOT_TESTED_REAL: q43 final clip while provider queued, artistic quality, real EP004 master, iPhone visual acceptance, continuous Free hosting."
+    "PASS_REAL: exact code CI GREEN and staging LIVE; served bytes match; private state401.",
+    "PASS_REAL: same q43 request, checkpoint55, action/reservation/authorization hashes unchanged; ceiling8; new reservations0.",
+    "PASS_INTEGRATION: policy opens while generation remains blocked; ten clicks/timeout/reopen/stale stage/expired plan/session; zero generative calls.",
+    "NOT_TESTED_REAL: human mode acceptance and visual Telegram/iPhone experience."
   ],
   "tests": [
     {
       "status": "PASS_OFFLINE",
-      "command": "CI39781245758 affected regression",
-      "result": "138 tests; SQL fencing and budget races, provider journal, gates/director, Mini App auth, DIRECT and fluid UX."
+      "command": "CI39836679030 auth/fluid UX and DRAFT_POLICY",
+      "result": "27 tests pass; backend challenge idempotency, expired plan/session, no invented human decisions."
     },
     {
       "status": "PASS_INTEGRATION",
-      "command": "CI39781245758 route-level integration",
-      "result": "17 tests including PREPARED_CONTINUATION, DRAFT_POLICY, 2 supervised + 2 automatic episodes; providers simulated, local Full HD masters and private download SHA."
+      "command": "node test/lumi-policy-control-browser.mjs (CI Chromium)",
+      "result": "Actual app JS and handlers; RUNNING/GENERATING + WAITING_PROVIDER. Before disabled; after opens confirmation. Ten clicks produce one acceptance and one pause. Lost response, reload, newer stage without receipt, expired plan and session. Zero generative fixture calls."
     },
     {
       "status": "PASS_REAL",
-      "command": "Staging SELECT/readiness/static routes",
-      "result": "Same q43 attempt ACK and unchanged reserve; protected hashes equal; live SHA087f866; private state/library401. No fabricated Telegram session."
+      "command": "Staging read-only SELECT, readiness, served JS and anonymous state",
+      "result": "Exact live SHA/app bytes. State401. q43 same request, checkpoint55 and protected action/reservation/authorization hashes unchanged. Same job resumed ordinary recovery lease."
     },
     {
       "status": "NOT_TESTED_REAL",
-      "command": "User visual and production acceptance",
-      "result": "q43 final result queued; mode not accepted; no real master or iPhone acceptance claimed."
+      "command": "Telegram/iPhone human mode selection",
+      "result": "No acceptance performed by agent; visual iPhone confirmation pending."
     }
   ],
   "recent_commits": [
+    {
+      "sha": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
+      "subject": "Separate policy and pause controls from generation locks; same-decision readback"
+    },
     {
       "sha": "087f8666ba13b9d7820d3065326d84da83c70e33",
       "subject": "Exact live commit and focused CI scope"

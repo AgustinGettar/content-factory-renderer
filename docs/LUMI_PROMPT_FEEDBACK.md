@@ -1,53 +1,46 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-22T13:00:03.209238+00:00.
+Evidence cutoff: 2026-10-22T19:05:27.880358Z.
 
 ## Qué pidió el encargo
 
-- Recuperar video:q43 sin repetir EP004 y preparar borrador automático con una sola decisión de política.
+- Corregir únicamente Elegir borrador automático y comprobar Pausar nuevas emisiones mientras hay generación aceptada.
 
 ## Qué se completó realmente
 
-- Misma operación PREPARED cercada por nonce y lease; final-price preflight después de materiales, URL temporal y precio renovados bajo semántica/hash y plan originales. Reserva conservada atómicamente por diferencia.
-- q43 recibió un ACK real del proveedor mediante el trabajo ya iniciado; no fue una generación de prueba. Política automática versionada y autenticada atraviesa imagen, QA técnico, dirección, video, voz, montaje y master sin aprobaciones humanas ficticias.
-- Dos episodios supervisados y dos borradores completos con servicios externos simulados; descarga privada SHA comprobada. Despliegue exacto y guardas anónimas verificados.
+- Causa confirmada: helper button() heredaba busy() de generación para controles de configuración. Bloqueos separados por control y capacidad server-side; Generar conserva su bloqueo.
+- Aceptación y pausa conservan intención pendiente tras timeout/reapertura; se concilian con ID de decisión o trabajo, no por cambio de etapa. Sesión y plan vencidos muestran motivo.
+- CI39836679030 GREEN; código c256051a5f25eed33e69c8bb606172ddfdc4dee0 LIVE; datos protegidos sin cambios.
 
 ## Qué quedó pendiente
 
-- Proveedor q43 queued al corte de evidencia; no hay clip final ni master real.
-- Decisión opcional de modo automático y futura revisión final dentro de Studio.
-- La continuidad durante suspensión de Render Free no existe; ningún cambio de hosting autorizado o efectuado.
+- Elegir el modo voluntariamente dentro de Studio. No se registró aceptación por el agente.
+- Aceptación visual en Telegram/iPhone no probada; q43 sigue en su solicitud existente.
 
 ## Qué trabajo se repitió innecesariamente
 
-- Una combinación de archivos del segundo commit activó un ámbito CI más amplio; se corrigió el selector para conservar pruebas focalizadas. No se repitió migración Make ni recuperación q42 ni generación real de prueba.
+- No se repitieron recuperación q43, auditoría, migración Make ni suites históricas. Descarga local de Chromium falló; prueba real de navegador ejecutada y aprobada en CI.
 
 ## Qué instrucciones evitaron errores
 
-- PREPARED se interpretó usando la invariante real anterior a fetch, no la mera ausencia de request ID. FENCED_PREPARED impide CAS del binario antiguo.
-- No usar revisión técnica como aprobación artística; no ampliar el consentimiento ni presupuesto.
-
-## Qué instrucciones generaron fricción
-
-- No nuevas: la autorización de continuidad del trabajo existente fue suficiente; el agente no pidió otro permiso técnico.
+- Separar capacidad de configuración de generación; no cambiar presupuesto ni consentimiento, no reenviar q43.
+- Desplegar solamente tras CI exacto y ventana sin transporte/lease local activo.
 
 ## Qué evidencia faltó
 
-- Tiempo real completo de proveedor/descarga/QA/master; cargos confirmados; capacidad de montaje bajo 512MB; aceptación visual iPhone.
-- El primer phase_timings de la operación reanudada arrastra el intervalo histórico bloqueado: no usarlo como tiempo de preparación. Los tiempos válidos del preflight y transporte están separados en evidence.json.
+- Aceptación visual real del usuario en iPhone. Ningún test de navegador se presenta como interacción real de Telegram.
 
 ## Qué decisión humana se necesita
 
-- Elegir Borrador automático · revisión final en Studio si se desea omitir revisiones artísticas intermedias. Hasta entonces se conserva el modo supervisado.
+- Elegir Borrador automático en Studio si desea esa política; confirmar sus condiciones.
 
 ## Qué riesgos permanecen
 
-- Un defecto artístico puede pasar a la animación en modo borrador; se informa antes de aceptar. QA de bytes no evalúa anatomía ni continuidad artística.
-- No garantía exactly-once extremo a extremo del proveedor. Una emisión realmente incierta no se reenvía.
-- Expiración explícita del plan y suspensión del alojamiento siguen siendo límites reales.
+- El vencimiento explícito del plan sigue vigente; no se extiende automáticamente.
+- Free no ejecuta trabajo durante suspensión; no se modificó alojamiento.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 0f3bc5849afc815e1d9e587a195b7d3e21bbef19ee896990c8246163a402b8fc. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: b7c0b728a6026c3f82af026dab9ef1f3b83abf5bdf2c965fec89b416b8f861fc. Outputs are inert drafts; generating them cannot expand authorization.

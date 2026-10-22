@@ -1,10 +1,10 @@
 # Lumi resume state
 
-Observed: 2026-10-22T13:00:03.209238+00:00. Input SHA-256: 0f3bc5849afc815e1d9e587a195b7d3e21bbef19ee896990c8246163a402b8fc.
+Observed: 2026-10-22T19:05:27.880358Z. Input SHA-256: b7c0b728a6026c3f82af026dab9ef1f3b83abf5bdf2c965fec89b416b8f861fc.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 087f8666ba13b9d7820d3065326d84da83c70e33.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: c256051a5f25eed33e69c8bb606172ddfdc4dee0.
 
-Deployment evidence: Code 087f8666ba13b9d7820d3065326d84da83c70e33; CI SUCCESS 39781245758. Render dep-dbd0fics728c738fl8s0 LIVE 2026-10-22T12:56:25.888719Z; served readiness SHA and app bytes verified. Migration lumi_fenced_preflight_continuation applied only mofjhwathxzfnjapvvst. Safe window: no active transport or episode lease before deployment. Evidence-only follow-up does not require another restart.. Always resolve current HEAD/live before writing.
+Deployment evidence: Code c256051a5f25eed33e69c8bb606172ddfdc4dee0; CI SUCCESS39836679030. Render dep-dbd5semq1p3s73ckqnk0 LIVE 2026-10-22T19:05:06.083347Z; readiness SHA and served app bytes match. No active transport/leases/local assembly before deployment. Staging only, Free unchanged. Evidence-only follow-up requires no restart.. Always resolve current HEAD/live before writing.
 
 Transport: DIRECT_PRESERVED_HUMAN_NORMAL_APP_ACCEPTED. DIRECT y Ed25519 verificados por readiness. Confirmación humana de uso normal registrada. Recibo /start830558975 y respuesta153 verificados sin reenvío. Sin cambios Make/webhook/secretos; cola histórica aislada. La aceptación no demuestra todos los flujos productivos.
 
@@ -22,21 +22,21 @@ Budget USD 8; exposure 3.03625; proposed additional maximum 0.375; charges UNKNO
 
 ## Evidence-based metrics
 
-PRODUCTION_PROGRESS: {"completed":17,"total":50,"delta_this_intervention":0,"evidence":"Same video:q43 attempt now ACKNOWLEDGED; provider queued. No completed clip or master claimed."}
+PRODUCTION_PROGRESS: {"completed":17,"total":50,"delta_this_intervention":0}
 
-BLOCKERS_RESOLVED: {"technical":2,"scope":"Final-price expiry with orphaned PREPARED; missing explicit draft-policy contract across intermediate validators."}
+BLOCKERS_RESOLVED: {"technical":1,"scope":"Policy/pause controls incorrectly shared generation lock"}
 
-REGRESSIONS_INTRODUCED: {"observed_in_final_focused_acceptance":0,"scope":"138 affected assertions plus 17 route-level tests, including 2 supervised and 2 automatic synthetic episodes. Exact commit CI GREEN."}
+REGRESSIONS_INTRODUCED: {"observed_in_focused_acceptance":0,"scope":"27 tests + Chromium fixture; no full-suite claim"}
 
-DUPLICATE_EMISSIONS: {"this_intervention":0,"evidence":"One fenced journal, same attempt/idempotency, one ACK after known before-transport rejection. Historical q42 remains UNKNOWN."}
+DUPLICATE_EMISSIONS: {"this_intervention":0}
 
-UNAUTHORIZED_SPENDING: {"this_intervention":0,"historical_charges":"UNVERIFIED","authorized_existing_job_dispatches":1}
+UNAUTHORIZED_SPENDING: {"this_intervention":0,"historical_charges":"UNVERIFIED"}
 
-HUMAN_INTERVENTIONS: {"new_decisions_recorded_by_agent":0,"pending":["Optional explicit automatic-draft policy choice in Studio","Final human review; intermediate reviews remain required until policy choice"],"historical_total":null}
+HUMAN_INTERVENTIONS: {"new_decisions_recorded_by_agent":0,"pending":["Optional draft mode choice in Studio"]}
 
-REUSABLE_FIXES: {"implemented":2,"scope":"Fenced same-attempt preflight with atomic reservation delta; versioned draft final-review policy in the existing executor."}
+REUSABLE_FIXES: {"implemented":1,"scope":"Per-control pending identities and authoritative decision/job reconciliation"}
 
-SIMULATED_PROGRESS: {"productive_delta":0,"supervised_complete_episodes":2,"automatic_draft_episodes":2,"scope":"External services simulated; real handlers, validators, claims, local Full HD assembly, private download SHA. No fixture rows in staging."}
+SIMULATED_PROGRESS: {"productive_delta":0,"scope":"Browser fixture only; no staging fixtures"}
 
 ## Blockers
 
@@ -58,7 +58,7 @@ SIMULATED_PROGRESS: {"productive_delta":0,"supervised_complete_episodes":2,"auto
 
 3. TTS / CONNECTED_NOT_TESTED_REAL_THIS_TASK: Ruta Fernanda incluida en ambos episodios automáticos sintéticos; solicitudes externas simuladas. Emisión futura solo bajo plan válido.
 
-Next safe action: En Studio, elegir Borrador automático · revisión final si se desea esa política. El trabajo q43 ya aceptado se consulta automáticamente; no reenviar, cotizar ni iniciar otro episodio.
+Next safe action: En Studio, elegir Borrador automático y confirmar sus condiciones. No cotizar, reenviar q43 ni iniciar otro trabajo. Si el plan venció realmente, Studio muestra la decisión pendiente sin ampliarlo automáticamente.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

@@ -406,5 +406,29 @@
     "REGRESSION_GUARD": "PREPARED_CONTINUATION; PREFLIGHT_SQL; DRAFT_POLICY; AUTOMATIC_DRAFT_INTEGRATION; OPTIONAL_DRAFT_REVIEW",
     "REUSABILITY": "Same existing journal/Budget Gate/job across episodes and image/video stages. Bounded final preflight and no automatic replay after real uncertainty.",
     "NEXT_ACTION": "Existing worker polls the accepted q43 request. User may choose automatic draft policy inside Studio. No new technical prompt or generation test."
+  },
+  {
+    "INCIDENT_ID": "LUMI-DRAFT-CONTROL-LOCK-018",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "draft_policy_review; job_pause/job_continue",
+    "SYMPTOM": "Policy and pause controls disabled during RUNNING/GENERATING and WAITING_PROVIDER.",
+    "ROOT_CAUSE": "button() reused busy() generation lock for configuration actions despite backend choice_available. Control completion was not bound to exact durable policy/job identities.",
+    "EVIDENCE": [
+      "Baseline browser reproduces both disabled controls with backend choice_available=true.",
+      "docs/lumi-improvement/policy-control-evidence.json"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Can review/choose policy or pause new emissions during accepted generation; no new episode/retry required.",
+    "FINANCIAL_RISK": "No generation, quote, reservation, budget or consent changes; q43 same request.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
+    "TEST_EVIDENCE": [
+      "CI39836679030 SUCCESS:27 tests",
+      "PASS_POLICY_CONTROL_BROWSER: ten-click dedup, lost response/reopen, stale stage, expired plan/session; zero generative calls",
+      "Readiness/served JS and unchanged protected hashes in isolated staging"
+    ],
+    "REGRESSION_GUARD": "test/lumi-policy-control-browser.mjs; DRAFT_POLICY",
+    "REUSABILITY": "All episodes with existing backend policy capability; no q43-only logic",
+    "NEXT_ACTION": "User may choose mode inside Studio; no new technical prompt."
   }
 ]

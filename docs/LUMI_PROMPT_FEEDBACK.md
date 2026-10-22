@@ -1,53 +1,53 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-22T00:08:40Z.
+Evidence cutoff: 2026-10-22T13:00:03.209238+00:00.
 
 ## Qué pidió el encargo
 
-- Frontend fluido, imágenes progresivas y acciones que no se habiliten antes de conciliar el resultado.
+- Recuperar video:q43 sin repetir EP004 y preparar borrador automático con una sola decisión de política.
 
 ## Qué se completó realmente
 
-- Bloqueo por propietario, episodio y decisión exacta; revisiones incluidas; recibos durables y CAS conservados.
-- Actualizaciones parciales conservan medios, formularios y foco. Cotizaciones manuales no se reintrodujeron.
-- Miniaturas/previews JPEG deterministas desde originales verificados, privados, con hash y procedencia propios; no son recursos artísticos nuevos.
-- CI de código39697483174 GREEN y despliegue staging a7cd305b verificados; autorización anónima rechazada.
+- Misma operación PREPARED cercada por nonce y lease; final-price preflight después de materiales, URL temporal y precio renovados bajo semántica/hash y plan originales. Reserva conservada atómicamente por diferencia.
+- q43 recibió un ACK real del proveedor mediante el trabajo ya iniciado; no fue una generación de prueba. Política automática versionada y autenticada atraviesa imagen, QA técnico, dirección, video, voz, montaje y master sin aprobaciones humanas ficticias.
+- Dos episodios supervisados y dos borradores completos con servicios externos simulados; descarga privada SHA comprobada. Despliegue exacto y guardas anónimas verificados.
 
 ## Qué quedó pendiente
 
-- Aceptación visual en Telegram/iPhone y revisión editorial actual q43; master real EP004 no terminado.
-- Latencia real autenticada de previews e INP de campo no medidos.
+- Proveedor q43 queued al corte de evidencia; no hay clip final ni master real.
+- Decisión opcional de modo automático y futura revisión final dentro de Studio.
+- La continuidad durante suspensión de Render Free no existe; ningún cambio de hosting autorizado o efectuado.
 
 ## Qué trabajo se repitió innecesariamente
 
-- No se repitieron recuperación de q42, migración de Make ni suites completas. El selector del fixture de navegador se corrigió; se repitió una vez CI por fallo TLS de descarga del navegador.
+- Una combinación de archivos del segundo commit activó un ámbito CI más amplio; se corrigió el selector para conservar pruebas focalizadas. No se repitió migración Make ni recuperación q42 ni generación real de prueba.
 
 ## Qué instrucciones evitaron errores
 
-- No usar el fin de HTTP como finalización de la operación.
-- No probar con botones de producción; fixtures locales y transporte simulado.
-- Comprobar ventana sin despachos/montajes/leases antes de desplegar; no congelar EP004.
+- PREPARED se interpretó usando la invariante real anterior a fetch, no la mera ausencia de request ID. FENCED_PREPARED impide CAS del binario antiguo.
+- No usar revisión técnica como aprobación artística; no ampliar el consentimiento ni presupuesto.
 
 ## Qué instrucciones generaron fricción
 
-- La máquina local no pudo descargar Chromium; la medición se realizó en CI. Git local no tenía credenciales: se publicó el mismo árbol por GitHub, con expected_sha y sin force push.
+- No nuevas: la autorización de continuidad del trabajo existente fue suficiente; el agente no pidió otro permiso técnico.
 
 ## Qué evidencia faltó
 
-- Aceptación visual de esta versión en iPhone; INP real y latencia autenticada de medios. No hay evidencia de doble cobro en este incidente.
+- Tiempo real completo de proveedor/descarga/QA/master; cargos confirmados; capacidad de montaje bajo 512MB; aceptación visual iPhone.
+- El primer phase_timings de la operación reanudada arrastra el intervalo histórico bloqueado: no usarlo como tiempo de preparación. Los tiempos válidos del preflight y transporte están separados en evidence.json.
 
 ## Qué decisión humana se necesita
 
-- Revisar el contenido actual dentro de Studio, sin otro prompt técnico.
+- Elegir Borrador automático · revisión final en Studio si se desea omitir revisiones artísticas intermedias. Hasta entonces se conserva el modo supervisado.
 
 ## Qué riesgos permanecen
 
-- La respuesta inmediata indica envío o conciliación, nunca éxito inventado. Un resultado incierto conserva el bloqueo.
-- Render suspendido demora antes del HTML; no puede corregirse con JavaScript que todavía no llegó.
-- La primera creación de preview puede tardar; está acotada a un codificador y muestra fallback/error de lectura. El original se conserva para ampliar.
+- Un defecto artístico puede pasar a la animación en modo borrador; se informa antes de aceptar. QA de bytes no evalúa anatomía ni continuidad artística.
+- No garantía exactly-once extremo a extremo del proveedor. Una emisión realmente incierta no se reenvía.
+- Expiración explícita del plan y suspensión del alojamiento siguen siendo límites reales.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: a4c2863f792cbf0634d3d797ba464f6c51b4092b2b8ec74eca7db3f69b8cecc6. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 0f3bc5849afc815e1d9e587a195b7d3e21bbef19ee896990c8246163a402b8fc. Outputs are inert drafts; generating them cannot expand authorization.

@@ -379,5 +379,32 @@
     "REGRESSION_GUARD": "Owner/episode/request+version+SHA identity; no timeout unlock; durable receipt/CAS; derivative own/source SHA; read-only progress; native Range media.",
     "REUSABILITY": "All Studio episodes, reviews, private image/video previews and existing production actions.",
     "NEXT_ACTION": "Lumi Studio > Producción > Revisar el resultado actual (q43 en este snapshot). Una pulsación basta; esperar la conciliación del recibo. No volver a iniciar EP004 ni regenerar q42."
+  },
+  {
+    "INCIDENT_ID": "LUMI-Q43-FENCED-PREFLIGHT-017",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "video:q43; generalized IMAGE/VIDEO authorized episode work",
+    "SYMPTOM": "STAGE_QUOTE_EXPIRED_BEFORE_DISPATCH left the existing attempt PREPARED, reservation0.56 and job NEEDS_ATTENTION.",
+    "ROOT_CAUSE": "The 60-second quote was obtained before materialization/validation. PREPARED was recorded 61.167s after quotation; beforeDispatch rejected before the EMITTING CAS/fetch. The executor only recovered accepted jobs and lacked a fenced continuation for demonstrated non-emission.",
+    "EVIDENCE": [
+      "Deployed old journal order: PREPARED -> beforeDispatch -> EMITTING -> fetch.",
+      "Historical quote01:24:58.111Z expiry01:25:58.111Z; PREPARED01:25:59.278Z; exact error and no transition beyond PREPARED.",
+      "After fix same attempt8d2f1164... same jobed908601... one fence, renewed quote0.448/reserve0.56, ACK HTTP200 request24aa9f24-8457-44dd-a9be-23dd662547e1.",
+      "docs/lumi-improvement/draft-continuity-evidence.json"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Removed internal re-quote/restart loop. Optional draft-final policy is a single genuine in-app choice; until accepted, supervised reviews remain.",
+    "FINANCIAL_RISK": "No new reservation; delta0. One real emission by preexisting valid user job, no agent/test generation. Actual charge unknown. Original q42 risk and both reserves preserved.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "087f8666ba13b9d7820d3065326d84da83c70e33",
+    "TEST_EVIDENCE": [
+      "CI39781245758 SUCCESS:138 focused +17 route tests",
+      "PGlite executes exact migration RPC/trigger; old worker fencing, budget race, stale lease, quote expiry, unknown response refusal",
+      "Two automatic drafts and two supervised full fixture episodes; no intermediate human approvals fabricated",
+      "Real same-attempt ACK/reservation and protected before-after hashes"
+    ],
+    "REGRESSION_GUARD": "PREPARED_CONTINUATION; PREFLIGHT_SQL; DRAFT_POLICY; AUTOMATIC_DRAFT_INTEGRATION; OPTIONAL_DRAFT_REVIEW",
+    "REUSABILITY": "Same existing journal/Budget Gate/job across episodes and image/video stages. Bounded final preflight and no automatic replay after real uncertainty.",
+    "NEXT_ACTION": "Existing worker polls the accepted q43 request. User may choose automatic draft policy inside Studio. No new technical prompt or generation test."
   }
 ]

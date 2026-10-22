@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "observed_at": "2026-10-22T13:00:03.209238+00:00",
+  "branch": "lumi-telegram-review-v1",
+  "code_commit": "087f8666ba13b9d7820d3065326d84da83c70e33",
+  "ci": {
+    "run": 39781245758,
+    "status": "SUCCESS"
+  },
+  "deployment": {
+    "id": "dep-dbd0fics728c738fl8s0",
+    "status": "LIVE",
+    "finished_at": "2026-10-22T12:56:25.888719Z",
+    "service": "content-factory-av2-staging",
+    "supabase": "mofjhwathxzfnjapvvst"
+  },
+  "current": {
+    "job": {
+      "id": "ed9086013b8958ea92f34d9d833da0b8ffea6a1feafc0b870765a43db485e7e8",
+      "error": null,
+      "policy": null,
+      "status": "RUNNING",
+      "lease_until": 1792674116004,
+      "preflight_recoveries": 1
+    },
+    "receipt": {
+      "qa": {
+        "ok": false,
+        "status": "queued"
+      },
+      "status": "WAITING",
+      "artifact_sha": null,
+      "result_status": "IN_PROGRESS"
+    },
+    "checkpoint": {
+      "total": 50,
+      "status": "RUNNING",
+      "ceiling": 8,
+      "pending": "video:q43",
+      "revision": 55,
+      "completed": 17,
+      "q43_reviews": [
+        {
+          "id": "41be9b9f65027ec9b567b57f8a65f0821c446c271ee290745bc77b27a97c7c99",
+          "sha": "988dccf79a5c5eb657fc8675a6e34fb89cc8a43a360a381b30447f847bdd0165",
+          "action": "image:q43",
+          "status": "APPROVED"
+        }
+      ],
+      "reserve_q43": 0.56,
+      "reserved_usd": 2.6975,
+      "video_result": {
+        "qa": null,
+        "status": null,
+        "artifact_sha": null
+      },
+      "confirmed_cost_field": 0
+    },
+    "observed_at": "2026-10-22T13:00:03.209238+00:00"
+  },
+  "original_attempt": "8d2f1164f9759b62112daee4a60bf78099a6b1eb0df9cf85a55c2bd8ad2585bb",
+  "original_job_id": "ed9086013b8958ea92f34d9d833da0b8ffea6a1feafc0b870765a43db485e7e8",
+  "journal": {
+    "state": "ACKNOWLEDGED",
+    "provider_request_id": "24aa9f24-8457-44dd-a9be-23dd662547e1",
+    "request_start_at": "2026-10-22T12:56:54.881059+00:00",
+    "response_at": "2026-10-22T12:56:55.465+00:00",
+    "http_status": 200,
+    "fence_count": 1,
+    "preflight_version": {
+      "model": "kling-video/v3.0/pro/image-to-video",
+      "quote_id": "preflight:8d2f1164f9759b62112daee4a60bf78099a6b1eb0df9cf85a55c2bd8ad2585bb:1e2daa05-5000-40fa-9971-1ee7f8795a91",
+      "quote_ms": 314,
+      "quote_usd": 0.448,
+      "action_key": "video:q43",
+      "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+      "expires_at": "2026-10-22T12:57:53.102Z",
+      "preflight_id": "preflight:8d2f1164f9759b62112daee4a60bf78099a6b1eb0df9cf85a55c2bd8ad2585bb:1e2daa05-5000-40fa-9971-1ee7f8795a91",
+      "price_renewed": true,
+      "source_sha256": "988dccf79a5c5eb657fc8675a6e34fb89cc8a43a360a381b30447f847bdd0165",
+      "payload_sha256": "900fdf291c5fca77b1a2a4e4495c03ac78807420d097d1ad21f36a8aee661113",
+      "preparation_ms": 3253,
+      "quote_timestamp": "2026-10-22T12:56:53.102Z",
+      "reservation_usd": 0.56,
+      "semantic_sha256": "a3c789afc219254e5d904216c8d14916ed2bb9fd781e7a20a0fefe9eb28c0635",
+      "plan_authorization_id": "episode-plan:f9c1d11c-52b7-4417-88c8-2975a2b93a44",
+      "previous_reservation_usd": 0.56,
+      "remaining_plan_reservation_usd": 3.76
+    }
+  },
+  "preservation": {
+    "before": {
+      "safety": {
+        "runner": false,
+        "autorun": false,
+        "ceiling": 8,
+        "publication": false
+      },
+      "observed": "2026-10-22T12:46:31.387235+00:00",
+      "proposal": "da57c9202642fbb6dabed472792b7442",
+      "journal_count": 6,
+      "authorizations": "b8daf913aed302dccfb05b8293ca9419",
+      "original_journal": "dc1d45cf5632aa1b4d7dcf2571b351fd",
+      "protected_actions": "5d17d494fbe7ccac8d5e2d7aaaa532ac",
+      "protected_reserves": "261c650c3a178fd29abd19cd442690d4"
+    },
+    "after": {
+      "safety": {
+        "runner": false,
+        "autorun": false,
+        "ceiling": 8,
+        "publication": false
+      },
+      "observed": "2026-10-22T12:58:17.166262+00:00",
+      "proposal": "da57c9202642fbb6dabed472792b7442",
+      "journal_count": 6,
+      "authorizations": "b8daf913aed302dccfb05b8293ca9419",
+      "original_journal": "dc1d45cf5632aa1b4d7dcf2571b351fd",
+      "protected_actions": "5d17d494fbe7ccac8d5e2d7aaaa532ac",
+      "protected_reserves": "261c650c3a178fd29abd19cd442690d4"
+    },
+    "equal": {
+      "safety": true,
+      "proposal": true,
+      "journal_count": true,
+      "authorizations": true,
+      "original_journal": true,
+      "protected_actions": true,
+      "protected_reserves": true
+    }
+  },
+  "economic": {
+    "ceiling_usd": 8,
+    "reservations_in_episode_usd": 2.6975,
+    "linked_q41_reservation_usd": 0.33875,
+    "total_exposure_usd": 3.03625,
+    "remaining_internal_usd": 4.96375,
+    "new_reservation_count": 0,
+    "reservation_delta_usd": 0,
+    "actual_billing": "UNKNOWN"
+  },
+  "calls": {
+    "agent_generation_tests": 0,
+    "existing_authorized_episode_worker_generations": 1,
+    "existing_authorized_episode_worker_final_quote": 1,
+    "plan_authorization_id": "episode-plan:f9c1d11c-52b7-4417-88c8-2975a2b93a44",
+    "plan_explicit_expiry": "2026-10-22T20:26:06.570Z",
+    "new_human_decisions": 0
+  },
+  "validation": {
+    "readiness_sha_verified": true,
+    "served_app_sha256": "c7d1bebdb740f4da2105e87c4b0d9c6decfaca2fe4ebcdb2c55b02c7064b875e",
+    "served_app_matches_local": true,
+    "auth": "TELEGRAM_ED25519",
+    "anonymous_state": 401,
+    "anonymous_library": 401,
+    "iphone": "NOT_TESTED_REAL",
+    "real_q43_clip": "PROVIDER_QUEUED_NO_ARTIFACT_YET",
+    "automatic_policy": "PREPARED_NOT_ACCEPTED",
+    "synthetic_auto_episodes": 2,
+    "synthetic_supervised_episodes": 2
+  },
+  "timings": {
+    "historical_quote_ttl_ms": 60000,
+    "historical_quote_to_prepared_ms": 61167,
+    "new_final_preflight_ms": 3253,
+    "new_final_quote_ms": 314,
+    "new_quote_to_transport_ms": 1779.059,
+    "transport_to_ack_ms": 583.941,
+    "first_http_readiness_ms": 41059,
+    "next_static_http_ms": 5516,
+    "hosting_startup_log": "2026-10-22T12:48:34.031174901Z",
+    "limitations": [
+      "HTTP observations include network; no real episode-duration estimate.",
+      "The first resumed Mini App PREPARING_TRANSPORT elapsed field includes the historical blocked window and is not a valid preparation measurement. Use the independent preflight receipt above.",
+      "Provider generation/download/persistence/QA durations unavailable while queued.",
+      "Host sleep prevents execution; no continuous runtime promised."
+    ]
+  }
+}

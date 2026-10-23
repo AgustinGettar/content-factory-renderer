@@ -2338,3 +2338,16 @@ test('DRAFT_POLICY INITIAL_PLAN explicit combined choice is durable before start
  await starts[0].dispatch();assert.equal(f.emitted.length,1);
  assert.equal((await f.service.view(principal)).review_policy.mode,'DRAFT_FINAL_REVIEW_V1');
 });
+
+
+test('PLAN_ONETAP PRICE_BUFFER proposal stays inside episode ceiling and cannot rewrite an accepted grant',async t=>{
+ const f=await approvedPlanFixture(t),before=structuredClone((await f.reviewStore.get('1')).state.v2_authorizations);
+ const base=await f.service.reviewPlan(f.principal),buffered=await f.service.reviewPlan(f.principal,{priceBuffer:10});
+ assert.equal(base.challenge.contract.per_action_limits['video:q41'],.56);assert.equal(buffered.challenge.contract.per_action_limits['video:q41'],.65);
+ assert.ok(buffered.challenge.contract.total_reservation_maximum_usd<=5);assert.equal(buffered.challenge.contract.maximum_episode_exposure,5);
+ assert.deepEqual((await f.reviewStore.get('1')).state.v2_authorizations,before);assert.equal(f.quotes.length,0);assert.equal(f.emitted.length,0);
+ const forged=structuredClone(base.challenge);forged.price_buffer=10;await assert.rejects(f.service.acceptPlan(f.principal,{challenge:forged,confirm:true}),/EPISODE_PLAN_REVIEW_EXPIRED/);
+ await assert.rejects(f.service.reviewPlan(f.principal,{priceBuffer:100}),/EPISODE_PLAN_BUFFER_INVALID/);
+ await f.service.acceptPlan(f.principal,{challenge:buffered.challenge,confirm:true});
+ const after=(await f.reviewStore.get('1')).state.v2_authorizations;for(const [id,g]of Object.entries(before))assert.deepEqual(after[id],g);assert.equal(f.emitted.length,0);
+});

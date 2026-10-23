@@ -1,6 +1,7 @@
 // Actual browser/app, synthetic media and intercepted transport. No live account
 // or provider calls. This is not an iPhone/Telegram acceptance certificate.
 import {chromium} from 'playwright';
+import {createServer} from 'node:http';
 import {readFile,mkdtemp,mkdir,rm} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
@@ -9,14 +10,14 @@ import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 const root=new URL('../',import.meta.url),files=Object.fromEntries(await Promise.all(['app.js','style.css','index.html'].map(async n=>[n,await readFile(new URL('public/lumi-studio/'+n,root),'utf8')])));
 const dir=await mkdtemp(join(tmpdir(),'lumi-daily-')),screens='/tmp/lumi-daily-screens';await mkdir(screens,{recursive:true});
-let browser;
+let browser,server;
 try{
  const file=join(dir,'master.mp4');
  execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=c=0xabcbd8:s=1080x1920:r=24:d=2','-f','lavfi','-i','sine=frequency=440:duration=2','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-threads','1','-c:a','aac','-movflags','+faststart','-shortest',file]);
  const bytes=await readFile(file),sha=createHash('sha256').update(bytes).digest('hex');
  const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'}));
  assert.equal(probe.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
- browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
+ browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
  let posts=0,reads=0,accesses=0,ranges=0,expired=false;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const shot=(n)=>({id:'q4'+n,number:n,title:['Lumi y vos','La vaca','La oveja','El caballo','El cerdo','La gallina','Hasta mañana'][n-1],complete:n<3,current:n===3,goal:'Descubrir la granja',characters:['Lumi'],continuity:{character_details:[]}});
  let state={client_scope:'fixture-owner',client_session:'fixture-session',server_time:Date.now(),review_revision:4,
@@ -26,9 +27,9 @@ try{
   current_action:{status:'SUBMITTED',emission_locked:true,provider_request_id:'internal-id',operations:[]},production:{shots:Array.from({length:7},(_,n)=>shot(n+1)),action:{stage:'VIDEO'}},
   continuity:{accepted_at:'2026-10-23T15:00:00Z',last_provider_check_at:'2026-10-23T15:01:00Z',recovery_status:'WAITING'},
   media:[],reviews:[],review_receipts:[],action_receipts:[],capabilities:{generate:false},budget:{ceiling_usd:8,actual_cost_usd:null,exposure_usd:3.03625,remaining_usd:4.96375,reservations:[{amount_usd:3.03625}]},settings:{}};
- await context.route('**/*',async route=>{
+ const handle=async route=>{
   const req=route.request(),u=new URL(req.url()),p=u.pathname,json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
-  if(u.hostname!=='lumi.test')throw Error('EXTERNAL_REQUEST_BLOCKED');
+  if(u.hostname!=='127.0.0.1')throw Error('EXTERNAL_REQUEST_BLOCKED');
   if(req.method()==='POST'){posts++;throw Error('UNEXPECTED_MUTATION');}
   if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script defer src="https://telegram.org/js/telegram-web-app.js"></script>','')});
   if(p.endsWith('/style.css'))return route.fulfill({contentType:'text/css',body:files['style.css']});
@@ -39,14 +40,17 @@ try{
   if(p.endsWith('/library'))return json({assets:[],counts:{},selections:[],version:1});
   if(p.endsWith('/master/access')){accesses++;return json({url:'/lumi/studio/api/media/master?ticket=fresh',expires_at:Date.now()+300000});}
   if(p.endsWith('/media/master')){
-   const headers={'Accept-Ranges':'bytes',...(u.searchParams.has('download')?{'Content-Disposition':'attachment; filename="Lumi-fixture.mp4"'}:{})};
+   const headers={'Accept-Ranges':'bytes',...(u.searchParams.has('download')?{'Content-Disposition':'attachment; filename="Lumi-'+sha.slice(0,12)+'.mp4"'}:{})};
    const range=req.headers().range;
    if(range){ranges++;const [,start,end]=/^bytes=(\d+)-(\d*)$/.exec(range),a=Number(start),b=end?Number(end):bytes.length-1;return route.fulfill({status:206,contentType:'video/mp4',headers:{...headers,'Content-Range':`bytes ${a}-${b}/${bytes.length}`},body:bytes.subarray(a,b+1)});}
    return route.fulfill({contentType:'video/mp4',headers,body:bytes});
   }
   throw Error('UNEXPECTED_REQUEST '+p);
- });
- await page.goto('https://lumi.test/lumi/studio');await page.waitForSelector('.workflow-steps');
+ };
+ server=createServer((req,res)=>{handle({request:()=>({url:()=>base+req.url,method:()=>req.method,headers:()=>req.headers}),fulfill:async({status=200,contentType,headers={},body=''})=>{res.writeHead(status,{'Content-Type':contentType,'Cache-Control':'no-store',...headers});res.end(body);}}).catch(e=>{errors.push(e.message);res.writeHead(500);res.end();});});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
+ await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
+ await page.goto(base+'/lumi/studio');await page.waitForSelector('.workflow-steps');
  assert.equal(await page.locator('.workflow-steps button').count(),4);
  assert.equal(await page.locator('[data-workflow=producir]').getAttribute('aria-current'),'step');
  assert.match(await page.locator('.daily-status').innerText(),/2 de 7 tomas listas/);
@@ -70,9 +74,9 @@ try{
  await page.locator('video').evaluate(v=>v.play());await page.waitForFunction(()=>document.querySelector('video').currentTime>.2);
  const playbackTime=await page.locator('video').evaluate(v=>v.currentTime);await page.evaluate(()=>fixtureUI.refresh());assert.ok(await page.locator('video').evaluate(v=>v.currentTime)>=playbackTime);
  const downloadPromise=page.waitForEvent('download');await page.locator('[data-download-media]').click();const download=await downloadPromise;
- assert.equal(download.suggestedFilename(),'Lumi-fixture.mp4');assert.equal(createHash('sha256').update(await readFile(await download.path())).digest('hex'),sha);assert.equal(accesses,1);
+ assert.equal(download.suggestedFilename(),'Lumi-'+sha.slice(0,12)+'.mp4');assert.equal(createHash('sha256').update(await readFile(await download.path())).digest('hex'),sha);assert.equal(accesses,1);
  await page.screenshot({path:join(screens,'download.png'),fullPage:true});
  expired=true;await page.evaluate(()=>fixtureUI.refresh());assert.match(await page.locator('#app').innerText(),/bot de Telegram/);assert.equal(posts,0);assert.equal(errors.length,0,errors.join(';'));
  console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,posts}));
  await context.close();
-}finally{await browser?.close();await rm(dir,{recursive:true,force:true});}
+}finally{await browser?.close();await new Promise(resolve=>server?server.close(resolve):resolve());await rm(dir,{recursive:true,force:true});}

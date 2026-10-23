@@ -237,7 +237,7 @@ function dailyStatus(w){
  else if(state.current_action?.status==='SUBMITTED'){title=current?'Esperando la animación · toma '+current.number:'Solicitud aceptada';message='La solicitud fue aceptada. Todavía no hay un archivo final verificado para esta etapa.';needs='Nada por ahora. La consulta del resultado se realiza con el servicio activo.';}
  else if(w.active==='producir'){title='Preparando la siguiente etapa';message='Lumi verifica los resultados y los límites del plan guardado.';needs='Nada mientras no se indique una decisión pendiente.';}
  const evidence=c.last_provider_check_at||c.accepted_at||c.checkpoint_at;
- return `<section class="card daily-status" data-ui-key="daily-status"><span class="tag ${w.attention?'gold':'blue'}">${w.attention?'Necesita atención':state.review_policy?.mode==='DRAFT_FINAL_REVIEW_V1'?'Borrador automático':'Producción supervisada'}</span><h2 role="status">${esc(title)}</h2><p>${esc(message)}</p><p class="human-need"><strong>De vos:</strong> ${esc(needs)}</p>${evidence?`<small>Última actividad verificada: ${esc(new Date(evidence).toLocaleString('es-AR'))}${c.last_provider_check_at?' · consulta del resultado':c.accepted_at?' · solicitud aceptada':' · progreso guardado'}.</small>`:''}<p class="completion-count">${w.ready} de ${w.shots.length} tomas listas</p><p class="budget-note">El progreso cuenta tomas completadas. No estima cuánto falta en tiempo.</p></section>`;
+ return `<section class="card daily-status" data-ui-key="daily-status"><span class="tag ${w.attention?'gold':'blue'}">${w.attention?'Necesita atención':state.review_policy?.mode==='DRAFT_FINAL_REVIEW_V1'?'Borrador automático':'Producción supervisada'}</span><h2 role="status">${esc(title)}</h2><p>${esc(message)}</p><p class="human-need"><strong>De vos:</strong> ${esc(needs)}</p>${evidence?`<small>Última actividad verificada: ${esc(new Date(evidence).toLocaleString('es-AR'))}${c.last_provider_check_at?' · consulta del resultado':c.accepted_at?' · solicitud aceptada':' · progreso guardado'}.</small>`:''}<p class="completion-count">${w.ready} de ${w.shots.length} tomas listas</p>${!w.attention&&!state.reviews.length&&state.episode.next_action&&job&&job.status!=='PAUSED'?progressControl():''}</section>`;
 }
 function shotGallery(w){return `<section class="shot-gallery"><div class="section-heading"><h2>Tomas del episodio</h2><span>${w.ready}/${w.shots.length}</span></div><div class="shot-grid">${w.shots.map(s=>{
  const image=state.media.find(m=>m.episode===state.episode.id&&m.shot_id===s.id&&m.role==='source'),clip=state.media.find(m=>m.episode===state.episode.id&&m.shot_id===s.id&&m.role==='clip');
@@ -251,7 +251,7 @@ function workflowPage(){
  const w=workflowState(),selected=workflowTab||w.active,m=source();
  let content='';
  if(selected==='preparar')content=`${quoteCard()}${reviewPolicyCard()}${plannerLibraryCard()}`;
- else if(selected==='producir')content=`<div id="next-action" tabindex="-1">${quoteCard()}${reviewCards()}</div>${shotGallery(w)}<details class="card" data-ui-key="mode-options"><summary>Modo de revisión y pausa</summary>${reviewPolicyCard()}</details>`;
+ else if(selected==='producir')content=`<div id="next-action" tabindex="-1">${!w.attention&&!state.reviews.length&&['RUNNING','QUEUED','WAITING_PROVIDER'].includes(state.episode_job?.status)?'':quoteCard()}${reviewCards()}</div>${shotGallery(w)}<details class="card" data-ui-key="mode-options"><summary>Modo de revisión y pausa</summary>${reviewPolicyCard()}</details>`;
  else if(selected==='revisar')content=`<div id="next-action" tabindex="-1">${state.reviews.length?reviewCards():`<section class="card"><h2>${w.master?'Borrador guardado':'Revisión final pendiente'}</h2><p>${w.master?'El borrador completo está disponible. La aprobación final debe quedar registrada antes de terminar.':'El borrador completo aparecerá aquí cuando terminen las tomas, la voz y el montaje.'}</p>${w.master?frame(w.master):''}</section>`}</div>${state.optional_reviews?.length?`<details class="card"><summary>Revisar tomas antes del final (opcional)</summary>${reviewCards(state.optional_reviews)}</details>`:''}${clipCards()}`;
  else content=w.master&&!state.episode.next_action?masterCard(w.master):'<section class="card"><h2>Descarga pendiente</h2><p>El video final estará disponible después del montaje y de tu aprobación del borrador completo.</p></section>';
  return `<header class="episode-heading"><div><span class="eyebrow">EPISODIO ACTIVO</span><h1>${esc(state.episode.title)}</h1></div>${m?studioImage(m,'thumb',true):''}</header>${workflowSteps(w)}${dailyStatus(w)}${budgetCard()}${content}${workflowDetails()}`;
@@ -369,14 +369,14 @@ const controlNoEffect=e=>e.no_effect===true||e.status===401||['MINI_SESSION_EXPI
 async function controlJob(action){
  if(configurationBlocked(action==='pause'?'job_pause':'job_continue'))return;
  const i=beginIntent('job_'+action,{request_id:crypto.randomUUID()});if(!i)return;
- changeIntent(i,'SENDING',{job_id:state.episode_job.id});mutationEpoch++;controlMessage='',workflowTab=null;render();
+ changeIntent(i,'SENDING',{job_id:state.episode_job.id});mutationEpoch++;controlMessage='';render();
  try{await request('/episode/control',{method:'POST',body:{action}});changeIntent(i,'ACKNOWLEDGED',{result:'CONTROL_REGISTERED'});controlMessage=action==='pause'?'Pausa guardada. Conservamos los trabajos ya enviados.':'El mismo trabajo continuará.';}
  catch(e){changeIntent(i,controlNoEffect(e)?'REJECTED_NO_EFFECT':'UNKNOWN');controlMessage=errorText(e);}
  finally{await refresh();render();}
 }
 async function reviewDraftPolicy(){
  if(configurationBlocked('draft_policy_review')||dialog.open)return;
- policyReviewLoading=true;controlMessage='',workflowTab=null;const episode=state.episode.id;render();
+ policyReviewLoading=true;controlMessage='';const episode=state.episode.id;render();
  try{const {challenge}=await request('/review-policy/review'),c=challenge.contract;
   if(state?.episode.id!==episode)return;
   document.querySelector('#dialog-title').textContent='Borrador automático · revisión final';
@@ -384,7 +384,7 @@ async function reviewDraftPolicy(){
   const b=document.querySelector('#dialog-confirm');b.textContent='Aceptar el modo y continuar';b.disabled=false;b.onclick=async()=>{
    if(state?.episode.id!==episode||controlPending('draft_policy_accept')||!state.review_policy?.choice_available)return;
    const id='draft-policy:'+challenge.challenge_id,i=beginIntent('draft_policy_accept',{request_id:id});if(!i)return;
-   changeIntent(i,'SENDING',{authorization_id:id});b.disabled=true;dialog.close();mutationEpoch++;controlMessage='',workflowTab=null;render();
+   changeIntent(i,'SENDING',{authorization_id:id});b.disabled=true;dialog.close();mutationEpoch++;controlMessage='';render();
    try{await request('/review-policy/accept',{method:'POST',body:{challenge,confirm:true}});changeIntent(i,'ACKNOWLEDGED');controlMessage='Aceptación específica registrada.';}
    catch(e){changeIntent(i,controlNoEffect(e)?'REJECTED_NO_EFFECT':'UNKNOWN');controlMessage=errorText(e);}
    finally{await refresh();render();}
@@ -405,7 +405,7 @@ document.addEventListener('click',async e=>{
  const step=e.target.closest('[data-workflow]');if(step){workflowTab=step.dataset.workflow;render();return;}
  const download=e.target.closest('[data-download-media]');if(!download)return;
  download.disabled=true;const label=download.textContent;download.textContent='Preparando descarga…';
- try{const access=await request('/media/'+download.dataset.downloadMedia+'/access');const a=document.createElement('a');a.href=access.url+'&download=1';a.download='Lumi.mp4';a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();}
+ try{const access=await request('/media/'+download.dataset.downloadMedia+'/access');const a=document.createElement('a');a.href=access.url+'&download=1';a.download='Lumi-'+(state.media.find(m=>m.id===download.dataset.downloadMedia)?.sha256?.slice(0,12)||'video')+'.mp4';a.target='_blank';a.rel='noopener';document.body.append(a);a.click();a.remove();}
  catch(error){toast(errorText(error));}finally{download.disabled=false;download.textContent=label;}
 });
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-tab],[data-action],[data-review],[data-episode]');if(!t)return;

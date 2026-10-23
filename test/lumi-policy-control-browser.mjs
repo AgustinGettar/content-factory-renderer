@@ -12,7 +12,7 @@ const fixture=()=>({client_scope:'fixture-owner',client_session:'fixture-session
  review_policy:{id:null,mode:'SUPERVISED',choice_available:true,expired:false},episode_plan_authorization:{status:'AUTHORIZED',approval_available:true},
  current_action:{status:'SUBMITTED',emission_locked:true,operations:[]},production:{shots:[],action:{stage:'VIDEO'}},
  media:[],reviews:[],review_receipts:[],action_receipts:[],capabilities:{generate:false},budget:{ceiling_usd:8,exposure_usd:3.03625,remaining_usd:4.96375},settings:{}});
-const browser=await chromium.launch({headless:true});const results=[];
+const browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const results=[];
 try{
  for(const version of ['before','after']){
   const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage();

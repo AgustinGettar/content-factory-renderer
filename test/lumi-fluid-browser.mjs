@@ -16,7 +16,7 @@ let browser;
 try{
  const png=join(dir,'fixture.png');execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=1520x2688','-frames:v','1','-threads','1',png]);
  const original=await readFile(png),thumb=await imagePreview(original,{variant:'thumb'}),preview=await imagePreview(original,{variant:'preview'}),hash=sha(original);
- browser=await chromium.launch({headless:true});const observations=[];
+ browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const observations=[];
  for(const version of ['before','after']){
   const context=await browser.newContext({viewport:{width:390,height:844},reducedMotion:'reduce'}),page=await context.newPage();
   let postCount=0,effects=0,stalled=false,reads=0,expired=false;const errors=[],mediaReads=[],held=[];

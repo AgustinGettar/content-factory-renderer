@@ -45,7 +45,7 @@ try{
    if(req.method()==='POST')otherPosts++;
    throw Error('UNEXPECTED_FIXTURE_REQUEST '+p);
   });
-  await page.goto('https://lumi.test/lumi/studio');await page.waitForSelector('[data-action=draft_policy_review]');
+  await page.goto('https://lumi.test/lumi/studio');if(version==='after')await page.locator('[data-workflow=preparar]').click();await page.waitForSelector('[data-action=draft_policy_review]');
   const policy=page.locator('[data-action=draft_policy_review]').first(),pause=page.locator('[data-action=job_pause]').first();
   if(version==='before'){assert.equal(await policy.isDisabled(),true);assert.equal(await pause.isDisabled(),true);results.push({version,reproduced:true});await context.close();continue;}
   assert.equal(await policy.isEnabled(),true);assert.equal(await pause.isEnabled(),true);
@@ -61,7 +61,7 @@ try{
   state={...state,review_revision:5,episode:{...state.episode,next_action:'temporal_qa:q43',checkpoint_version:56}};
   await page.evaluate(()=>fixtureUI.refresh());assert.equal(await policy.isDisabled(),true);
   for(const r of held)await r.abort().catch(()=>{});
-  await page.clock.uninstall?.();await page.reload();await page.waitForSelector('[data-action=draft_policy_review]');
+  await page.clock.uninstall?.();await page.reload();await page.locator('[data-workflow=preparar]').click();await page.waitForSelector('[data-action=draft_policy_review]');
   assert.equal(await policy.isDisabled(),true);assert.equal(acceptPosts,1);
   durable={...durable,review_revision:6,episode:state.episode};readDurable=true;
   await page.evaluate(()=>fixtureUI.refresh());

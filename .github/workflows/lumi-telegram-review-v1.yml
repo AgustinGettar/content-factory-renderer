@@ -38,7 +38,7 @@ jobs:
               *) draft_only=false ;;
             esac
             case "$path" in
-              public/lumi-studio/*|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/library.js|test/lumi-fluid*|test/lumi-mini-app-auth.test.js|test/lumi-library-v1.test.js|test/lumi-q41-first-image.test.js|package.json|package-lock.json|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|docs/LUMI_FLUID_UX.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              public/lumi-studio/*|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/library.js|test/lumi-policy-control-browser.mjs|test/lumi-daily-workflow-browser.mjs|test/lumi-fluid*|test/lumi-mini-app-auth.test.js|test/lumi-library-v1.test.js|test/lumi-q41-first-image.test.js|package.json|package-lock.json|docs/lumi-improvement/*|docs/LUMI_RESUME_STATE.md|docs/LUMI_PROMPT_FEEDBACK.md|docs/LUMI_NEXT_PROMPT.txt|docs/LUMI_FLUID_UX.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) fluid_only=false ;;
             esac
             case "$path" in docs/*) ;; *) docs_only=false ;; esac
@@ -116,6 +116,15 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           node test/lumi-fluid-browser.mjs
+          node test/lumi-policy-control-browser.mjs
+          node test/lumi-daily-workflow-browser.mjs
+      - name: Daily workflow screenshots
+        if: always() && steps.scope.outputs.fluid_only == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumi-daily-workflow-screens
+          path: /tmp/lumi-daily-screens/*.png
+          if-no-files-found: ignore
       - name: Fenced preflight and explicit draft-policy affected regression (offline)
         if: steps.scope.outputs.draft_only == 'true' && steps.scope.outputs.docs_only != 'true'
         run: |

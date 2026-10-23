@@ -158,12 +158,12 @@ async function transitionUi(initial,{reduced=false,playing=false}={}){
 }
 test('Q41_COMPLETE_UI Q42_PENDING_UI NO_STALE_Q41_CONTROLS SHOT_PROGRESS BUTTON_POSITION SESSION_REOPEN',async()=>{
  const f=await transitionFixture(),v=f.make(),{ui}=await transitionUi(v),html=ui.production();
- assert.match(html,/Toma 1 · Completada/);assert.match(html,/Aprobación humana conservada/);assert.match(html,/src="\/original"/);
- assert.match(html,/Escena 2/);assert.match(html,/Asociar vaca con muu/);assert.match(html,/marketing-studio\/image/);
+ assert.match(html,/1 de 7 tomas listas/);assert.match(html,/Aprobación humana conservada/);assert.match(html,/src="\/original"/);
+ assert.match(html,/Toma 2/);assert.match(html,/Asociar vaca con muu/);assert.match(html,/marketing-studio\/image/);
  assert.match(html,/Lumi, Vaca, Oveja, Gallina/);assert.match(html,/cámara fija/);assert.match(html,/preparar|Preparar siguiente imagen/);
  assert.equal((html.match(/data-action="prepare"/g)||[]).length,1);
- assert.ok(html.indexOf('id="next-action"')>html.indexOf('</ol>'));
- assert.match(html,/<\/ol><div id="next-action"/);
+ assert.ok(html.indexOf('id="next-action"')<html.indexOf('Detalles de producción'));
+ assert.match(html,/data-workflow="preparar"/);assert.match(html,/data-workflow="descargar"/);
  assert.doesNotMatch(html,/Una primera chispa|Primera animación|Consultar precio|Renovar cotización|data-action="first_animation"/);
  assert.doesNotMatch(html,/data-action="generate"|data-action="authorize"/);
 });
@@ -317,8 +317,8 @@ test('EPISODE_UX_V5: one contextual action, automatic recovery and visible human
  assert.doesNotMatch(html,/data-action="(?:quote|authorize|generate|recover|continue|prepare)"/);
  v.episode_plan_authorization.status='AUTHORIZED';ui.setState(v);assert.match(ui.quoteCard(),/data-action="produce_episode"/);
  v.episode_job={status:'WAITING_PROVIDER'};v.current_action={emission_locked:true,status:'SUBMITTED'};ui.setState(v);
- html=ui.quoteCard();assert.match(html,/Preparando tu revisión/);assert.doesNotMatch(html,/data-action="(?:produce_episode|recover|generate)"/);assert.match(html,/data-action="refresh"/);
+ html=ui.quoteCard();assert.match(html,/Solicitud aceptada · esperando resultado/);assert.doesNotMatch(html,/data-action="(?:produce_episode|recover|generate)"/);assert.match(html,/data-action="refresh"/);
  v.reviews=[{id:'authentic-artifact-review'}];ui.setState(v);assert.match(ui.quoteCard(),/Listo para revisar/);
  v.reviews=[];v.current_action={emission_locked:false,status:'NOT_STARTED'};v.episode_job={status:'WAITING_HUMAN_REVIEW'};ui.setState(v);
- assert.match(ui.quoteCard(),/Preparando tu revisión/);assert.doesNotMatch(ui.quoteCard(),/data-action="produce_episode"/,'the existing job resumes after approval without a second start button');
+ assert.match(ui.quoteCard(),/Solicitud guardada/);assert.doesNotMatch(ui.quoteCard(),/data-action="produce_episode"/,'the existing job resumes after approval without a second start button');
 });

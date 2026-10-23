@@ -1,46 +1,38 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-22T19:05:27.880358Z.
+Evidence cutoff: 2026-10-23T16:33:42.881684Z.
 
 ## Qué pidió el encargo
 
-- Corregir únicamente Elegir borrador automático y comprobar Pausar nuevas emisiones mientras hay generación aceptada.
+- Terminar EP004 hasta el límite de autorizaciones vigentes y simplificar producción repetible.
 
 ## Qué se completó realmente
 
-- Causa confirmada: helper button() heredaba busy() de generación para controles de configuración. Bloqueos separados por control y capacidad server-side; Generar conserva su bloqueo.
-- Aceptación y pausa conservan intención pendiente tras timeout/reapertura; se concilian con ID de decisión o trabajo, no por cambio de etapa. Sesión y plan vencidos muestran motivo.
-- CI39836679030 GREEN; código c256051a5f25eed33e69c8bb606172ddfdc4dee0 LIVE; datos protegidos sin cambios.
+- q43 recuperado sin reemisión; q44 imagen/video completados bajo autorización existente; avance17→26 de50.
+- 4 etapas visibles, decisión inicial de modo, plan narrativo, costos separados e incorporación de reservas importadas.
+- Reinicio real recuperado; tests de doble toque, reapertura, límites, revisión y descargas con bytes verificables.
 
 ## Qué quedó pendiente
 
-- Elegir el modo voluntariamente dentro de Studio. No se registró aceptación por el agente.
-- Aceptación visual en Telegram/iPhone no probada; q43 sigue en su solicitud existente.
+- Decisión económica específica para el resto de EP004; master y voz todavía no existen.
+- Idea nueva→plan no está conectada en DIRECT/Studio. No se creó otro episodio ni se autorizó una IA nueva.
+- Prueba real de Telegram/iPhone con el master final.
 
-## Qué trabajo se repitió innecesariamente
+## Qué trabajo no se repitió
 
-- No se repitieron recuperación q43, auditoría, migración Make ni suites históricas. Descarga local de Chromium falló; prueba real de navegador ejecutada y aprobada en CI.
+- No se reemitió q41/q43, no se liberó q42, no se cambió Make ni el planFree.
 
 ## Qué instrucciones evitaron errores
 
-- Separar capacidad de configuración de generación; no cambiar presupuesto ni consentimiento, no reenviar q43.
-- Desplegar solamente tras CI exacto y ventana sin transporte/lease local activo.
+- Estado durable por sobre reportes históricos: plan y modo ya estaban aceptados.
+- Separar recuperación de creación y gastos autorizados de pruebas sintéticas.
 
-## Qué evidencia faltó
+## Cómo continuar
 
-- Aceptación visual real del usuario en iPhone. Ningún test de navegador se presenta como interacción real de Telegram.
-
-## Qué decisión humana se necesita
-
-- Elegir Borrador automático en Studio si desea esa política; confirmar sus condiciones.
-
-## Qué riesgos permanecen
-
-- El vencimiento explícito del plan sigue vigente; no se extiende automáticamente.
-- Free no ejecuta trabajo durante suspensión; no se modificó alojamiento.
+- Una única decisión en Studio: Revisar plan y continuar. No hace falta coordinar otro prompt técnico.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: b7c0b728a6026c3f82af026dab9ef1f3b83abf5bdf2c965fec89b416b8f861fc. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 681528fba37876432d2fca11d9629056db7435d3162064e7b9c2da44e91705d6. Outputs are inert drafts; generating them cannot expand authorization.

@@ -1,22 +1,28 @@
 {
   "version": 1,
-  "observed_at": "2026-10-22T19:05:27.880358Z",
+  "observed_at": "2026-10-23T16:33:42.881684Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
+  "source_commit": "1b02c51429fd863d6216511ee0b8b0b460f46f0b",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Code c256051a5f25eed33e69c8bb606172ddfdc4dee0; CI SUCCESS39836679030. Render dep-dbd5semq1p3s73ckqnk0 LIVE 2026-10-22T19:05:06.083347Z; readiness SHA and served app bytes match. No active transport/leases/local assembly before deployment. Staging only, Free unchanged. Evidence-only follow-up requires no restart.",
+  "deployment_evidence": "Code1b02c51429fd863d6216511ee0b8b0b460f46f0b; CI39986155840 GREEN. Render dep-dbdok1vf3r2c73bh6vi0 LIVE2026-10-23T16:24:13.450064Z; both readiness endpoints match SHA; served app SHA256fa6acdd9f7c775bb86ed3e96c25a501666361a80923afae339f711bbfaf39cab matches local. Private state/session401. Free unchanged, autoDeployoff. Same EP004revision76/job/consents and2 authorized q44 emissions after final deployment. This docs-only follow-up needs no restart.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
-  "status": "RUNNING",
-  "last_completed_action": "director:q43",
-  "first_pending_action": "video:q43",
+  "status": "RUNNING — JOB NEEDS_ATTENTION",
+  "last_completed_action": "shot_review:q44",
+  "first_pending_action": "image:q45",
   "progress": {
-    "completed": 17,
+    "completed": 26,
     "total": 50,
+    "delta_this_intervention": 9,
+    "completed_shots": 4,
+    "total_shots": 7,
     "approved_images": 3,
     "approved_clips": 2,
-    "master_completed": false
+    "available_images": 4,
+    "available_clips": 4,
+    "master_completed": false,
+    "note": "Technical completion under the accepted draft policy is not HUMAN_APPROVED."
   },
   "original": {
     "operation_id": "125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90",
@@ -25,22 +31,29 @@
     "response": "NO_RESPONSE",
     "reserved_usd": 0.3275
   },
-  "proposal_id": "02f77cdbb3f97f58f4a8c56fd7a405326f66ff7b47016eaefed3768fbb333670",
+  "proposal_id": null,
   "budget": {
     "ceiling_usd": 8,
-    "exposure_usd": 3.03625,
-    "proposed_new_reservation_usd": 0.375,
-    "potential_total_exposure_usd": 3.03625,
+    "exposure_usd": 3.94125,
+    "pending_reservations_usd": 3.94125,
+    "local_reservations_usd": 3.6025,
+    "imported_source_reservation_usd": 0.33875,
+    "remaining_usd": 4.05875,
     "actual_spend_usd": null,
-    "remaining_usd": 4.96375
+    "blocked_current_reservation_usd": 0.3475,
+    "current_action_authorized_max_usd": 0.345,
+    "proposed_new_reservation_usd": 0.4,
+    "potential_total_exposure_usd": 7.24125,
+    "proposal_only": true
   },
   "authorizations": {
     "provider_generation": false,
     "new_reservations": false,
     "automatic_prompt_execution": false,
     "allowed": [
-      "Technical correction of policy/pause controls, simulated browser tests, branch publication and staging deployment",
-      "No policy acceptance, plan extension, generation, reservation or q43 reconciliation by agent"
+      "Code, tests, branch push and staging deployment within the user scope",
+      "Recover accepted q43 and continue the already activated EP004 job within existing sealed plan500d1ff2 and draft policyd35a8f98",
+      "No new blanket spending authority, plan upgrade, publication or another episode"
     ],
     "risk_acceptance": "HISTORICAL_REPLACEMENT_CONSUMED_NO_NEW_ACCEPTANCE",
     "previous_intervention_emission_evidence": {
@@ -53,271 +66,266 @@
     },
     "this_intervention": {
       "agent_generation_tests": 0,
-      "new_reservations": 0,
+      "existing_authorized_worker_generations": 2,
+      "new_reservations_from_existing_consent": 2,
+      "new_reserved_usd": 0.905,
       "new_human_decisions": 0,
-      "budget_changes": 0
+      "budget_changes": 0,
+      "q43_reemissions": 0,
+      "q45_emissions": 0
     }
   },
   "blockers": [
     {
-      "priority": 3,
       "category": "PROVIDER_EVIDENCE",
       "status": "ORIGINAL_Q42_UNKNOWN_PRESERVED",
-      "description": "Original q42 permanece EMISSION_UNKNOWN/NO_RESPONSE y conserva USD0.3275. Reemplazo y q41/q42 aprobados preservados. El nuevo ACK q43 no demuestra cobro.",
+      "description": "q42 original sigue EMISSION_UNKNOWN, sin request_id y con USD0.3275 reservados. No impide avanzar con su reemplazo ya aprobado.",
+      "priority": 3,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "CRITICAL",
-      "financial_risk": "HIGH",
-      "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 1,
-      "category": "GENERATION",
-      "status": "Q43_ACKNOWLEDGED_PROVIDER_QUEUED",
-      "description": "Mismo attempt y trabajo reanudados. Request 24aa9f24-8457-44dd-a9be-23dd662547e1, HTTP 200. Recibo WAITING/IN_PROGRESS, proveedor queued; todavía sin clip terminado.",
-      "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
-      ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "CRITICAL",
-      "financial_risk": "HIGH",
-      "recurrence_probability": "HIGH if ambiguous responses recur",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
-    },
-    {
-      "priority": 1,
-      "category": "HUMAN_REVIEW",
-      "status": "SUPERVISED_UNTIL_EXPLICIT_POLICY_CHOICE",
-      "description": "Imagen q43 ya APPROVED. Borrador automático · revisión final disponible como decisión única; aún no aceptado. No HUMAN_APPROVED ficticio. Bajo modo vigente el clip q43 requerirá revisión cuando llegue.",
-      "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
-      ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "CRITICAL",
-      "financial_risk": "HIGH",
-      "recurrence_probability": "EXPECTED_EACH_NEW_RESULT",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
-    },
-    {
-      "priority": 2,
       "category": "BUDGET",
-      "status": "CEILING_AND_EXISTING_RESERVES_PRESERVED",
-      "description": "Techo8; exposición3.03625 incluyendo q41 vinculado0.33875; disponible4.96375. q43 precio renovado0.448 y misma reserva0.56, delta0. Plan expira explícitamente 2026-10-22T20:26:06.570Z; no se extendió.",
+      "status": "HUMAN_LIMIT_DECISION_REQUIRED",
+      "description": "q45 IMAGE: precio observado USD0.278; reserva1.25×=USD0.3475, máximo vigenteUSD0.345. Sin journal ni envío. Propuesta con margen10% y redondeoUSD0.05 solo si el humano acepta; techo8 inalterado.",
+      "priority": 1,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Decision in Studio"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "HIGH",
-      "financial_risk": "HIGH",
-      "recurrence_probability": "EXPECTED_EACH_PAID_ACTION",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "CURRENT",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 3,
+      "category": "GENERATION",
+      "status": "Q43_RECOVERED_Q44_COMPLETE",
+      "description": "q43 original recuperado, guardado y verificado. q44 imagen/video generados bajo consentimiento existente y completados. 4/7 tomas listas; q45–q47 pendientes.",
+      "priority": 2,
+      "dependencies": [
+        "Existing authorized episode and durable checkpoints"
+      ],
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
+    },
+    {
+      "category": "HUMAN_REVIEW",
+      "status": "DRAFT_POLICY_ACCEPTED_FINAL_REVIEW_PENDING",
+      "description": "Aceptación auténtica23Oct15:16:45Z ya existía. Se conserva, con vencimiento24Oct14:12:19Z. No se aprobaron medios en nombre del usuario. Master inexistente.",
+      "priority": 2,
+      "dependencies": [
+        "Existing authorized episode and durable checkpoints"
+      ],
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
+    },
+    {
       "category": "TTS",
-      "status": "CONNECTED_NOT_TESTED_REAL_THIS_TASK",
-      "description": "Ruta Fernanda incluida en ambos episodios automáticos sintéticos; solicitudes externas simuladas. Emisión futura solo bajo plan válido.",
+      "status": "NOT_REACHED",
+      "description": "Fernanda V3 congelada y contrato de cuota existente preservados. EP004 aún no llegó a TTS; no se afirma audio real terminado.",
+      "priority": 2,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "DOWNSTREAM",
-      "financial_risk": "UNKNOWN",
-      "recurrence_probability": "EXPECTED",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 3,
       "category": "ASSEMBLY",
-      "status": "SYNTHETIC_MASTERS_VERIFIED",
-      "description": "Dos masters borrador Full HD 1080x1920 con montaje local real y SHA de descarga. No equivalen a EP004 ni prueban capacidad real de Render Free.",
+      "status": "NOT_REACHED",
+      "description": "No hay master EP004. Integración sintética y HTTP de master1080×1920/H264/AAC verificadas; no sustituyen montaje real.",
+      "priority": 2,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "DOWNSTREAM",
-      "financial_risk": "LOW_FOR_LOCAL_ASSEMBLY",
-      "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 3,
       "category": "DELIVERY",
-      "status": "REAL_MASTER_NOT_CREATED",
-      "description": "Revisión final humana y descarga privada conectadas y probadas en fixtures. EP004 no está terminado; no hay master real acreditado.",
+      "status": "BROWSER_FIXTURE_PASS_DEVICE_PENDING",
+      "description": "Navegador real con datos sintéticos: reproducción, Range y descarga de bytes exactos PASS. Telegram/iPhone real no probado. Comprobación manual breve en el master futuro.",
+      "priority": 2,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "DOWNSTREAM",
-      "financial_risk": "LOW",
-      "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 2,
       "category": "MINI_APP_UX",
-      "status": "POLICY_CHOICE_SERVED_IPHONE_NOT_TESTED",
-      "description": "Frontend fluido anterior conservado. Botón de política, pausa/continuación del mismo trabajo y revisiones voluntarias con bloqueo durable. App servida coincide con bytes locales; aceptación iPhone no probada aquí.",
+      "status": "FOUR_STAGES_IMPLEMENTED",
+      "description": "Preparar/Producir/Revisar/Descargar; decisiones, historia y narración, miniaturas privadas, bloqueo persistente, controles de modo accesibles. La creación libre idea→plan sigue sin ruta DIRECT/Studio: el generador antiguo de Make está retirado. No se activó otra IA paga ni se creó otro episodio fuera del alcance.",
+      "priority": 2,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "HIGH",
-      "financial_risk": "HIGH_IF_LOCK_FAILS",
-      "recurrence_probability": "GUARDED_BY_TESTS",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     },
     {
-      "priority": 2,
       "category": "INFRASTRUCTURE",
-      "status": "FREE_SUSPENDS_DURABLE_RESUME_READY",
-      "description": "Render Free no ejecuta workers suspendido. Arranque observado y recuperación del trabajo después del despliegue. No keep-alive ni cambio de plan. Mínimo always-on publicado: 0.5 CPU/512 MB USD7/mes; capacidad de montaje real no medida.",
+      "status": "FREE_RESTART_RECOVERY_OBSERVED",
+      "description": "Nuevo arranque observado16:08:32–48Z; mismo trabajo retomó temporal_qa:q44 y completó shot_review16:10:49Z. Eventos no acreditan motivo del reinicio. Free no garantiza trabajo durante suspensión; no se contrató otro plan.",
+      "priority": 2,
       "dependencies": [
-        "Existing sealed plan and explicit policy/review decisions where applicable"
+        "Existing authorized episode and durable checkpoints"
       ],
-      "resolution_cost": "Dentro de límites existentes; hosting no contratado",
-      "time_estimate": "No ETA real no medida",
-      "production_impact": "TECHNICAL_GATE_RESOLVED",
-      "financial_risk": "LOW",
-      "recurrence_probability": "UNKNOWN",
-      "evidence": "docs/lumi-improvement/draft-continuity-evidence.json; CI39781245758"
+      "resolution_cost": "Sin nueva autorización de gasto; planFree conservado",
+      "time_estimate": "Sin ETA no comprobada",
+      "production_impact": "DEPENDENT_OR_PRESERVED",
+      "financial_risk": "UNVERIFIED_PROVIDER_CHARGES",
+      "recurrence_probability": "BOUNDED_BY_DURABLE_GATES",
+      "evidence": "docs/lumi-improvement/daily-flow-evidence.json"
     }
   ],
   "metrics": {
     "PRODUCTION_PROGRESS": {
-      "completed": 17,
+      "completed": 26,
       "total": 50,
-      "delta_this_intervention": 0
+      "delta_this_intervention": 9,
+      "shots": 4,
+      "total_shots": 7
     },
     "BLOCKERS_RESOLVED": {
-      "technical": 1,
-      "scope": "Policy/pause controls incorrectly shared generation lock"
+      "technical": 4,
+      "scope": "lateACK recovery, renewed plan binding, initial review choice, usable workflow/download"
     },
     "REGRESSIONS_INTRODUCED": {
       "observed_in_focused_acceptance": 0,
-      "scope": "27 tests + Chromium fixture; no full-suite claim"
+      "scope": "Focused CI plus real production; no full device certificate"
     },
     "DUPLICATE_EMISSIONS": {
       "this_intervention": 0
     },
     "UNAUTHORIZED_SPENDING": {
       "this_intervention": 0,
-      "historical_charges": "UNVERIFIED"
+      "charges": "UNKNOWN"
     },
     "HUMAN_INTERVENTIONS": {
       "new_decisions_recorded_by_agent": 0,
       "pending": [
-        "Optional draft mode choice in Studio"
+        "Approve revised remaining stage limits in Studio"
       ]
     },
     "REUSABLE_FIXES": {
-      "implemented": 1,
-      "scope": "Per-control pending identities and authoritative decision/job reconciliation"
+      "scope": "same-request recovery, plan renewal at future boundaries, initial mode, private download"
     },
     "SIMULATED_PROGRESS": {
       "productive_delta": 0,
-      "scope": "Browser fixture only; no staging fixtures"
+      "scope": "Fixtures never written into staging"
     }
   },
   "feedback": {
     "Qué pidió el encargo": [
-      "Corregir únicamente Elegir borrador automático y comprobar Pausar nuevas emisiones mientras hay generación aceptada."
+      "Terminar EP004 hasta el límite de autorizaciones vigentes y simplificar producción repetible."
     ],
     "Qué se completó realmente": [
-      "Causa confirmada: helper button() heredaba busy() de generación para controles de configuración. Bloqueos separados por control y capacidad server-side; Generar conserva su bloqueo.",
-      "Aceptación y pausa conservan intención pendiente tras timeout/reapertura; se concilian con ID de decisión o trabajo, no por cambio de etapa. Sesión y plan vencidos muestran motivo.",
-      "CI39836679030 GREEN; código c256051a5f25eed33e69c8bb606172ddfdc4dee0 LIVE; datos protegidos sin cambios."
+      "q43 recuperado sin reemisión; q44 imagen/video completados bajo autorización existente; avance17→26 de50.",
+      "4 etapas visibles, decisión inicial de modo, plan narrativo, costos separados e incorporación de reservas importadas.",
+      "Reinicio real recuperado; tests de doble toque, reapertura, límites, revisión y descargas con bytes verificables."
     ],
     "Qué quedó pendiente": [
-      "Elegir el modo voluntariamente dentro de Studio. No se registró aceptación por el agente.",
-      "Aceptación visual en Telegram/iPhone no probada; q43 sigue en su solicitud existente."
+      "Decisión económica específica para el resto de EP004; master y voz todavía no existen.",
+      "Idea nueva→plan no está conectada en DIRECT/Studio. No se creó otro episodio ni se autorizó una IA nueva.",
+      "Prueba real de Telegram/iPhone con el master final."
     ],
-    "Qué trabajo se repitió innecesariamente": [
-      "No se repitieron recuperación q43, auditoría, migración Make ni suites históricas. Descarga local de Chromium falló; prueba real de navegador ejecutada y aprobada en CI."
+    "Qué trabajo no se repitió": [
+      "No se reemitió q41/q43, no se liberó q42, no se cambió Make ni el planFree."
     ],
     "Qué instrucciones evitaron errores": [
-      "Separar capacidad de configuración de generación; no cambiar presupuesto ni consentimiento, no reenviar q43.",
-      "Desplegar solamente tras CI exacto y ventana sin transporte/lease local activo."
+      "Estado durable por sobre reportes históricos: plan y modo ya estaban aceptados.",
+      "Separar recuperación de creación y gastos autorizados de pruebas sintéticas."
     ],
-    "Qué evidencia faltó": [
-      "Aceptación visual real del usuario en iPhone. Ningún test de navegador se presenta como interacción real de Telegram."
-    ],
-    "Qué decisión humana se necesita": [
-      "Elegir Borrador automático en Studio si desea esa política; confirmar sus condiciones."
-    ],
-    "Qué riesgos permanecen": [
-      "El vencimiento explícito del plan sigue vigente; no se extiende automáticamente.",
-      "Free no ejecuta trabajo durante suspensión; no se modificó alojamiento."
+    "Cómo continuar": [
+      "Una única decisión en Studio: Revisar plan y continuar. No hace falta coordinar otro prompt técnico."
     ]
   },
-  "first_safe_action": "En Studio, elegir Borrador automático y confirmar sus condiciones. No cotizar, reenviar q43 ni iniciar otro trabajo. Si el plan venció realmente, Studio muestra la decisión pendiente sin ampliarlo automáticamente.",
+  "first_safe_action": "En Lumi Studio, EP004 → Producir → Revisar plan y continuar. Revisar y aceptar los nuevos límites de las etapas restantes si se está de acuerdo; techo USD8 sin cambio. La política automática ya está aceptada. No volver a generar q41/q43 ni liberar q42.",
   "acceptance": [
-    "PASS_REAL: exact code CI GREEN and staging LIVE; served bytes match; private state401.",
-    "PASS_REAL: same q43 request, checkpoint55, action/reservation/authorization hashes unchanged; ceiling8; new reservations0.",
-    "PASS_INTEGRATION: policy opens while generation remains blocked; ten clicks/timeout/reopen/stale stage/expired plan/session; zero generative calls.",
-    "NOT_TESTED_REAL: human mode acceptance and visual Telegram/iPhone experience."
+    "PASS_REAL: original q43 same requestID, stored SHA, readback and decode; q44 image/video complete.",
+    "PASS_REAL: same job resumed after new service startup, same q41/q42 approvals preserved.",
+    "PASS_REAL: q45 stopped before reserve/emission because its calculated reserve exceeded its specific consent.",
+    "PASS_OFFLINE/INTEGRATION: focused CI; real Chromium fixtures with local HTTP FullHD/AAC playback, Range and exact download hash.",
+    "NOT_TESTED_REAL: EP004 voice/master final and iPhone/Telegram playback."
   ],
   "tests": [
     {
       "status": "PASS_OFFLINE",
-      "command": "CI39836679030 auth/fluid UX and DRAFT_POLICY",
-      "result": "27 tests pass; backend challenge idempotency, expired plan/session, no invented human decisions."
+      "command": "CI39980182306",
+      "result": "Core recovery and renewal plus existing guarded integrations; no live providers."
     },
     {
       "status": "PASS_INTEGRATION",
-      "command": "node test/lumi-policy-control-browser.mjs (CI Chromium)",
-      "result": "Actual app JS and handlers; RUNNING/GENERATING + WAITING_PROVIDER. Before disabled; after opens confirmation. Ten clicks produce one acceptance and one pause. Lost response, reload, newer stage without receipt, expired plan and session. Zero generative fixture calls."
+      "command": "CI39986155840",
+      "result": "Library/auth/private media; policy/plan/recovery tests; three Chromium suites including initial choice and budget exception. Fixtures only."
     },
     {
       "status": "PASS_REAL",
-      "command": "Staging read-only SELECT, readiness, served JS and anonymous state",
-      "result": "Exact live SHA/app bytes. State401. q43 same request, checkpoint55 and protected action/reservation/authorization hashes unchanged. Same job resumed ordinary recovery lease."
-    },
-    {
-      "status": "NOT_TESTED_REAL",
-      "command": "Telegram/iPhone human mode selection",
-      "result": "No acceptance performed by agent; visual iPhone confirmation pending."
+      "command": "Staging checkpoints/journal/storage verification and restart logs",
+      "result": "4/7 shots,26/50 actions; original q43 recovered, two authorized q44 emissions, zero q45 emissions. No EP004 master."
     }
   ],
   "recent_commits": [
     {
-      "sha": "c256051a5f25eed33e69c8bb606172ddfdc4dee0",
-      "subject": "Separate policy and pause controls from generation locks; same-decision readback"
+      "sha": "1b02c51429fd863d6216511ee0b8b0b460f46f0b",
+      "subject": "Explicit buffered plan proposal and imported reserve totals"
     },
     {
-      "sha": "087f8666ba13b9d7820d3065326d84da83c70e33",
-      "subject": "Exact live commit and focused CI scope"
+      "sha": "6a3b4d51cfbb3d6a63b755dc69f42fb2eb6fa9f6",
+      "subject": "Mode choice and narration in initial plan"
     },
     {
-      "sha": "31394ed6c432d6a2909b142fd891607ea4a97e95",
-      "subject": "Voluntary review locks and explicit policy renewal"
+      "sha": "8f5557a76869e197e96eb6caaecf196c37f2076a",
+      "subject": "Four phases, accessible settings, actual HTTP download fixture"
     },
     {
-      "sha": "f5c833652ce0098dd718340de5c306f6056e9f38",
-      "subject": "Same-attempt fenced preflight and authenticated draft policy"
+      "sha": "3fbe0d699af386ad7744817c7814d2eff8e010b7",
+      "subject": "Late ACK recovery and renewed plan at future boundaries"
     }
   ],
   "activation": {
-    "technical_status": "FLUID_ACTION_RECEIPTS_AND_PRIVATE_PREVIEWS",
-    "grant_status": "EXISTING_HUMAN_PLAN_AND_JOB_PRESERVED",
-    "new_operation_status": "EXISTING_REPLACEMENT_RECOVERED",
-    "new_reservation_status": "NONE_THIS_INTERVENTION",
-    "provider_generation_calls_this_intervention": 0,
-    "new_reservations_this_intervention": 0,
+    "technical_status": "FOUR_STAGE_WORKFLOW_AND_DURABLE_RECOVERY",
+    "grant_status": "EXISTING_HUMAN_PLAN_AND_DRAFT_POLICY_VALID",
+    "new_operation_status": "Q45_NOT_EMITTED_LIMIT_DECISION",
+    "new_reservation_status": "Q44_ONLY_WITH_EXISTING_CONSENT",
+    "provider_generation_calls_this_intervention": 2,
+    "new_reservations_this_intervention": 2,
     "new_risk_acceptances_this_intervention": 0,
-    "real_human_device_flow": "PRIOR_ACCEPTANCE_PRESERVED_NEW_FLUID_UI_NOT_TESTED_REAL",
+    "real_human_device_flow": "NOT_TESTED_REAL",
     "concrete_provider_bindings": [
       "Higgsfield IMAGE",
       "Higgsfield VIDEO"
@@ -326,12 +334,14 @@
   },
   "continuation": {
     "generate_prompt": false,
-    "integration_status": "No nuevo prompt técnico. Misma operación q43 ACKNOWLEDGED/queued y mismo trabajo. Política automática preparada pero no aceptada. Próximas decisiones dentro de Studio."
+    "integration_status": "Estado y decisión pendientes dentro de Lumi Studio. No nuevo prompt técnico. No repetir generaciones; nuevas emisiones esperan la aceptación económica mostrada."
   },
   "consent": {
-    "status": "PREVIOUS_HUMAN_ACCEPTANCE_CONSUMED_BY_EXISTING_REPLACEMENT",
-    "maximum_reservation_usd": 0.375,
-    "explanation": "Replacement and q42 reviews were already completed by the human. Existing episode job was explicitly activated in Studio before this task. No consent was created, extended or imported; validity for future actions remains enforced by the backend."
+    "status": "EXISTING_PLAN_AND_DRAFT_POLICY_PRESERVED",
+    "plan_authorization_id": "episode-plan:500d1ff2-deac-48f7-af6d-a87c56d19e85",
+    "review_policy_id": "draft-policy:d35a8f98-a3b6-4c02-ba03-57346a5f9a01",
+    "expires_at": "2026-10-24T14:12:19.148Z",
+    "explanation": "Aceptados por el humano antes de la intervención. No se firmó otro consentimiento. La propuesta nueva conserva techo8 y requiere aceptación en la app."
   },
   "replacement": {
     "operation_id": "67cb98113d392fd5a325697d39526214a7be3813721f6eb86135c7a4911fac1c",
@@ -345,30 +355,36 @@
   "cost_recovery": {
     "error_code": "Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED",
     "failure_stage": "QUOTE",
-    "quote_amount_usd": 0.276,
-    "quote_id": null,
-    "quote_expiration": null,
-    "calculated_reservation_usd": 0.345,
+    "action": "image:q45",
+    "quote_amount_usd": 0.278,
+    "quote_id": "9042fd254a9e10dc2559cdda4cca540170ea29ef99ad062127b4337dc0905df4",
+    "quote_expiration": "2026-10-23T16:12:57.162Z",
+    "calculated_reservation_usd": 0.3475,
     "reservation_multiplier": 1.25,
-    "authorized_max_usd": 0.3275,
-    "episode_remaining_usd": 6.77375,
-    "payload_sha256": "dee5c851a0cdccfb3dbd56d8dec6699b485b3b6eb66bec0b2eaea229148ee5e5",
-    "evidence_limitation": "Evidencia histórica .276×1.25=.345, diferencia .0175 frente al anterior máximo .3275. No es precio vigente y no reconstruye un intento sin importe. Máximo propuesto ahora .375; precio fresco sólo dentro de una futura acción humana autorizada. Historical rejection only; superseded by accepted replacement quote .276/reserve .345 and restored artifact on2026-10-21. No new price queried."
+    "authorized_max_usd": 0.345,
+    "episode_remaining_usd": 4.05875,
+    "evidence_limitation": "Cotización observada, ya vencida. No hay envío q45. El precio se volverá a verificar dentro de los límites que el humano acepte."
   },
   "cost_projection": {
-    "status": "PARTIAL_HISTORICAL_ESTIMATE_NOT_A_PRICE",
-    "known_remaining_visual_estimate_usd": 4.18,
-    "proposed_remaining_reservation_maximum_usd": 5.225,
-    "potential_exposure_with_proposed_remaining_limits_usd": 6.79625,
-    "probable_total_usd": null,
-    "basis": "Historical same-model image/video receipts and authorized scene duration, exact decimal rounding; excludes already reserved replacement q42. Fresh prices are obtained internally only before authorized new dispatch.",
-    "missing_cost_evidence": [
+    "status": "NEW_REMAINING_PLAN_PROPOSAL_REQUIRES_HUMAN_ACCEPTANCE",
+    "proposed_stage_limits_usd": {
+      "image:q45": 0.4,
+      "video:q45": 0.8,
+      "image:q46": 0.4,
+      "video:q46": 0.8,
+      "image:q47": 0.4,
+      "video:q47": 0.5,
+      "tts": 0
+    },
+    "proposed_remaining_limit_total_usd": 3.3,
+    "proposal_basis": "Verified known estimates, internal reserve×1.25, proposed10%price tolerance and upwardUSD0.05rounding; no existing grant rewritten. Actual signed proposal is recomputed when reviewed in Studio.",
+    "unknown_costs": [
+      "provider charges",
       "voice subscription cost allocation",
-      "storage allocation",
-      "infrastructure allocation"
+      "storage allocation"
     ],
-    "voice_policy": "Existing quota only; no paid overage/top-up authorized",
-    "verified_savings_usd": null
+    "voice_policy": "Existing quota only; no overage/top-up",
+    "proposal_accepted": false
   },
   "library_evidence": {
     "approved_records": 17,
@@ -379,11 +395,12 @@
     "observation_scope": "Historical inventory from the previous one-tap intervention; no fresh inventory count or verified savings claimed here."
   },
   "transport": {
-    "status": "DIRECT_PRESERVED_HUMAN_NORMAL_APP_ACCEPTED",
-    "summary": "DIRECT y Ed25519 verificados por readiness. Confirmación humana de uso normal registrada. Recibo /start830558975 y respuesta153 verificados sin reenvío. Sin cambios Make/webhook/secretos; cola histórica aislada. La aceptación no demuestra todos los flujos productivos.",
-    "recovered_work": "Parche original SHA256289e516874e142985aa53d3f5b20a3c9bfa761dcb5fbd802e3a4f0a4f27ffae1 conservado. Aplicación three-way revisada en worktree aislado, defectos de preflight corregidos y pruebas focalizadas aprobadas; máximo .375 aplicado por CAS.",
-    "first_one_tap_task": "Completed. Direct transport was not reconfigured. Current human action is q42 visual review in Studio."
+    "status": "DIRECT_ACTIVE_MAKE_INACTIVE",
+    "summary": "TelegramDIRECT y Ed25519 preservados. Make6224860 isActive:false observado. Sin cambios de webhook, secretos ni otros escenarios.",
+    "recovered_work": "Recuperación del pedido q43original y mismo trabajo durable. Nuevo arranque observado16:08 seguido por avance q44.",
+    "daily_idea_entry": "Legacy Make ideas retired; DIRECT currently routes text to Studio. No replacement planning generation activated."
   },
   "fluid_ui_evidence": "docs/lumi-improvement/fluid-ux-evidence.json",
-  "draft_continuity_evidence": "docs/lumi-improvement/draft-continuity-evidence.json"
+  "draft_continuity_evidence": "docs/lumi-improvement/draft-continuity-evidence.json",
+  "daily_flow_evidence": "docs/lumi-improvement/daily-flow-evidence.json"
 }

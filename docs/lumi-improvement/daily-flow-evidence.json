@@ -1,0 +1,136 @@
+{
+  "observed_at": "2026-10-23T16:33:42.881684Z",
+  "scope": {
+    "repo": "AgustinGettar/content-factory-renderer",
+    "branch": "lumi-telegram-review-v1",
+    "render": "content-factory-av2-staging",
+    "supabase": "mofjhwathxzfnjapvvst",
+    "episode": "ep_lumi_granja_004_20261008_ee7ab4b3"
+  },
+  "deployed_code": "1b02c51429fd863d6216511ee0b8b0b460f46f0b",
+  "ci": 39986155840,
+  "q43": {
+    "request_id": "24aa9f24-8457-44dd-a9be-23dd662547e1",
+    "attempt_id": "8d2f1164f9759b62112daee4a60bf78099a6b1eb0df9cf85a55c2bd8ad2585bb",
+    "old_recovery": "ATTENTION_REQUIRED/Q41_ACCEPTED_JOB_REQUIRED",
+    "old_blocked_at": "2026-10-22T10:48:33.184Z",
+    "accepted_at": "2026-10-22T12:56:55.254Z",
+    "recovered_at": "2026-10-23T15:52:33.930Z",
+    "result": "COMPLETE",
+    "sha256": "bee2fc0ee7152799cd91f3a2edb592a279a57e36b1d3a86dba40610f69fdfdd3",
+    "size": 6814883,
+    "dimensions": [
+      1080,
+      1912
+    ],
+    "duration": 4.042,
+    "readback_sha_verified": true,
+    "decode": "PASS",
+    "reemissions": 0
+  },
+  "q44": {
+    "image_request": "afeff0e8-123d-4ba5-a2a3-49722cb4937f",
+    "video_request": "e4399dc2-568e-45c1-9ea0-0567b2b161c0",
+    "video_sha256": "2a05ff9c1960674cb508ed89ed7c3dd5d152086d0980f987c31eda510ce29741",
+    "completed_at": "2026-10-23T16:10:49.704Z",
+    "new_reserved_usd": 0.905,
+    "authorization": "Existing sealed plan500d1ff2 and accepted draft policyd35a8f98; no agent consent"
+  },
+  "budget": {
+    "ceiling_usd": 8,
+    "exposure_usd": 3.94125,
+    "pending_reservations_usd": 3.94125,
+    "local_reservations_usd": 3.6025,
+    "imported_source_reservation_usd": 0.33875,
+    "remaining_usd": 4.05875,
+    "actual_spend_usd": null,
+    "blocked_current_reservation_usd": 0.3475,
+    "current_action_authorized_max_usd": 0.345,
+    "proposed_new_reservation_usd": 0.4,
+    "potential_total_exposure_usd": 7.24125,
+    "proposal_only": true
+  },
+  "consent": {
+    "status": "EXISTING_PLAN_AND_DRAFT_POLICY_PRESERVED",
+    "plan_authorization_id": "episode-plan:500d1ff2-deac-48f7-af6d-a87c56d19e85",
+    "review_policy_id": "draft-policy:d35a8f98-a3b6-4c02-ba03-57346a5f9a01",
+    "expires_at": "2026-10-24T14:12:19.148Z",
+    "explanation": "Aceptados por el humano antes de la intervención. No se firmó otro consentimiento. La propuesta nueva conserva techo8 y requiere aceptación en la app."
+  },
+  "restart": {
+    "observed": "2026-10-23T16:08:32Z",
+    "same_job_recovered": true,
+    "after": "shot_review:q44 COMPLETE16:10:49Z",
+    "cause": "NOT_PROVEN_BY_EVENTS",
+    "plan": "free"
+  },
+  "current": {
+    "actions_complete": 26,
+    "actions_total": 50,
+    "shots_complete": 4,
+    "shots_total": 7,
+    "pending": "image:q45",
+    "job": "NEEDS_ATTENTION",
+    "reason": {
+      "error_code": "Q41_REQUEST_RESERVATION_LIMIT_EXCEEDED",
+      "failure_stage": "QUOTE",
+      "action": "image:q45",
+      "quote_amount_usd": 0.278,
+      "quote_id": "9042fd254a9e10dc2559cdda4cca540170ea29ef99ad062127b4337dc0905df4",
+      "quote_expiration": "2026-10-23T16:12:57.162Z",
+      "calculated_reservation_usd": 0.3475,
+      "reservation_multiplier": 1.25,
+      "authorized_max_usd": 0.345,
+      "episode_remaining_usd": 4.05875,
+      "evidence_limitation": "Cotización observada, ya vencida. No hay envío q45. El precio se volverá a verificar dentro de los límites que el humano acepte."
+    },
+    "master": null
+  },
+  "verification": {
+    "provider_tests": 0,
+    "fixture_browser": "Chromium390x844; localHTTP H2641080x1920/AAC; playback/Range/downloadSHA; double tap; reopen; session expiry; initial mode; cost exception",
+    "real_backend": "Stored artifact integrity/decode, checkpoints, journal and genuine restart continuation",
+    "real_iphone_telegram": "NOT_TESTED"
+  },
+  "daily_idea_entry": "Legacy Make ideas retired; DIRECT currently routes text to Studio. No replacement planning generation activated.",
+  "deployment": {
+    "id": "dep-dbdok1vf3r2c73bh6vi0",
+    "status": "LIVE",
+    "finished_at": "2026-10-23T16:24:13.450064Z",
+    "readiness_matches": true,
+    "served_js_sha256": "fa6acdd9f7c775bb86ed3e96c25a501666361a80923afae339f711bbfaf39cab",
+    "private_state_status": 401,
+    "private_session_status": 401,
+    "plan": "free",
+    "auto_deploy": "no"
+  },
+  "proposed_plan": {
+    "status": "NEW_REMAINING_PLAN_PROPOSAL_REQUIRES_HUMAN_ACCEPTANCE",
+    "proposed_stage_limits_usd": {
+      "image:q45": 0.4,
+      "video:q45": 0.8,
+      "image:q46": 0.4,
+      "video:q46": 0.8,
+      "image:q47": 0.4,
+      "video:q47": 0.5,
+      "tts": 0
+    },
+    "proposed_remaining_limit_total_usd": 3.3,
+    "proposal_basis": "Verified known estimates, internal reserve×1.25, proposed10%price tolerance and upwardUSD0.05rounding; no existing grant rewritten. Actual signed proposal is recomputed when reviewed in Studio.",
+    "unknown_costs": [
+      "provider charges",
+      "voice subscription cost allocation",
+      "storage allocation"
+    ],
+    "voice_policy": "Existing quota only; no overage/top-up",
+    "proposal_accepted": false
+  },
+  "final_recheck": {
+    "revision": 76,
+    "q45_limit_still_usd": 0.345,
+    "job": "NEEDS_ATTENTION",
+    "lease_until": 0,
+    "new_emissions": 2,
+    "new_acceptances": 0
+  }
+}

@@ -430,5 +430,93 @@
     "REGRESSION_GUARD": "test/lumi-policy-control-browser.mjs; DRAFT_POLICY",
     "REUSABILITY": "All episodes with existing backend policy capability; no q43-only logic",
     "NEXT_ACTION": "User may choose mode inside Studio; no new technical prompt."
+  },
+  {
+    "INCIDENT_ID": "LUMI-Q43-LATE-ACK-019",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "video:q43",
+    "SYMPTOM": "Recuperador detenido antes del ACK; Q41_ACCEPTED_JOB_REQUIRED obsoleto.",
+    "ROOT_CAUSE": "ATTENTION_REQUIRED era terminal aunque luego existiera ACK válido para el mismo intento y recibo.",
+    "EVIDENCE": [
+      "docs/lumi-improvement/daily-flow-evidence.json",
+      "CI39986155840; durable staging observations23Oct2026"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Episodio avanzó hasta4/7 tomas y queda en decisión económica concreta.",
+    "FINANCIAL_RISK": "No duplicate emission; ambiguous q42 reservation preserved; charges unverified.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "3fbe0d699af386ad7744817c7814d2eff8e010b7",
+    "TEST_EVIDENCE": [
+      "Focused offline and browser tests; real q43/q44 progress and restart proof; no real iPhone claim."
+    ],
+    "REGRESSION_GUARD": "DURABLE_RESULT_RECOVERY LATE_ACK",
+    "REUSABILITY": "Existing durable episode job and journal, plan-bound future actions.",
+    "NEXT_ACTION": "q43 original incorporado una vez; conservar trazabilidad."
+  },
+  {
+    "INCIDENT_ID": "LUMI-RENEWED-PLAN-020",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "episode_job",
+    "SYMPTOM": "Trabajo seguía enlazado al plan vencido pese a renovación válida.",
+    "ROOT_CAUSE": "acceptPlan solo retargeteaba trabajos detenidos; renovación durante WAITING_PROVIDER no actualizaba el siguiente límite de ejecución.",
+    "EVIDENCE": [
+      "docs/lumi-improvement/daily-flow-evidence.json",
+      "CI39986155840; durable staging observations23Oct2026"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Episodio avanzó hasta4/7 tomas y queda en decisión económica concreta.",
+    "FINANCIAL_RISK": "No duplicate emission; ambiguous q42 reservation preserved; charges unverified.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "3fbe0d699af386ad7744817c7814d2eff8e010b7",
+    "TEST_EVIDENCE": [
+      "Focused offline and browser tests; real q43/q44 progress and restart proof; no real iPhone claim."
+    ],
+    "REGRESSION_GUARD": "DURABLE_EPISODE_JOB RENEWED_PLAN",
+    "REUSABILITY": "Existing durable episode job and journal, plan-bound future actions.",
+    "NEXT_ACTION": "Usar consentimiento válido para futuras etapas, sin cambiar la operación ya emitida."
+  },
+  {
+    "INCIDENT_ID": "LUMI-DAILY-WORKFLOW-021",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "mini_app",
+    "SYMPTOM": "Producción dispersa; descarga dependía del catálogo; elección automática posterior al inicio.",
+    "ROOT_CAUSE": "Controles separados sin recorrido principal; mode y job dependían del orden previo.",
+    "EVIDENCE": [
+      "docs/lumi-improvement/daily-flow-evidence.json",
+      "CI39986155840; durable staging observations23Oct2026"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Episodio avanzó hasta4/7 tomas y queda en decisión económica concreta.",
+    "FINANCIAL_RISK": "No duplicate emission; ambiguous q42 reservation preserved; charges unverified.",
+    "FIX_STATUS": "RESOLVED",
+    "FIX_COMMIT": "1b02c51429fd863d6216511ee0b8b0b460f46f0b",
+    "TEST_EVIDENCE": [
+      "Focused offline and browser tests; real q43/q44 progress and restart proof; no real iPhone claim."
+    ],
+    "REGRESSION_GUARD": "lumi-daily-workflow-browser.mjs",
+    "REUSABILITY": "Existing durable episode job and journal, plan-bound future actions.",
+    "NEXT_ACTION": "Usar Preparar/Producir/Revisar/Descargar; no marcar prueba fixture como iPhone."
+  },
+  {
+    "INCIDENT_ID": "LUMI-Q45-SPECIFIC-LIMIT-022",
+    "EPISODE_ID": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "AFFECTED_ACTION": "image:q45",
+    "SYMPTOM": "ReservaUSD0.3475 excede máximoUSD0.345; no se generó.",
+    "ROOT_CAUSE": "Precio observadoUSD0.278 ×1.25 excede el consentimiento específico.",
+    "EVIDENCE": [
+      "docs/lumi-improvement/daily-flow-evidence.json",
+      "CI39986155840; durable staging observations23Oct2026"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Episodio avanzó hasta4/7 tomas y queda en decisión económica concreta.",
+    "FINANCIAL_RISK": "No duplicate emission; ambiguous q42 reservation preserved; charges unverified.",
+    "FIX_STATUS": "HUMAN_DECISION_PENDING",
+    "FIX_COMMIT": "1b02c51429fd863d6216511ee0b8b0b460f46f0b",
+    "TEST_EVIDENCE": [
+      "Focused offline and browser tests; real q43/q44 progress and restart proof; no real iPhone claim."
+    ],
+    "REGRESSION_GUARD": "PLAN_ONETAP PRICE_BUFFER",
+    "REUSABILITY": "Existing durable episode job and journal, plan-bound future actions.",
+    "NEXT_ACTION": "Una decisión en Studio sobre límites restantes; techo8, originales y modo vigentes preservados."
   }
 ]

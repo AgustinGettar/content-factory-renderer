@@ -18,7 +18,7 @@ try{
  const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'}));
  assert.equal(probe.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
  browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
- let posts=0,reads=0,accesses=0,ranges=0,expired=false;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let posts=0,reads=0,accesses=0,ranges=0,expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const shot=(n)=>({id:'q4'+n,number:n,title:['Lumi y vos','La vaca','La oveja','El caballo','El cerdo','La gallina','Hasta mañana'][n-1],complete:n<3,current:n===3,goal:'Descubrir la granja',characters:['Lumi'],continuity:{character_details:[]}});
  let state={client_scope:'fixture-owner',client_session:'fixture-session',server_time:Date.now(),review_revision:4,
   episode:{id:'fixture-episode',title:'Lumi descubre la granja',next_action:'video:q43',checkpoint_version:55,actions:[]},episodes:[{id:'fixture-episode',title:'Lumi descubre la granja'}],
@@ -30,12 +30,18 @@ try{
  const handle=async route=>{
   const req=route.request(),u=new URL(req.url()),p=u.pathname,json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(u.hostname!=='127.0.0.1')throw Error('EXTERNAL_REQUEST_BLOCKED');
-  if(req.method()==='POST'){posts++;throw Error('UNEXPECTED_MUTATION');}
+  if(req.method()==='POST'){
+   posts++;if(!allowStart)throw Error('UNEXPECTED_MUTATION');
+   if(p.endsWith('/plan/accept')){assert.equal(req.postDataJSON().review_mode,'DRAFT_FINAL_REVIEW_V1');assert.equal(req.postDataJSON().confirm,true);planAccepts++;state.episode_plan_authorization.status='AUTHORIZED';return json({status:'EPISODE_PLAN_AUTHORIZED'});}
+   if(p.endsWith('/actions/produce_episode')){starts++;state={...state,review_revision:state.review_revision+1,episode_job:{id:'initial-job',status:'WAITING_PROVIDER'},review_policy:{id:'initial-choice',mode:'DRAFT_FINAL_REVIEW_V1'}};return json({operation:{id:'initial-job',status:'QUEUED'}});}
+   throw Error('UNEXPECTED_MUTATION');
+  }
   if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script defer src="https://telegram.org/js/telegram-web-app.js"></script>','')});
   if(p.endsWith('/style.css'))return route.fulfill({contentType:'text/css',body:files['style.css']});
   if(p.endsWith('/app.js'))return route.fulfill({contentType:'text/javascript',body:files['app.js'].replace('navigation();login();','window.fixtureUI={refresh,button};navigation();login();')});
   if(p.endsWith('/session'))return json({csrf:'fixture',expires_at:Date.now()+1800000});
   if(p.endsWith('/state')){reads++;return expired?json({error:'MINI_SESSION_EXPIRED'},401):json({...state,server_time:Date.now()});}
+  if(p.endsWith('/plan/review'))return json({challenge:{contract:{title:state.episode.title,action_set:[],model:{},payload_constraints:{},per_action_limits:{},maximum_episode_exposure:8,total_reservation_maximum_usd:4,estimate_minimum_usd:4,estimate_probable_usd:5},consent_expires_at:new Date(Date.now()+86400000).toISOString()}});
   if(p.endsWith('/library/plan'))return json({suggestions:[]});
   if(p.endsWith('/library'))return json({assets:[],counts:{},selections:[],version:1});
   if(p.endsWith('/master/access')){accesses++;return json({url:'/lumi/studio/api/media/master?ticket=fresh',expires_at:Date.now()+300000});}
@@ -47,7 +53,7 @@ try{
   }
   throw Error('UNEXPECTED_REQUEST '+p);
  };
- server=createServer((req,res)=>{handle({request:()=>({url:()=>base+req.url,method:()=>req.method,headers:()=>req.headers}),fulfill:async({status=200,contentType,headers={},body=''})=>{res.writeHead(status,{'Content-Type':contentType,'Cache-Control':'no-store',...headers});res.end(body);}}).catch(e=>{errors.push(e.message);res.writeHead(500);res.end();});});
+ server=createServer(async(req,res)=>{const chunks=[];for await(const chunk of req)chunks.push(chunk);const raw=Buffer.concat(chunks).toString();handle({request:()=>({url:()=>base+req.url,method:()=>req.method,headers:()=>req.headers,postDataJSON:()=>JSON.parse(raw)}),fulfill:async({status=200,contentType,headers={},body=''})=>{res.writeHead(status,{'Content-Type':contentType,'Cache-Control':'no-store',...headers});res.end(body);}}).catch(e=>{errors.push(e.message);res.writeHead(500);res.end();});});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port;
  await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
  await page.goto(base+'/lumi/studio');await page.waitForSelector('.workflow-steps');
@@ -77,6 +83,12 @@ try{
  assert.equal(download.suggestedFilename(),'Lumi-'+sha.slice(0,12)+'.mp4');assert.equal(createHash('sha256').update(await readFile(await download.path())).digest('hex'),sha);assert.equal(accesses,1);
  await page.screenshot({path:join(screens,'download.png'),fullPage:true});
  expired=true;await page.evaluate(()=>fixtureUI.refresh());assert.match(await page.locator('#app').innerText(),/bot de Telegram/);assert.equal(posts,0);assert.equal(errors.length,0,errors.join(';'));
- console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,posts}));
+ expired=false;allowStart=true;state={...state,review_revision:10,episode:{...state.episode,next_action:'video:q41',checkpoint_version:1},episode_job:null,operation:null,current_action:{status:'NOT_STARTED',operations:[]},review_policy:{mode:'SUPERVISED'},episode_plan_authorization:{status:'HUMAN_APPROVAL_REQUIRED',approval_available:true},media:[],production:{...state.production,shots:state.production.shots.map(s=>({...s,complete:false,current:s.number===1}))}};
+ await page.reload();await page.locator('[data-action=plan_review]').first().click();await page.waitForFunction(()=>document.querySelector('#confirmation').open);
+ await page.locator('#dialog-confirm').click();assert.equal(posts,0);assert.equal(await page.locator('#confirmation').evaluate(d=>d.open),true);
+ await page.selectOption('#initial-review-mode','DRAFT_FINAL_REVIEW_V1');await page.evaluate(()=>{for(let n=0;n<10;n++)document.querySelector('#dialog-confirm').click();});
+ await page.waitForFunction(()=>document.querySelector('.daily-status')?.textContent.includes('Borrador automático'));assert.equal(planAccepts,1);assert.equal(starts,1);assert.equal(posts,2);
+ assert.equal(errors.length,0,errors.join(';'));
+ console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,initial_mode_explicit:true,planAccepts,starts,posts}));
  await context.close();
 }finally{await browser?.close();await new Promise(resolve=>server?server.close(resolve):resolve());await rm(dir,{recursive:true,force:true});}

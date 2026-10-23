@@ -2315,3 +2315,26 @@ test('DRAFT_POLICY explicit once, version binding, no fabricated reviews, pause 
  const freshSession=await f.reopen(),expired=await f.service.view(freshSession);assert.equal(expired.review_policy.choice_available,false);assert.equal(expired.review_policy.choice_unavailable_reason,'EPISODE_PLAN_CONSENT_EXPIRED');
  await assert.rejects(f.service.reviewDraftPolicy(freshSession),/EPISODE_PLAN_APPROVAL_REQUIRED/);assert.deepEqual((await f.reviewStore.get('1')).state.v2_authorizations,sealed);
 });
+
+
+test('DRAFT_POLICY INITIAL_PLAN explicit combined choice is durable before start, immutable and emits nothing',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.448}),before=await f.store.getEpisode(episode);
+ const {challenge}=await f.service.reviewPlan(f.principal);
+ await assert.rejects(f.service.acceptPlan(f.principal,{challenge,confirm:true,review_mode:'AUTO_PUBLISH'}),/INITIAL_REVIEW_MODE_INVALID/);
+ const body={challenge,confirm:true,review_mode:'DRAFT_FINAL_REVIEW_V1'};
+ await Promise.all([f.service.acceptPlan(f.principal,body),f.service.acceptPlan(f.principal,body)]);
+ let state=(await f.reviewStore.get('1')).state;
+ assert.equal(Object.values(state.v2_authorizations).filter(x=>x.scope==='DRAFT_FINAL_REVIEW_V1').length,1);
+ assert.equal(state.mini_app.episode_jobs?.[episode],undefined);assert.equal(f.emitted.length,0);assert.equal(f.quotes.length,0);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before.metadata.budget_reservations);
+ assert.deepEqual((await f.store.getEpisode(episode)).metadata.review_requests,before.metadata.review_requests);
+ const principal=await f.reopen(),view=await f.service.view(principal);assert.equal(view.review_policy.mode,'DRAFT_FINAL_REVIEW_V1');
+ await assert.rejects(f.service.acceptPlan(principal,{...body,review_mode:'SUPERVISED'}),/EPISODE_PLAN_REVIEW_EXPIRED/);
+ await assert.rejects(f.service.acceptPlan(f.principal,{...body,review_mode:'SUPERVISED'}),/INITIAL_REVIEW_MODE_IMMUTABLE/);
+ const starts=await Promise.all([f.service.enqueue(principal,'produce_episode',{confirm:true}),f.service.enqueue(principal,'produce_episode',{confirm:true})]);
+ assert.equal(starts[0].operation.id,starts[1].operation.id);
+ state=(await f.reviewStore.get('1')).state;assert.equal(state.mini_app.episode_jobs[episode].review_policy_id,'draft-policy:'+challenge.challenge_id);
+ assert.equal(f.emitted.length,0);await f.service.acceptPlan(f.principal,body);
+ await starts[0].dispatch();assert.equal(f.emitted.length,1);
+ assert.equal((await f.service.view(principal)).review_policy.mode,'DRAFT_FINAL_REVIEW_V1');
+});

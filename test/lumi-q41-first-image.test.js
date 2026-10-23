@@ -2082,6 +2082,40 @@ test('DURABLE_RESULT_RECOVERY REAL_Q42_SHAPE: stored result survives lost respon
  const unchanged=await f.store.getEpisode(episode);await left.processPending({user:'1',chat:'foreign'});assert.deepEqual(await f.store.getEpisode(episode),unchanged);
 });
 
+test('DURABLE_RESULT_RECOVERY LATE_ACK: reopens only the obsolete missing-ACK blocker, once, across concurrent restarts',async t=>{
+ const f=await secondImageFixture(t);await f.submit('second_image',{confirm:true});
+ const cp=await f.store.getEpisode(episode),id=cp.actions.find(a=>a.key==='image:q42').active_attempt_id;
+ const ack=structuredClone(f.journalRows.get(id)),before=cp.metadata.budget_reservations;
+ await f.edit(s=>{s.mini_app.result_recovery={[id]:{status:'ATTENTION_REQUIRED',error:'Q41_ACCEPTED_JOB_REQUIRED',failures:8,poll_cycles:8,lease_until:0,next_at:Date.now()+300000}};});
+ f.journalRows.set(id,{...ack,state:'EMISSION_UNKNOWN',provider_request_id:null});
+ const svc=()=>new f.service.constructor({...f.service});await svc().processPending({user:'1',chat:'1'});
+ assert.equal(f.control.polls,0);assert.equal((await f.reviewStore.get('1')).state.mini_app.result_recovery[id].status,'ATTENTION_REQUIRED');
+ f.journalRows.set(id,ack);f.control.ready=true;
+ await Promise.all([svc().processPending({user:'1',chat:'1'}),svc().processPending({user:'1',chat:'1'})]);
+ await svc().processPending({user:'1',chat:'1'});
+ const row=(await f.reviewStore.get('1')).state,r=row.mini_app.result_recovery[id];
+ assert.equal(r.status,'COMPLETE');assert.equal(r.accepted_job_id,ack.provider_request_id);assert.equal(r.previous_blocker.failures,8);
+ assert.equal(f.control.emitted,1);assert.deepEqual((await f.store.getEpisode(episode)).metadata.budget_reservations,before);
+ assert.equal(Object.values((await f.store.getEpisode(episode)).metadata.review_requests).filter(r=>r.action_key==='image:q42').length,1);
+});
+
+test('DURABLE_EPISODE_JOB RENEWED_PLAN: accepted renewal while waiting applies to future work without rewriting accepted operation consent',async t=>{
+ const f=await approvedPlanFixture(t,{quoteUsd:.44});const start=await f.service.enqueue(f.principal,'produce_episode',{confirm:true});await start.dispatch();
+ const before=(await f.reviewStore.get('1')).state,job=before.mini_app.episode_jobs[episode],originalOps=structuredClone(before.mini_app.operations);
+ t.mock.timers.enable({apis:['Date'],now:Date.now()+86400001});const p=await f.reopen();
+ const {challenge}=await f.service.reviewPlan(p);await f.service.acceptPlan(p,{challenge,confirm:true});
+ const freshId='episode-plan:'+challenge.challenge_id;
+ assert.equal((await f.reviewStore.get('1')).state.mini_app.episode_jobs[episode].plan_authorization_id,job.plan_authorization_id);
+ // Isolate job orchestration at the next local boundary; no simulated new paid work.
+ await f.manager.checkpoint(episode,d=>{const a=d.actions.find(a=>a.key==='video:q41');a.status='COMPLETE';a.artifact={stage_receipt:'offline-local-boundary'};a.evidence={provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true};});
+ f.service.adapter.continueLocalStage=async()=>({status:'OFFLINE_LOCAL_BOUNDARY'});
+ await new f.service.constructor({...f.service}).runEpisodeJob({user:'1',chat:'1',episodeId:episode,maxSteps:1});
+ const after=(await f.reviewStore.get('1')).state,j=after.mini_app.episode_jobs[episode];
+ assert.equal(j.id,job.id);assert.equal(j.plan_authorization_id,freshId,JSON.stringify({job:j,pending:(await f.store.getEpisode(episode)).first_pending_action}));assert.equal(j.error,null);
+ for(const [id,op] of Object.entries(originalOps))assert.deepEqual(after.mini_app.operations[id],op);
+ assert.deepEqual(after.v2_authorizations[job.plan_authorization_id],before.v2_authorizations[job.plan_authorization_id]);assert.equal(f.emitted.length,1);
+});
+
 test('DURABLE_EPISODE_JOB: start receipt survives session expiration and restart; leases isolate concurrent workers and replay',async t=>{
  const f=await approvedPlanFixture(t,{quoteUsd:.44});
  const [a,b]=await Promise.all([f.service.enqueue(f.principal,'produce_episode',{confirm:true}),f.service.enqueue(f.principal,'produce_episode',{confirm:true})]);

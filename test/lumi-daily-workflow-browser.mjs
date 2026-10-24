@@ -8,6 +8,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
+import {publicationDraft} from '../lib/telegram-mini-app/publication.js';
 const root=new URL('../',import.meta.url),files=Object.fromEntries(await Promise.all(['app.js','style.css','index.html'].map(async n=>[n,await readFile(new URL('public/lumi-studio/'+n,root),'utf8')])));
 const dir=await mkdtemp(join(tmpdir(),'lumi-daily-')),screens='/tmp/lumi-daily-screens';await mkdir(screens,{recursive:true});
 let browser,server;
@@ -19,10 +20,11 @@ try{
  const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'}));
  assert.equal(probe.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
  browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
+ await page.addInitScript(()=>{Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>{window.fixtureCopiedText=text;}}});});
  let posts=0,reads=0,accesses=0,ranges=0,libraryReads=0,libraryGate=null,libraryAssets=[],expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const shot=(n)=>({id:'q4'+n,number:n,title:['Lumi y vos','La vaca','La oveja','El caballo','El cerdo','La gallina','Hasta mañana'][n-1],complete:n<3,current:n===3,goal:'Descubrir la granja',characters:['Lumi'],continuity:{character_details:[]}});
  let state={client_scope:'fixture-owner',client_session:'fixture-session',server_time:Date.now(),review_revision:4,
-  episode:{id:'fixture-episode',title:'Lumi descubre la granja',next_action:'video:q43',checkpoint_version:55,actions:[]},episodes:[{id:'fixture-episode',title:'Lumi descubre la granja'}],
+  episode:{id:'fixture-episode',title:'Lumi y los animales de la granja',next_action:'video:q43',checkpoint_version:55,actions:[]},episodes:[{id:'fixture-episode',title:'Lumi y los animales de la granja',publication:publicationDraft({title:'Lumi y los animales de la granja'})}],
   operation:{kind:'production_stage',status:'RUNNING',phase:'GENERATING'},episode_job:{id:'original-job',status:'WAITING_PROVIDER'},
   review_policy:{id:'accepted-policy',mode:'DRAFT_FINAL_REVIEW_V1',choice_available:true,expired:false},episode_plan_authorization:{status:'AUTHORIZED',approval_available:true},
   current_action:{status:'SUBMITTED',emission_locked:true,provider_request_id:'internal-id',operations:[]},production:{shots:Array.from({length:7},(_,n)=>shot(n+1)),action:{stage:'VIDEO'}},
@@ -84,6 +86,12 @@ try{
  await page.emulateMedia({reducedMotion:'no-preference'});await page.locator('.brand').click();assert.equal(await page.locator('.bottom-nav [data-tab=inicio]').getAttribute('aria-current'),'page');
  for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
  await page.setViewportSize({width:390,height:844});
+ await page.locator('[data-tab=videos]').click();await page.locator('.publication-card summary').click();
+ const message=page.locator('[data-publication-episode]');assert.match(await message.inputValue(),/🐮🐑🐔/);assert.match(await message.inputValue(),/#AnimalesDeLaGranja/);
+ const edited='🐮 Un mensaje propio para Lumi. #Lumi';await message.fill(edited);await page.locator('[data-copy-publication]').click();assert.equal(await page.evaluate(()=>window.fixtureCopiedText),edited);
+ await page.evaluate(()=>fixtureUI.refresh());assert.equal(await message.inputValue(),edited);
+ await page.locator('[data-tab=ajustes]').click();await page.locator('[data-tab=videos]').click();await page.locator('.publication-card summary').click();assert.equal(await message.inputValue(),edited);
+ await page.screenshot({path:join(screens,'publication-message.png'),fullPage:true,animations:'disabled'});await page.locator('.brand').click();assert.equal(posts,0);
  const beforeReads=reads;await page.locator('[data-action=refresh]').first().click();await page.waitForFunction(()=>document.querySelector('[data-progress-status]')?.textContent.includes('actualizado')).catch(async()=>{await page.evaluate(()=>fixtureUI.refresh());});assert.ok(reads>beforeReads);assert.equal(posts,0);
  await page.locator('[data-ui-key=mode-options]>summary').click();assert.equal(await page.locator('[data-action=job_pause]').isVisible(),true);assert.match(await page.evaluate(()=>fixtureUI.button('Generar','generate')),/disabled/);
  await page.reload();await page.waitForSelector('.daily-status');assert.match(await page.locator('.daily-status').innerText(),/2 de 7/);assert.equal(posts,0);
@@ -106,7 +114,7 @@ try{
  const downloadPromise=page.waitForEvent('download');await page.locator('[data-download-media]').click();const download=await downloadPromise;
  assert.equal(download.suggestedFilename(),'Lumi-'+sha.slice(0,12)+'.mp4');assert.equal(createHash('sha256').update(await readFile(await download.path())).digest('hex'),sha);assert.equal(accesses,1);
  await page.screenshot({path:join(screens,'download.png'),fullPage:true});
- libraryAssets=[{asset_id:'master',asset_type:'MASTER',source_episode_id:state.episode.id,display_name:'Lumi descubre la granja',description:'Master aprobado',continuity_tags:[],reusable:true,version:1,media_type:'video/mp4',dimensions:{width:1080,height:1920},reuse_policy:{modes:[]},approval_reference:{scope:'ORIGINAL',source:'fixture'},sha256:sha,media_url:media.url,expires_at:Date.now()+300000}];
+ libraryAssets=[{asset_id:'master',asset_type:'MASTER',source_episode_id:state.episode.id,display_name:'Lumi y los animales de la granja',description:'Master aprobado',continuity_tags:[],reusable:true,version:1,media_type:'video/mp4',dimensions:{width:1080,height:1920},reuse_policy:{modes:[]},approval_reference:{scope:'ORIGINAL',source:'fixture'},sha256:sha,media_url:media.url,expires_at:Date.now()+300000}];
  await page.locator('[data-tab=biblioteca]').click();await page.locator('[data-library-refresh]').click();await page.waitForFunction(()=>!document.querySelector('[data-library-refresh]').disabled);
  await page.locator('[data-library-category=Masters]').click();await page.locator('[data-library-view=master]').click();await page.waitForFunction(()=>document.querySelector('[data-library-preview] video')?.readyState>=1);
  assert.equal(await page.locator('[data-library-preview]').getAttribute('data-preview-state'),'READY');assert.equal(await page.locator('[data-library-preview] [role=status]').count(),0);

@@ -1831,7 +1831,7 @@ async function secondImageFixture(t,options={}){
    control.emitted++;if(options.ambiguous)throw Error('OFFLINE_RESPONSE_LOST');
    return Response.json({request_id:'offline-q42-one-tap',status_url:'https://api.higgsfield.ai/requests/offline-q42-one-tap'});
   }
-  if(url.endsWith('/requests/offline-q42-one-tap')){control.polls++;return Response.json({request_id:'offline-q42-one-tap',status:control.ready?'completed':'processing',images:[{url:'https://media.example.test/q42-one-tap'}]});}
+  if(url.endsWith('/requests/offline-q42-one-tap')){control.polls++;return Response.json({request_id:'offline-q42-one-tap',status:control.status??(control.ready?'completed':'processing'),images:[{url:'https://media.example.test/q42-one-tap'}]});}
   if(url==='https://media.example.test/q42-one-tap')return new Response(image);
   if(o.method==='POST')return Response.json({request_id:'offline-q41-setup',status_url:'https://api.higgsfield.ai/requests/offline-q41-setup'});
   if(url.endsWith('/requests/offline-q41-setup'))return Response.json({request_id:'offline-q41-setup',status:'completed',video:{url:'https://media.example.test/q41-setup'}});
@@ -2122,6 +2122,25 @@ test('DURABLE_RESULT_RECOVERY REAL_Q42_SHAPE: stored result survives lost respon
  const unchanged=await f.store.getEpisode(episode);await left.processPending({user:'1',chat:'foreign'});assert.deepEqual(await f.store.getEpisode(episode),unchanged);
 });
 
+test('DURABLE_RESULT_RECOVERY TERMINAL_PROVIDER: confirmed failure stops polling and the job without a new emission or budget release',async t=>{
+ for(const status of ['failed','nsfw','canceled'])await t.test(status,async t=>{
+  const f=await secondImageFixture(t);await f.submit('second_image',{confirm:true});f.control.status=status;
+  const cp=await f.store.getEpisode(episode),id=cp.actions.find(a=>a.key==='image:q42').active_attempt_id;
+  await f.edit(s=>{s.mini_app.episode_jobs={[episode]:{id:'original-job',episode_id:episode,status:'WAITING_PROVIDER',lease_until:0}};});
+  const service=new f.service.constructor({...f.service});await service.processPending({user:'1',chat:'1'});
+  const saved=(await f.reviewStore.get('1')).state.mini_app,recovery=saved.result_recovery[id];
+  assert.equal(recovery.status,'ATTENTION_REQUIRED');assert.equal(recovery.provider_status,status);assert.equal(recovery.failures,1);
+  assert.equal(saved.episode_jobs[episode].status,'NEEDS_ATTENTION');assert.equal(saved.episode_jobs[episode].id,'original-job');
+  await service.processPending({user:'1',chat:'1'});assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);
+  assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.journalRows.get(id).state,'ACKNOWLEDGED');
+  const view=await service.view(await f.reopen());assert.equal(view.continuity.provider_status,status);assert.equal(view.capabilities.generate,false);
+ });
+});
+test('DURABLE_RESULT_RECOVERY PENDING_PROVIDER: the live queue state reaches the UI without declaring a failure',async t=>{
+ const f=await secondImageFixture(t);await f.submit('second_image',{confirm:true});f.control.status='queued';
+ await new f.service.constructor({...f.service}).processPending({user:'1',chat:'1'});
+ const view=await f.service.view(f.principal);assert.equal(view.continuity.provider_status,'queued');assert.equal(view.continuity.recovery_status,'WAITING');assert.equal(f.control.emitted,1);
+});
 test('DURABLE_RESULT_RECOVERY LATE_ACK: reopens only the obsolete missing-ACK blocker, once, across concurrent restarts',async t=>{
  const f=await secondImageFixture(t);await f.submit('second_image',{confirm:true});
  const cp=await f.store.getEpisode(episode),id=cp.actions.find(a=>a.key==='image:q42').active_attempt_id;

@@ -23,7 +23,7 @@ try{
    const req=route.request(),u=new URL(req.url()),p=u.pathname;
    const json=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
    if(u.hostname!=='lumi.test')return route.fulfill({contentType:'text/javascript',body:''});
-   if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script defer src="https://telegram.org/js/telegram-web-app.js"></script>','')});
+   if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script async src="https://telegram.org/js/telegram-web-app.js"></script>','')});
    if(p.endsWith('/style.css'))return route.fulfill({contentType:'text/css',body:files['style.css']});
    if(p.endsWith('/app.js'))return route.fulfill({contentType:'text/javascript',body:(version==='before'?before:files['app.js']).replace('navigation();login();','window.fixtureUI={refresh,button};navigation();login();')});
    if(p.endsWith('/session'))return json({csrf:'fixture',expires_at:Date.now()+1800000});

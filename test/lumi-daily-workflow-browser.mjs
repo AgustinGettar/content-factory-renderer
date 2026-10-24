@@ -36,7 +36,7 @@ try{
    if(p.endsWith('/actions/produce_episode')){starts++;state={...state,review_revision:state.review_revision+1,episode_job:{id:'initial-job',status:'WAITING_PROVIDER'},review_policy:{id:'initial-choice',mode:'DRAFT_FINAL_REVIEW_V1'}};return json({operation:{id:'initial-job',status:'QUEUED'}});}
    throw Error('UNEXPECTED_MUTATION');
   }
-  if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script defer src="https://telegram.org/js/telegram-web-app.js"></script>','')});
+  if(p==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script async src="https://telegram.org/js/telegram-web-app.js"></script>','')});
   if(p.endsWith('/style.css'))return route.fulfill({contentType:'text/css',body:files['style.css']});
   if(p.endsWith('/app.js'))return route.fulfill({contentType:'text/javascript',body:files['app.js'].replace('navigation();login();','window.fixtureUI={refresh,button};navigation();login();')});
   if(p.endsWith('/session'))return json({csrf:'fixture',expires_at:Date.now()+1800000});

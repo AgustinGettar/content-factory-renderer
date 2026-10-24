@@ -32,7 +32,7 @@ try{
   await context.route('**/*',async route=>{
    const u=new URL(route.request().url()),path=u.pathname,method=route.request().method();const json=x=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(x)});
    if(u.hostname!=='lumi.test')return route.fulfill({status:200,contentType:'text/javascript',body:''});
-   if(path==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script defer src="https://telegram.org/js/telegram-web-app.js"></script>','')});
+   if(path==='/lumi/studio')return route.fulfill({contentType:'text/html',body:files['index.html'].replace('<script async src="https://telegram.org/js/telegram-web-app.js"></script>','')});
    if(path==='/lumi/studio/style.css')return route.fulfill({contentType:'text/css',body:files['style.css']});
    if(path==='/lumi/studio/app.js')return route.fulfill({contentType:'text/javascript',body:(version==='before'?before:files['app.js']).replace('navigation();login();',`window.fixtureUI={refresh,render,setTab:t=>tab=t,getState:()=>state,${version==='after'?'metrics:uiMetrics,':''}};navigation();login();`)});
    if(path.endsWith('/session'))return json({csrf:'fixture',expires_at:Date.now()+1800000});

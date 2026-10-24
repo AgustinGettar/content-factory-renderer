@@ -26,7 +26,7 @@ function harness(initial=makeState(),saved=new Map()){
   localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)},setTimeout,clearTimeout,setInterval(){},fetch:()=>{throw Error('EXTERNAL_READ_FORBIDDEN');}};
  runInNewContext(js.replace('navigation();login();','')+`
  state=initial;csrf='fixture';tab='produccion';autoLibraryPlan=()=>{};hydrateStudioMedia=()=>{};hydrateLibraryMedia=()=>{};
- globalThis.ui={submit,refresh,render,patchMarkup,displayBytes,markMediumLoaded,reviewCards,reconcileIntents,intentText,beginIntent,matchingIntent,metrics:uiMetrics,
+ globalThis.ui={login,submit,refresh,render,patchMarkup,displayBytes,markMediumLoaded,reviewCards,reconcileIntents,intentText,beginIntent,matchingIntent,metrics:uiMetrics,
  setRequest:f=>request=f,setFetch:f=>globalThis.fetch=f,setState:s=>state=s,getState:()=>state,setTab:t=>tab=t};`,ctx);
  ctx.ui.markMediumLoaded('image1');ctx.ui.render();return {...ctx,saved};
 }
@@ -88,4 +88,14 @@ test('LOCAL_PREVIEWS: deterministic bytes, durable provenance, restart, bounded 
   const deterministic=await imagePreview(original,{variant:'thumb'});assert.equal(digest(deterministic),thumb.manifest.sha256);
   console.log(JSON.stringify({measurement:'SYNTHETIC_IMAGE_BYTES',original:original.length,thumb:thumb.bytes.length,preview:preview.bytes.length,source_downloads_for_two_variants:1}));
  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('STUDIO_STARTUP_UI: one combined read paints state without waiting for Telegram SDK; failed read offers retry',async()=>{
+ const h=harness(),s=makeState(),paths=[];h.ui.setState(null);
+ h.ui.setRequest(async path=>{paths.push(path);return {csrf:'fixture',state:s};});
+ await h.ui.login();assert.deepEqual(paths,['/session?state=1']);assert.equal(h.ui.getState().episode.id,s.episode.id);
+ assert.ok(h.ui.metrics.some(m=>m.phase==='startup_ready'));
+ h.ui.setState(null);h.ui.setRequest(async()=>{throw Error('TIMEOUT');});await h.ui.login();
+ assert.match(h.document.querySelector('#app').textContent,/conexión está tardando/);assert.equal(h.document.querySelector('[data-action=login]').disabled,false);
+ h.ui.setRequest(async()=>({csrf:'fixture',state:s}));await h.ui.login();assert.equal(h.ui.getState().episode.id,s.episode.id);
 });

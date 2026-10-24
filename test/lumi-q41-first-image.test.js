@@ -1266,6 +1266,46 @@ async function miniFixture(options={}){
   const s=await auth.login(p.toString());return auth.authenticate(s.cookie,s.csrf);};
  return {...f,miniEnv,auth,login,principal,service,submit,reopen};
 }
+test('STUDIO_STARTUP_READS: fresh projection preserves budget and locks without repeated large records',async()=>{
+ const f=await miniFixture();await f.submit('quote');
+ const expected=await f.service.view(f.principal),before=await f.reviewStore.get('1'),cp=await f.store.getEpisode(episode),calls=f.calls.length;
+ const counts={review:0,checkpoint:0,sources:0,revision:0};
+ for(const [obj,name,key] of [[f.reviewStore,'get','review'],[f.reviewStore,'getRevision','revision'],[f.store,'getEpisode','checkpoint'],[f.store,'linkedBudgetSources','sources']]){
+  const original=obj[name].bind(obj);obj[name]=async(...args)=>{counts[key]++;await new Promise(r=>setTimeout(r,40));return original(...args);};
+ }
+ const started=performance.now(),actual=await f.service.view(f.principal),elapsed=performance.now()-started;
+ console.log(JSON.stringify({measurement:'STUDIO_STARTUP_READS',...counts,delay_per_read_ms:40,elapsed_ms:Math.round(elapsed)}));
+ assert.deepEqual(counts,{review:1,checkpoint:1,sources:1,revision:1});
+ for(const field of ['budget','cost_projection','quote','current_action','capabilities','production'])assert.deepEqual(actual[field],expected[field],field);
+ assert.equal(f.calls.length,calls);assert.deepEqual(await f.reviewStore.get('1'),before);assert.deepEqual(await f.store.getEpisode(episode),cp);
+});
+test('STUDIO_STARTUP_REVISION: concurrent session change retries fresh state; revocation fails closed',async()=>{
+ const f=await miniFixture(),read=f.reviewStore.getRevision.bind(f.reviewStore);let changed=false;
+ f.reviewStore.getRevision=async user=>{if(!changed){changed=true;await f.edit(s=>{s.mini_app.entrypoint={status:'CONFIGURED'};});}return read(user);};
+ const view=await f.service.view(f.principal);assert.equal(view.review_revision,(await f.reviewStore.get('1')).revision);assert.equal(view.settings.entrypoint,'CONFIGURED');
+ changed=false;f.reviewStore.getRevision=async user=>{if(!changed){changed=true;await f.edit(s=>{delete s.mini_app.sessions[f.principal.session];});}return read(user);};
+ await assert.rejects(f.service.view(f.principal),/MINI_OWNER_REQUIRED/);
+});
+test('STUDIO_STARTUP_HTTP: combined session, private data, compressed versioned assets and conditional cache',{skip:!!globalThis.LUMI_OFFLINE_GUARD},async t=>{
+ const f=await miniFixture(),{default:express}=await import('express'),{mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js'),{request}=await import('node:http');
+ const app=express();app.use(express.json());const mounted=mountMiniApp(app,{db:{},store:f.reviewStore,adapter:{...f.videoAdapter,backgroundCheckpoint:undefined},production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:f.miniEnv,configureEntry:false});t.after(mounted.stop);
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>server.close(r)));
+ const get=(path,headers={})=>new Promise((resolve,reject)=>{const req=request({hostname:'127.0.0.1',port:server.address().port,path,headers},res=>{const b=[];res.on('data',x=>b.push(x));res.on('end',()=>resolve({code:res.statusCode,headers:res.headers,body:Buffer.concat(b)}));});req.on('error',reject);req.end();});
+ const html=await get('/lumi/studio'),jsPath=html.body.toString().match(/src="([^\"]+app.js\?v=[a-f0-9]+)"/)[1];
+ assert.equal(html.headers['cache-control'],'no-cache');const js=await get(jsPath,{'accept-encoding':'gzip'});
+ assert.equal(js.code,200);assert.match(js.headers['cache-control'],/immutable/);assert.equal(js.headers['content-encoding'],'gzip');
+ const {gunzipSync}=await import('node:zlib'),original=gunzipSync(js.body);assert.match(original.toString(),/launchInitData/);assert.ok(js.body.length<original.length*.3);
+ assert.equal((await get(jsPath,{'if-none-match':js.headers.etag,'accept-encoding':'gzip'})).code,304);
+ assert.equal((await get(jsPath,{'accept-encoding':'gzip;q=0'})).headers['content-encoding'],undefined);
+ assert.equal((await get('/lumi/studio/app.js')).headers['cache-control'],'no-cache');
+ assert.equal((await get('/lumi/studio/api/session?state=1')).code,401);
+ const before=await f.reviewStore.get('1'),cp=await f.store.getEpisode(episode),calls=f.calls.length;
+ const session=await get('/lumi/studio/api/session?state=1',{cookie:'__Secure-lumi_studio='+f.login.cookie}),data=JSON.parse(session.body);
+ assert.equal(session.code,200);assert.equal(session.headers['cache-control'],'no-store');assert.match(session.headers['server-timing'],/auth;dur=.*state;dur=/);
+ assert.equal(data.csrf,f.login.csrf);assert.equal(data.state.episode.id,episode);assert.ok(!data.state.production_commands&&!data.state.mini_app);
+ assert.equal(f.calls.length,calls);assert.deepEqual(await f.reviewStore.get('1'),before);assert.deepEqual(await f.store.getEpisode(episode),cp);
+ console.log(JSON.stringify({measurement:'STUDIO_COMPRESSED_SCRIPT',original_bytes:original.length,transfer_bytes:js.body.length}));
+});
 async function oneTapFixture(t,options={}){
  const emitted=[],polls=[];
  const f=await miniFixture({...options,providerFetch:options.providerFetch|| (async(url,o,base)=>{

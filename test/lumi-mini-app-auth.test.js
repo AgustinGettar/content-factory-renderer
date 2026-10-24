@@ -322,3 +322,16 @@ test('EPISODE_UX_V5: one contextual action, automatic recovery and visible human
  v.reviews=[];v.current_action={emission_locked:false,status:'NOT_STARTED'};v.episode_job={status:'WAITING_HUMAN_REVIEW'};ui.setState(v);
  assert.match(ui.quoteCard(),/Solicitud guardada/);assert.doesNotMatch(ui.quoteCard(),/data-action="produce_episode"/,'the existing job resumes after approval without a second start button');
 });
+
+test('STUDIO_STARTUP_AUTH: narrow session reads still enforce revocation, expiry, owner and CSRF on every call',async()=>{
+ const f=await fixture(),session=await f.auth.login(sign()),principal=await f.auth.authenticate(session.cookie);
+ const stored=await f.store.get('1');let active=true,calls=0;
+ const {SupabaseReviewStore}=await import('../lib/telegram-review-v1/core.js');
+ const db={from:table=>{assert.equal(table,'lumi_telegram_review_sessions');return {select:columns=>{assert.equal(columns,'user_id:state->user_id,chat_id:state->chat_id,session:state->mini_app->sessions->'+principal.session);return {eq:(key,user)=>{assert.equal(key,'user_id');assert.equal(user,'1');return {maybeSingle:async()=>{calls++;return {data:{user_id:'1',chat_id:'1',session:stored.state.mini_app.sessions[principal.session]}};}};}};}};}};
+ const store=new SupabaseReviewStore(db);store.get=()=>{throw Error('FULL_HISTORY_READ_FORBIDDEN');};
+ const auth=new MiniAppAuth({store,env,validateOwner:async()=>active});
+ assert.equal((await auth.authenticate(session.cookie,session.csrf)).user,'1');
+ await assert.rejects(auth.authenticate(session.cookie,'wrong'),/CSRF/);active=false;await assert.rejects(auth.authenticate(session.cookie),/SESSION_EXPIRED/);active=true;
+ stored.state.mini_app.sessions[principal.session].expires_at=0;await assert.rejects(auth.authenticate(session.cookie),/SESSION_EXPIRED/);
+ delete stored.state.mini_app.sessions[principal.session];await assert.rejects(auth.authenticate(session.cookie),/SESSION_EXPIRED/);assert.equal(calls,5);
+});

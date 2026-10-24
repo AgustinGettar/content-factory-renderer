@@ -24,3 +24,11 @@ Script transfer in the local HTTP fixture: 112,631 raw bytes to 33,666 gzip byte
 Local Chromium download was unavailable in this executor; browser acceptance is run by the repository's GitHub CI. Do not label desktop/fixture results as real Telegram/iPhone acceptance.
 
 Render Free's sleeping-service delay still applies before the first HTTP response. No keep-alive or paid-plan change is included. A cold-start-free guarantee would be false under this constraint.
+
+## Follow-up interaction polish
+
+Tab navigation remembers reading position and the selected workflow step for this open session; tapping the active tab does not reset the page. Meaningful episode advancement still selects its new step. The brand returns to Inicio. Small touch, dialog and image transitions respect reduced motion; loading placeholders retain image dimensions. The production progress bar reports completed shots, never elapsed time or predicted provider completion.
+
+Unchanged polls retain fresh access tickets in memory without rebuilding the view. Changes to media identity, receipts, controls or other visible state still render. The state and authorization endpoints remain fresh. A 30-second in-memory catalog cache is used only when returning to Biblioteca/Videos; explicit refreshes and mutation receipts bypass it. Session cleanup invalidates in-flight catalog/preview reads, preventing late private responses from repopulating a cleared cache.
+
+Regression coverage includes restored tab scroll, unchanged-poll DOM mutations, catalog read counts, owner/session invalidation, real media changes, 320/390/768-pixel layouts, reduced motion and the existing playback/download and consent controls. All browser media and production events are controlled fixtures, not live provider calls.

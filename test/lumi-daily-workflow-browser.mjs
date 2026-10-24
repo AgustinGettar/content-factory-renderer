@@ -18,7 +18,7 @@ try{
  const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'}));
  assert.equal(probe.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
  browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
- let posts=0,reads=0,accesses=0,ranges=0,expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let posts=0,reads=0,accesses=0,ranges=0,libraryReads=0,libraryGate=null,expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const shot=(n)=>({id:'q4'+n,number:n,title:['Lumi y vos','La vaca','La oveja','El caballo','El cerdo','La gallina','Hasta mañana'][n-1],complete:n<3,current:n===3,goal:'Descubrir la granja',characters:['Lumi'],continuity:{character_details:[]}});
  let state={client_scope:'fixture-owner',client_session:'fixture-session',server_time:Date.now(),review_revision:4,
   episode:{id:'fixture-episode',title:'Lumi descubre la granja',next_action:'video:q43',checkpoint_version:55,actions:[]},episodes:[{id:'fixture-episode',title:'Lumi descubre la granja'}],
@@ -43,7 +43,7 @@ try{
   if(p.endsWith('/state')){reads++;return expired?json({error:'MINI_SESSION_EXPIRED'},401):json({...state,server_time:Date.now()});}
   if(p.endsWith('/plan/review'))return json({challenge:{contract:{title:state.episode.title,action_set:[],model:{},payload_constraints:{},per_action_limits:{},maximum_episode_exposure:8,total_reservation_maximum_usd:4,estimate_minimum_usd:4,estimate_probable_usd:5},consent_expires_at:new Date(Date.now()+86400000).toISOString()}});
   if(p.endsWith('/library/plan'))return json({suggestions:[]});
-  if(p.endsWith('/library'))return json({assets:[],counts:{},selections:[],version:1});
+  if(p.endsWith('/library')){libraryReads++;if(libraryGate)await libraryGate;return json({assets:[],counts:{},selections:[],version:1});}
   if(p.endsWith('/master/access')){accesses++;return json({url:'/lumi/studio/api/media/master?ticket=fresh',expires_at:Date.now()+300000});}
   if(p.endsWith('/media/master')){
    const headers={'Accept-Ranges':'bytes',...(u.searchParams.has('download')?{'Content-Disposition':'attachment; filename="Lumi-'+sha.slice(0,12)+'.mp4"'}:{})};
@@ -64,6 +64,23 @@ try{
  assert.equal(await page.locator('.shot-tile').count(),7);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  await page.screenshot({path:join(screens,'production.png'),fullPage:true});
+ // A stable poll should not touch the visible DOM. Tickets remain fresh in memory.
+ const mutations=await page.evaluate(async()=>{const changes=[];const observer=new MutationObserver(entries=>changes.push(...entries));observer.observe(document.querySelector('#app'),{subtree:true,childList:true,attributes:true,characterData:true});await fixtureUI.refresh();await Promise.resolve();observer.disconnect();return changes.length;});assert.equal(mutations,0);
+ assert.deepEqual(await page.locator('.episode-progress').evaluate(p=>[p.value,p.max]),[2,7]);
+ await page.evaluate(()=>scrollTo({top:600,behavior:'instant'}));const readingPosition=await page.evaluate(()=>scrollY);assert.ok(readingPosition>500);
+ await page.locator('[data-tab=ajustes]').click();assert.equal(await page.evaluate(()=>scrollY),0);
+ await page.locator('.bottom-nav [data-tab=inicio]').click();assert.ok(Math.abs(await page.evaluate(()=>scrollY)-readingPosition)<2);
+ // The first library visit has an honest placeholder; quick returns reuse it.
+ let releaseLibrary;libraryGate=new Promise(resolve=>releaseLibrary=resolve);
+ await page.locator('[data-tab=biblioteca]').click();await page.waitForSelector('.loading-skeleton');
+ await page.screenshot({path:join(screens,'library-loading.png'),fullPage:true});releaseLibrary();libraryGate=null;
+ await page.waitForSelector('.empty h3');assert.equal(libraryReads,1);
+ await page.locator('[data-tab=ajustes]').click();await page.locator('[data-tab=biblioteca]').click();assert.equal(libraryReads,1);
+ await page.locator('[data-library-refresh]').click();await page.waitForFunction(()=>!document.querySelector('[data-library-refresh]').disabled);assert.equal(libraryReads,2);
+ await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.bottom-nav button').first().evaluate(n=>getComputedStyle(n).transitionDuration),'0s');
+ await page.emulateMedia({reducedMotion:'no-preference'});await page.locator('.brand').click();assert.equal(await page.locator('.bottom-nav [data-tab=inicio]').getAttribute('aria-current'),'page');
+ for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);}
+ await page.setViewportSize({width:390,height:844});
  const beforeReads=reads;await page.locator('[data-action=refresh]').first().click();await page.waitForFunction(()=>document.querySelector('[data-progress-status]')?.textContent.includes('actualizado')).catch(async()=>{await page.evaluate(()=>fixtureUI.refresh());});assert.ok(reads>beforeReads);assert.equal(posts,0);
  await page.locator('[data-ui-key=mode-options]>summary').click();assert.equal(await page.locator('[data-action=job_pause]').isVisible(),true);assert.match(await page.evaluate(()=>fixtureUI.button('Generar','generate')),/disabled/);
  await page.reload();await page.waitForSelector('.daily-status');assert.match(await page.locator('.daily-status').innerText(),/2 de 7/);assert.equal(posts,0);
@@ -93,6 +110,6 @@ try{
  await page.selectOption('#initial-review-mode','DRAFT_FINAL_REVIEW_V1');await page.evaluate(()=>{for(let n=0;n<10;n++)document.querySelector('#dialog-confirm').click();});
  await page.waitForFunction(()=>document.querySelector('.daily-status')?.textContent.includes('Borrador automático'));assert.equal(planAccepts,1);assert.equal(starts,1);assert.equal(posts,2);
  assert.equal(errors.length,0,errors.join(';'));
- console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,initial_mode_explicit:true,planAccepts,starts,posts}));
+ console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,unchanged_poll_dom_mutations:mutations,scroll_restored:true,library_cached_navigation:true,explicit_library_refresh:true,reduced_motion:true,mobile_overflow:false,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,initial_mode_explicit:true,planAccepts,starts,posts}));
  await context.close();
 }finally{await browser?.close();await new Promise(resolve=>server?server.close(resolve):resolve());await rm(dir,{recursive:true,force:true});}

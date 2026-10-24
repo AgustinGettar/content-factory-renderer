@@ -21,12 +21,12 @@ const makeState=()=>({client_scope:'owner-a',client_session:'session-a',review_r
  production:{shots:[{id:'s1',number:1,title:'Escena',current:true,goal:'Fixture',stages:[],characters:[],continuity:{character_details:[]}}],action:{stage:'IMAGE'}},
  budget:{ceiling_usd:8,exposure_usd:1,remaining_usd:7},episode_plan_authorization:{approval_available:true,status:'HUMAN_APPROVAL_REQUIRED'},capabilities:{},quote:null,settings:{},lifecycle:{state:'AWAITING_HUMAN_REVIEW'}});
 function harness(initial=makeState(),saved=new Map()){
- const {document,window}=parseHTML(html),metrics=[];window.scrollTo=()=>{};window.matchMedia=()=>({matches:true});
+ const {document,window}=parseHTML(html),metrics=[];window.scrollTo=()=>{};window.matchMedia=()=>({matches:true});window.HTMLElement.prototype.scrollIntoView=()=>{};
  const ctx={document,window,initial:structuredClone(initial),performance,Date,console,crypto:webcrypto,AbortController,Blob,URL,
   localStorage:{getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v)},setTimeout,clearTimeout,setInterval(){},fetch:()=>{throw Error('EXTERNAL_READ_FORBIDDEN');}};
  runInNewContext(js.replace('navigation();login();','')+`
  state=initial;csrf='fixture';tab='produccion';autoLibraryPlan=()=>{};hydrateStudioMedia=()=>{};hydrateLibraryMedia=()=>{};
- globalThis.ui={login,submit,refresh,render,patchMarkup,displayBytes,markMediumLoaded,reviewCards,reconcileIntents,intentText,beginIntent,matchingIntent,metrics:uiMetrics,
+ globalThis.ui={login,submit,refresh,render,navigate,applyState,loadLibrary,clearLibraryMedia,getLibrary:()=>libraryData,getCacheSize:()=>displayCache.size,patchMarkup,displayBytes,markMediumLoaded,reviewCards,reconcileIntents,intentText,beginIntent,matchingIntent,metrics:uiMetrics,
  setRequest:f=>request=f,setFetch:f=>globalThis.fetch=f,setState:s=>state=s,getState:()=>state,setTab:t=>tab=t};`,ctx);
  ctx.ui.markMediumLoaded('image1');ctx.ui.render();return {...ctx,saved};
 }
@@ -98,4 +98,37 @@ test('STUDIO_STARTUP_UI: one combined read paints state without waiting for Tele
  h.ui.setState(null);h.ui.setRequest(async()=>{throw Error('TIMEOUT');});await h.ui.login();
  assert.match(h.document.querySelector('#app').textContent,/conexión está tardando/);assert.equal(h.document.querySelector('[data-action=login]').disabled,false);
  h.ui.setRequest(async()=>({csrf:'fixture',state:s}));await h.ui.login();assert.equal(h.ui.getState().episode.id,s.episode.id);
+});
+
+test('POLISHED_NAVIGATION: tab switches remember reading position and do not reload the active tab',()=>{
+ const h=harness(),positions=[];h.window.scrollTo=options=>{positions.push(options.top);h.window.scrollY=options.top;};h.window.scrollY=420;
+ h.ui.navigate('ajustes');assert.equal(positions.at(-1),0);
+ h.window.scrollY=150;h.ui.navigate('produccion');assert.equal(positions.at(-1),420);
+ const count=positions.length;h.ui.navigate('produccion');assert.equal(positions.length,count);
+ h.ui.navigate('ajustes');assert.equal(positions.at(-1),150);
+});
+
+test('QUIET_POLLS: rotating tickets remain fresh without repainting; real media changes still render',()=>{
+ const h=harness(),s=makeState();h.ui.applyState({...s,server_time:s.server_time+1000,media:s.media.map(m=>({...m,url:'/new-ticket',expires_at:Date.now()+600000}))});
+ assert.equal(h.ui.getState().media[0].url,'/new-ticket');assert.equal(h.ui.metrics.filter(m=>m.phase==='state_unchanged').length,1);
+ const before=h.document.querySelector('[data-media-host]');h.ui.applyState({...s,media:s.media.map(m=>({...m,sha256:'b'.repeat(64)}))});
+ assert.notEqual(h.document.querySelector('[data-media-host]'),before);assert.equal(h.ui.metrics.filter(m=>m.phase==='state_unchanged').length,1);
+ h.ui.applyState({...s,client_scope:'owner-b',review_revision:1,episode:{...s.episode,checkpoint_version:1}});assert.equal(h.ui.getState().client_scope,'owner-b');
+});
+
+test('LIBRARY_NAV_CACHE: navigation reuses the catalog; explicit reads and owner changes stay fresh',async()=>{
+ const h=harness();let reads=0;h.ui.setRequest(async()=>({assets:[],selections:[],counts:{},version:++reads}));
+ await h.ui.loadLibrary();await h.ui.loadLibrary({reuse:true});assert.equal(reads,1);
+ await h.ui.loadLibrary();assert.equal(reads,2);
+ let finishOld;h.ui.setRequest(()=>new Promise(resolve=>finishOld=resolve));const old=h.ui.loadLibrary();
+ h.ui.clearLibraryMedia();h.ui.setState({...makeState(),client_scope:'owner-b'});h.ui.setRequest(async()=>({assets:[],counts:{},selections:[],version:99}));
+ await h.ui.loadLibrary({reuse:true});finishOld({assets:[{asset_id:'old-private-file'}],version:3});await old;
+ assert.equal(h.ui.getLibrary().version,99);assert.equal(h.ui.getLibrary().assets.length,0);
+});
+
+test('PENDING_PREVIEW: a response after session cleanup cannot repopulate the private image cache',async()=>{
+ const h=harness(),bytes=Buffer.from('late-preview');let finish;
+ h.ui.setFetch(()=>new Promise(resolve=>finish=resolve));const pending=h.ui.displayBytes(makeState().media[0],'thumb');
+ h.ui.clearLibraryMedia();finish({ok:true,status:200,headers:{get:k=>({'x-content-sha256':digest(bytes),'x-original-sha256':'a'.repeat(64)}[k])},blob:async()=>new Blob([bytes],{type:'image/jpeg'})});
+ await assert.rejects(pending,/MEDIA_CONTEXT_CHANGED/);assert.equal(h.ui.getCacheSize(),0);
 });

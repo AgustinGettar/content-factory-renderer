@@ -1294,7 +1294,10 @@ test('STUDIO_STARTUP_HTTP: combined session, private data, compressed versioned 
  const html=await get('/lumi/studio'),jsPath=html.body.toString().match(/src="([^\"]+app.js\?v=[a-f0-9]+)"/)[1];
  assert.equal(html.headers['cache-control'],'no-cache');const js=await get(jsPath,{'accept-encoding':'gzip'});
  assert.equal(js.code,200);assert.match(js.headers['cache-control'],/immutable/);assert.equal(js.headers['content-encoding'],'gzip');
- const {gunzipSync}=await import('node:zlib'),original=gunzipSync(js.body);assert.match(original.toString(),/launchInitData/);assert.ok(js.body.length<original.length*.3);
+ const {gunzipSync,brotliDecompressSync}=await import('node:zlib'),original=gunzipSync(js.body);assert.match(original.toString(),/launchInitData/);assert.ok(js.body.length<36*1024,'gzip script transfer stays below 36 KiB');
+ const br=await get(jsPath,{'accept-encoding':'br, gzip'});assert.equal(br.headers['content-encoding'],'br');assert.deepEqual(brotliDecompressSync(br.body),original);assert.ok(br.body.length<33*1024&&br.body.length<js.body.length,'Brotli script transfer stays below 33 KiB');assert.notEqual(br.headers.etag,js.headers.etag);
+ assert.equal((await get(jsPath,{'if-none-match':br.headers.etag,'accept-encoding':'br'})).code,304);
+ assert.equal((await get(jsPath,{'accept-encoding':'br;q=0, gzip'})).headers['content-encoding'],'gzip');
  assert.equal((await get(jsPath,{'if-none-match':js.headers.etag,'accept-encoding':'gzip'})).code,304);
  assert.equal((await get(jsPath,{'accept-encoding':'gzip;q=0'})).headers['content-encoding'],undefined);
  assert.equal((await get('/lumi/studio/app.js')).headers['cache-control'],'no-cache');
@@ -1304,7 +1307,7 @@ test('STUDIO_STARTUP_HTTP: combined session, private data, compressed versioned 
  assert.equal(session.code,200);assert.equal(session.headers['cache-control'],'no-store');assert.match(session.headers['server-timing'],/auth;dur=.*state;dur=/);
  assert.equal(data.csrf,f.login.csrf);assert.equal(data.state.episode.id,episode);assert.ok(!data.state.production_commands&&!data.state.mini_app);
  assert.equal(f.calls.length,calls);assert.deepEqual(await f.reviewStore.get('1'),before);assert.deepEqual(await f.store.getEpisode(episode),cp);
- console.log(JSON.stringify({measurement:'STUDIO_COMPRESSED_SCRIPT',original_bytes:original.length,transfer_bytes:js.body.length}));
+ console.log(JSON.stringify({measurement:'STUDIO_COMPRESSED_SCRIPT',original_bytes:original.length,gzip_bytes:js.body.length,brotli_bytes:br.body.length}));
 });
 async function oneTapFixture(t,options={}){
  const emitted=[],polls=[];

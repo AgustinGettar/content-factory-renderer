@@ -22,4 +22,6 @@ Official Metricool documentation supports TikTok automatic publishing for person
 
 ## Verification
 
+Static assets now negotiate cached Brotli or gzip, computed once when the service starts. The script transfers in 32,918 bytes with Brotli (35,645 bytes with gzip fallback), including the new controls. Tests enforce absolute transfer budgets of 33 KiB and 36 KiB, decoded byte equality, encoding exclusion and distinct conditional-cache validators. Private responses remain uncompressed by this public-asset handler and `no-store`.
+
 Focused unit and integration tests cover queued/processing/completed/failed/moderated/canceled/unknown responses, one GET of the accepted request, preserved claims and reservations, no re-emission, concurrent recovery, identity isolation, draft bounds and per-episode text. Browser fixtures verify copy, editing, navigation/poll retention, download/playback, existing approval gates and responsive layout. All provider/media calls in tests are synthetic. Live provider state must be read from the next persisted worker observation; fixture status is never written to staging.

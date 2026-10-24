@@ -15,10 +15,11 @@ try{
  const file=join(dir,'master.mp4');
  execFileSync('ffmpeg',['-v','error','-f','lavfi','-i','color=c=0xabcbd8:s=1080x1920:r=24:d=2','-f','lavfi','-i','sine=frequency=440:duration=2','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-threads','1','-c:a','aac','-movflags','+faststart','-shortest',file]);
  const bytes=await readFile(file),sha=createHash('sha256').update(bytes).digest('hex');
+ const posterFile=join(dir,'poster.jpg');execFileSync('ffmpeg',['-v','error','-i',file,'-frames:v','1','-vf','scale=180:320','-threads','1',posterFile]);const poster=await readFile(posterFile),posterSha=createHash('sha256').update(poster).digest('hex');
  const probe=JSON.parse(execFileSync('ffprobe',['-v','error','-show_streams','-of','json',file],{encoding:'utf8'}));
  assert.equal(probe.streams.find(s=>s.codec_type==='audio').codec_name,'aac');
  browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}: {})});const context=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage();
- let posts=0,reads=0,accesses=0,ranges=0,libraryReads=0,libraryGate=null,expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let posts=0,reads=0,accesses=0,ranges=0,libraryReads=0,libraryGate=null,libraryAssets=[],expired=false,allowStart=false,planAccepts=0,starts=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const shot=(n)=>({id:'q4'+n,number:n,title:['Lumi y vos','La vaca','La oveja','El caballo','El cerdo','La gallina','Hasta mañana'][n-1],complete:n<3,current:n===3,goal:'Descubrir la granja',characters:['Lumi'],continuity:{character_details:[]}});
  let state={client_scope:'fixture-owner',client_session:'fixture-session',server_time:Date.now(),review_revision:4,
   episode:{id:'fixture-episode',title:'Lumi descubre la granja',next_action:'video:q43',checkpoint_version:55,actions:[]},episodes:[{id:'fixture-episode',title:'Lumi descubre la granja'}],
@@ -43,9 +44,11 @@ try{
   if(p.endsWith('/state')){reads++;return expired?json({error:'MINI_SESSION_EXPIRED'},401):json({...state,server_time:Date.now()});}
   if(p.endsWith('/plan/review'))return json({challenge:{contract:{title:state.episode.title,action_set:[],model:{},payload_constraints:{},per_action_limits:{},maximum_episode_exposure:8,total_reservation_maximum_usd:4,estimate_minimum_usd:4,estimate_probable_usd:5},consent_expires_at:new Date(Date.now()+86400000).toISOString()}});
   if(p.endsWith('/library/plan'))return json({suggestions:[]});
-  if(p.endsWith('/library')){libraryReads++;if(libraryGate)await libraryGate;return json({assets:[],counts:{},selections:[],version:1});}
+  if(p.endsWith('/library')){libraryReads++;if(libraryGate)await libraryGate;return json({assets:libraryAssets,counts:{},selections:[],version:1});}
+  if(p.endsWith('/library/access/master'))return json({media:libraryAssets[0]});
   if(p.endsWith('/master/access')){accesses++;return json({url:'/lumi/studio/api/media/master?ticket=fresh',expires_at:Date.now()+300000});}
   if(p.endsWith('/media/master')){
+   if(u.searchParams.has('variant'))return route.fulfill({contentType:'image/jpeg',headers:{'X-Content-SHA256':posterSha,'X-Original-SHA256':sha},body:poster});
    const headers={'Accept-Ranges':'bytes',...(u.searchParams.has('download')?{'Content-Disposition':'attachment; filename="Lumi-'+sha.slice(0,12)+'.mp4"'}:{})};
    const range=req.headers().range;
    if(range){ranges++;const [,start,end]=/^bytes=(\d+)-(\d*)$/.exec(range),a=Number(start),b=end?Number(end):bytes.length-1;return route.fulfill({status:206,contentType:'video/mp4',headers:{...headers,'Content-Range':`bytes ${a}-${b}/${bytes.length}`},body:bytes.subarray(a,b+1)});}
@@ -103,6 +106,10 @@ try{
  const downloadPromise=page.waitForEvent('download');await page.locator('[data-download-media]').click();const download=await downloadPromise;
  assert.equal(download.suggestedFilename(),'Lumi-'+sha.slice(0,12)+'.mp4');assert.equal(createHash('sha256').update(await readFile(await download.path())).digest('hex'),sha);assert.equal(accesses,1);
  await page.screenshot({path:join(screens,'download.png'),fullPage:true});
+ libraryAssets=[{asset_id:'master',asset_type:'MASTER',source_episode_id:state.episode.id,display_name:'Lumi descubre la granja',description:'Master aprobado',continuity_tags:[],reusable:true,version:1,media_type:'video/mp4',dimensions:{width:1080,height:1920},reuse_policy:{modes:[]},approval_reference:{scope:'ORIGINAL',source:'fixture'},sha256:sha,media_url:media.url,expires_at:Date.now()+300000}];
+ await page.locator('[data-tab=biblioteca]').click();await page.locator('[data-library-refresh]').click();await page.waitForFunction(()=>!document.querySelector('[data-library-refresh]').disabled);
+ await page.locator('[data-library-category=Masters]').click();await page.locator('[data-library-view=master]').click();await page.waitForFunction(()=>document.querySelector('[data-library-preview] video')?.readyState>=1);
+ assert.equal(await page.locator('[data-library-preview]').getAttribute('data-preview-state'),'READY');assert.equal(await page.locator('[data-library-preview] [role=status]').count(),0);
  expired=true;await page.evaluate(()=>fixtureUI.refresh());assert.match(await page.locator('#app').innerText(),/bot de Telegram/);assert.equal(posts,0);assert.equal(errors.length,0,errors.join(';'));
  expired=false;allowStart=true;state={...state,review_revision:10,episode:{...state.episode,next_action:'video:q41',checkpoint_version:1},episode_job:null,operation:null,current_action:{status:'NOT_STARTED',operations:[]},review_policy:{mode:'SUPERVISED'},episode_plan_authorization:{status:'HUMAN_APPROVAL_REQUIRED',approval_available:true},media:[],production:{...state.production,shots:state.production.shots.map(s=>({...s,complete:false,current:s.number===1}))}};
  await page.reload();await page.locator('[data-action=plan_review]').first().click();await page.waitForFunction(()=>document.querySelector('#confirmation').open);

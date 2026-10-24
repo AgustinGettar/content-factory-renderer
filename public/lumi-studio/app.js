@@ -524,7 +524,8 @@ async function libraryMediaUrl(a,{renew=false,poster=false}={}){
 function hydrateLibraryMedia(){for(const node of document.querySelectorAll?.('[data-library-preview]')||[]){
  const a=libraryData?.assets.find(a=>a.asset_id===node.dataset.libraryPreview);if(!a)continue;
  if(a.media_type==='video/mp4'&&node.dataset.variant==='preview'){
-  if(node.dataset.previewBound)continue;node.dataset.previewBound='true';libraryMediaUrl(a).then(url=>{if(!node.isConnected)return;const m=document.createElement('video');m.controls=true;m.playsInline=true;m.preload='metadata';m.addEventListener('loadedmetadata',()=>node.querySelector('[role="status"]')?.remove(),{once:true});m.addEventListener('error',()=>mediaFailure(node,Error('MEDIA_DECODE')),{once:true});node.append(m);m.src=url;});
+  if(node.dataset.previewBound)continue;node.dataset.previewBound='true';const epoch=mediaEpoch;
+  libraryMediaUrl(a).then(url=>{if(!node.isConnected||epoch!==mediaEpoch)return;const m=document.createElement('video');m.controls=true;m.playsInline=true;m.preload='metadata';m.addEventListener('loadedmetadata',()=>{node.dataset.previewState='READY';node.querySelector('[role="status"]')?.remove();},{once:true});m.addEventListener('error',()=>mediaFailure(node,Error('MEDIA_DECODE')),{once:true});node.append(m);m.src=url;}).catch(e=>{if(epoch===mediaEpoch)mediaFailure(node,e);});
  }else observeImage(node,()=>mountImage(node,a,node.dataset.variant,true));
 }}
 const libraryGroups={Personajes:['CHARACTER_REFERENCE'],Escenarios:['SCENE_REFERENCE','BACKGROUND'],Objetos:['OBJECT_REFERENCE'],Imágenes:['APPROVED_IMAGE'],Clips:['APPROVED_VIDEO'],Masters:['MASTER']};

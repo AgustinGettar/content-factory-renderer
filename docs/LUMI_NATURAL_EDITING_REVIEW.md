@@ -1,6 +1,6 @@
 # Lumi · revisión de preparación y montaje natural
 
-Corte de evidencia: 25-10-2026. Rama exclusiva `lumi-telegram-review-v1`; staging `mofjhwathxzfnjapvvst` / `content-factory-av2-staging`. Base remota observada `288128926bcabe53af2e1b92eb7249e0971a8f97`; live previo `4297ec0470a9d92eacf6cfa9b795a337a6948769`. La evidencia de CI y despliegue del cambio se registra al cierre en `LUMI_RESUME_STATE.md`. No se modifican originales, consentimientos ni operaciones reales.
+Corte de evidencia: 25-10-2026. Rama exclusiva `lumi-telegram-review-v1`; staging `mofjhwathxzfnjapvvst` / `content-factory-av2-staging`. Base remota observada `288128926bcabe53af2e1b92eb7249e0971a8f97`; live previo `4297ec0470a9d92eacf6cfa9b795a337a6948769`. La evidencia exacta de CI y despliegue del cambio se registra al cierre en [natural-editing-deployment.json](lumi-improvement/natural-editing-deployment.json). No se modifican originales, consentimientos ni operaciones reales.
 
 ## Qué cambió
 
@@ -11,6 +11,7 @@ Corte de evidencia: 25-10-2026. Rama exclusiva `lumi-telegram-review-v1`; stagin
 - Master desde fuentes: 1080×1920, H.264 High, CRF17, slow, yuv420p, AAC 48 kHz/192 kbps, un encode final. Timescale 48000 conserva duraciones fraccionarias de audio a precisión de muestra. La recuperación del ejecutor consulta primero el objeto durable y evita otro encode después de perder el ACK.
 - El presupuesto aceptado conserva los máximos por acción como máximos revisados, **no como nuevas cotizaciones**. Las asignaciones de alojamiento existentes se muestran como desconocidas; ese dato no puede ocultar un costo generativo faltante, un cambio de plan ni exceso del techo. Las cotizaciones finales y reservas siguen sus gates.
 - Metricool distingue una conexión guardada de una lectura de acceso reciente. Una verificación de más de 24 h pide comprobar acceso, no reiniciar OAuth. No se modifica ningún token.
+- La tarjeta de recuperación distingue un resultado terminal confirmado de una consulta pendiente. Failed, moderación y cancelación muestran atención, la última consulta verificada y solo actualización de estado; no vuelven a ofrecer recuperación como si el proveedor siguiera generando. Una recarga no autoriza repetir esa solicitud.
 
 EP004 conserva el contrato editorial anterior: no se cambia su duración, fuente, aprobación ni presupuesto retroactivamente.
 

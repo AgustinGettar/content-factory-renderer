@@ -1,0 +1,237 @@
+{
+  "version": 1,
+  "observed_date": "2026-10-25",
+  "scope": {
+    "repository": "AgustinGettar/content-factory-renderer",
+    "branch": "lumi-telegram-review-v1",
+    "supabase_project": "mofjhwathxzfnjapvvst",
+    "render_service": "srv-dapgakqd0e5s73fottig",
+    "render_workspace": "tea-dahl5nh594qs73ffjhcg"
+  },
+  "code": {
+    "baseline_head": "288128926bcabe53af2e1b92eb7249e0971a8f97",
+    "commits": [
+      "604d3b9794a626d7c7462a89b59af31557e9f13a",
+      "7467aac20b6ff17867e9e9be998582d421f580c0"
+    ],
+    "tested_sha": "7467aac20b6ff17867e9e9be998582d421f580c0"
+  },
+  "ci": {
+    "run": 40234186740,
+    "url": "https://github.com/AgustinGettar/content-factory-renderer/actions/runs/40234186740",
+    "conclusion": "success",
+    "test_executions": 259,
+    "failures": 0,
+    "evidence": [
+      "2026-10-25T21:10:36.9581056Z ℹ tests 45",
+      "2026-10-25T21:10:36.9582115Z ℹ fail 0",
+      "2026-10-25T21:10:37.9125784Z ℹ tests 28",
+      "2026-10-25T21:10:37.9126952Z ℹ fail 0",
+      "2026-10-25T21:10:52.0618150Z ℹ tests 137",
+      "2026-10-25T21:10:52.0618787Z ℹ fail 0",
+      "2026-10-25T21:13:01.6724477Z PASS_NEW_STUDIO ep_studio_383fef6e14da87165a233d03: SUPERVISED, 5 shots, 24s, approved fixture master and download SHA verified.",
+      "2026-10-25T21:14:52.7006883Z PASS_NEW_STUDIO ep_studio_d879fdbbc570b2e4ebe5837d: DRAFT_FINAL_REVIEW_V1, 6 shots, 29s, approved fixture master and download SHA verified.",
+      "2026-10-25T21:14:52.7034928Z PASS_INTEGRATION: 2 newly authored synthetic episodes, 11 shots, 22 mocked visual emissions, 11 mocked audio emissions, authentic Mini App session/CAS/reviews, two local Full HD encodes and exact download SHA; real provider calls=0.",
+      "2026-10-25T21:14:52.7599419Z ℹ tests 35",
+      "2026-10-25T21:14:52.7602503Z ℹ fail 0",
+      "2026-10-25T21:15:01.8014350Z ℹ tests 4",
+      "2026-10-25T21:15:01.8016555Z ℹ fail 0",
+      "2026-10-25T21:15:02.4336854Z ✔ provider terminal receipt is attention, never a waiting result or recovery retry button (2.871178ms)",
+      "2026-10-25T21:15:19.9769256Z PASS_REAL_LOCAL_TIMELINE: 244 frames, 8.133333 s, measured 2.5 s silence, SHA 4b8c217122242582c7b16e9f878cd70f68e047858d69fa696ef596ef1f9ae836",
+      "2026-10-25T21:15:22.3719630Z VFR_TIMING {\"source\":{\"duration\":\"1.066667\",\"start\":\"0.033008\",\"frames\":\"28\"},\"target\":32,\"output\":[{\"type\":\"video\",\"duration\":\"1.066667\",\"frames\":\"32\"},{\"type\":\"audio\",\"duration\":\"1.066667\",\"frames\":\"51\"}]}",
+      "2026-10-25T21:15:22.3888406Z ℹ tests 8",
+      "2026-10-25T21:15:22.3889659Z ℹ fail 0",
+      "2026-10-25T21:15:45.3737592Z ✔ STUDIO_PREPARATION_BROWSER: real UI and authenticated preparation handlers survive reload, lost save ACK and two new plans (6233.859361ms)",
+      "2026-10-25T21:15:45.4058023Z ℹ tests 2",
+      "2026-10-25T21:15:45.4059671Z ℹ fail 0"
+    ]
+  },
+  "tests": {
+    "new_episodes": [
+      {
+        "mode": "SUPERVISED",
+        "shots": 5,
+        "master_seconds": 24
+      },
+      {
+        "mode": "DRAFT_FINAL_REVIEW_V1",
+        "shots": 6,
+        "master_seconds": 29
+      }
+    ],
+    "boundaries": "Real handlers, authenticated fixture sessions, CAS persistence, claims, journals, local FFmpeg, final fixture human decisions and private download SHA. External image/video/TTS providers mocked; no real approval asserted.",
+    "browser": "Real Studio DOM against isolated authenticated HTTP handlers; two editable preparations, reload, save ACK lost, double freeze, expired session.",
+    "restart": "Four real child-process SIGKILL/recovery cases; assembly object replay after lost ACK avoids second encode.",
+    "real_media": "All six Flores source clips, original master and three existing audios measured/decoded. Visual inspection sampled over each source; not uninterrupted audiovisual viewing.",
+    "comparison": {
+      "library_file_id": "libfile_c735e72f087c819180b24d71c34649bf",
+      "sha256": "8b60a685630778bab2d665dedc3db61d50f5eb16f51f49378ee217f5f7376edf",
+      "status": "LOCAL_EDITORIAL_CANDIDATE_NOT_HUMAN_APPROVED"
+    }
+  },
+  "protected_before": {
+    "review": [
+      {
+        "revision": 4047,
+        "auths_md5": "6b96cba9da006565ae1436306c81ea7c",
+        "commands_md5": "c8b24f85b2c31dfd4fd4f34885acc876",
+        "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+        "jobs": [
+          {
+            "error": "PROVIDER_RESULT_FAILED",
+            "job_id": null,
+            "status": "NEEDS_ATTENTION",
+            "episode": "ep_lumi_granja_004_20261008_ee7ab4b3",
+            "updated_at": "2026-10-25T18:00:09.515Z",
+            "lease_until": 0
+          }
+        ]
+      }
+    ],
+    "checkpoints": [
+      {
+        "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+        "status": "RUNNING",
+        "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+        "metadata_md5": "3ce80f054a4f4258838d390a4e2c75f7"
+      },
+      {
+        "episode_id": "ep004_q41_first_image",
+        "status": "RUNNING",
+        "actions_md5": "084f6682e6068a25ad9f6770813e8669",
+        "metadata_md5": "91649b15eb8b27499316d951a92cf1b3"
+      }
+    ],
+    "journal": [
+      {
+        "entries": 14,
+        "journal_md5": "b09acf8f9acdc8ac252316a060bdeb32"
+      }
+    ]
+  },
+  "limitations": [
+    "No authenticated live Telegram/iPhone session available to this audit.",
+    "No real new master encoded on Render during the pause; local encodes do not prove Render Free resources for a full real episode.",
+    "EP004 has six clips, no TTS/master, original q47 failed, expired plan/draft grants; recharge does not authorize replacement or renew consent.",
+    "Metricool OAuth connection preserved; backend receipt verified at 19:47:59.672Z. No fresh authenticated provider read performed by this audit. Account quota, per-network permissions, video ingestion and publication writer/reconciliation remain unverified or unimplemented; publication stays closed.",
+    "New preparation is an editable guided five-to-ten-shot object lesson, not unrestricted AI story generation."
+  ],
+  "effects": {
+    "real_generation_calls": 0,
+    "real_tts_calls": 0,
+    "new_real_reservations": 0,
+    "new_real_human_approvals": 0,
+    "remote_publications": 0,
+    "remote_schedules": 0,
+    "remote_upload_tests": 0,
+    "new_paid_services": 0,
+    "make_changes": 0,
+    "main_or_production_changes": 0
+  },
+  "closed_at": "2026-10-25T21:18:29.074Z",
+  "deployment": {
+    "commit": {
+      "createdAt": "2026-10-25T21:09:50Z",
+      "id": "7467aac20b6ff17867e9e9be998582d421f580c0",
+      "message": "Show confirmed provider termination separately from pending recovery\n\nKeep original operation and reservations locked, show verified query time, and offer only a read-only refresh for failed, moderated or canceled results."
+    },
+    "createdAt": "2026-10-25T21:16:01.529146Z",
+    "finishedAt": "2026-10-25T21:16:51.557857Z",
+    "id": "dep-dbf734dg1s2s73enho5g",
+    "startedAt": "2026-10-25T21:16:01.492687Z",
+    "status": "live",
+    "trigger": "api",
+    "updatedAt": "2026-10-25T21:17:16.461841Z"
+  },
+  "live_verification": {
+    "sha": "7467aac20b6ff17867e9e9be998582d421f580c0",
+    "readiness_url": "https://content-factory-av2-staging.onrender.com/lumi/studio/api/readiness",
+    "auth_configured": true,
+    "auth_method": "TELEGRAM_ED25519",
+    "html_combined_asset_version": "a6f1d41cdfa84a1c",
+    "local_combined_asset_version": "a6f1d41cdfa84a1c",
+    "combined_asset_hash_match": true,
+    "anonymous_preparation_error": "MINI_SESSION_REQUIRED",
+    "anonymous_media_route_error": "MINI_SESSION_REQUIRED",
+    "public_ui": "Returns a clear instruction to reopen from Telegram, with access retry.",
+    "raw_module_navigation": "Browser client blocked direct navigation to JavaScript; live HTML's combined asset hash matches local app.js/style.css/publication-ui.js/preparation-ui.js bytes.",
+    "authenticated_live_ui_or_real_master_download": false
+  },
+  "protected_after": {
+    "review": [
+      {
+        "revision": 4083,
+        "auths_md5": "6b96cba9da006565ae1436306c81ea7c",
+        "commands_md5": "c8b24f85b2c31dfd4fd4f34885acc876",
+        "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+        "jobs": [
+          {
+            "error": "PROVIDER_RESULT_FAILED",
+            "job_id": null,
+            "status": "NEEDS_ATTENTION",
+            "episode": "ep_lumi_granja_004_20261008_ee7ab4b3",
+            "updated_at": "2026-10-25T18:00:09.515Z",
+            "lease_until": 0
+          }
+        ]
+      }
+    ],
+    "checkpoints": [
+      {
+        "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+        "status": "RUNNING",
+        "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+        "metadata_md5": "3ce80f054a4f4258838d390a4e2c75f7"
+      },
+      {
+        "episode_id": "ep004_q41_first_image",
+        "status": "RUNNING",
+        "actions_md5": "084f6682e6068a25ad9f6770813e8669",
+        "metadata_md5": "91649b15eb8b27499316d951a92cf1b3"
+      }
+    ],
+    "journal": [
+      {
+        "entries": 14,
+        "journal_md5": "b09acf8f9acdc8ac252316a060bdeb32"
+      }
+    ]
+  },
+  "invariants": {
+    "authorizations_unchanged": true,
+    "production_commands_unchanged": true,
+    "episodes_reviews_unchanged": true,
+    "checkpoint_actions_and_metadata_unchanged": true,
+    "journal_count": 14,
+    "journal_unchanged": true,
+    "encrypted_metricool_credentials_unchanged": true,
+    "metricool_receipt_unchanged": true,
+    "recovery_unchanged": true,
+    "funding_pause_unchanged": true,
+    "original_local_copy_hashes_unchanged": 10,
+    "real_checkpoints_before": 2,
+    "real_checkpoints_after": 2,
+    "review_revision_note": "Session-state revision advanced with service activity; protected authorizations, commands, episodes, credentials, recovery, funding, checkpoints and journal hashes remained identical."
+  },
+  "episode": {
+    "id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+    "ceiling_usd": 8,
+    "pending_reserved_usd": 6.37875,
+    "confirmed_spend_usd": null,
+    "available_clips": 6,
+    "master_exists": false,
+    "job_status": "NEEDS_ATTENTION",
+    "job_error": "PROVIDER_RESULT_FAILED",
+    "job_updated_at": "2026-10-25T18:00:09.515Z",
+    "lease_until": 0,
+    "next_action": "image:q47"
+  },
+  "hosting": {
+    "plan": "free",
+    "auto_deploy": "off",
+    "new_services": 0,
+    "active_jobs_before_deploy": 0,
+    "continuous_execution_during_suspend": false
+  },
+  "documentation_only_followup": "This deployment record and the report correction are committed after the code deploy. No redeploy for that documentation-only commit."
+}

@@ -21,6 +21,7 @@ test('EDITOR model: 5s retained, independent +600ms/-3dB, ripple linked voices, 
  m=command(m,{type:'order',id:'v1',index:1});assert.equal(m.clips.find(c=>c.id==='a1').timeline_start,5*RATE+28800);validateEdit(m,sources,{render:true});
  m=command(m,{type:'patch',id:'a1',value:{linked_to:null,timeline_start:28800}});m=command(m,{type:'patch',id:'v2',value:{source_out:4*RATE,cut_reason:'Corte deliberado'}});assert.equal(m.clips.find(c=>c.id==='a1').timeline_start,28800);assert.equal(length(m),9*RATE);
  const split=command(m,{type:'split',id:'v2',at:2*RATE,new_id:'v3'});assert.equal(split.clips.filter(c=>c.track==='video').length,3);assert.equal(length(split),length(m));const removed=command(split,{type:'remove',id:'v3'});assert.equal(length(removed),7*RATE);assert.equal(source.video_ticks,5*RATE);
+ assert.throws(()=>validateEdit(m,{...sources,src:{...source,type:'mixed_master'}},{render:true}),/ORIGINAL_CLIPS_REQUIRED/);
  const gap=structuredClone(m);gap.clips[0].timeline_start=FRAME;assert.throws(()=>validateEdit(gap,sources),/GAP/);const trim=projectEdit();trim.clips[0].source_out=3*RATE;trim.clips[1].timeline_start=3*RATE;assert.throws(()=>validateEdit(trim,sources,{render:true}),/CUT_REASON/);
  const long=projectEdit();long.clips[2].timeline_start=4*RATE;long.clips[2].pause_ticks=2.5*RATE;assert.throws(()=>validateEdit(long,sources,{render:true}),/TIMING_CONFLICT/);assert.equal(validateEdit(long,sources).warnings[0].code,'VOICE_TAIL_OR_PAUSE_OUTSIDE_VIDEO');
 });

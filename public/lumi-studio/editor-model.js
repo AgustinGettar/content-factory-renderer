@@ -27,7 +27,7 @@ export function validateEdit(m,sources,{render=false}={}){
  for(const c of m.clips){
   if(Object.keys(c).some(k=>!['id','source_id','source_sha','source_in','source_out','timeline_start','track','gain_mdb','mute','fade_in','fade_out','linked_to','cut_reason','speech_reviewed','closure_ticks','pause_ticks'].includes(k)))fail('CLIP_FIELDS');
   if(!/^[a-zA-Z0-9_-]{1,80}$/.test(c.id)||ids.has(c.id))fail('INSTANCE_ID');ids.add(c.id);
-  const s=sources[c.source_id];if(!s||s.sha256!==c.source_sha)fail('SOURCE_IDENTITY');
+  const s=sources[c.source_id];if(!s||s.sha256!==c.source_sha)fail('SOURCE_IDENTITY');if(render&&s.type==='mixed_master')fail('ORIGINAL_CLIPS_REQUIRED');
   if(!Object.hasOwn(m.tracks,c.track)||c.track==='video'&&!s.video||c.track!=='video'&&!s.audio)fail('STREAM_MISSING');
   const limit=c.track==='video'?s.video_ticks:s.audio_ticks;
   if(!integer(c.source_in,0,limit)||!integer(c.source_out,c.source_in+1,limit)||!integer(c.timeline_start,0,RATE*180)||!integer(c.gain_mdb,-60000,12000)||typeof c.mute!=='boolean'||!integer(c.fade_in,0,duration(c))||!integer(c.fade_out,0,duration(c))||c.fade_in+c.fade_out>duration(c))fail('SOURCE_BOUNDS');

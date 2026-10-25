@@ -29,7 +29,7 @@ import {providerJson} from '../lib/generative-video-benchmark-v1.js';
 test('HIGGSFIELD_FUNDING: classify only explicit structured balance errors, never a generic failure or 402',async()=>{
  assert.equal(higgsfieldFundingCode({error:{code:'insufficient_balance'}}),'insufficient_balance');
  for(const body of [{status:'failed'},{error:'No money'},{error:{code:'failed'}},{}])assert.equal(higgsfieldFundingCode(body),null);
- for(const [body,code] of [[{error:{code:'insufficient_balance'}},HIGGSFIELD_FUNDING_ERROR],[{},'higgsfield_request_failed:402']]){
+ for(const [body,code] of [[{error:{code:'insufficient_balance'}},HIGGSFIELD_FUNDING_ERROR],[{},'HIGGSFIELD_BILLING_CHECK_REQUIRED']]){
   await assert.rejects(providerJson('https://api.higgsfield.ai/estimate/example',{apiKey:'fixture',fetchImpl:async()=>Response.json(body,{status:402})}),e=>e.message===code);
  }
  await assert.rejects(recoverSeriesProviderResult({accepted:{request_id:'original',status_url:'https://api.higgsfield.ai/requests/original/status'},provider_job_id:'original',result_id:'original',stage:'IMAGE',apiKey:'fixture',fetchImpl:async()=>Response.json({request_id:'original',status:'failed',error:{code:'insufficient_funds'}})}),e=>e.message===HIGGSFIELD_FUNDING_ERROR&&e.provider_status==='failed');
@@ -41,4 +41,5 @@ test('HIGGSFIELD_FUNDING: owner reports are labeled, recharge never verifies bal
  f.owner_report={id:'topup',status:'RECHARGE_REPORTED',reported_at:'2026-10-25T17:30:00Z',resolves_notice_id:'owner-empty'};
  v=fundingPresentation(ctx);assert.equal(v.status,'RECHARGE_REPORTED');assert.equal(v.blocks_generation,false);assert.equal(v.balance_verified,false);
  f.provider_notice={id:'later',at:'2026-10-25T18:00:00Z'};v=fundingPresentation(ctx);assert.equal(v.blocks_generation,true);assert.equal(v.source,'PROVIDER_ERROR');
+ f.provider_notice.code='HIGGSFIELD_BILLING_CHECK_REQUIRED';v=fundingPresentation(ctx);assert.equal(v.status,'CHECK_BILLING');assert.equal(v.source,'PROVIDER_BILLING_RESPONSE');assert.equal(v.balance_usd,null);
 });

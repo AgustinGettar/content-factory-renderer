@@ -138,6 +138,7 @@ async function request(path,{method='GET',body}={}){
   }finally{clearTimeout(timeout);if(path==='/state')metric('state_latency',tick()-began);}
 }
 function errorText(e){
+  if(e.message==='HIGGSFIELD_BILLING_CHECK_REQUIRED')return 'Higgsfield rechazó la solicitud. Revisá el saldo API y el acceso de tu cuenta; todavía no hay una causa de saldo confirmada.';
   if(['HIGGSFIELD_INSUFFICIENT_BALANCE','HIGGSFIELD_RECHARGE_REQUIRED'].includes(e.message))return 'Hace falta recargar el saldo API de Higgsfield para generar imágenes o animaciones. Tu progreso está guardado.';
   if(e.message==='FUNDING_NOTICE_CHANGED')return 'El aviso de saldo cambió. Actualizá el estado antes de registrar la recarga.';
   if(e.message==='PROVIDER_RESULT_FAILED')return 'Higgsfield informó que la generación falló. El pedido original queda conservado para revisar lo ocurrido.';
@@ -164,7 +165,7 @@ let fundingBusy=false;
 function fundingNotice(){
  const f=state?.funding;if(!f||f.status==='UNKNOWN')return '';
  if(f.status==='RECHARGE_REPORTED')return '<section class="alert" data-ui-key="funding-notice" role="status"><strong>Recarga informada</strong><p>El saldo todavía no fue verificado. La solicitud fallida requiere recuperación; no se repite automáticamente.</p></section>';
- return `<section class="card funding-notice" data-ui-key="funding-notice" role="alert"><span class="tag gold">RECARGA NECESARIA</span><h2>Falta saldo en Higgsfield</h2><p>${f.source==='PROVIDER_ERROR'?'Higgsfield respondió que no hay saldo suficiente.':'Nos informaste que se agotó el saldo.'} Las imágenes y animaciones nuevas quedan en pausa. Tu progreso sigue guardado.</p><a class="button primary" href="https://open.higgsfield.ai/" target="_blank" rel="noopener noreferrer">Recargar saldo API ↗</a><button class="button secondary" data-funding-recharged ${fundingBusy?'disabled':''}>${fundingBusy?'Registrando…':'Ya recargué'}</button><small>Entrá en Billing. El saldo API es independiente de los créditos de la web. Registrar la recarga no repite una generación.</small></section>`;
+ return `<section class="card funding-notice" data-ui-key="funding-notice" role="alert"><span class="tag gold">${f.status==='CHECK_BILLING'?'REVISAR CUENTA':'RECARGA NECESARIA'}</span><h2>${f.status==='CHECK_BILLING'?'Revisá tu cuenta de Higgsfield':'Falta saldo en Higgsfield'}</h2><p>${f.source==='PROVIDER_ERROR'?'Higgsfield respondió que no hay saldo suficiente.':f.source==='PROVIDER_BILLING_RESPONSE'?'Higgsfield rechazó el acceso o la facturación. Revisá el saldo API y las credenciales de la cuenta.':'Nos informaste que se agotó el saldo.'} Las imágenes y animaciones nuevas quedan en pausa. Tu progreso sigue guardado.</p><a class="button primary" href="https://open.higgsfield.ai/" target="_blank" rel="noopener noreferrer">Recargar saldo API ↗</a><button class="button secondary" data-funding-recharged ${fundingBusy?'disabled':''}>${fundingBusy?'Registrando…':'Ya recargué'}</button><small>Entrá en Billing. El saldo API es independiente de los créditos de la web. Registrar la recarga no repite una generación.</small></section>`;
 }
 document.addEventListener('click',async e=>{
  if(!e.target.closest('[data-funding-recharged]')||fundingBusy||!state?.funding?.notice_id)return;

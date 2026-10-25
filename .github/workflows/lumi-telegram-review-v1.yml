@@ -30,7 +30,7 @@ jobs:
           git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
             case "$path" in
-              lib/telegram-review-v1/core.js|lib/telegram-mini-app/auth.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/publication.js|lib/lumi-series-v2-execution.js|lib/lumi-v2-telegram-runtime.js|lib/lumi-recovery-incident-manager-v1.js|public/lumi-studio/*|test/lumi-fluid-ux.test.js|test/lumi-publication-and-provider-status.test.js|test/lumi-mini-app-auth.test.js|test/lumi-q41-first-image.test.js|test/lumi-*-browser.mjs|docs/LUMI_STUDIO_STARTUP.md|docs/LUMI_PUBLICATION_AND_PROVIDER_STATUS.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              lib/telegram-review-v1/core.js|lib/telegram-mini-app/auth.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/publication.js|lib/higgsfield-funding.js|lib/generative-video-benchmark-v1.js|lib/lumi-series-v2-execution.js|lib/lumi-v2-telegram-runtime.js|lib/lumi-recovery-incident-manager-v1.js|public/lumi-studio/*|test/lumi-fluid-ux.test.js|test/lumi-publication-and-provider-status.test.js|test/lumi-mini-app-auth.test.js|test/lumi-q41-first-image.test.js|test/lumi-*-browser.mjs|docs/LUMI_STUDIO_STARTUP.md|docs/LUMI_PUBLICATION_AND_PROVIDER_STATUS.md|docs/LUMI_FUNDING_NOTICE.md|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) startup_only=false ;;
             esac
             case "$path" in
@@ -126,8 +126,8 @@ jobs:
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-telegram-review-v1.test.js test/lumi-direct-telegram.test.js test/lumi-recovery-incident-manager-v1.test.js test/higgsfield-usd-budget-v1.test.js
           node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(STUDIO_STARTUP|READ_ONLY_PROGRESS|SHARED_IDENTITY|QUOTE_RENEWAL|QUOTED_EXECUTION|RESERVATION_BEFORE)" test/lumi-q41-first-image.test.js
           node --test --test-name-pattern="^STUDIO_STARTUP_HTTP" test/lumi-q41-first-image.test.js
-          node --import ./scripts/director-offline-guard.mjs --test test/lumi-publication-and-provider-status.test.js
-          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(DURABLE_RESULT_RECOVERY|SHARED_IDENTITY|HUMAN_REVIEW )" test/lumi-q41-first-image.test.js
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-publication-and-provider-status.test.js test/generative-video-benchmark-v1.test.js test/generative-video-benchmark-v1-1.test.js test/provider-emission-journal-v1.test.js test/lumi-generic-balance-recovery.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(HIGGSFIELD_FUNDING|DURABLE_RESULT_RECOVERY|SHARED_IDENTITY|HUMAN_REVIEW )" test/lumi-q41-first-image.test.js
       - name: Browser fixtures and measured before-after rendering
         if: steps.scope.outputs.fluid_only == 'true' && steps.scope.outputs.docs_only != 'true'
         run: |

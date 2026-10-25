@@ -22,3 +22,23 @@ test('PROVIDER_STATUS: completed results still download only the bound original'
  const calls=[];const result=await recoverSeriesProviderResult({accepted:{request_id:'original',status_url:'https://api.higgsfield.ai/requests/original/status'},provider_job_id:'original',result_id:'original',stage:'IMAGE',apiKey:'fixture',fetchImpl:async(url,options)=>{calls.push(url);return url.includes('/requests/')?Response.json({request_id:'original',status:'completed',images:[{url:'https://media.example.test/original'}]}):new Response('original-bytes');}});
  assert.equal(result.bytes.toString(),'original-bytes');assert.equal(calls.length,2);
 });
+
+
+import {higgsfieldFundingCode,fundingPresentation,HIGGSFIELD_FUNDING_ERROR} from '../lib/higgsfield-funding.js';
+import {providerJson} from '../lib/generative-video-benchmark-v1.js';
+test('HIGGSFIELD_FUNDING: classify only explicit structured balance errors, never a generic failure or 402',async()=>{
+ assert.equal(higgsfieldFundingCode({error:{code:'insufficient_balance'}}),'insufficient_balance');
+ for(const body of [{status:'failed'},{error:'No money'},{error:{code:'failed'}},{}])assert.equal(higgsfieldFundingCode(body),null);
+ for(const [body,code] of [[{error:{code:'insufficient_balance'}},HIGGSFIELD_FUNDING_ERROR],[{},'higgsfield_request_failed:402']]){
+  await assert.rejects(providerJson('https://api.higgsfield.ai/estimate/example',{apiKey:'fixture',fetchImpl:async()=>Response.json(body,{status:402})}),e=>e.message===code);
+ }
+ await assert.rejects(recoverSeriesProviderResult({accepted:{request_id:'original',status_url:'https://api.higgsfield.ai/requests/original/status'},provider_job_id:'original',result_id:'original',stage:'IMAGE',apiKey:'fixture',fetchImpl:async()=>Response.json({request_id:'original',status:'failed',error:{code:'insufficient_funds'}})}),e=>e.message===HIGGSFIELD_FUNDING_ERROR&&e.provider_status==='failed');
+});
+test('HIGGSFIELD_FUNDING: owner reports are labeled, recharge never verifies balance or grants a retry',()=>{
+ const ctx={checkpoint:{actions:[]},state:{mini_app:{funding:{higgsfield:{owner_report:{id:'owner-empty',status:'EMPTY_REPORTED',reported_at:'2026-10-25T17:00:00Z'}}}}}};
+ let v=fundingPresentation(ctx);assert.equal(v.blocks_generation,true);assert.equal(v.source,'OWNER_REPORTED');assert.equal(v.balance_usd,null);assert.equal(v.balance_verified,false);
+ const f=ctx.state.mini_app.funding.higgsfield;f.provider_notice={id:'earlier',at:'2026-10-25T16:00:00Z'};
+ f.owner_report={id:'topup',status:'RECHARGE_REPORTED',reported_at:'2026-10-25T17:30:00Z',resolves_notice_id:'owner-empty'};
+ v=fundingPresentation(ctx);assert.equal(v.status,'RECHARGE_REPORTED');assert.equal(v.blocks_generation,false);assert.equal(v.balance_verified,false);
+ f.provider_notice={id:'later',at:'2026-10-25T18:00:00Z'};v=fundingPresentation(ctx);assert.equal(v.blocks_generation,true);assert.equal(v.source,'PROVIDER_ERROR');
+});

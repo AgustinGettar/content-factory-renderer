@@ -1834,7 +1834,7 @@ async function secondImageFixture(t,options={}){
    control.emitted++;if(options.ambiguous)throw Error('OFFLINE_RESPONSE_LOST');
    return Response.json({request_id:'offline-q42-one-tap',status_url:'https://api.higgsfield.ai/requests/offline-q42-one-tap'});
   }
-  if(url.endsWith('/requests/offline-q42-one-tap')){control.polls++;return Response.json({request_id:'offline-q42-one-tap',status:control.status??(control.ready?'completed':'processing'),images:[{url:'https://media.example.test/q42-one-tap'}]});}
+  if(url.endsWith('/requests/offline-q42-one-tap')){control.polls++;return Response.json({request_id:'offline-q42-one-tap',status:control.status??(control.ready?'completed':'processing'),...(control.funding?{error:{code:'insufficient_balance'}}:{}),images:[{url:'https://media.example.test/q42-one-tap'}]});}
   if(url==='https://media.example.test/q42-one-tap')return new Response(image);
   if(o.method==='POST')return Response.json({request_id:'offline-q41-setup',status_url:'https://api.higgsfield.ai/requests/offline-q41-setup'});
   if(url.endsWith('/requests/offline-q41-setup'))return Response.json({request_id:'offline-q41-setup',status:'completed',video:{url:'https://media.example.test/q41-setup'}});
@@ -2412,4 +2412,31 @@ test('PLAN_ONETAP PRICE_BUFFER proposal stays inside episode ceiling and cannot 
  await assert.rejects(f.service.reviewPlan(f.principal,{priceBuffer:100}),/EPISODE_PLAN_BUFFER_INVALID/);
  await f.service.acceptPlan(f.principal,{challenge:buffered.challenge,confirm:true});
  const after=(await f.reviewStore.get('1')).state.v2_authorizations;for(const [id,g]of Object.entries(before))assert.deepEqual(after[id],g);assert.equal(f.emitted.length,0);
+});
+
+
+test('HIGGSFIELD_FUNDING: authenticated recharge acknowledgment preserves job, journal, budget and approval',async t=>{
+ const f=await miniFixture();
+ await f.edit(s=>{s.mini_app.funding={higgsfield:{owner_report:{id:'fixture-empty',status:'EMPTY_REPORTED',reported_at:new Date().toISOString()}}};});
+ const cp=await f.store.getEpisode(episode),before=await f.reviewStore.get('1'),calls=f.calls.length;
+ const v=await f.service.view(f.principal);assert.equal(v.funding.source,'OWNER_REPORTED');assert.equal(v.funding.blocks_generation,true);
+ await assert.rejects(f.service.enqueue(f.principal,'production_stage',{}),/HIGGSFIELD_RECHARGE_REQUIRED/);
+ assert.equal((await f.service.view(f.principal)).capabilities.generate,false);
+ await assert.rejects(f.service.acknowledgeFunding(f.principal,{notice_id:'stale'}),/FUNDING_NOTICE_CHANGED/);
+ const result=await f.service.acknowledgeFunding(f.principal,{notice_id:'fixture-empty'});assert.equal(result.provider_calls,0);assert.equal(result.automatic_retry,false);
+ await f.service.acknowledgeFunding(f.principal,{notice_id:'fixture-empty'});
+ const after=await f.reviewStore.get('1');assert.deepEqual(after.state.mini_app.operations,before.state.mini_app.operations);assert.deepEqual(after.state.production_commands,before.state.production_commands);
+ assert.deepEqual(await f.store.getEpisode(episode),cp);assert.equal(f.calls.length,calls);
+ const final=await f.service.view(f.principal);assert.equal(final.funding.status,'RECHARGE_REPORTED');assert.equal(final.funding.balance_verified,false);
+ await assert.rejects(f.service.acknowledgeFunding({...f.principal,user:'other'},{notice_id:'fixture-empty'}),/OWNER|PRINCIPAL|SESSION/);
+});
+
+
+test('HIGGSFIELD_FUNDING: inspect a previously generic failed original once and show confirmed funding error',async t=>{
+ const f=await secondImageFixture(t);await f.submit('second_image',{confirm:true});f.control.status='failed';f.control.funding=true;
+ const cp=await f.store.getEpisode(episode),id=cp.actions.find(a=>a.key==='image:q42').active_attempt_id;
+ await f.edit(s=>{s.mini_app.episode_jobs={[episode]:{id:'original-job',episode_id:episode,status:'NEEDS_ATTENTION',error:'PROVIDER_RESULT_FAILED',lease_until:0}};s.mini_app.result_recovery={[id]:{status:'ATTENTION_REQUIRED',error:'PROVIDER_RESULT_FAILED',provider_status:'failed',lease_until:0}};});
+ const service=new f.service.constructor({...f.service});await service.processPending({user:'1',chat:'1'});await service.processPending({user:'1',chat:'1'});
+ const v=await service.view(await f.reopen());assert.equal(v.funding.source,'PROVIDER_ERROR');assert.equal(v.funding.blocks_generation,true);assert.equal(v.continuity.recovery_error,'HIGGSFIELD_INSUFFICIENT_BALANCE');
+ assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);assert.deepEqual(await f.store.getEpisode(episode),cp);
 });

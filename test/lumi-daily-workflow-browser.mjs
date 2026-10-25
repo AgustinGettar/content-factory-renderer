@@ -35,6 +35,7 @@ try{
   if(u.hostname!=='127.0.0.1')throw Error('EXTERNAL_REQUEST_BLOCKED');
   if(req.method()==='POST'){
    posts++;if(!allowStart)throw Error('UNEXPECTED_MUTATION');
+   if(p.endsWith('/funding/recharged')){assert.equal(req.postDataJSON().notice_id,'fixture-empty');state={...state,review_revision:state.review_revision+1,funding:{...state.funding,status:'RECHARGE_REPORTED',blocks_generation:false}};return json({status:'RECHARGE_REPORTED',provider_calls:0});}
    if(p.endsWith('/plan/accept')){assert.equal(req.postDataJSON().review_mode,'DRAFT_FINAL_REVIEW_V1');assert.equal(req.postDataJSON().confirm,true);planAccepts++;state.episode_plan_authorization.status='AUTHORIZED';return json({status:'EPISODE_PLAN_AUTHORIZED'});}
    if(p.endsWith('/actions/produce_episode')){starts++;state={...state,review_revision:state.review_revision+1,episode_job:{id:'initial-job',status:'WAITING_PROVIDER'},review_policy:{id:'initial-choice',mode:'DRAFT_FINAL_REVIEW_V1'}};return json({operation:{id:'initial-job',status:'QUEUED'}});}
    throw Error('UNEXPECTED_MUTATION');
@@ -125,6 +126,9 @@ try{
  await page.selectOption('#initial-review-mode','DRAFT_FINAL_REVIEW_V1');await page.evaluate(()=>{for(let n=0;n<10;n++)document.querySelector('#dialog-confirm').click();});
  await page.waitForFunction(()=>document.querySelector('.daily-status')?.textContent.includes('Borrador automático'));assert.equal(planAccepts,1);assert.equal(starts,1);assert.equal(posts,2);
  assert.equal(errors.length,0,errors.join(';'));
+ state={...state,review_revision:state.review_revision+1,funding:{status:'RECHARGE_REQUIRED',source:'OWNER_REPORTED',notice_id:'fixture-empty',blocks_generation:true}};await page.evaluate(()=>fixtureUI.refresh());await page.locator('.brand').click();
+ await page.locator('.funding-notice').scrollIntoViewIfNeeded();assert.match(await page.locator('.funding-notice').innerText(),/Nos informaste/);await page.screenshot({path:join(screens,'funding-notice.png'),fullPage:false,animations:'disabled'});
+ await page.locator('[data-funding-recharged]').click();await page.waitForFunction(()=>document.querySelector('[data-ui-key=funding-notice]')?.textContent.includes('Recarga informada'));assert.equal(posts,3);assert.equal(starts,1);assert.equal(errors.length,0,errors.join(';'));
  console.log('PASS_DAILY_WORKFLOW_BROWSER '+JSON.stringify({stages:4,completed_shots:7,unchanged_poll_dom_mutations:mutations,scroll_restored:true,library_cached_navigation:true,explicit_library_refresh:true,reduced_motion:true,mobile_overflow:false,settings_while_pending:true,read_only_refresh:true,reopen:true,final_review_gate:true,vertical_full_hd:true,aac_fixture:true,played:true,ranges,download_sha:sha,session_expiry:true,initial_mode_explicit:true,planAccepts,starts,posts}));
  await context.close();
 }finally{await browser?.close();await new Promise(resolve=>server?server.close(resolve):resolve());await rm(dir,{recursive:true,force:true});}

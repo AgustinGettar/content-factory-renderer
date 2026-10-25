@@ -98,6 +98,7 @@ test('METRICOOL: actual mounted authenticated/CSRF handlers reject anonymous acc
  const wrap=fn=>async(req,res)=>{try{await fn(req,res);}catch(e){res.status(e.status||409).json({error:e.message});}};
  mountPublication(app,{...f,api:'/api',principal,wrap,env,fetchImpl:()=>{throw Error('EXTERNAL_CALL_FORBIDDEN');}});
  async function invoke(method,path,body={},authenticated=true){let result,status=200;await routes.get(method+' '+path)({method,body,headers:authenticated?{cookie:f.session.cookie,csrf:f.session.csrf}:{},params:{episode:'ep1'}},{json:v=>result=v,status:s=>{status=s;return {json:v=>result=v};}});return {status,result};}
+ let landing;routes.get('GET /lumi/studio/publication/result')({query:{status:'connected'}},{type:()=>({send:value=>landing=value})});assert.doesNotMatch(landing,/Acceso verificado/);assert.match(landing,/Continuá en Lumi Studio/);
  assert.equal((await invoke('GET','/api/publication/status',{},false)).status,401);
  assert.equal((await invoke('POST','/api/publication/connect',{brandId:6912906})).status,400);
  assert.equal((await invoke('GET','/api/publication/status')).result.brand_id,7627207);

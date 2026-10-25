@@ -37,5 +37,10 @@ export function createPreparationUI({getState,request,render,refresh,toast,esc})
    if(action==='freeze'){busy=true;notice='Solicitud enviada · preparando el plan…';render();try{await request('/preparation/freeze',{method:'POST',body:{draft_id:draft.draft_id,version:draft.version}});draft.prepared=true;await refresh();toast('Plan preparado. Revisá el estimado y elegí el modo antes de aprobar.');}catch{notice='No se confirmó la preparación. Reintentá: se conserva la misma identidad.';}finally{busy=false;render();}}
  });
  const errorText=code=>({NATURAL_AUDIO_VIDEO_TIMING_REVIEW_REQUIRED:'La voz, su cola y la pausa no caben en el video disponible. Revisá audio y toma; Lumi no recorta la frase ni acelera el material.',EDITORIAL_ACTION_INCOMPLETE:'La acción no termina en la fuente. Revisá el original: alargarlo no puede crear el final que falta.',EDITORIAL_CUT_REVIEW_REQUIRED:'Este corte requiere confirmar que conserva el final de la acción y el objetivo educativo.',EDITORIAL_TRANSITION_REVIEW_REQUIRED:'La transición propuesta puede consumir el cierre o la pausa. Hace falta revisar esa unión.'})[code];
- return {card,errorText};
+ function attentionCard(s){const c=s.continuity||{},reason=c.recovery_error;
+   const terminal=['PROVIDER_RESULT_FAILED','PROVIDER_RESULT_MODERATED','PROVIDER_RESULT_CANCELED'].includes(reason)||['failed','nsfw','canceled','cancelled'].includes(c.provider_status);
+   const message=terminal?'El proveedor confirmó que esta solicitud terminó sin un resultado utilizable. Conservamos su identidad y reserva. Informar una recarga no autoriza otro envío.':'La consulta del resultado original necesita atención. Se conserva la misma solicitud.';
+   return `<section class="card"><h3>${terminal?'Solicitud terminada · requiere atención':'Consulta detenida'}</h3><p>${message}</p><p>Última consulta al proveedor: ${esc(c.last_provider_check_at||'sin fecha verificada')}.</p>${!terminal&&s.capabilities?.recover?'<button class="button secondary" data-action="recover">Consultar resultado original</button>':''}<button class="button secondary" data-action="refresh">Actualizar estado guardado</button></section>`;
+ }
+ return {card,errorText,attentionCard};
 }

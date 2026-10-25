@@ -9,6 +9,16 @@ import {buildEditorialTimeline,naturalSegments,estimateNarration} from '../lib/l
 import {buildAssemblyCommand,executeAssemblyCommand} from '../lib/lumi-third-short-master-v1.js';
 import {sha256} from '../lib/telegram-review-v1/core.js';
 import {compileStudioPreparation} from '../lib/telegram-mini-app/preparation.js';
+import {createPreparationUI} from '../public/lumi-studio/preparation-ui.js';
+test('provider terminal receipt is attention, never a waiting result or recovery retry button',t=>{
+ const prior=globalThis.document;globalThis.document={addEventListener(){}};t.after(()=>{globalThis.document=prior;});
+ const ui=createPreparationUI({getState:()=>({}),esc:s=>s});
+ for(const [status,error] of [['failed','PROVIDER_RESULT_FAILED'],['nsfw','PROVIDER_RESULT_MODERATED'],['canceled','PROVIDER_RESULT_CANCELED']]){
+  const html=ui.attentionCard({continuity:{provider_status:status,recovery_error:error,last_provider_check_at:'2026-10-25T18:00:09.515Z'},capabilities:{recover:true}});
+  assert.match(html,/Solicitud terminada/);assert.match(html,/2026-10-25T18:00:09.515Z/);assert.doesNotMatch(html,/data-action="recover"/);assert.doesNotMatch(html,/data-action="generate"/);
+ }
+ assert.match(ui.attentionCard({continuity:{provider_status:'queued'},capabilities:{recover:true}}),/data-action="recover"/);
+});
 const exec=promisify(execFile),base={shot_id:'take_1',source_sha:'a'.repeat(64),voice_sha:'b'.repeat(64),source_duration_seconds:5,voice_duration_seconds:1,duration:3};
 test('natural timeline preserves five seconds despite a three-second legacy editorial target; cuts require a resolved action',()=>{
  const t=buildEditorialTimeline([base]);assert.equal(t.duration_seconds,5);assert.equal(t.decisions[0].source_out,5);

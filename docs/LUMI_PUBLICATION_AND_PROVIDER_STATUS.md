@@ -2,6 +2,16 @@
 
 Status: **BLOCKED_BACKEND_OAUTH_REQUIRED**, not READY_FOR_HUMAN_PUBLICATION. The OAuth connection and local preparation are implemented; the end-to-end publisher is not operational.
 
+## Deployed validation — 2026-10-25 19:16 UTC
+
+- Live code: `4297ec0470a9d92eacf6cfa9b795a337a6948769`; exact-commit CI [40224809426](https://github.com/AgustinGettar/content-factory-renderer/actions/runs/40224809426) GREEN. Earlier implementation/fencing commits also remain in branch history.
+- Render deploy `dep-dbf5a05g1s2s73ehi7c0` LIVE at `2026-10-25T19:14:58.964952Z`; both Studio and Telegram readiness report the same code SHA. DIRECT is configured and identity verified. Render remains Free, auto-deploy off.
+- Served app SHA256 `2208c0060d958888ed9b3ea67eb970b68bc7919d9305b8fb706f0db86a3f434c`, publication module `bcf79d73d36bad7fdfaa8e2e79efb18172529964cd7c1fc212f5ad60fce6c4c7`, CSS `a62fc823ebe7fe0a3d27fba9dda5f15656e15dfc30c611a9f833fc44b3923106`; all byte-identical to the committed files.
+- Anonymous state/session/publication status/episode GETs and connect/verify POSTs return 401. OAuth landing cannot claim successful authentication from a query parameter. No runtime error logs in the checked deployment window.
+- Post-deploy staging still has no Metricool connection/credentials or publication packages. No human consent was fabricated. EP004 remains 38/50, pending image:q47, job NEEDS_ATTENTION, ceiling USD 8. Reservation digest `70f1ae94a0c170ceff71ba6cf198fc22` and review digest `f7b27af743366d904a7e08dea93586a3` are unchanged before/after. Existing session table RLS is enabled; anon/authenticated roles have no SELECT privilege.
+- Local/browser and CI checks passed, including the existing synthetic Full HD/H.264/AAC playback, Range download and file-hash comparison. New browser tests use real mounted publication handlers and CAS persistence, not a successful fake publisher. Real Metricool authentication, remote video ingestion/publication and iPhone acceptance remain pending.
+- This evidence-only follow-up must not redeploy. The branch HEAD may be a later documentation commit; the live executable remains the code SHA above.
+
 ## Current evidence (supersedes historical observations below)
 
 - Starting HEAD and live code: `2bf56b33268b30616996917e4db0c83d04b0ad42`; CI `40218846288` successful; Render `dep-dbf46p0ae00c73enco8g` live. Free, one instance, auto-deploy off, staging branch/database pinned.

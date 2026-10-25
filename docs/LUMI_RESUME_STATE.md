@@ -1,6 +1,6 @@
 # Lumi resume state
 
-Observed: 2026-10-23T16:33:42.881684Z. Input SHA-256: c41f2998ab6e25a74d55d05145d1203ddce6fdc4b3b0f761c84959355ba564d8.
+Observed: 2026-10-23T16:33:42.881684Z. Input SHA-256: 4c5c36e907e963a93da3585a90f84553fe65003d5955440675058863476081a0.
 
 Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 1b02c51429fd863d6216511ee0b8b0b460f46f0b.
 

@@ -38,9 +38,10 @@ Evidence cutoff: 2026-10-23T16:33:42.881684Z.
 - Bloqueo: consentimiento OAuth del propietario pendiente; permisos, cuota, ingestión de VIDEO y recibos del MCP autenticado sin verificar. No hay adaptador de envío operativo ni READY_FOR_HUMAN_PUBLICATION.
 - No se publicaron, programaron ni cargaron medios, no se usaron modelos pagos, no se tocaron q41–q47, reservas, revisiones, Make o Render Free.
 - Próxima decisión dentro de Studio: Ajustes → Publicación → Conectar Metricool. Conectar no autoriza publicar. Evidencia y limitaciones completas: docs/LUMI_PUBLICATION_AND_PROVIDER_STATUS.md.
+- Validación final: código4297ec0470a9d92eacf6cfa9b795a337a6948769, CI40224809426 GREEN, deploydep-dbf5a05g1s2s73ehi7c0 LIVE19:14:58Z. Archivos servidos coincidentes, rutas privadas401, reservas/revisiones sin cambios. OAuth real y envío social siguen bloqueados; actualización posterior solo documental, sin redeploy.
 
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: c41f2998ab6e25a74d55d05145d1203ddce6fdc4b3b0f761c84959355ba564d8. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 4c5c36e907e963a93da3585a90f84553fe65003d5955440675058863476081a0. Outputs are inert drafts; generating them cannot expand authorization.

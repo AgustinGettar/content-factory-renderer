@@ -105,3 +105,11 @@ test('METRICOOL: actual mounted authenticated/CSRF handlers reject anonymous acc
  assert.equal((await invoke('POST','/api/publication/episodes/:episode',{version:0,networks:pkg.networks})).result.version,1);
  assert.equal((await invoke('POST','/api/publication/episodes/:episode/submit',{confirm:true})).result.error,'PUBLICATION_MASTER_REQUIRED');
 });
+
+
+test('METRICOOL: resumed verification cannot erase a newer OAuth handoff',async()=>{
+ const f=await fixture(),net=remote();await change(f,s=>s.mini_app.metricool={candidate:sealMetricool(env,'1',{access_token:'fixture-access',expires_at:Date.now()+3600000}),pending:{phase:'TOKEN_RECEIVED',nonce_sha:'old',expires_at:0}});
+ let next,once=false;const connection=new MetricoolConnection({...f,env,fetchImpl:async(url,options)=>{if(!once){once=true;next=await connection.start(f.principal);}return net.fetchImpl(url,options);}});
+ await connection.verify(f.principal);const pending=(await f.store.get('1')).state.mini_app.metricool.pending;assert.equal(pending.phase,'HANDOFF');
+ assert.ok((await connection.handoffStart(next.url.split('/').at(-1))).browser);assert.equal(net.calls.filter(c=>c.url===METRICOOL.token).length,0);
+});

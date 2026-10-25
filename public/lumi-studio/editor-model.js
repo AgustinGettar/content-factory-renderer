@@ -56,7 +56,7 @@ export function command(m,action){
  case 'remove':n.clips=n.clips.filter(x=>x.id!==c.id);break;
  case 'order':{if(c.track!=='video')fail('ORDER_VIDEO_ONLY');const videos=n.clips.filter(x=>x.track==='video'),i=videos.indexOf(c),j=Math.max(0,Math.min(videos.length-1,action.index));videos.splice(i,1);videos.splice(j,0,c);n.clips=[...videos,...n.clips.filter(x=>x.track!=='video')];break;}
  case 'split':{const offset=action.at-c.timeline_start,cut=c.source_in+(c.track==='video'?Math.round(offset/FRAME)*FRAME:offset);
-  if(cut<=c.source_in||cut>=c.source_out)fail('SPLIT_OUTSIDE');const other={...clone(c),id:action.new_id,source_in:cut,timeline_start:c.timeline_start+cut-c.source_in};c.source_out=cut;c.fade_out=0;other.fade_in=0;n.clips.splice(n.clips.indexOf(c)+1,0,other);break;}
+  if(cut<=c.source_in||cut>=c.source_out)fail('SPLIT_OUTSIDE');const other={...clone(c),id:action.new_id,source_in:cut,timeline_start:c.timeline_start+cut-c.source_in};c.source_out=cut;c.fade_out=0;other.fade_in=0;c.fade_in=Math.min(c.fade_in,duration(c));other.fade_out=Math.min(other.fade_out,duration(other));n.clips.splice(n.clips.indexOf(c)+1,0,other);break;}
  case 'marker':n.markers.push(action.marker);break;
  default:fail('COMMAND_UNKNOWN');
  }

@@ -5,7 +5,7 @@ import {MemoryReviewStore} from '../lib/telegram-review-v1/core.js';
 import {MiniAppAuth} from '../lib/telegram-mini-app/auth.js';
 import {metricValue,romeRange,normalizePosts,FIELDS,recommendation,ResultsStore,readResults} from '../lib/telegram-mini-app/results.js';
 import {MetricoolConnection,METRICOOL,sealMetricool} from '../lib/telegram-mini-app/metricool.js';
-const range=romeRange('2026-10-01','2026-10-26'),schema=Object.entries(FIELDS.instagram.values).map(([fieldId,[metricName]])=>({fieldId,metricName,network:'instagram',connector:'reels',metricLabel:metricName,description:'',dataAggregation:'SUM'}));
+assert.match(romeRange('2026-10-25','2026-10-25').from,/\+02:00$/);assert.match(romeRange('2026-10-25','2026-10-25').to,/\+01:00$/);const range=romeRange('2026-10-01','2026-10-26'),schema=Object.entries(FIELDS.instagram.values).map(([fieldId,[metricName]])=>({fieldId,metricName,network:'instagram',connector:'reels',metricLabel:metricName,description:'',dataAggregation:'SUM'}));
 const metrics=['IGRE04','IGRE06','IGRE01','IGRE10','IGRE23','IGRE27'];
 const data={rows:[['123','https://www.instagram.com/reel/test1/','20261014','0','17',null]]};
 const normal=()=>normalizePosts({network:'instagram',metrics,schema,data,range,observed_at:'2026-10-26T00:00:00Z',verification:{schema_sha:'a'.repeat(64)}}).posts[0];

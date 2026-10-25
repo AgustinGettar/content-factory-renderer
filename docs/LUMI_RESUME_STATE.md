@@ -1,10 +1,10 @@
 # Lumi resume state
 
-Observed: 2026-10-25T19:47:59.672Z. Input SHA-256: 5393db58d0466307941a6b5f1d282258fc12502d7a8044a7ac33821cd6cd97f2.
+Observed: 2026-10-26T00:00:00Z. Input SHA-256: 8094f658ab3c749025d9989acf60f75ef126aff308891db9deb8ff3a654fad59.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 288128926bcabe53af2e1b92eb7249e0971a8f97.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 88a4def272bc006b409533b10fc908f74bdd59ee.
 
-Deployment evidence: Baseline live4297ec0470a9d92eacf6cfa9b795a337a6948769. This non-generative review changes shared planning/editing only. Exact new commit, CI and live verification are recorded after deployment in docs/lumi-improvement/natural-editing-deployment.json; do not infer deployment from local tests.. Always resolve current HEAD/live before writing.
+Deployment evidence: Baseline branch88a4def, live7467aac. Visual Studio exact code CI/deploy/read-only analytics evidence is in docs/lumi-improvement/visual-studio-deployment.json; never infer live acceptance from local tests.. Always resolve current HEAD/live before writing.
 
 Transport: DIRECT_ACTIVE_MAKE_INACTIVE. TelegramDIRECT y Ed25519 preservados. Make6224860 isActive:false observado. Sin cambios de webhook, secretos ni otros escenarios.
 
@@ -58,7 +58,7 @@ SIMULATED_PROGRESS: "2 new episodes,11 shots,24s and29s masters; not real produc
 
 2. TTS / NOT_REACHED: Fernanda V3 intacta. Estimación temporal antes del gasto; medición de voz real antes de editar. No TTS real en la revisión.
 
-Next safe action: Studio → Preparar → Próximo episodio: editar historia, narración y tiempos sin iniciar producción. EP004 permanece pausado; informar recarga no reenvía q47 ni renueva consentimiento. No volver a conectar Metricool por el informe histórico.
+Next safe action: Studio → Editor: abrir una candidata de medios existentes. Guardar no genera, aprueba ni publica.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

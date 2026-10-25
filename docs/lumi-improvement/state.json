@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "observed_at": "2026-10-25T19:47:59.672Z",
+  "observed_at": "2026-10-26T00:00:00Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "288128926bcabe53af2e1b92eb7249e0971a8f97",
+  "source_commit": "88a4def272bc006b409533b10fc908f74bdd59ee",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Baseline live4297ec0470a9d92eacf6cfa9b795a337a6948769. This non-generative review changes shared planning/editing only. Exact new commit, CI and live verification are recorded after deployment in docs/lumi-improvement/natural-editing-deployment.json; do not infer deployment from local tests.",
+  "deployment_evidence": "Baseline branch88a4def, live7467aac. Visual Studio exact code CI/deploy/read-only analytics evidence is in docs/lumi-improvement/visual-studio-deployment.json; never infer live acceptance from local tests.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "CHECKPOINT RUNNING; JOB NEEDS_ATTENTION; FUNDING PAUSE PRESERVED",
   "last_completed_action": "shot_review:q46",
@@ -259,9 +259,17 @@
     "Qué evidencia faltó": [
       "Payload original completo y comando/commit exacto del master Flores. Se distingue lo medido de lo no recuperado.",
       "Saldo/cargos confirmados y escritura/ingestión real de Metricool; no se probaron con gastos o publicaciones."
+    ],
+    "Estudio visual y Resultados — 26 octubre 2026": [
+      "Editor táctil opcional con reloj WebAudio, fuentes SHA, recortes, división, reordenación ripple, vínculo explícito, volumen/fades, notas, undo/redo y CAS con recuperación de ACK y conflictos.",
+      "Render candidato privado y durable con el encoder existente: H264 High CRF17/slow 1080x1920 AAC48k192, originales intactos; identidad por manifiesto/revisión, sin aprobación heredada.",
+      "Resultados: lector del MCP OAuth del backend con allowlist de lecturas, snapshots, ausencias/unidades explícitas, vínculos manuales al SHA publicado, partes2/3 deterministas con techo autorizado0 y sin grants heredados.",
+      "Prueba de fuentes Flores locales:7.933333s, voz+0.600000s medida por correlación, ganancia-3.00398dB; fragmento técnico separado y sin aprobación artística.",
+      "Histórico anterior conservado. Evidencia, alcance, resultados de despliegue y limitaciones: docs/LUMI_VISUAL_STUDIO_V1.md y docs/lumi-improvement/visual-studio-deployment.json.",
+      "Las pruebas Chromium no acreditan Safari/iPhone; no se certifican tres episodios reales ni un publicador operativo. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos:0."
     ]
   },
-  "first_safe_action": "Studio → Preparar → Próximo episodio: editar historia, narración y tiempos sin iniciar producción. EP004 permanece pausado; informar recarga no reenvía q47 ni renueva consentimiento. No volver a conectar Metricool por el informe histórico.",
+  "first_safe_action": "Studio → Editor: abrir una candidata de medios existentes. Guardar no genera, aprueba ni publica.",
   "acceptance": [
     "No new real generations/TTS/reservations/publications; provider guard in tests.",
     "New guided preparation and both production modes reach downloadable fixture masters.",
@@ -283,6 +291,11 @@
       "status": "PASS_LOCAL_FILES",
       "command": "ffprobe/decode/frame alignment and local candidate comparison",
       "result": "Six Flores original clips and master; separate20.666667s candidate, original master unchanged."
+    },
+    {
+      "status": "PASS",
+      "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-visual-editor.test.js test/lumi-results.test.js",
+      "result": "6 tests: CAS/offset FFmpeg/controles de gasto/lector MCP aislado; prueba browser y despliegue detallados en LUMI_VISUAL_STUDIO_V1.md."
     }
   ],
   "recent_commits": [

@@ -42,5 +42,6 @@ export function createPreparationUI({getState,request,render,refresh,toast,esc})
    const message=terminal?'El proveedor confirmó que esta solicitud terminó sin un resultado utilizable. Conservamos su identidad y reserva. Informar una recarga no autoriza otro envío.':'La consulta del resultado original necesita atención. Se conserva la misma solicitud.';
    return `<section class="card"><h3>${terminal?'Solicitud terminada · requiere atención':'Consulta detenida'}</h3><p>${message}</p><p>Última consulta al proveedor: ${esc(c.last_provider_check_at||'sin fecha verificada')}.</p>${!terminal&&s.capabilities?.recover?'<button class="button secondary" data-action="recover">Consultar resultado original</button>':''}<button class="button secondary" data-action="refresh">Actualizar estado guardado</button></section>`;
  }
- return {card,errorText,attentionCard};
+ async function openSaved(){clearTimeout(timer);scope=getState().client_scope;dirty=false;loaded=false;open=true;notice='';await load();}
+ return {card,errorText,attentionCard,openSaved};
 }

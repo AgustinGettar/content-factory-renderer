@@ -32,7 +32,7 @@ jobs:
           git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
             case "$path" in
-              lib/lumi-editorial-timeline-v2.js|lib/lumi-third-short-master-v1.js|lib/lumi-generic-v2-adapter.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-v2-executor-bindings.js|lib/lumi-v2-input-materializer.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/preparation.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/metricool.js|public/lumi-studio/*|test/fixtures/generic-v2.js|test/lumi-generic-runtime-integration.test.js|test/lumi-editorial-timeline-v2.test.js|test/lumi-q41-first-image.test.js|test/lumi-recovery-incident-manager-v1.test.js|test/lumi-stabilization-assembly.test.js|test/lumi-metricool.test.js|docs/*|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              lib/telegram-mini-app/editor-store.js|lib/telegram-mini-app/editor-media.js|lib/telegram-mini-app/results.js|test/lumi-visual-editor.test.js|test/lumi-visual-editor-browser.mjs|test/lumi-results.test.js|lib/lumi-editorial-timeline-v2.js|lib/lumi-third-short-master-v1.js|lib/lumi-generic-v2-adapter.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-v2-executor-bindings.js|lib/lumi-v2-input-materializer.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/preparation.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/metricool.js|public/lumi-studio/*|test/fixtures/generic-v2.js|test/lumi-generic-runtime-integration.test.js|test/lumi-editorial-timeline-v2.test.js|test/lumi-q41-first-image.test.js|test/lumi-recovery-incident-manager-v1.test.js|test/lumi-stabilization-assembly.test.js|test/lumi-metricool.test.js|docs/*|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) editorial_only=false ;;
             esac
             case "$path" in
@@ -187,6 +187,19 @@ jobs:
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-editorial-timeline-v2.test.js test/lumi-stabilization-assembly.test.js
           npx playwright install --with-deps chromium
           LUMI_BROWSER_TEST=1 node --test --test-name-pattern="^(STUDIO_PREPARATION_BROWSER|STUDIO_STARTUP_HTTP)" test/lumi-q41-first-image.test.js
+      - name: Visual editor, exact-version export and read-only analytics
+        if: steps.scope.outputs.docs_only != 'true'
+        run: |
+          node --import ./scripts/director-offline-guard.mjs --test test/lumi-visual-editor.test.js test/lumi-results.test.js
+          node test/lumi-visual-editor-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lumi-visual-editor-evidence
+          path: |
+            /tmp/lumi-visual-evidence/*.json
+            /tmp/lumi-visual-browser-*/*.png
+          if-no-files-found: ignore
       - name: Durable evidence documents reproduce exactly
         run: |
           node scripts/lumi-improvement-loop.mjs

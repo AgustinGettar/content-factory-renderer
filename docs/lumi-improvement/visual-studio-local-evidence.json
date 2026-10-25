@@ -1,0 +1,62 @@
+{
+  "source_sha": {
+    "q31": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+    "q32": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+    "voice": "52592e542c9592f85888279f23a7010f3c744a21ceebda689751119df373a35e"
+  },
+  "render": {
+    "path": "lumi-v2/editor/8ea507600fd253438e572502b368e675c2e602d729f1fb11890c4a47077f71e2/existing_flores_local_candidate/78efd8e3304d277897cfa63d17d66152268bba7c1042f7c47ab7e2c8975cb748/candidate.mp4",
+    "bucket": "LOCAL_ONLY",
+    "sha256": "8cb5a0807928453bff0d2b9e03eb3eec84e6b5dbae4c8403cc05c6be24dd0c2b",
+    "size": 3991435,
+    "mime": "video/mp4",
+    "manifest_sha": "78efd8e3304d277897cfa63d17d66152268bba7c1042f7c47ab7e2c8975cb748",
+    "revision": 1,
+    "duration_ticks": 380800,
+    "partial": true,
+    "approval": null,
+    "elapsed_ms": 24833,
+    "streams": [
+      {
+        "codec_type": "video",
+        "codec_name": "h264",
+        "profile": "High",
+        "width": 1080,
+        "height": 1920,
+        "time_base": "1/48000",
+        "start_time": "0.000000",
+        "duration": "7.933333",
+        "duration_ts": 380800,
+        "avg_frame_rate": "30/1",
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_type": "audio",
+        "codec_name": "aac",
+        "profile": "LC",
+        "sample_rate": "48000",
+        "channels": 2,
+        "time_base": "1/48000",
+        "start_time": "0.000000",
+        "duration": "7.933333",
+        "duration_ts": 380800,
+        "avg_frame_rate": "0/0",
+        "r_frame_rate": "0/0"
+      }
+    ]
+  },
+  "expected_voice_offset_seconds": 0.6,
+  "expected_gain_db": -3,
+  "originals_intact": true,
+  "partial": true,
+  "not_human_approved": true,
+  "measured_audio_offset_seconds": 0.6,
+  "measured_gain_db": -3.0039825439453125,
+  "audio_correlation": 0.9999931184786933,
+  "synthetic_signal": {
+    "onset_seconds": 0.6000208333333333,
+    "gain_db": -3.0058406185958635,
+    "frame_tolerance_seconds": 0.03333333333333333,
+    "aac_tolerance_seconds": 0.005
+  }
+}

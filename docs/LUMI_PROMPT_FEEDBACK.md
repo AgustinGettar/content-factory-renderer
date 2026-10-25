@@ -1,6 +1,6 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-25T19:47:59.672Z.
+Evidence cutoff: 2026-10-26T00:00:00Z.
 
 ## Qué pidió el encargo
 
@@ -49,8 +49,17 @@ Evidence cutoff: 2026-10-25T19:47:59.672Z.
 - Payload original completo y comando/commit exacto del master Flores. Se distingue lo medido de lo no recuperado.
 - Saldo/cargos confirmados y escritura/ingestión real de Metricool; no se probaron con gastos o publicaciones.
 
+## Estudio visual y Resultados — 26 octubre 2026
+
+- Editor táctil opcional con reloj WebAudio, fuentes SHA, recortes, división, reordenación ripple, vínculo explícito, volumen/fades, notas, undo/redo y CAS con recuperación de ACK y conflictos.
+- Render candidato privado y durable con el encoder existente: H264 High CRF17/slow 1080x1920 AAC48k192, originales intactos; identidad por manifiesto/revisión, sin aprobación heredada.
+- Resultados: lector del MCP OAuth del backend con allowlist de lecturas, snapshots, ausencias/unidades explícitas, vínculos manuales al SHA publicado, partes2/3 deterministas con techo autorizado0 y sin grants heredados.
+- Prueba de fuentes Flores locales:7.933333s, voz+0.600000s medida por correlación, ganancia-3.00398dB; fragmento técnico separado y sin aprobación artística.
+- Histórico anterior conservado. Evidencia, alcance, resultados de despliegue y limitaciones: docs/LUMI_VISUAL_STUDIO_V1.md y docs/lumi-improvement/visual-studio-deployment.json.
+- Las pruebas Chromium no acreditan Safari/iPhone; no se certifican tres episodios reales ni un publicador operativo. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos:0.
+
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 5393db58d0466307941a6b5f1d282258fc12502d7a8044a7ac33821cd6cd97f2. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 8094f658ab3c749025d9989acf60f75ef126aff308891db9deb8ff3a654fad59. Outputs are inert drafts; generating them cannot expand authorization.

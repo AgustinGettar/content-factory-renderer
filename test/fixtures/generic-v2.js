@@ -30,5 +30,12 @@ export async function genericFixture(episodeId='ep_fictional_future'){
   return {artifact:{scope:'SYNTHETIC_NOT_PLAYABLE',sha256:sha256(action.key),...(stage==='MASTER'?{profile:profile.master}:{})},evidence:{provider_succeeded:true,artifact_persisted:true,sha_verified:true,artifact_verified:true},actualCostUsd:['IMAGE','VIDEO','TTS'].includes(stage)?.01:0,request_id,metadata_patch};
  }}]));
  const adapter=new GenericLumiV2Adapter({manager,journal,workers,simulation:true});
+ // This older routing fixture predates whole-plan admission. Give its synthetic
+ // rates explicit provenance instead of looping forever at the real cost gate.
+ const create=adapter.create.bind(adapter);
+ adapter.create=async input=>{const result=await create(input);await manager.checkpoint(input.request.episodePlan.episode.id,s=>{
+  s.metadata.episode_ledger={entries:Object.fromEntries(s.actions.filter(a=>['IMAGE','VIDEO','TTS'].includes(a.stage)).map(a=>[a.key,{estimated_cost:{currency:'USD',usd:.01}}])),
+   overhead_estimates:{STORAGE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_FIXTURE_ONLY'},INFRASTRUCTURE:{currency:'USD',estimate_usd:0,evidence_reference:'OFFLINE_FIXTURE_ONLY'}}};
+ });return result;};
  return {request,directory,store,manager,journal,workers,adapter,trace,simulatedEmissions:()=>simulatedEmissions,cleanup:()=>rm(directory,{recursive:true,force:true})};
 }

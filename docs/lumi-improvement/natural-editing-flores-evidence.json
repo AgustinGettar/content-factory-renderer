@@ -1,0 +1,505 @@
+{
+  "observed_at": "2026-10-25",
+  "method": "Nearest decoded RGB frame MSE, 16x28; technical alignment only, not artistic QA",
+  "limitations": [
+    "Sampled temporal visual inspection, not a claim of uninterrupted audiovisual playback.",
+    "Source frame identity nearest-pixel estimates may vary by one frame during similar poses.",
+    "Exact historical encoder commit and command not recovered; do not attribute this master to the present 30fps builder.",
+    "Original submitted parameters for Flores not recovered; frozen shot-pack target is distinct from an HTTP payload receipt."
+  ],
+  "files": {
+    "LUMI_SHORT_TRES_FLORES_COLORES_V1.mp4": {
+      "sha256": "b6f9fe837d000a924608ed4bda13034ff30560ac48b5a085f7cb0a90f35a2624",
+      "bytes": 30709796,
+      "container_duration": "41.125000",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "High",
+          "width": 1080,
+          "height": 1920,
+          "duration": "41.125000",
+          "duration_ts": 505344,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "987",
+          "nb_read_frames": "987",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        },
+        {
+          "codec_type": "audio",
+          "codec_name": "aac",
+          "profile": "LC",
+          "width": null,
+          "height": null,
+          "duration": "41.125000",
+          "duration_ts": 1974000,
+          "time_base": "1/48000",
+          "start_time": "0.000000",
+          "nb_frames": "1929",
+          "nb_read_frames": "1928",
+          "avg_frame_rate": "0/0",
+          "r_frame_rate": "0/0",
+          "sample_rate": "48000",
+          "channels": 2
+        }
+      ]
+    },
+    "q35-V2-PRO1.mp4": {
+      "sha256": "08011319d09940504027dab10f62f497227cce38f904469fefb531267d8fb70b",
+      "bytes": 8540639,
+      "container_duration": "5.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1912,
+          "duration": "5.041667",
+          "duration_ts": 61952,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "121",
+          "nb_read_frames": "121",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "q36-V2-PRO1.mp4": {
+      "sha256": "5a58a7ab861fa4c7f340538a558f1600bfb08c3e6de04b9cb25f109a70a79986",
+      "bytes": 7249021,
+      "container_duration": "5.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1912,
+          "duration": "5.041667",
+          "duration_ts": 61952,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "121",
+          "nb_read_frames": "121",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "q34-V2-PRO1.mp4": {
+      "sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6",
+      "bytes": 5503862,
+      "container_duration": "4.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1912,
+          "duration": "4.041667",
+          "duration_ts": 49664,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "97",
+          "nb_read_frames": "97",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "q33-V2-PRO1.mp4": {
+      "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+      "bytes": 5760274,
+      "container_duration": "4.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1912,
+          "duration": "4.041667",
+          "duration_ts": 49664,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "97",
+          "nb_read_frames": "97",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "q31-PRO2.mp4": {
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "bytes": 5009453,
+      "container_duration": "4.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1916,
+          "duration": "4.041667",
+          "duration_ts": 49664,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "97",
+          "nb_read_frames": "97",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "q32-V2-PRO1.mp4": {
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "bytes": 5326841,
+      "container_duration": "4.041667",
+      "streams": [
+        {
+          "codec_type": "video",
+          "codec_name": "h264",
+          "profile": "Main",
+          "width": 1080,
+          "height": 1912,
+          "duration": "4.041667",
+          "duration_ts": 49664,
+          "time_base": "1/12288",
+          "start_time": "0.000000",
+          "nb_frames": "97",
+          "nb_read_frames": "97",
+          "avg_frame_rate": "24/1",
+          "r_frame_rate": "24/1",
+          "sample_rate": null,
+          "channels": null
+        }
+      ]
+    },
+    "LUMI_TTS_SECTION_3_INTERACTION_AND_CLOSING_V1.mp3": {
+      "sha256": "a85c5858446c5a7c8c0a03efcc3d8eb929b08093140bfb22fc2a5ea4fc0c3a93",
+      "bytes": 208605,
+      "container_duration": "13.008980",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "mp3",
+          "profile": null,
+          "width": null,
+          "height": null,
+          "duration": "13.008980",
+          "duration_ts": 183582720,
+          "time_base": "1/14112000",
+          "start_time": "0.025057",
+          "nb_frames": null,
+          "nb_read_frames": "498",
+          "avg_frame_rate": "0/0",
+          "r_frame_rate": "0/0",
+          "sample_rate": "44100",
+          "channels": 1
+        }
+      ]
+    },
+    "LUMI_TTS_SECTION_2_LESSON_V1.mp3": {
+      "sha256": "99026df7d65dcadab8b921d6dc97c7847f7c9966918d18c3e7a484aa0e7034ce",
+      "bytes": 324798,
+      "container_duration": "20.271020",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "mp3",
+          "profile": null,
+          "width": null,
+          "height": null,
+          "duration": "20.271020",
+          "duration_ts": 286064640,
+          "time_base": "1/14112000",
+          "start_time": "0.025057",
+          "nb_frames": null,
+          "nb_read_frames": "776",
+          "avg_frame_rate": "0/0",
+          "r_frame_rate": "0/0",
+          "sample_rate": "44100",
+          "channels": 1
+        }
+      ]
+    },
+    "LUMI_TTS_SECTION_1_INTRO_V1.mp3": {
+      "sha256": "52592e542c9592f85888279f23a7010f3c744a21ceebda689751119df373a35e",
+      "bytes": 85725,
+      "container_duration": "5.328980",
+      "streams": [
+        {
+          "codec_type": "audio",
+          "codec_name": "mp3",
+          "profile": null,
+          "width": null,
+          "height": null,
+          "duration": "5.328980",
+          "duration_ts": 75202560,
+          "time_base": "1/14112000",
+          "start_time": "0.025057",
+          "nb_frames": null,
+          "nb_read_frames": "204",
+          "avg_frame_rate": "0/0",
+          "r_frame_rate": "0/0",
+          "sample_rate": "44100",
+          "channels": 1
+        }
+      ]
+    }
+  },
+  "master_cuts": [
+    {
+      "start": 0.0,
+      "start_frame": 0,
+      "source": "q31-PRO2.mp4",
+      "first_source_frame": 0,
+      "last_source_frame": 94,
+      "end_frame": 97,
+      "max_mse": 12.583333015441895,
+      "end": 4.041666666666667,
+      "duration": 4.041666666666667
+    },
+    {
+      "start": 4.041666666666667,
+      "start_frame": 97,
+      "source": "q35-V2-PRO1.mp4",
+      "first_source_frame": 36,
+      "last_source_frame": 65,
+      "end_frame": 127,
+      "max_mse": 11.494047164916992,
+      "end": 5.291666666666667,
+      "duration": 1.25
+    },
+    {
+      "start": 5.291666666666667,
+      "start_frame": 127,
+      "source": "q32-V2-PRO1.mp4",
+      "first_source_frame": 0,
+      "last_source_frame": 67,
+      "end_frame": 195,
+      "max_mse": 14.4375,
+      "end": 8.125,
+      "duration": 2.833333333333333
+    },
+    {
+      "start": 8.125,
+      "start_frame": 195,
+      "source": "q33-V2-PRO1.mp4",
+      "first_source_frame": 1,
+      "last_source_frame": 75,
+      "end_frame": 271,
+      "max_mse": 29.22916603088379,
+      "end": 11.291666666666666,
+      "duration": 3.166666666666666
+    },
+    {
+      "start": 11.291666666666666,
+      "start_frame": 271,
+      "source": "q34-V2-PRO1.mp4",
+      "first_source_frame": 0,
+      "last_source_frame": 68,
+      "end_frame": 340,
+      "max_mse": 12.279762268066406,
+      "end": 14.166666666666666,
+      "duration": 2.875
+    },
+    {
+      "start": 14.166666666666666,
+      "start_frame": 340,
+      "source": "q32-V2-PRO1.mp4",
+      "first_source_frame": 24,
+      "last_source_frame": 52,
+      "end_frame": 370,
+      "max_mse": 11.255952835083008,
+      "end": 15.416666666666666,
+      "duration": 1.25
+    },
+    {
+      "start": 15.416666666666666,
+      "start_frame": 370,
+      "source": "q33-V2-PRO1.mp4",
+      "first_source_frame": 24,
+      "last_source_frame": 46,
+      "end_frame": 393,
+      "max_mse": 11.0744047164917,
+      "end": 16.375,
+      "duration": 0.9583333333333339
+    },
+    {
+      "start": 16.375,
+      "start_frame": 393,
+      "source": "q34-V2-PRO1.mp4",
+      "first_source_frame": 24,
+      "last_source_frame": 45,
+      "end_frame": 415,
+      "max_mse": 10.6755952835083,
+      "end": 17.291666666666668,
+      "duration": 0.9166666666666679
+    },
+    {
+      "start": 17.291666666666668,
+      "start_frame": 415,
+      "source": "q35-V2-PRO1.mp4",
+      "first_source_frame": 40,
+      "last_source_frame": 105,
+      "end_frame": 481,
+      "max_mse": 10.523809432983398,
+      "end": 20.041666666666668,
+      "duration": 2.75
+    },
+    {
+      "start": 20.041666666666668,
+      "start_frame": 481,
+      "source": "q32-V2-PRO1.mp4",
+      "first_source_frame": 18,
+      "last_source_frame": 96,
+      "end_frame": 560,
+      "max_mse": 8.970237731933594,
+      "end": 23.333333333333332,
+      "duration": 3.2916666666666643
+    },
+    {
+      "start": 23.333333333333332,
+      "start_frame": 560,
+      "source": "q33-V2-PRO1.mp4",
+      "first_source_frame": 18,
+      "last_source_frame": 47,
+      "end_frame": 590,
+      "max_mse": 4.095238208770752,
+      "end": 24.583333333333332,
+      "duration": 1.25
+    },
+    {
+      "start": 24.583333333333332,
+      "start_frame": 590,
+      "source": "q34-V2-PRO1.mp4",
+      "first_source_frame": 18,
+      "last_source_frame": 45,
+      "end_frame": 618,
+      "max_mse": 4.014881134033203,
+      "end": 25.75,
+      "duration": 1.1666666666666679
+    },
+    {
+      "start": 25.75,
+      "start_frame": 618,
+      "source": "q35-V2-PRO1.mp4",
+      "first_source_frame": 0,
+      "last_source_frame": 120,
+      "end_frame": 739,
+      "max_mse": 11.336309432983398,
+      "end": 30.791666666666668,
+      "duration": 5.041666666666668
+    },
+    {
+      "start": 30.791666666666668,
+      "start_frame": 739,
+      "source": "q34-V2-PRO1.mp4",
+      "first_source_frame": 3,
+      "last_source_frame": 93,
+      "end_frame": 833,
+      "max_mse": 8.508928298950195,
+      "end": 34.708333333333336,
+      "duration": 3.916666666666668
+    },
+    {
+      "start": 34.708333333333336,
+      "start_frame": 833,
+      "source": "q35-V2-PRO1.mp4",
+      "first_source_frame": 70,
+      "last_source_frame": 120,
+      "end_frame": 884,
+      "max_mse": 10.229166984558105,
+      "end": 36.833333333333336,
+      "duration": 2.125
+    },
+    {
+      "start": 36.833333333333336,
+      "start_frame": 884,
+      "source": "q36-V2-PRO1.mp4",
+      "first_source_frame": 0,
+      "last_source_frame": 102,
+      "end_frame": 987,
+      "max_mse": 11.247023582458496,
+      "end": 41.125,
+      "duration": 4.291666666666664
+    }
+  ],
+  "pause_measurement": {
+    "method": "ffmpeg silencedetect -35dB, minimum .12s",
+    "start": 28.2631,
+    "end": 30.773,
+    "seconds": 2.50992,
+    "limitation": "Amplitude-based silence, not semantic proof of when a child perceived a question."
+  },
+  "comparison": {
+    "status": "LOCAL_EDITORIAL_CANDIDATE_NOT_HUMAN_APPROVED",
+    "sha256": "8b60a685630778bab2d665dedc3db61d50f5eb16f51f49378ee217f5f7376edf",
+    "bytes": 14249022,
+    "before_master_range": [
+      5.625,
+      14.166666666666666
+    ],
+    "before_seconds": 8.541666666666666,
+    "after_seconds": 12.125,
+    "audio_ranges_from_existing_master": [
+      [
+        5.625,
+        8.125
+      ],
+      [
+        8.125,
+        11.291666666666666
+      ],
+      [
+        11.291666666666666,
+        14.166666666666666
+      ]
+    ],
+    "sources": [
+      {
+        "file": "q32-V2-PRO1.mp4",
+        "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+        "source_in": 0,
+        "source_out": 4.041666666666667
+      },
+      {
+        "file": "q33-V2-PRO1.mp4",
+        "sha256": "69e2bebf562dd6d56c0c0ee68275eaaaf5fc26376fcfa9febe4830335b300ec5",
+        "source_in": 0,
+        "source_out": 4.041666666666667
+      },
+      {
+        "file": "q34-V2-PRO1.mp4",
+        "sha256": "b39e84ace268cc8bae549a820f368bafc012790014bf3c94200a04b5d29031b6",
+        "source_in": 0,
+        "source_out": 4.041666666666667
+      }
+    ],
+    "no_new_tts": true,
+    "speed": 1,
+    "transitions": "CUT",
+    "no_extended_visual_holds": true,
+    "profile_exception": "comparison retains original 24fps; future production policy is 30fps"
+  },
+  "comparison_library_id": "libfile_c735e72f087c819180b24d71c34649bf"
+}

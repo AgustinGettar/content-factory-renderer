@@ -263,3 +263,13 @@ test('BUDGET_CONCURRENCY / MULTI_EPISODE: every explicitly linked source liabili
  const b=await manager.budgetExposure({episodeId:'ep006_sources'});assert.equal(b.required_total_usd,1);assert.equal(b.current_confirmed_spend_usd,.4);
  assert.equal(b.source_operation_exposure_usd,1);assert.equal(b.episode_ceiling_usd,8);
 });
+
+test('STUDIO_PLAN_COST: disclosed hosting allocations cannot hide unknown generative costs or a changed plan',async()=>{
+ const store=new MemoryLumiRecoveryStore(),manager=new LumiRecoveryIncidentManager({store}),id='ep_studio_cost_fixture';
+ await manager.startEpisode({episodeId:id,authorizedCeilingUsd:8,actions:[{key:'image:s1',stage:'IMAGE'},{key:'video:s1',stage:'VIDEO'}],metadata:{runtime_revision:1,generic_v2:{binding_sha:'bound'},studio_preparation:{authorization_id:'human'},accepted_plan_cost_evidence:{authorization_id:'human',plan_binding_sha:'bound',no_new_services:true,unknown_allocations:['storage','infrastructure']},episode_ledger:{entries:{'image:s1':{estimated_cost:{currency:'USD',usd:.2}},'video:s1':{estimated_cost:{currency:'USD',usd:.4}}}}}});
+ const gate=()=>manager.budgetGate({episodeId:id,actionKey:'image:s1',projectedCallCostUsd:.2});
+ assert.equal((await gate()).status,'PASS');
+ await manager.checkpoint(id,s=>delete s.metadata.episode_ledger.entries['video:s1']);assert.equal((await gate()).error_code,'BUDGET_FULL_EPISODE_PLAN_REQUIRED');
+ await manager.checkpoint(id,s=>{s.metadata.episode_ledger.entries['video:s1']={estimated_cost:{currency:'USD',usd:.4}};s.metadata.generic_v2.binding_sha='changed';});assert.equal((await gate()).error_code,'BUDGET_FULL_EPISODE_PLAN_REQUIRED');
+ assert.equal((await store.getEpisode(id)).metadata.budget_reservations,undefined);
+});

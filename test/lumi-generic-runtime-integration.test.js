@@ -1,4 +1,5 @@
 import test from 'node:test';
+import express from 'express';
 import assert from 'node:assert/strict';
 import {runtimeFixture,seedPersistedVideos,reviewCallback,fixtureSecret} from './fixtures/generic-runtime-v2.js';
 import {PROFILE_SHA,LUMI_PRODUCTION_PROFILE_V2 as profile} from '../lib/lumi-production-profile-v2.js';
@@ -228,7 +229,7 @@ test('canonical runtime mount uses real Supabase adapters over isolated PostgRES
     const object=new Headers(options.headers).get('Accept')?.includes('object');
     return new Response(JSON.stringify(object?(result[0]||null):result),{headers:{'Content-Type':'application/json'}});
   }}});
-  const routes=new Map(),app={get:(p,...h)=>routes.set(p,h.at(-1)),post:(p,...h)=>routes.set(p,h.at(-1))};
+  const routes=new Map(),app=express();for(const method of ['get','post']){const mount=app[method].bind(app);app[method]=(p,...h)=>{routes.set(p,h.at(-1));return mount(p,...h);};}
   const env={LUMI_RUNTIME_ENV:'staging',LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'MAKE',LUMI_TELEGRAM_REVIEW_TEST_USERS:'1',LUMI_TELEGRAM_CALLBACK_SECRET:fixtureSecret};
   mounted=mountTelegramReview(app,{db,env,authorized:()=>true});mounted.stopDiagnostics();
   assert.equal(isGenericV2Runtime(mounted.production.adapters[profile.id]),true);

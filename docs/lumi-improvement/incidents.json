@@ -518,5 +518,77 @@
     "REGRESSION_GUARD": "PLAN_ONETAP PRICE_BUFFER",
     "REUSABILITY": "Existing durable episode job and journal, plan-bound future actions.",
     "NEXT_ACTION": "Una decisión en Studio sobre límites restantes; techo8, originales y modo vigentes preservados."
+  },
+  {
+    "INCIDENT_ID": "LUMI-NATURAL-CUT-023",
+    "EPISODE_ID": "shared_future_episodes",
+    "AFFECTED_ACTION": "assembly",
+    "SYMPTOM": "Flores cambia de toma antes del asentamiento disponible.",
+    "ROOT_CAUSE": "Bytes: originales4.041667/5.041667s; master16tramos, primeras flores2.833333/3.166667/2.875s. Autoría exacta del comando histórico no recuperada.",
+    "EVIDENCE": [
+      "docs/LUMI_NATURAL_EDITING_REVIEW.md",
+      "docs/lumi-improvement/natural-editing-flores-evidence.json"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Preparación reutilizable y montaje que conserva resolución de acciones; ninguna alteración de EP004.",
+    "FINANCIAL_RISK": "No new spend; existing locks/reservations preserved.",
+    "FIX_STATUS": "IMPLEMENTED_LOCAL_CI_DEPLOY_EVIDENCE_SEPARATE",
+    "FIX_COMMIT": "See natural-editing-deployment.json",
+    "TEST_EVIDENCE": [
+      "STUDIO_NEW_CHAPTER_INTEGRATION",
+      "lumi-editorial-timeline-v2.test.js",
+      "STUDIO_PREPARATION_BROWSER"
+    ],
+    "REGRESSION_GUARD": "Offline external providers; real CAS, timeline and file hashes.",
+    "REUSABILITY": "Versioned shared planner/materializer/assembler; legacy frozen plans unchanged.",
+    "NEXT_ACTION": "Use Studio preparation; human final review required. No automatic social publication."
+  },
+  {
+    "INCIDENT_ID": "LUMI-NEW-PREPARATION-024",
+    "EPISODE_ID": "shared_future_episodes",
+    "AFFECTED_ACTION": "planning",
+    "SYMPTOM": "Studio no ofrecía una preparación nueva completa y el modo no quedaba proyectado a la revisión final.",
+    "ROOT_CAUSE": "Faltaba ruta guiada desde Studio al motor existente; creación de nuevo episodio necesitaba proyección de la elección humana al review gate.",
+    "EVIDENCE": [
+      "docs/LUMI_NATURAL_EDITING_REVIEW.md",
+      "docs/lumi-improvement/natural-editing-flores-evidence.json"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Preparación reutilizable y montaje que conserva resolución de acciones; ninguna alteración de EP004.",
+    "FINANCIAL_RISK": "No new spend; existing locks/reservations preserved.",
+    "FIX_STATUS": "IMPLEMENTED_LOCAL_CI_DEPLOY_EVIDENCE_SEPARATE",
+    "FIX_COMMIT": "See natural-editing-deployment.json",
+    "TEST_EVIDENCE": [
+      "STUDIO_NEW_CHAPTER_INTEGRATION",
+      "lumi-editorial-timeline-v2.test.js",
+      "STUDIO_PREPARATION_BROWSER"
+    ],
+    "REGRESSION_GUARD": "Offline external providers; real CAS, timeline and file hashes.",
+    "REUSABILITY": "Versioned shared planner/materializer/assembler; legacy frozen plans unchanged.",
+    "NEXT_ACTION": "Use Studio preparation; human final review required. No automatic social publication."
+  },
+  {
+    "INCIDENT_ID": "LUMI-FRACTIONAL-TIMELINE-025",
+    "EPISODE_ID": "shared_future_episodes",
+    "AFFECTED_ACTION": "assembly",
+    "SYMPTOM": "Duraciones fraccionarias podían añadir un frame o desalinear la cola de audio.",
+    "ROOT_CAUSE": "ffprobe redondea a microsegundos; ceil sin tolerancia añadía un frame en VFR; timescale MP4 por defecto reducía precisión de audio.",
+    "EVIDENCE": [
+      "docs/LUMI_NATURAL_EDITING_REVIEW.md",
+      "docs/lumi-improvement/natural-editing-flores-evidence.json"
+    ],
+    "CONFIDENCE": "CONFIRMED",
+    "USER_IMPACT": "Preparación reutilizable y montaje que conserva resolución de acciones; ninguna alteración de EP004.",
+    "FINANCIAL_RISK": "No new spend; existing locks/reservations preserved.",
+    "FIX_STATUS": "IMPLEMENTED_LOCAL_CI_DEPLOY_EVIDENCE_SEPARATE",
+    "FIX_COMMIT": "See natural-editing-deployment.json",
+    "TEST_EVIDENCE": [
+      "STUDIO_NEW_CHAPTER_INTEGRATION",
+      "lumi-editorial-timeline-v2.test.js",
+      "STUDIO_PREPARATION_BROWSER"
+    ],
+    "REGRESSION_GUARD": "Offline external providers; real CAS, timeline and file hashes.",
+    "REUSABILITY": "Versioned shared planner/materializer/assembler; legacy frozen plans unchanged.",
+    "NEXT_ACTION": "Use Studio preparation; human final review required. No automatic social publication."
   }
 ]

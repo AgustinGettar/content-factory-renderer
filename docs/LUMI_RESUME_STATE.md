@@ -1,64 +1,64 @@
 # Lumi resume state
 
-Observed: 2026-10-23T16:33:42.881684Z. Input SHA-256: 4c5c36e907e963a93da3585a90f84553fe65003d5955440675058863476081a0.
+Observed: 2026-10-25T19:47:59.672Z. Input SHA-256: 5393db58d0466307941a6b5f1d282258fc12502d7a8044a7ac33821cd6cd97f2.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 1b02c51429fd863d6216511ee0b8b0b460f46f0b.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 288128926bcabe53af2e1b92eb7249e0971a8f97.
 
-Deployment evidence: Code1b02c51429fd863d6216511ee0b8b0b460f46f0b; CI39986155840 GREEN. Render dep-dbdok1vf3r2c73bh6vi0 LIVE2026-10-23T16:24:13.450064Z; both readiness endpoints match SHA; served app SHA256fa6acdd9f7c775bb86ed3e96c25a501666361a80923afae339f711bbfaf39cab matches local. Private state/session401. Free unchanged, autoDeployoff. Same EP004revision76/job/consents and2 authorized q44 emissions after final deployment. This docs-only follow-up needs no restart.. Always resolve current HEAD/live before writing.
+Deployment evidence: Baseline live4297ec0470a9d92eacf6cfa9b795a337a6948769. This non-generative review changes shared planning/editing only. Exact new commit, CI and live verification are recorded after deployment in docs/lumi-improvement/natural-editing-deployment.json; do not infer deployment from local tests.. Always resolve current HEAD/live before writing.
 
 Transport: DIRECT_ACTIVE_MAKE_INACTIVE. TelegramDIRECT y Ed25519 preservados. Make6224860 isActive:false observado. Sin cambios de webhook, secretos ni otros escenarios.
 
-Recovered work: Recuperación del pedido q43original y mismo trabajo durable. Nuevo arranque observado16:08 seguido por avance q44.
+Recovered work: Historical q43/q44 recovery preserved. Current audit recovered only local copies of Flores sources/master/audio for measurement.
 
-Episode: ep_lumi_granja_004_20261008_ee7ab4b3; RUNNING — JOB NEEDS_ATTENTION; 26/50.
+Episode: ep_lumi_granja_004_20261008_ee7ab4b3; CHECKPOINT RUNNING; JOB NEEDS_ATTENTION; FUNDING PAUSE PRESERVED; 38/50.
 
-Last: shot_review:q44; next: image:q45.
+Last: shot_review:q46; next: image:q47.
 
 Original operation: 125ed083ab1bc866e0c3670c60d7cadee1dc284dbcd48f97dc6bdca95795dc90; journal attempt: 6caebf9f4cbafe0fc69c0d71755a2e16cb1df4cdde2ff6b85af36df99e301f30; EMISSION_UNKNOWN/NO_RESPONSE.
 
-Proposal: null; risk acceptance EXISTING_PLAN_AND_DRAFT_POLICY_PRESERVED; replacement operation COMPLETE_Q42_IMAGE_AND_SHOT_REVIEW_ALREADY_APPROVED; reservation EXISTING_RESERVED_0_345_PRESERVED. Aceptados por el humano antes de la intervención. No se firmó otro consentimiento. La propuesta nueva conserva techo8 y requiere aceptación en la app.
+Proposal: null; risk acceptance EXISTING_EXPIRED_GRANTS_PRESERVED; replacement operation COMPLETE_Q42_IMAGE_AND_SHOT_REVIEW_ALREADY_APPROVED; reservation EXISTING_RESERVED_0_345_PRESERVED. Plan expires25Oct04:22:28Z; draft policy expires24Oct14:12:19Z. Both authentic records preserved; neither extended. Funding report EMPTY_REPORTED and q47 accepted request failed; top-up acknowledgment alone cannot restart or authorize a new request.
 
-Budget USD 8; exposure 3.94125; proposed additional maximum 0.4; charges UNKNOWN.
+Budget USD 8; exposure 6.37875; proposed additional maximum 0; charges UNKNOWN.
 
 ## Evidence-based metrics
 
-PRODUCTION_PROGRESS: {"completed":26,"total":50,"delta_this_intervention":9,"shots":4,"total_shots":7}
+PRODUCTION_PROGRESS: {"completed":38,"total":50,"delta":0}
 
-BLOCKERS_RESOLVED: {"technical":4,"scope":"lateACK recovery, renewed plan binding, initial review choice, usable workflow/download"}
+BLOCKERS_RESOLVED: ["Studio guided preparation","Mode projection at human plan acceptance","Natural timeline opt-in","Persisted assembly ACK recovery","Stale Metricool read does not imply missing OAuth"]
 
-REGRESSIONS_INTRODUCED: {"observed_in_focused_acceptance":0,"scope":"Focused CI plus real production; no full device certificate"}
+REGRESSIONS_INTRODUCED: "Pending exact CI; local focused checks PASS"
 
-DUPLICATE_EMISSIONS: {"this_intervention":0}
+DUPLICATE_EMISSIONS: 0
 
-UNAUTHORIZED_SPENDING: {"this_intervention":0,"charges":"UNKNOWN"}
+UNAUTHORIZED_SPENDING: 0
 
-HUMAN_INTERVENTIONS: {"new_decisions_recorded_by_agent":0,"pending":["Approve revised remaining stage limits in Studio"]}
+HUMAN_INTERVENTIONS: 0
 
-REUSABLE_FIXES: {"scope":"same-request recovery, plan renewal at future boundaries, initial mode, private download"}
+REUSABLE_FIXES: 5
 
-SIMULATED_PROGRESS: {"productive_delta":0,"scope":"Fixtures never written into staging"}
+SIMULATED_PROGRESS: "2 new episodes,11 shots,24s and29s masters; not real production"
 
 ## Blockers
 
-1. BUDGET / HUMAN_LIMIT_DECISION_REQUIRED: q45 IMAGE: precio observado USD0.278; reserva1.25×=USD0.3475, máximo vigenteUSD0.345. Sin journal ni envío. Propuesta con margen10% y redondeoUSD0.05 solo si el humano acepta; techo8 inalterado.
+1. BUDGET / EXPIRED_CONSENT_AND_FUNDING_PAUSE: Techo8; reservas6.37875; cargos y saldo real desconocidos. Plan y borrador vencidos se conservan; ninguna renovación en nombre del humano.
 
-2. ASSEMBLY / NOT_REACHED: No hay master EP004. Integración sintética y HTTP de master1080×1920/H264/AAC verificadas; no sustituyen montaje real.
+1. GENERATION / SIX_CLIPS_READY_Q47_FAILED: 6/7 clips disponibles, 38/50 etapas; image:q47 failed desde consulta18:00:09Z. No hay voz ni master EP004.
 
-2. DELIVERY / BROWSER_FIXTURE_PASS_DEVICE_PENDING: Navegador real con datos sintéticos: reproducción, Range y descarga de bytes exactos PASS. Telegram/iPhone real no probado. Comprobación manual breve en el master futuro.
+2. ASSEMBLY / NATURAL_POLICY_ISOLATED_PASS_REAL_EP004_PENDING: Nuevos planes conservan fuente completa1x, pausa y cola; manifests SHA. Dos masters aislados24/29s y replay sin otro encode. Comparación Flores separada, no aprobada.
 
-2. GENERATION / Q43_RECOVERED_Q44_COMPLETE: q43 original recuperado, guardado y verificado. q44 imagen/video generados bajo consentimiento existente y completados. 4/7 tomas listas; q45–q47 pendientes.
+2. DELIVERY / LOCAL_DECODE_AND_DOWNLOAD_PASS_IPHONE_PENDING: Flores y comparación decodificados; descarga SHA exacta en dos fixtures completos. No se afirma aceptación real de iPhone. Metricool conectado, escritor/ingestión/permisos/cuota sin validación.
 
-2. HUMAN_REVIEW / DRAFT_POLICY_ACCEPTED_FINAL_REVIEW_PENDING: Aceptación auténtica23Oct15:16:45Z ya existía. Se conserva, con vencimiento24Oct14:12:19Z. No se aprobaron medios en nombre del usuario. Master inexistente.
+2. HUMAN_REVIEW / FINAL_REVIEW_PENDING: Modo de borrador elegido previamente preservado, sin aprobar tomas técnicamente en nombre del humano. Un master o plan nuevos conservan gates y SHA propios.
 
-2. INFRASTRUCTURE / FREE_RESTART_RECOVERY_OBSERVED: Nuevo arranque observado16:08:32–48Z; mismo trabajo retomó temporal_qa:q44 y completó shot_review16:10:49Z. Eventos no acreditan motivo del reinicio. Free no garantiza trabajo durante suspensión; no se contrató otro plan.
+2. INFRASTRUCTURE / FREE_PRESERVED_REAL_MASTER_NOT_RUN: Render Free sin upgrade ni keepalive. Suspensión no garantiza trabajo continuo. Reanudación durable probada aislada; capacidad de encode de un master real completo en staging no medida.
 
-2. MINI_APP_UX / FOUR_STAGES_IMPLEMENTED: Preparar/Producir/Revisar/Descargar; decisiones, historia y narración, miniaturas privadas, bloqueo persistente, controles de modo accesibles. La creación libre idea→plan sigue sin ruta DIRECT/Studio: el generador antiguo de Make está retirado. No se activó otra IA paga ni se creó otro episodio fuera del alcance.
+2. MINI_APP_UX / GUIDED_PREPARATION_AND_DURABLE_UI_PASS: Dos preparaciones nuevas5/6 tomas por DOM y handlers reales, CAS, reload y ACK perdido. Guía editable; no IA libre. Una elección auténtica de modo por plan; controles accesibles durante espera.
 
-2. TTS / NOT_REACHED: Fernanda V3 congelada y contrato de cuota existente preservados. EP004 aún no llegó a TTS; no se afirma audio real terminado.
+2. PROVIDER_EVIDENCE / ORIGINAL_Q42_UNKNOWN_Q47_FAILED_PRESERVED: q42 original ambiguo conservaUSD0.3275; q47 recibió fallo confirmado, sin reemisión. No se inventa saldo ni causa de suspensión.
 
-3. PROVIDER_EVIDENCE / ORIGINAL_Q42_UNKNOWN_PRESERVED: q42 original sigue EMISSION_UNKNOWN, sin request_id y con USD0.3275 reservados. No impide avanzar con su reemplazo ya aprobado.
+2. TTS / NOT_REACHED: Fernanda V3 intacta. Estimación temporal antes del gasto; medición de voz real antes de editar. No TTS real en la revisión.
 
-Next safe action: En Lumi Studio, EP004 → Producir → Revisar plan y continuar. Revisar y aceptar los nuevos límites de las etapas restantes si se está de acuerdo; techo USD8 sin cambio. La política automática ya está aceptada. No volver a generar q41/q43 ni liberar q42.
+Next safe action: Studio → Preparar → Próximo episodio: editar historia, narración y tiempos sin iniciar producción. EP004 permanece pausado; informar recarga no reenvía q47 ni renueva consentimiento. No volver a conectar Metricool por el informe histórico.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

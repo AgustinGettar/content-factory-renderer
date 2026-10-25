@@ -2440,3 +2440,103 @@ test('HIGGSFIELD_FUNDING: inspect a previously generic failed original once and 
  const v=await service.view(await f.reopen());assert.equal(v.funding.source,'PROVIDER_ERROR');assert.equal(v.funding.blocks_generation,true);assert.equal(v.continuity.recovery_error,'HIGGSFIELD_INSUFFICIENT_BALANCE');
  assert.equal(f.control.polls,1);assert.equal(f.control.emitted,1);assert.deepEqual(await f.store.getEpisode(episode),cp);
 });
+
+test('STUDIO_NEW_CHAPTER_INTEGRATION: authored five/six-shot plans, supervised and automatic, reach reviewed downloadable masters',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'lumi-multi-')),jobs=new Map(),videos=new Map(),requests=[],audioRequests=[];
+ t.after(()=>rm(dir,{recursive:true,force:true}));
+ for(const duration of [3,4,5]){
+  const path=join(dir,duration+'.mp4');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','testsrc2=size=180x320:rate=30','-t',String(duration),'-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p',path]);videos.set(duration,await readFile(path));
+ }
+ const ap=join(dir,'tone.mp3');await promisify(execFile)('ffmpeg',['-v','error','-f','lavfi','-i','sine=frequency=440:sample_rate=44100','-t','1.2','-c:a','libmp3lame',ap]);const audioBytes=await readFile(ap);
+ const f=await miniFixture({quoteUsd:.01,ttsRuntime:{client:{preflight:async r=>({authenticated:true,currency:'ELEVENLABS_CHARACTER_QUOTA',units:r.text.length,character_count:r.text.length,quota:{QUOTA_OBSERVED:'PASS',REMAINING_CHARACTERS:10000},provenance:'EXPLICIT_OFFLINE_FIXTURE',usd:null}),
+  submit:async(r,{onAcknowledged})=>{const id='multi-audio-'+audioRequests.length;audioRequests.push({id,r});const a={job_id:id,request_id:id,character_cost:r.text.length};await onAcknowledged(a);return a;},poll:async id=>({job_id:id,status:'completed',artifact_url:'https://media.example.test/audio'}),recoverOriginal:async()=>audioBytes}},
+  providerFetch:async(url,options)=>{
+   if(options.method==='POST'){const payload=JSON.parse(options.body),id='multi-job-'+jobs.size;requests.push({id,payload});jobs.set(id,url.includes('kling')?videos.get(payload.duration):image);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id});}
+   const id=url.split('/').at(-1);assert.ok(jobs.has(id));return url.includes('/requests/')?Response.json({request_id:id,status:'completed',video:{url:'https://media.example.test/'+id},images:[{url:'https://media.example.test/'+id}]}):new Response(jobs.get(id));
+  }});
+ t.after(()=>{for(const timer of f.service.recoveryTimers.values())clearTimeout(timer);});
+ f.storage.remove=async(b,p)=>f.objects.delete(b+'/'+p);
+ const original=await f.store.getEpisode(episode),snapshots=[];let principal=f.principal;
+ await f.edit(s=>{s.production_commands.fixture_image_rate={result:{episode_id:'historical_fixture',action_key:'image:one',model:'marketing-studio/image',currency:'USD',quote_usd:.01,quote_id:'fixture-image',created_at:new Date().toISOString()}};s.production_commands.fixture_video_rate={result:{episode_id:'historical_fixture',action_key:'video:one',model:'kling-video/v3.0/pro/image-to-video',currency:'USD',quote_usd:.02,duration:5,quote_id:'fixture-video',created_at:new Date().toISOString()}};});
+ t.mock.timers.enable({apis:['Date'],now:Date.now()});
+ for(const mode of ['SUPERVISED','DRAFT_FINAL_REVIEW_V1']){
+  const roles=mode==='SUPERVISED'?['setup','discovery','question','answer','close']:['setup','discovery','discovery','question','answer','close'];
+  const input={title:'SYNTHETIC '+mode,idea:'Lumi observa una flor azul.',objective:'Reconocer el azul.',success_test:'Señalar la flor azul.',setting:'Jardín tranquilo',objects:[{name:'flor',color:'azul',shape:'pétalos redondos',placement:'derecha'}],scenes:roles.map((role,i)=>({role,goal:'Reconocer el azul.',narration:role==='question'?'¿Dónde está?':'Mirá la flor.',duration:i===0?4:5,object_index:0}))};
+  const prior=await f.videoAdapter.studioPreparation(principal);
+  const body={draft_id:randomUUID(),expected_version:prior?.version,input,proposed_limit_usd:8};
+  const draft=await f.videoAdapter.studioPreparation(principal,body),duplicate=await f.videoAdapter.studioPreparation(principal,body);
+  assert.equal(duplicate.version,draft.version);assert.equal(draft.validation.status,'READY');
+  const frozen=await f.videoAdapter.freezeStudioPreparation(principal,{draft_id:draft.draft_id,version:draft.version}),name=frozen.episode_id;
+  await f.videoAdapter.freezeStudioPreparation(principal,{draft_id:draft.draft_id,version:draft.version});
+  assert.equal(Number((await f.store.getEpisode(name)).authorized_ceiling_usd),0);
+  assert.equal((await f.reviewStore.get('1')).state.episodes[name].budget_approved,false);
+  principal=await f.reopen();
+  const submit=async(kind,body={})=>{const r=await f.service.enqueue(principal,kind,body);await r.dispatch();const v=await f.service.view(principal);assert.notEqual(v.operation?.status,'BLOCKED',JSON.stringify(v.operation));return v;};
+  const challenge=(await f.service.reviewPlan(principal,{priceBuffer:10})).challenge;
+  await f.service.acceptPlan(principal,{challenge,confirm:true,review_mode:mode});
+  const first=await f.service.enqueue(principal,'produce_episode',{confirm:true}),double=await f.service.enqueue(principal,'produce_episode',{confirm:true});
+  assert.equal(first.operation.id,double.operation.id);await Promise.all([first.dispatch(),double.dispatch()]);
+  const seen=[];
+  for(let step=0;step<125;step++){
+   const cp=await f.store.getEpisode(name),v=await f.service.view(principal);assert.equal(v.episode.id,name);if(!cp.first_pending_action)break;
+   seen.push(cp.first_pending_action);
+   const review=v.reviews[0];
+   if(review){if(mode==='DRAFT_FINAL_REVIEW_V1')assert.ok(['MASTER','MASTER_REVIEW'].includes(review.stage));assert.ok(review.media_id,'review must resolve exact original media');await submit('review',{request_id:review.id,artifact_sha:review.artifact_sha,review_version:review.version,decision:'APPROVED',pose:'FRONT',wand_hand:'RIGHT',full_playback:true,source_comparison:true});continue;}
+   // The real durable executor advances all technical stages. No manual
+   // quote/authorize/generate/recover/continue operation is used here.
+   t.mock.timers.tick(16000);
+   const restarted=new f.service.constructor({...f.service});await restarted.processPending({user:'1',chat:'1'});
+   const saved=(await f.reviewStore.get('1')).state.mini_app.episode_jobs[name];
+   assert.notEqual(saved.status,'NEEDS_ATTENTION',JSON.stringify(saved));
+   principal=await f.reopen();
+  }
+  const end=await f.store.getEpisode(name);assert.equal(end.first_pending_action,null,seen.join(' -> '));assert.ok(end.actions.every(a=>a.status==='COMPLETE'));
+  const master=end.metadata.stage_results.master.result.artifacts[0];assert.equal(master.width,1080);assert.equal(master.height,1920);assert.ok(Math.abs(master.duration-(roles.length*5-1))<.04);
+  const view=await f.service.view(principal),media=view.media.find(m=>m.episode===name&&m.role==='master');assert.ok(media);
+  const u=new URL(media.url,'https://fixture.invalid'),download=await f.service.media(principal,media.id,u.searchParams.get('expires'),u.searchParams.get('ticket'));
+  assert.equal(sha256(download.bytes),master.sha256);assert.equal(end.runner_enabled,false);assert.equal(end.autorun,false);
+  for(const [id,snapshot] of snapshots)assert.deepEqual(await f.store.getEpisode(id),snapshot,'cross-episode contamination');
+  assert.equal(end.metadata.stage_results.assembly.result.output.editorial_timeline.decisions.length,roles.length);snapshots.push([name,end]);console.log('PASS_NEW_STUDIO '+name+': '+mode+', '+roles.length+' shots, '+master.duration+'s, approved fixture master and download SHA verified.');
+ }
+ assert.deepEqual(await f.store.getEpisode(episode),original);assert.equal(requests.length,22);assert.equal(audioRequests.length,11);
+ const rows=[...f.journalRows.values()].filter(j=>j.episode_id.startsWith('ep_studio_'));assert.equal(rows.length,22);assert.equal(new Set(rows.map(j=>j.attempt_id)).size,22);
+ assert.ok(requests.filter(r=>r.payload.image_urls).every(r=>/Include Lumi in the scene/.test(r.payload.prompt)&&!/sin dibujar a Lumi/.test(r.payload.prompt)));
+ console.log('PASS_INTEGRATION: 2 newly authored synthetic episodes, 11 shots, 22 mocked visual emissions, 11 mocked audio emissions, authentic Mini App session/CAS/reviews, two local Full HD encodes and exact download SHA; real provider calls=0.');
+});
+
+test('STUDIO_PREPARATION_BROWSER: real UI and authenticated preparation handlers survive reload, lost save ACK and two new plans',{skip:!!globalThis.LUMI_OFFLINE_GUARD||!process.env.LUMI_BROWSER_TEST,timeout:90000},async t=>{
+ const f=await miniFixture(),{default:express}=await import('express'),{chromium}=await import('playwright'),{mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js');
+ const originalCalls=JSON.stringify(f.calls),originalJournal=structuredClone([...f.journalRows]);
+ const app=express();app.use(express.json());let loseSave=false,expired=false;const errors=[],draftIds=[];
+ app.use((req,res,next)=>{if(expired&&req.path.includes('/api/'))return res.status(401).json({error:'MINI_SESSION_EXPIRED'});if(loseSave&&req.method==='POST'&&req.path.endsWith('/api/preparation')){loseSave=false;const send=res.json.bind(res);res.json=()=>{res.status(504);return send({error:'FIXTURE_LOST_ACK'});};}next();});
+ const mounted=mountMiniApp(app,{db:{},store:f.reviewStore,adapter:{...f.videoAdapter,backgroundCheckpoint:undefined},production:f.production,loadBytes:a=>f.storage.download(a.bucket,a.path),validateOwner:async()=>true,env:f.miniEnv,configureEntry:false,fetchImpl:async()=>assert.fail('EXTERNAL_FORBIDDEN')});t.after(mounted.stop);
+ const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));
+ const origin='https://content-factory-av2-staging.onrender.com',base='http://127.0.0.1:'+server.address().port;
+ const browser=await chromium.launch({headless:true,...(process.env.LUMI_TEST_BROWSER?{executablePath:process.env.LUMI_TEST_BROWSER,args:['--no-sandbox','--disable-gpu']}:{})});t.after(()=>browser.close());
+ const context=await browser.newContext({viewport:{width:390,height:844}});
+ // Every browser request is intercepted. The real authenticated HTTP handlers
+ // run locally; this does not contact or impersonate a session on live staging.
+ await context.route('**/*',async route=>{const req=route.request(),u=new URL(req.url());if(u.origin!==origin)return route.abort();const headers={...req.headers(),cookie:'__Secure-lumi_studio='+f.login.cookie};delete headers.host;
+  const response=await fetch(base+u.pathname+u.search,{method:req.method(),headers,body:req.postData()||undefined});const h=Object.fromEntries(response.headers);delete h['content-encoding'];delete h['content-length'];await route.fulfill({status:response.status,headers:h,body:Buffer.from(await response.arrayBuffer())});});
+ const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));await page.goto(origin+'/lumi/studio');
+ await page.click('[data-tab="produccion"]');await page.click('[data-workflow="preparar"]');
+ await page.click('[data-preparation-action="open"]');
+ for(let n=0;n<2;n++){
+  if(n)await page.click('[data-preparation-action="new"]');
+  const values={title:'Historia nueva '+n,idea:'Lumi observa una flor azul.',objective:'Reconocer el azul.',success_test:'Señalar el azul.',setting:'Jardín', 'objects.0.name':'flor','objects.0.color':'azul','objects.0.shape':'redonda','objects.0.placement':'derecha'};
+  for(const [name,value]of Object.entries(values))await page.locator(`[data-preparation-field="${name}"]`).fill(value);
+  if(n)await page.click('[data-preparation-action="scene"]');
+  const count=n?6:5;for(let i=0;i<count;i++){await page.locator(`[data-preparation-field="scenes.${i}.goal"]`).fill('Reconocer el azul.');await page.locator(`[data-preparation-field="scenes.${i}.narration"]`).fill('Mirá la flor.');}
+  await page.getByText(/Preparación guardada ·/).waitFor();
+  const saved=await f.videoAdapter.studioPreparation(f.principal);draftIds.push(saved.draft_id);assert.equal(saved.input.scenes.length,count);
+  await page.reload();await page.click('[data-tab="produccion"]');await page.click('[data-workflow="preparar"]');await page.click('[data-preparation-action="open"]');
+  assert.equal(await page.locator('[data-preparation-field="title"]').inputValue(),'Historia nueva '+n);
+  if(!n){loseSave=true;await page.locator('[data-preparation-field="title"]').fill('Historia guardada sin ACK');await page.getByText(/No se confirmó el guardado/).waitFor();const version=(await f.videoAdapter.studioPreparation(f.principal)).version;
+   await page.click('[data-preparation-action="save"]');await page.getByText(/Preparación guardada ·/).waitFor();assert.equal((await f.videoAdapter.studioPreparation(f.principal)).version,version);}
+  await page.locator('[data-preparation-action="freeze"]').dblclick();await page.getByText('Plan preparado',{exact:true}).waitFor();
+  const frozen=await f.videoAdapter.studioPreparation(f.principal),cp=await f.store.getEpisode(frozen.episode_id);assert.equal(Number(cp.authorized_ceiling_usd),0);assert.equal(cp.metadata.provider_generation_authorized,false);assert.equal(frozen.input.scenes.length,count);
+ }
+ assert.notEqual(...draftIds);assert.equal(JSON.stringify(f.calls),originalCalls);assert.deepEqual([...f.journalRows],originalJournal);
+ expired=true;await page.reload();await page.getByText(/Abrí|Sesión vencida/).first().waitFor();
+ assert.deepEqual(errors,[]);console.log('PASS_BROWSER_PREPARATION: two local new plans (5/6 shots), reload, lost ACK, duplicate freeze, expired session; real provider calls=0; iPhone NOT_TESTED.');
+});

@@ -1,37 +1,41 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-23T16:33:42.881684Z.
+Evidence cutoff: 2026-10-25T19:47:59.672Z.
 
 ## Qué pidió el encargo
 
-- Terminar EP004 hasta el límite de autorizaciones vigentes y simplificar producción repetible.
+- Revisar producción, preparación nueva, tiempos y entrega sin generar, gastar ni publicar.
 
 ## Qué se completó realmente
 
-- q43 recuperado sin reemisión; q44 imagen/video completados bajo autorización existente; avance17→26 de50.
-- 4 etapas visibles, decisión inicial de modo, plan narrativo, costos separados e incorporación de reservas importadas.
-- Reinicio real recuperado; tests de doble toque, reapertura, límites, revisión y descargas con bytes verificables.
+- Preparación editable persistente desde Studio y elección de modo coherente con revisión final.
+- Política editorial versionada para fuentes completas1x, voz/pausas separadas y manifests; replay del master durable.
+- Flores:6 originales4.041667/5.041667s, master41.125s con16 recortes; comparación local separada guardada.
+- Dos episodios nuevos aislados5/6tomas hasta revisión y descargaSHA; UI real local y regresiones de recuperación.
+- Metricool BACKEND_VERIFIED25Oct19:47:59Z, marca7627207/dueño5949429/redes correctas. Conexión preservada; no reautorizar por documentos antiguos.
 
 ## Qué quedó pendiente
 
-- Decisión económica específica para el resto de EP004; master y voz todavía no existen.
-- Idea nueva→plan no está conectada en DIRECT/Studio. No se creó otro episodio ni se autorizó una IA nueva.
-- Prueba real de Telegram/iPhone con el master final.
+- EP004:image:q47 fallida, saldo informado vacío y consentimientos vencidos; no hay master.
+- Historia/narración nuevas requieren autoría humana; no se añadió IA paga.
+- Metricool: conexión no equivale a escritor operativo. Ingestión, capacidades por red, cuota y reconciliación aún no verificadas; envíos cerrados.
+- Aceptación iPhone/Telegram y encode real completo en Render Free no probados.
 
 ## Qué trabajo no se repitió
 
-- No se reemitió q41/q43, no se liberó q42, no se cambió Make ni el planFree.
+- No se tocaron q41–q47, reviews, jobs, journal o ledger; q42 ambigua preservada. No Make/OAuth nuevo, generaciones ni TTS.
 
 ## Qué instrucciones evitaron errores
 
-- Estado durable por sobre reportes históricos: plan y modo ya estaban aceptados.
-- Separar recuperación de creación y gastos autorizados de pruebas sintéticas.
+- Estado durable posterior al consentimiento por encima de informes anteriores.
+- Separar fuente recibida, recorte editorial y vista de UI; muestras visuales no son reproducción completa.
+- Pruebas externas simuladas con bloqueos de red, persistencia y montaje reales.
 
 ## Cómo continuar
 
-- Una única decisión en Studio: Revisar plan y continuar. No hace falta coordinar otro prompt técnico.
+- Studio → Preparar → Próximo episodio: editar historia, narración y tiempos sin iniciar producción. EP004 permanece pausado; informar recarga no reenvía q47 ni renueva consentimiento. No volver a conectar Metricool por el informe histórico.
 
-## Intervención Metricool 2026-10-25 — estado posterior al corte histórico
+## Histórico Metricool antes del consentimiento
 
 - Base real 2bf56b33268b30616996917e4db0c83d04b0ad42; EP004 38/50, image:q47 fallida, sin master. No se restauró el snapshot de producción del 23 de octubre.
 - MCP oficial: cliente OAuth de Lumi registrado, conexión PKCE independiente y textos por red persistentes implementados. Marca activa 7627207; 6912906 solo histórica.
@@ -40,8 +44,13 @@ Evidence cutoff: 2026-10-23T16:33:42.881684Z.
 - Próxima decisión dentro de Studio: Ajustes → Publicación → Conectar Metricool. Conectar no autoriza publicar. Evidencia y limitaciones completas: docs/LUMI_PUBLICATION_AND_PROVIDER_STATUS.md.
 - Validación final: código4297ec0470a9d92eacf6cfa9b795a337a6948769, CI40224809426 GREEN, deploydep-dbf5a05g1s2s73ehi7c0 LIVE19:14:58Z. Archivos servidos coincidentes, rutas privadas401, reservas/revisiones sin cambios. OAuth real y envío social siguen bloqueados; actualización posterior solo documental, sin redeploy.
 
+## Qué evidencia faltó
+
+- Payload original completo y comando/commit exacto del master Flores. Se distingue lo medido de lo no recuperado.
+- Saldo/cargos confirmados y escritura/ingestión real de Metricool; no se probaron con gastos o publicaciones.
+
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 4c5c36e907e963a93da3585a90f84553fe65003d5955440675058863476081a0. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: 5393db58d0466307941a6b5f1d282258fc12502d7a8044a7ac33821cd6cd97f2. Outputs are inert drafts; generating them cannot expand authorization.

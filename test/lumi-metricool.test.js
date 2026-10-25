@@ -114,3 +114,8 @@ test('METRICOOL: resumed verification cannot erase a newer OAuth handoff',async(
  await connection.verify(f.principal);const pending=(await f.store.get('1')).state.mini_app.metricool.pending;assert.equal(pending.phase,'HANDOFF');
  assert.ok((await connection.handoffStart(next.url.split('/').at(-1))).browser);assert.equal(net.calls.filter(c=>c.url===METRICOOL.token).length,0);
 });
+
+ test('METRICOOL: stale read preserves the saved connection without presenting OAuth as missing',()=>{
+ const m={metricool:{credentials:'ENCRYPTED_FIXTURE',status:'BACKEND_VERIFIED',verification:{verified_at:new Date(Date.now()-86400001).toISOString(),networks:{instagram:true,tiktok:true,youtube:true}}}};
+ const v=metricoolView(m);assert.equal(v.connected,true);assert.equal(v.backend_verified,false);assert.equal(v.status,'VERIFICATION_STALE');assert.equal(v.reconnect_required,false);assert.ok(v.blockers.includes('METRICOOL_VERIFICATION_REQUIRED'));assert.ok(!JSON.stringify(v).includes('ENCRYPTED_FIXTURE'));
+ });

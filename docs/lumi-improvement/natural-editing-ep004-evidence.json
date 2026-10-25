@@ -1,0 +1,174 @@
+{
+  "observed_at": "2026-10-25",
+  "episode": "ep_lumi_granja_004_20261008_ee7ab4b3",
+  "authorized_ceiling_usd": 8,
+  "source_baseline_commit": "288128926bcabe53af2e1b92eb7249e0971a8f97",
+  "shots": [
+    {
+      "shot": "q41",
+      "plan_seconds": 4,
+      "pedagogical_pause": 0,
+      "request_ids": [
+        "a3df6eb8-bdb1-47f1-b7bc-cbf6c9352e7f"
+      ],
+      "source_sha": "9905affc343891b90e540efae2388049446815030577971b1c967c65818e238d",
+      "stored_artifact_seconds": 4.042,
+      "stream": {
+        "duration": "4.041667",
+        "duration_ts": 49664,
+        "time_base": "1/12288",
+        "nb_frames": "97",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q42",
+      "plan_seconds": 4,
+      "pedagogical_pause": 0,
+      "request_ids": [
+        "3e9c4a5d-b112-4893-ac99-3401f6084d74"
+      ],
+      "source_sha": "cb5c3ae430730695327c3ff20ed2b833f89572f62593d8b22fdc615548da204c",
+      "stored_artifact_seconds": 4.042,
+      "stream": {
+        "duration": "4.041667",
+        "duration_ts": 49664,
+        "time_base": "1/12288",
+        "nb_frames": "97",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q43",
+      "plan_seconds": 4,
+      "pedagogical_pause": 0,
+      "request_ids": [
+        "24aa9f24-8457-44dd-a9be-23dd662547e1"
+      ],
+      "source_sha": "bee2fc0ee7152799cd91f3a2edb592a279a57e36b1d3a86dba40610f69fdfdd3",
+      "stored_artifact_seconds": 4.042,
+      "stream": {
+        "duration": "4.041667",
+        "duration_ts": 49664,
+        "time_base": "1/12288",
+        "nb_frames": "97",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q44",
+      "plan_seconds": 4,
+      "pedagogical_pause": 0,
+      "request_ids": [
+        "e4399dc2-568e-45c1-9ea0-0567b2b161c0"
+      ],
+      "source_sha": "2a05ff9c1960674cb508ed89ed7c3dd5d152086d0980f987c31eda510ce29741",
+      "stored_artifact_seconds": 4.042,
+      "stream": {
+        "duration": "4.041667",
+        "duration_ts": 49664,
+        "time_base": "1/12288",
+        "nb_frames": "97",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q45",
+      "plan_seconds": 5,
+      "pedagogical_pause": 2.5,
+      "request_ids": [
+        "48ec2350-b86d-43f4-b0ae-1f31deda24b9"
+      ],
+      "source_sha": "c295d1da9cc5e38fd2ee2bd77bba9124894957d83364b7b367004fa1af8d9c54",
+      "stored_artifact_seconds": 5.042,
+      "stream": {
+        "duration": "5.041667",
+        "duration_ts": 61952,
+        "time_base": "1/12288",
+        "nb_frames": "121",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q46",
+      "plan_seconds": 5,
+      "pedagogical_pause": 0,
+      "request_ids": [
+        "f3cf6c26-68eb-460b-8548-876f1b1b10a2"
+      ],
+      "source_sha": "e5ed49066a05e617713875f630de9b2da851381c7605c828d4f909d09a858f38",
+      "stored_artifact_seconds": 5.042,
+      "stream": {
+        "duration": "5.041667",
+        "duration_ts": 61952,
+        "time_base": "1/12288",
+        "nb_frames": "121",
+        "r_frame_rate": "24/1",
+        "avg_frame_rate": "24/1",
+        "start_time": "0.000000",
+        "width": 1080,
+        "height": 1912
+      },
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    },
+    {
+      "shot": "q47",
+      "plan_seconds": 3,
+      "pedagogical_pause": 0,
+      "request_ids": [],
+      "source_sha": null,
+      "stored_artifact_seconds": null,
+      "stream": null,
+      "master_edit": null,
+      "provenance": "STAGING_DURABLE_PROVIDER_RESULT_AND_QA_NOT_FRESH_BYTE_DOWNLOAD"
+    }
+  ],
+  "budget": [
+    {
+      "episode_id": "ep004_q41_first_image",
+      "reservations_usd": 0.33875,
+      "actions_md5": "084f6682e6068a25ad9f6770813e8669",
+      "metadata_md5": "91649b15eb8b27499316d951a92cf1b3"
+    },
+    {
+      "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
+      "reservations_usd": 6.04,
+      "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+      "metadata_md5": "3ce80f054a4f4258838d390a4e2c75f7"
+    }
+  ],
+  "confirmed_actual_spend_usd": null,
+  "no_new_generations": true,
+  "no_new_reservations": true
+}

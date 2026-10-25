@@ -41,6 +41,11 @@ test('PASS_OFFLINE: assembly encodes, persists and decodes a synthetic Full HD m
    provider_job_id:'local_'+attempt,result_id:'original',target,
    expected:{width:1080,height:1920,codec:'h264',profile:'High'}},{receipts,storage,recoverOriginal:()=>assert.fail('no second encode/download')});
   assert.equal(recovered.artifacts[0].sha256,artifact.sha256);assert.equal(uploads,1);
+  // Replay the executor itself after a lost ACK and deleted local inputs.
+  // A second encode would fail because the entire temporary directory is gone.
+  const replay=await executeStage({episode_id:episode,stage_id:'ASSEMBLY',input});
+  assert.equal(replay.output.recovered_persisted_master,true);
+  assert.equal(replay.artifacts[0].sha256,artifact.sha256);assert.equal(uploads,1);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 

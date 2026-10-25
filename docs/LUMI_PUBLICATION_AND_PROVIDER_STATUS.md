@@ -1,3 +1,63 @@
+# Metricool direct integration — 2026-10-25
+
+Status: **BLOCKED_BACKEND_OAUTH_REQUIRED**, not READY_FOR_HUMAN_PUBLICATION. The OAuth connection and local preparation are implemented; the end-to-end publisher is not operational.
+
+## Current evidence (supersedes historical observations below)
+
+- Starting HEAD and live code: `2bf56b33268b30616996917e4db0c83d04b0ad42`; CI `40218846288` successful; Render `dep-dbf46p0ae00c73enco8g` live. Free, one instance, auto-deploy off, staging branch/database pinned.
+- EP004: 38/50 actions, six completed shots; pending `image:q47`; existing job `NEEDS_ATTENTION / PROVIDER_RESULT_FAILED`. No final master. Existing EP003 has a master. No production operation, approval, ledger or reservation was modified. The earlier USD 5 and q45 status are historical, not current. Ceiling remains USD 8.
+- Connector read independently confirmed brand `7627207`, user/owner `5949429`, label `lumilaluciernaga`, timezone `Europe/Rome`; Instagram/TikTok `lumilaluciernaga`, YouTube `UC1ib2gAOQRCd45F5Ky1r-0Q`. This is connector evidence, **not backend authentication or autopublishing permission**.
+- Staging durable state has no Metricool authorization or publication packages yet. No token was copied from ChatGPT and no existing secrets were replaced.
+
+## Selected route and verified official discovery
+
+Use official remote MCP + independent OAuth, not REST. On 2026-10-25, public metadata returned HTTP 200 from `https://ai.metricool.com/.well-known/oauth-protected-resource` and `https://ai.metricool.com/.well-known/oauth-authorization-server`. Resource `https://ai.metricool.com/mcp`; issuer `https://ai.metricool.com`; authorization/token/registration endpoints on `https://app.metricool.com/oauth/`; scopes `mcp:read mcp:write`; code + refresh grants; S256 PKCE. Unauthenticated MCP read returns HTTP 401.
+
+Official registration accepted **Lumi Studio staging** with HTTP 201, public client `client_4d23246b94e346f4bcd3cffa00cb2c25`, token authentication `none`, and the sole redirect `https://content-factory-av2-staging.onrender.com/lumi/studio/publication/callback`. No client secret was returned. Registration does not authorize the account.
+
+Studio → Ajustes → Publicación → Conectar Metricool starts the official consent. An authenticated, CSRF-protected POST stores a ten-minute, one-use handoff; the external-browser handoff sets a Secure/HttpOnly/SameSite=Lax browser cookie before redirecting to Metricool. Callback requires signed owner-bound state, durable nonce, cookie binding and PKCE. Code exchange is claimed before transport and never replayed after an uncertain response. Tokens are AES-256-GCM encrypted with owner AAD and a domain-separated key derived from the existing session secret (`LUMI_TELEGRAM_CALLBACK_SECRET`, or the existing bot-token fallback). No new Render secret is required for this public-client route. Secret rotation requires reconnection; credentials remain server-side.
+
+After consent the Render backend initializes MCP, discovers actual tool schemas (bounded pages), calls only the discovered `getBrandSettings` / `get_brand_settings` read, and verifies the exact brand, owner and channels. It never selects the first brand. A mismatch blocks verification and preserves previous credentials. Token refresh uses a durable claim; lost refresh ACK requires fresh consent rather than blindly reusing a possibly rotated token. Discovery may be repeated after restart without exchanging the authorization code again. No provider calls occur while merely reading Studio state.
+
+## Deliberate remaining publication blockers
+
+Backend OAuth has not been completed by the owner. Therefore actual backend tool schemas, network permissions/account types, quota and video ingestion have **not** been verified. The ChatGPT connector exposes a scheduler with free-form `info` and optional `mediaFiles`; that schema is not evidence of the authenticated remote MCP contract or a durable VIDEO ingestion receipt. Official documentation also warns that unsupported/temporary media links can yield posts without media. No image-normalization endpoint is assumed to ingest video.
+
+Accordingly, there is **no installed write/upload/schedule adapter**, no externally readable master capability URL, no publication worker, no remote drafts, no publication consent recorded, and no automatic enabling on OAuth completion. A closed `/publication/episodes/:episode/submit` handler rejects requests before any effect, including old master approvals. The app shows the precise missing contracts. This avoids building a publisher on an assumed endpoint; it is not a simulated successful integration.
+
+The following must be verified against the authenticated provider before implementing/enabling the writer: video ingest + hosted media identity/attachment evidence; destination-specific mandatory fields and permitted TikTok privacy/disclosure, YouTube children classification, IG Reels; actual plan/counter; accepted/published states and lookup after lost ACK, including already published posts. Only then can a human publication decision bind master SHA/version + brand + destinations + texts/metadata/privacy + Rome/UTC schedule and authorize a durable per-network intent. No consent or per-network send receipts are fabricated here. Crash-after-send, partial publication, provider idempotency, remote reconciliation and DST scheduling are **not claimed tested or operational** because the transport is not installed.
+
+## Useful preparation now available
+
+- Reuses the deterministic, episode-specific generator. No text model or AI credit is used. Instagram, TikTok and YouTube versions are editable alongside the master in Videos/review/download. YouTube adds the relevant Shorts tag. Proposed children classification and AI disclosure are visible, not treated as approval. Privacy remains unselected until supported options are verified.
+- Edits use the existing owner session row and revision CAS: `mini_app.publication_packages[episode].versions`. Versions record owner, master SHA, brand, texts and package hash. Same-content retries return the same version; conflicting changes require reviewing the stored version. Changed master invalidates the old package hash. Existing active/uncertain intents cannot be bypassed by editing. No schema or generative ledger changes.
+- Autosave and explicit save show pending acknowledgement; unsaved owner/episode-scoped browser copies survive reopening, and confirmed versions survive backend restart. An uncertain save can be retried idempotently.
+- Network text limits: IG 2,200, TikTok automatic 2,000, YouTube 5,000; title 100. These preparation bounds do not imply all account capabilities were verified.
+- Settings distinguishes linked account, independently verified backend and automatic publication (blocked). No old brand is a default or cached destination. Existing download/review stays available despite Higgsfield funding notices.
+- Plan/quota remain unknown for this account. Official Free limit is 20 published posts per calendar month, each network counts separately. It cannot support daily three-network publishing for a month. No plan upgrade, quota inference from scheduled posts, or promise of continuous Render Free execution.
+
+## Validation and operational next action
+
+Real operations: current GitHub/CI/Render/Supabase reads, connector brand read, public official OAuth discovery and registration. Zero account posts, schedules, remote drafts, video uploads, generative calls or new paid services.
+
+Offline tests use real auth, mounted handlers and the existing CAS store with isolated fixtures: two episodes, ownership, duplicate clicks, restart, lost save ACK, package/master changes, stale versions, unapproved master, old approval without publication consent, wrong brand, missing/oversized fields, invalid privacy/children classification, expired access, declined OAuth, wrong browser/state, concurrent callback, lost OAuth/refresh ACK and read-only recovery. Negative arbitrary URL/media/quota inputs stay blocked; they are not remote ingestion or quota acceptance tests. Browser runs the actual Studio + handlers at a mobile viewport and checks persistent editing, lost response, reload, expired session, destination separation and disabled send actions. Existing workflow/media/download tests remain in CI. No fixtures are written to staging.
+
+One next owner action: **Ajustes → Publicación → Conectar Metricool**, authorize the Lumi owner account, return to Telegram. The callback records independent identity/schema evidence; Settings reports any remaining provider-contract blockers. This is connection consent, not publication consent. On iPhone, manually verify that the official consent opens, returns successfully, and the saved message survives closing/reopening Telegram. Real publication/media acceptance remains untested and unauthorized.
+
+## Official references revalidated 2026-10-25
+
+- https://help.metricool.com/mcp-vs-api-access-what-is-the-difference-5y3ib
+- https://help.metricool.com/how-to-connect-metricools-mcp-eqp9h
+- https://help.metricool.com/mcp-limits-and-plan-requirements-h72jg
+- https://help.metricool.com/basic-guide-for-api-integration-r97af
+- https://app.metricool.com/resources/apidocs/index.html
+- https://help.metricool.com/main-differences-between-free-and-paid-plans-bl0v9
+- https://help.metricool.com/scheduling-and-posting-options-by-social-network-cwmb3
+
+---
+
+## Historical report, retained as evidence only (not active configuration)
+
 # Provider wait diagnosis and publication copy — 2026-10-24
 
 Scope: `lumi-telegram-review-v1`, `content-factory-av2-staging`, isolated database `mofjhwathxzfnjapvvst`. No new provider submissions, public posts, schedule, consent, budget changes, infrastructure or schema changes are performed by this intervention.
@@ -16,7 +76,7 @@ The approved master download view also includes its publication text. Settings l
 
 ## TikTok connection
 
-Metricool reported that brand `6912906` had no social network connected. Account authorization must be completed by the user at `https://app.metricool.com/brands/connections?blogId=6912906`.
+Metricool reported that brand `6912906` had no social network connected. That was the historical account, not the current destination. Active configuration now pins brand `7627207`; never reuse the former brand link.
 
 Official Metricool documentation supports TikTok automatic publishing for personal/business accounts, with a video, caption, selected privacy, date/time and Auto Publish enabled. AI-generated disclosure is available for videos. Reference: https://help.metricool.com/schedule-and-post-on-tiktok-bkepi . A direct custom TikTok client requires an audit and is unsuitable as an internal upload utility under TikTok's published intended-use guidelines: https://developers.tiktok.com/doc/content-sharing-guidelines . No unapproved direct integration is created.
 

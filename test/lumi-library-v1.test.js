@@ -107,7 +107,8 @@ test('VERSIONING + DUPLICATE_DETECTION + AUTH_SECURITY: actual SQL grants, RLS, 
 test('MOBILE_UI: five library groups, escaped provenance, no unsupported reuse buttons; production remains separate',async()=>{
  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),element={innerHTML:'',textContent:'',hidden:false};
  const ctx={document:{querySelector:()=>element,addEventListener(){}},window:{},setInterval(){},setTimeout(){},clearTimeout(){}};
- runInNewContext(js.replace('navigation();login();','')+`globalThis.ui={libraryPage,libraryCard,set:d=>libraryData=d};`,ctx);
+ ctx.secondaryModule=await import('../public/lumi-studio/secondary-ui.js');
+ runInNewContext(js.replace('let secondaryViews=null','let secondaryViews=globalThis.secondaryModule').replace('navigation();login();','')+`globalThis.ui={libraryPage,libraryCard,set:d=>libraryData=d};`,ctx);
  const f=await fixture(),data=await f.library.list(f.p);ctx.ui.set(data);const html=ctx.ui.libraryPage();for(const label of ['Personajes','Escenarios','Imágenes','Clips','Masters'])assert.ok(html.includes(label));
  const pending={...data.assets[0],display_name:'<script>alert(1)</script>',reusable:false,reuse_policy:{modes:[]}};const card=ctx.ui.libraryCard(pending);assert.ok(!card.includes('<script>'));assert.ok(!card.includes('data-library-use'));assert.match(card,/Pendiente/);
 });
@@ -115,7 +116,7 @@ test('MOBILE_UI: five library groups, escaped provenance, no unsupported reuse b
 test('HTTP_INTEGRATION: existing Mini App guards protect catalog, range media, selection and exact original resolution',async()=>{
  const {mountMiniApp}=await import('../lib/telegram-mini-app/runtime.js');
  const f=await principal(),a=asset(),tables={lumi_library_assets:[a],lumi_library_selections:[],lumi_pipeline_checkpoints:[]};
- const db={storage:{getBucket:async()=>({data:{public:false}})},from(name){
+ const db={storage:{getBucket:async()=>({data:{public:false}}),from:()=>({download:async()=>({data:new Blob([bytes])})})},from(name){
    let rows=tables[name],filters=[],single=false,insert=null;
    const q={select(){return q;},eq(k,v){filters.push([k,v]);return q;},order(){return q;},limit(){return q;},maybeSingle(){single=true;return q;},upsert(v){insert=v;return q;},then(resolve,reject){
      try{if(!rows)throw Error('UNEXPECTED_TABLE_ACCESS:'+name);if(insert&&!rows.some(r=>r.selection_id===insert.selection_id))rows.push(structuredClone(insert));
@@ -124,7 +125,8 @@ test('HTTP_INTEGRATION: existing Mini App guards protect catalog, range media, s
    }};return q;
  }};
  const routes=new Map(),middleware=[];const app={get:(p,fn)=>routes.set('GET '+p,fn),post:(p,fn)=>routes.set('POST '+p,fn),use:(_p,fn)=>middleware.push(fn)};
- mountMiniApp(app,{db,store:f.store,adapter:{},production:{},loadBytes:async()=>bytes,validateOwner:async()=>true,env,configureEntry:false});
+ const runtime=mountMiniApp(app,{db,store:f.store,adapter:{},production:{},loadBytes:async()=>bytes,validateOwner:async()=>true,env,configureEntry:false});
+ runtime.assetLibrary.library.artifactStorage.openRead=null; // In-memory response double; real streamed HTTP is covered in lumi-simple-media.test.js.
  const call=async(method,path,{body={},params={},query={},headers={},cookie=f.login.cookie,csrf=f.login.csrf}={})=>{
    const req={method,headers:{origin:'https://content-factory-av2-staging.onrender.com','content-type':'application/json',cookie:'__Secure-lumi_studio='+cookie,'x-lumi-csrf':csrf,...headers},body,params,query};
    const res={statusCode:200,headers:{},status(n){this.statusCode=n;return this;},set(k,v){if(typeof k==='object')Object.assign(this.headers,k);else this.headers[k]=v;return this;},type(t){this.headers.type=t;return this;},json(v){this.data=v;this.ended=true;return this;},send(v){this.data=v;this.ended=true;return this;},end(){this.ended=true;return this;}};
@@ -305,7 +307,8 @@ test('V2 PRIVATE_MEDIA_PREVIEW SIGNED_URL_EXPIRATION: thumbnails verify own hash
  const {webcrypto,createHash}=await import('node:crypto'),sha=createHash('sha256').update(bytes).digest('hex');
  const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[]},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,crypto:webcrypto,
   URL:{createObjectURL:b=>'blob:verified-'+b.size,revokeObjectURL(){}},fetch:async(url,opts)=>{calls.push({url,opts});return {ok:true,status:200,headers:{get:k=>({'x-content-sha256':sha,'x-original-sha256':a.sha256}[k]||'image/jpeg')},blob:async()=>new Blob([bytes],{type:'image/jpeg'})};}};
- runInNewContext(js.replace('navigation();login();','')+`request=async path=>{if(globalThis.accessError)throw Object.assign(Error('MINI_SESSION_EXPIRED'),{status:401});globalThis.accessPaths.push(path);return {media:{media_url:'/fresh-authenticated-ticket?expires=next'}};};globalThis.accessPaths=[];globalThis.ui={libraryMediaUrl,libraryPreview,clearLibraryMedia};`,ctx);
+ ctx.secondaryModule=await import('../public/lumi-studio/secondary-ui.js');
+ runInNewContext(js.replace('let secondaryViews=null','let secondaryViews=globalThis.secondaryModule').replace('navigation();login();','')+`request=async path=>{if(globalThis.accessError)throw Object.assign(Error('MINI_SESSION_EXPIRED'),{status:401});globalThis.accessPaths.push(path);return {media:{media_url:'/fresh-authenticated-ticket?expires=next'}};};globalThis.accessPaths=[];globalThis.ui={libraryMediaUrl,libraryPreview,clearLibraryMedia};`,ctx);
  assert.match(ctx.ui.libraryPreview(a),/LOADING/);assert.doesNotMatch(ctx.ui.libraryPreview(a),/READY/);
  assert.equal(await ctx.ui.libraryMediaUrl(a),'blob:verified-30');assert.match(calls[0].url,/variant=thumb/);assert.equal(calls[0].opts.credentials,'same-origin');
  assert.deepEqual(Array.from(ctx.accessPaths),['/library/access/'+a.asset_id]);assert.ok(calls.every(c=>!c.opts.method||c.opts.method==='GET'));
@@ -318,7 +321,8 @@ test('MASTER_PLAYBACK HTTP_RANGE PRIVATE_DOWNLOAD: strict valid ranges and nativ
  const js=await readFile(new URL('../public/lumi-studio/app.js',import.meta.url),'utf8'),calls=[],element={innerHTML:'',textContent:'',hidden:false},downloads=[];
  const ctx={document:{querySelector:()=>element,addEventListener(){},querySelectorAll:()=>[],body:{append(){}},createElement(){return {click(){downloads.push(this.href);},remove(){}};}},window:{},setInterval(){},setTimeout(){},clearTimeout(){},AbortController,Blob,URL,
   fetch:async()=>{throw Error('FULL_MASTER_FETCH_FORBIDDEN');}};
- runInNewContext(js.replace('navigation();login();','')+`request=async path=>{globalThis.calls.push(path);return {media:{media_url:'/private-master?ticket=fresh',media_type:'video/mp4',sha256:'a'.repeat(64)}};};globalThis.calls=[];globalThis.ui={libraryMediaUrl,downloadLibraryOriginal};`,ctx);
+ ctx.secondaryModule=await import('../public/lumi-studio/secondary-ui.js');
+ runInNewContext(js.replace('let secondaryViews=null','let secondaryViews=globalThis.secondaryModule').replace('navigation();login();','')+`request=async path=>{globalThis.calls.push(path);return {media:{media_url:'/private-master?ticket=fresh',media_type:'video/mp4',sha256:'a'.repeat(64)}};};globalThis.calls=[];globalThis.ui={libraryMediaUrl,downloadLibraryOriginal};`,ctx);
  const a={asset_id:'a'.repeat(64),media_type:'video/mp4'};
  assert.equal(await ctx.ui.libraryMediaUrl(a),'/private-master?ticket=fresh');await ctx.ui.downloadLibraryOriginal(a.asset_id);
  assert.deepEqual(downloads,['/private-master?ticket=fresh&download=1']);assert.ok(ctx.calls.every(p=>p==='/library/access/'+a.asset_id));

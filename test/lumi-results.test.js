@@ -36,3 +36,9 @@ test('RESULTS backend MCP schema discovery and closed read transport use indepen
 });
 
 test('RESULTS never attributes analytics to an unverified or changed network account',async()=>{let calls=0;const result=await readResults({analyticsRead:async(_user,read)=>read({verification:{networks:{instagram:false}},call:async()=>{calls++;throw Error('UNEXPECTED_READ');}})},'1',range);assert.equal(calls,0);assert.ok(Object.values(result.networks).every(n=>n.error==='RESULTS_NETWORK_IDENTITY_UNVERIFIED'));});
+
+test('RESULTS failed refresh of another period retains the last good period and latest coherent observation',async()=>{
+ const f=await fixture(),post=normal();
+ const row=await f.store.get('1');row.state.mini_app.analytics={snapshots:[{id:'good',range,posts:[post]}],last_good_at:post.observed_at,request:{status:'FAILED',range:romeRange('2026-09-01','2026-09-30'),error:'RESULTS_READ_FAILED'}};await f.store.cas('1',row.revision,row.state);
+ const result=await f.service.view(f.p);assert.equal(result.posts.length,1);assert.equal(result.range.from,range.from);assert.equal(result.posts[0].values.likes.value,0);assert.equal(result.posts[0].values.views.value,17);assert.equal(result.last_good_at,post.observed_at);
+});

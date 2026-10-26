@@ -158,7 +158,7 @@ async function transitionUi(initial,{reduced=false,playing=false}={}){
 }
 test('Q41_COMPLETE_UI Q42_PENDING_UI NO_STALE_Q41_CONTROLS SHOT_PROGRESS BUTTON_POSITION SESSION_REOPEN',async()=>{
  const f=await transitionFixture(),v=f.make(),{ui}=await transitionUi(v),html=ui.production();
- assert.match(html,/1 de 7 tomas listas/);assert.match(html,/Aprobación humana conservada/);assert.match(html,/src="\/original"/);
+ assert.match(html,/1 de 7 tomas listas/);assert.match(html,/Aprobación humana conservada/);assert.match(html,/data-open-media="clip1"/);assert.doesNotMatch(html,/<video[^>]+src="\/original"/);
  assert.match(html,/Toma 2/);assert.match(html,/Asociar vaca con muu/);assert.match(html,/marketing-studio\/image/);
  assert.match(html,/Lumi, Vaca, Oveja, Gallina/);assert.match(html,/cámara fija/);assert.match(html,/preparar|Preparar siguiente imagen/);
  assert.equal((html.match(/data-action="prepare"/g)||[]).length,1);

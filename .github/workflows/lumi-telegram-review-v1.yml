@@ -32,7 +32,7 @@ jobs:
           git rev-parse HEAD^ >/dev/null 2>&1 || { library_only=false; recovery_only=false; direct_only=false; one_tap_only=false; }
           while IFS= read -r path; do
             case "$path" in
-              lib/telegram-mini-app/editor-store.js|lib/telegram-mini-app/editor-media.js|lib/telegram-mini-app/results.js|test/lumi-visual-editor.test.js|test/lumi-visual-editor-browser.mjs|test/lumi-results.test.js|lib/lumi-editorial-timeline-v2.js|lib/lumi-third-short-master-v1.js|lib/lumi-generic-v2-adapter.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-v2-executor-bindings.js|lib/lumi-v2-input-materializer.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/preparation.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/metricool.js|public/lumi-studio/*|test/fixtures/generic-v2.js|test/lumi-generic-runtime-integration.test.js|test/lumi-editorial-timeline-v2.test.js|test/lumi-q41-first-image.test.js|test/lumi-recovery-incident-manager-v1.test.js|test/lumi-stabilization-assembly.test.js|test/lumi-metricool.test.js|docs/*|.github/workflows/lumi-telegram-review-v1.yml) ;;
+              lib/telegram-mini-app/private-media.js|lib/lumi-artifact-materialization-v2.js|lib/telegram-mini-app/library.js|test/lumi-simple-*|test/lumi-fluid-ux.test.js|test/lumi-library-v1.test.js|test/lumi-mini-app-auth.test.js|lib/telegram-mini-app/editor-store.js|lib/telegram-mini-app/editor-media.js|lib/telegram-mini-app/results.js|test/lumi-visual-editor.test.js|test/lumi-visual-editor-browser.mjs|test/lumi-results.test.js|lib/lumi-editorial-timeline-v2.js|lib/lumi-third-short-master-v1.js|lib/lumi-generic-v2-adapter.js|lib/lumi-recovery-incident-manager-v1.js|lib/lumi-v2-executor-bindings.js|lib/lumi-v2-input-materializer.js|lib/lumi-v2-telegram-runtime.js|lib/telegram-mini-app/preparation.js|lib/telegram-mini-app/runtime.js|lib/telegram-mini-app/metricool.js|public/lumi-studio/*|test/fixtures/generic-v2.js|test/lumi-generic-runtime-integration.test.js|test/lumi-editorial-timeline-v2.test.js|test/lumi-q41-first-image.test.js|test/lumi-recovery-incident-manager-v1.test.js|test/lumi-stabilization-assembly.test.js|test/lumi-metricool.test.js|docs/*|.github/workflows/lumi-telegram-review-v1.yml) ;;
               *) editorial_only=false ;;
             esac
             case "$path" in
@@ -181,7 +181,7 @@ jobs:
         if: steps.scope.outputs.editorial_only == 'true' && steps.scope.outputs.docs_only != 'true'
         run: |
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-fluid-ux.test.js test/lumi-generic-v2-adapter.test.js test/lumi-generic-runtime-integration.test.js test/lumi-materialization-v2.test.js test/lumi-stage-result-v2.test.js test/lumi-recovery-incident-manager-v1.test.js test/lumi-supervised-replacement.test.js test/provider-emission-journal-v1.test.js test/higgsfield-usd-budget-v1.test.js test/lumi-production-profile-v2.test.js test/lumi-direct-telegram.test.js
-          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(STUDIO_NEW_CHAPTER_INTEGRATION|STUDIO_STARTUP|DRAFT_POLICY|PLAN_ONETAP|DURABLE_RESULT_RECOVERY|DURABLE_SAVED_REVIEW_ACK|QUOTE_RENEWAL|QUOTED_EXECUTION|HIGGSFIELD_FUNDING|READ_ONLY_PROGRESS|PREPARED_CONTINUATION|DURABLE_LOCAL_RESTART|HUMAN_REVIEW |MINI_MEDIA_ACCESS)" test/lumi-q41-first-image.test.js
+          node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^(STUDIO_STARTUP|DRAFT_POLICY|PLAN_ONETAP|DURABLE_RESULT_RECOVERY|DURABLE_SAVED_REVIEW_ACK|QUOTE_RENEWAL|QUOTED_EXECUTION|HIGGSFIELD_FUNDING|READ_ONLY_PROGRESS|PREPARED_CONTINUATION|DURABLE_LOCAL_RESTART|HUMAN_REVIEW |MINI_MEDIA_ACCESS)" test/lumi-q41-first-image.test.js
           node --test test/lumi-generic-runtime-restart.test.js
       - name: Natural timeline and Studio preparation (isolated media and browser)
         if: steps.scope.outputs.docs_only != 'true'
@@ -194,11 +194,17 @@ jobs:
         run: |
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-visual-editor.test.js test/lumi-results.test.js
           node test/lumi-visual-editor-browser.mjs
+          node --test test/lumi-simple-media.test.js
+          node test/lumi-simple-studio-browser.mjs
+          node test/lumi-simple-playback-browser.mjs
+          git cat-file -e e48d4dd3d7377a68a297f0756a99c90b7dec9497:lib/telegram-mini-app/editor-media.js || git fetch --no-tags --depth=1 origin e48d4dd3d7377a68a297f0756a99c90b7dec9497
+          node test/lumi-simple-media-benchmark.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lumi-visual-editor-evidence
           path: |
+            /tmp/lumi-simple-evidence/*
             /tmp/lumi-visual-evidence/*.json
             /tmp/lumi-visual-browser-*/*.png
           if-no-files-found: ignore

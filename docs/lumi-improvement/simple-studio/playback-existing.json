@@ -1,0 +1,340 @@
+{
+  "environment": "Chromium 145.0.7632.6, Linux touch viewport, loopback; real handlers and verified existing sources; NOT_IPHONE",
+  "external_requests": 0,
+  "cold_open_to_frame_ms": 1875,
+  "initial_transfers": [
+    {
+      "file": "poster.jpg",
+      "bytes": 15775,
+      "total": 15775,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 85876,
+      "total": 85876,
+      "range": "bytes=0-85875"
+    }
+  ],
+  "seeks": [
+    {
+      "at": 0.1,
+      "ms": 16
+    },
+    {
+      "at": 1.5,
+      "ms": 34
+    },
+    {
+      "at": 2.9,
+      "ms": 50
+    }
+  ],
+  "transition": {
+    "held_ms": 500,
+    "paused": {
+      "at": 3,
+      "video": 0,
+      "audio": 3.6019954648526076,
+      "audioState": "suspended",
+      "paused": true,
+      "label": "Cargando el siguiente fragmento…"
+    },
+    "held": {
+      "at": 3,
+      "video": 0,
+      "audio": 3.6019954648526076,
+      "audioState": "suspended",
+      "paused": true,
+      "label": "Cargando el siguiente fragmento…"
+    },
+    "resumed": {
+      "at": 3.6333333333333333,
+      "video": 0.62127,
+      "audio": 4.231836734693878,
+      "audioState": "running",
+      "paused": false,
+      "label": ""
+    },
+    "automatic_same_playback": true
+  },
+  "background": {
+    "simulation": "visibilitychange in Chromium, not iOS lifecycle",
+    "background": {
+      "at": 1.4,
+      "video": 1.440922,
+      "audio": 4.562721088435374,
+      "audioState": "suspended",
+      "paused": true,
+      "label": "En pausa. Tocá Reproducir para continuar."
+    },
+    "foreground": {
+      "at": 1.5666666666666667,
+      "video": 1.626811,
+      "audio": 4.83265306122449,
+      "audioState": "running",
+      "paused": false,
+      "label": ""
+    }
+  },
+  "slow_retry": {
+    "latency_ms": 200,
+    "bytes_per_second": 131072,
+    "ms": 779,
+    "retained_position": 1.6333333333333333,
+    "resumed_position": 1.6333333333333333
+  },
+  "library_native_retry": {
+    "retained_position": 0.287736,
+    "restored_position": 0.311568
+  },
+  "phases": [
+    {
+      "phase": "project_read",
+      "ms": 6.2
+    },
+    {
+      "phase": "bundle_video",
+      "ms": 1539.1
+    },
+    {
+      "phase": "metadata",
+      "ms": 8.4
+    },
+    {
+      "phase": "first_frame",
+      "ms": 13.4
+    },
+    {
+      "phase": "seek",
+      "ms": 5
+    },
+    {
+      "phase": "first_frame",
+      "ms": 5.1
+    },
+    {
+      "phase": "seek",
+      "ms": 18
+    },
+    {
+      "phase": "first_frame",
+      "ms": 18
+    },
+    {
+      "phase": "seek",
+      "ms": 31
+    },
+    {
+      "phase": "first_frame",
+      "ms": 31
+    },
+    {
+      "phase": "seek",
+      "ms": 5.3
+    },
+    {
+      "phase": "first_frame",
+      "ms": 5.3
+    },
+    {
+      "phase": "first_frame",
+      "ms": 0
+    },
+    {
+      "phase": "bundle_audio",
+      "ms": 518.6
+    },
+    {
+      "phase": "audio_bytes",
+      "ms": 10.9,
+      "bytes": 1013838
+    },
+    {
+      "phase": "audio_decode",
+      "ms": 14.1
+    },
+    {
+      "phase": "play_to_start",
+      "ms": 569
+    },
+    {
+      "phase": "bundle_video",
+      "ms": 2045.3
+    },
+    {
+      "phase": "metadata",
+      "ms": 608.5
+    },
+    {
+      "phase": "first_frame",
+      "ms": 613.6
+    },
+    {
+      "phase": "seek",
+      "ms": 37.8
+    },
+    {
+      "phase": "first_frame",
+      "ms": 37.9
+    },
+    {
+      "phase": "metadata",
+      "ms": 14
+    },
+    {
+      "phase": "seek",
+      "ms": 15.8
+    },
+    {
+      "phase": "first_frame",
+      "ms": 29.9
+    },
+    {
+      "phase": "first_frame",
+      "ms": 0
+    },
+    {
+      "phase": "play_to_start",
+      "ms": 14
+    },
+    {
+      "phase": "seek",
+      "ms": 14.5
+    },
+    {
+      "phase": "first_frame",
+      "ms": 14.6
+    },
+    {
+      "phase": "play_to_start",
+      "ms": 28
+    },
+    {
+      "phase": "metadata",
+      "ms": 462.5
+    },
+    {
+      "phase": "seek",
+      "ms": 258.9
+    },
+    {
+      "phase": "first_frame",
+      "ms": 721.4
+    },
+    {
+      "phase": "play_to_start",
+      "ms": 734.2
+    },
+    {
+      "phase": "metadata",
+      "ms": 8.9
+    },
+    {
+      "phase": "seek",
+      "ms": 21.8
+    },
+    {
+      "phase": "first_frame",
+      "ms": 30.7
+    },
+    {
+      "phase": "play_to_start",
+      "ms": 44.5
+    }
+  ],
+  "transfers": [
+    {
+      "file": "poster.jpg",
+      "bytes": 15775,
+      "total": 15775,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 85876,
+      "total": 85876,
+      "range": "bytes=0-85875"
+    },
+    {
+      "file": "audio.wav",
+      "bytes": 1013838,
+      "total": 1013838,
+      "range": null
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 16025,
+      "total": 16025,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 87980,
+      "total": 87980,
+      "range": "bytes=0-87979"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 15775,
+      "total": 15775,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 85876,
+      "total": 85876,
+      "range": "bytes=0-85875"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 15775,
+      "total": 15775,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 85876,
+      "total": 85876,
+      "range": "bytes=0-85875"
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 85876,
+      "total": 85876,
+      "range": "bytes=0-85875"
+    },
+    {
+      "file": "clip.mp4",
+      "bytes": 5009453,
+      "total": 5009453,
+      "range": "bytes=0-5009452"
+    },
+    {
+      "file": "clip.mp4",
+      "bytes": 5009453,
+      "total": 5009453,
+      "range": "bytes=0-5009452"
+    }
+  ],
+  "requests": 44,
+  "memory": [
+    {
+      "name": "Documents",
+      "value": 9
+    },
+    {
+      "name": "Nodes",
+      "value": 1238
+    },
+    {
+      "name": "JSHeapUsedSize",
+      "value": 3437404
+    },
+    {
+      "name": "JSHeapTotalSize",
+      "value": 5332992
+    }
+  ],
+  "pass": true
+}

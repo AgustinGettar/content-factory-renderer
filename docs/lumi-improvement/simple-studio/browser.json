@@ -1,0 +1,151 @@
+{
+  "environment": "Chromium 145.0.7632.6, Linux, loopback, real modules/handlers, isolated owner; NOT_IPHONE",
+  "external_requests": 0,
+  "shell_before_results_ms": 172,
+  "play_to_video_ms": {
+    "samples": [
+      596,
+      57,
+      58
+    ],
+    "conditions": "loopback, current derivative prepared by opening; cold media benchmark separate"
+  },
+  "acceptance_snapshot_reads": 1,
+  "media_transfers": [
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "audio.wav",
+      "bytes": 96078,
+      "total": 96078,
+      "range": null
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    }
+  ],
+  "requests": {
+    "total": 78,
+    "snapshot_reads": 3,
+    "provider_reads": 0,
+    "forbidden_writes": 0
+  },
+  "performance": [
+    {
+      "name": "Documents",
+      "value": 7
+    },
+    {
+      "name": "Nodes",
+      "value": 4498
+    },
+    {
+      "name": "JSHeapUsedSize",
+      "value": 5607612
+    },
+    {
+      "name": "JSHeapTotalSize",
+      "value": 7475200
+    }
+  ],
+  "viewport_checks": [
+    "360x780",
+    "390x844",
+    "430x932",
+    "844x390",
+    "125% text"
+  ],
+  "acceptance": "Home → metrics → back → production → existing editor → play → voice +0.6s / -3dB → autosave receipt → back → reopen → publication; isolated only",
+  "pass": true
+}

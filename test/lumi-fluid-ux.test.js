@@ -57,10 +57,10 @@ test('OPTIONAL_DRAFT_REVIEW: pending voluntary review keeps the same action lock
  assert.doesNotMatch(h.document.querySelector('#app').textContent,/Enviando aprobación/);
 });
 test('DOM_PRESERVATION: identical polls and refreshed tickets keep media, controls and selected values',async()=>{
- const h=harness(),root=h.document.querySelector('#app'),image=root.querySelector('[data-media-host]'),select=root.querySelector('select');
+ const h=harness(),root=h.document.querySelector('#app'),image=root.querySelector('[data-media-host]'),select=root.querySelector('#pose-review1');
  select.querySelector('[value=THREE_QUARTER]').selected=true;const child=h.document.createElement('img');child.src='blob:verified';image.append(child);
  h.ui.beginIntent('review',decision);h.ui.render();assert.equal(root.querySelector('[data-media-host]'),image);h.ui.reconcileIntents({...makeState(),review_revision:11,review_receipts:[{id:'review1',version:1,artifact_sha:decision.artifact_sha,status:'APPROVED'}]});h.ui.render();assert.equal(root.querySelector('[data-media-host]'),image);h.ui.setRequest(async()=>({...makeState(),server_time:Date.now()+5000,media:makeState().media.map(m=>({...m,url:'/original?ticket=renewed',expires_at:Date.now()+500000}))}));
- await h.ui.refresh();assert.equal(root.querySelector('[data-media-host]'),image);assert.equal(image.querySelector('img'),child);assert.equal(root.querySelector('select'),select);assert.equal(select.value,'THREE_QUARTER');
+ await h.ui.refresh();assert.equal(root.querySelector('[data-media-host]'),image);assert.equal(image.querySelector('img'),child);assert.equal(root.querySelector('#pose-review1'),select);assert.equal(select.value,'THREE_QUARTER');
  const target=h.document.createElement('div');h.ui.patchMarkup(target,'<video controls src="/a?ticket=1"></video>');const v=target.firstChild;v.currentTime=12;
  h.ui.patchMarkup(target,'<video controls src="/a?ticket=2"></video>');assert.equal(target.firstChild,v);assert.equal(v.currentTime,12);assert.equal(v.getAttribute('src'),'/a?ticket=1');
 });

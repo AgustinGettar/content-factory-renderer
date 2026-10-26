@@ -1,0 +1,92 @@
+{
+  "environment": "Node v24.22.1, Linux local FFmpeg, no external reads/writes. Before=historical sequential loadBundles; after=current first video only. Not Telegram startup.",
+  "sources": [
+    {
+      "sha256": "ea5a54493bf1ccf037ac5acac2d81668c0d9f7c0239d81479dfa7968c7ee0307",
+      "bytes": 5009453
+    },
+    {
+      "sha256": "0e94f3667d2abebe913ac020a01ececf9c9b46869a0ebdc19cb7eeef23dad313",
+      "bytes": 5326841
+    },
+    {
+      "sha256": "52592e542c9592f85888279f23a7010f3c744a21ceebda689751119df373a35e",
+      "bytes": 85725
+    }
+  ],
+  "existing_sources": true,
+  "samples": [
+    {
+      "label": "before",
+      "sample": 1,
+      "cold_ms": 4469,
+      "warm_ms": 0.01,
+      "source_reads": 3,
+      "source_bytes": 10422019,
+      "derived_bytes": 1239270,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 61079552
+    },
+    {
+      "label": "before",
+      "sample": 2,
+      "cold_ms": 4190,
+      "warm_ms": 0.01,
+      "source_reads": 3,
+      "source_bytes": 10422019,
+      "derived_bytes": 1239270,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 62390272
+    },
+    {
+      "label": "before",
+      "sample": 3,
+      "cold_ms": 4024,
+      "warm_ms": 0.01,
+      "source_reads": 3,
+      "source_bytes": 10422019,
+      "derived_bytes": 1239270,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 62631936
+    },
+    {
+      "label": "after",
+      "sample": 1,
+      "cold_ms": 1369,
+      "warm_ms": 0.02,
+      "source_reads": 1,
+      "source_bytes": 5009453,
+      "derived_bytes": 102650,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 62763008
+    },
+    {
+      "label": "after",
+      "sample": 2,
+      "cold_ms": 1382,
+      "warm_ms": 0.08,
+      "source_reads": 1,
+      "source_bytes": 5009453,
+      "derived_bytes": 102650,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 62763008
+    },
+    {
+      "label": "after",
+      "sample": 3,
+      "cold_ms": 1361,
+      "warm_ms": 0.02,
+      "source_reads": 1,
+      "source_bytes": 5009453,
+      "derived_bytes": 102650,
+      "proxy_bytes": 85876,
+      "faststart": true,
+      "parent_rss_bytes": 62763008
+    }
+  ]
+}

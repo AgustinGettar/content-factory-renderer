@@ -150,6 +150,7 @@ jobs:
           git cat-file -e 079fae88e5188da574ca589e290e6c83afc161d7:public/lumi-studio/app.js || git fetch --no-tags --depth=1 origin 079fae88e5188da574ca589e290e6c83afc161d7
           npx playwright install --with-deps chromium
           node test/lumi-fluid-browser.mjs
+          git cat-file -e a1e3cee4599ceddb925a2f7363b7ea3bb0dc4bdd:public/lumi-studio/app.js || git fetch --no-tags --depth=1 origin a1e3cee4599ceddb925a2f7363b7ea3bb0dc4bdd
           node test/lumi-policy-control-browser.mjs
           node test/lumi-daily-workflow-browser.mjs
           if [ "${{ steps.scope.outputs.publication_only }}" = true ]; then node test/lumi-publication-browser.mjs; fi
@@ -174,6 +175,7 @@ jobs:
           node --import ./scripts/director-offline-guard.mjs --test test/lumi-mini-app-auth.test.js test/lumi-fluid-ux.test.js
           node --import ./scripts/director-offline-guard.mjs --test --test-name-pattern="^DRAFT_POLICY" test/lumi-q41-first-image.test.js
           npx playwright install --with-deps chromium
+          git cat-file -e a1e3cee4599ceddb925a2f7363b7ea3bb0dc4bdd:public/lumi-studio/app.js || git fetch --no-tags --depth=1 origin a1e3cee4599ceddb925a2f7363b7ea3bb0dc4bdd
           node test/lumi-policy-control-browser.mjs
       - name: Shared production and recovery regression for editorial changes
         if: steps.scope.outputs.editorial_only == 'true' && steps.scope.outputs.docs_only != 'true'

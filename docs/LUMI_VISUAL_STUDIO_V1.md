@@ -78,7 +78,7 @@ Relectura final del código live:26Oct00:36:25.937Z /01:36:25 Europe/Rome, nueva
 
 ## Studio simple · 26 de octubre de 2026
 
-Esta intervención modifica el Studio existente en `lumi-telegram-review-v1`, partiendo de `e48d4dd3d7377a68a297f0756a99c90b7dec9497`. El live observado antes de escribir seguía en `3b510a84797b4faeee6114f120db41d556059a04`. No es una nueva aplicación ni una certificación de exportación completa. El recibo del despliegue de esta intervención queda en `docs/lumi-improvement/simple-studio/deployment.json` cuando se cierre la verificación.
+Esta intervención modifica el Studio existente en `lumi-telegram-review-v1`, partiendo de `e48d4dd3d7377a68a297f0756a99c90b7dec9497`. El live observado antes de escribir seguía en `3b510a84797b4faeee6114f120db41d556059a04`. No es una nueva aplicación ni una certificación de exportación completa. El [recibo verificado de despliegue](lumi-improvement/simple-studio/deployment.json) identifica el código servido, CI y las protecciones comparadas.
 
 ### Cambios visibles
 
@@ -152,8 +152,18 @@ Pruebas focalizadas: 191 tests de módulos afectados (un assert antiguo de repro
 
 La consulta de solo lectura mantiene episodios y acciones EP004 con los mismos hashes del inicio, `autorun=false`, `runner_enabled=false`, techo USD 8, pendiente `image:q47`, job NEEDS_ATTENTION y cero transporte activo. El estado histórico RUNNING de una operación no tiene lease; no se reenvía ni se interpreta como generación nueva. Se vuelven a comparar ledger, reservas, consentimientos y journal justo antes/después del deploy. Las revisiones de sesión que avanzaron por actividad legítima no se restauran. Render continúa Free, autoDeploy desactivado, Telegram DIRECT y publicador cerrado.
 
-Cero generaciones remotas nuevas, TTS, reservas, recargas, compras, servicios, publicaciones, programaciones o uploads remotos de prueba. Sin cambios de Make, webhook, OAuth, secretos, main ni producción.
+Cero generaciones remotas nuevas, TTS, reservas, recargas, compras, servicios, publicaciones, programaciones o cargas de media de prueba en staging. Sin cambios de Make, webhook, OAuth, secretos, main ni producción.
 
 Fuentes contrastadas con Express 5.1.0, Supabase JS 2.57.4 y el JavaScript/HTML nativo instalado: [lazy loading de video](https://web.dev/articles/lazy-loading-video), [HTTP Range y HEAD](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Range_requests), [tab bars de Apple](https://developer.apple.com/design/human-interface-guidelines/tab-bars), [despliegues Render](https://render.com/docs/deploys), [health checks](https://render.com/docs/health-checks). Son criterios de implementación; no una certificación de accesibilidad ni de iPhone.
+
+### Cierre de staging verificado
+
+Código y SHA live: **`49c57d4e208397a16d998ceada6126d516b5cc62`**, sobre la implementación `6aeb6f2479cb225a6dfe39a6f655d3356f401340`. [CI GREEN del commit exacto](https://github.com/AgustinGettar/content-factory-renderer/actions/runs/40313332771), intento 2; artefacto `lumi-visual-editor-evidence` 12645873706. El primer intento se canceló al límite de 15 minutos: la instalación de FFmpeg tomó 14 min 48 s y el log registra 94,1 MB descargados en 14 min 35 s a 108 kB/s. No se redujeron pruebas ni se cambió código para el reintento. Este incidente de CI es independiente del fallo real de exportación EP004.
+
+Render `content-factory-av2-staging`, Free, autoDeploy desactivado: deploy `dep-dbfjl32jnfac73cklgag` live a las **11:34:06 UTC del 26/10/2026**. Readiness devuelve el SHA esperado; los ocho archivos del frontend coinciden por SHA-256. `/lumi/studio` y `/lumi/studio/` responden 200. Sin sesión, state, lista/proyecto de Editor, Resultados y Biblioteca responden **401**. Health confirma servicio sano, cola vacía y ningún video activo. Estas comprobaciones no miden reproducción autenticada dentro de Telegram.
+
+La ventana anterior y posterior tiene cero transporte, operaciones con lease, jobs de Editor y leases de episodios activos. Coinciden los hashes de episodios, proyectos, asociaciones, acciones, ledger, reservas, funding, autorizaciones, grants y journal EP004 (13 entradas). La revisión de sesión avanzó 4419 → 4425; ese avance se conserva. EP004 sigue con techo USD 8, autorun/runner desactivados, q47 pendiente, publicador cerrado y el job original en NEEDS_ATTENTION. El recibo conserva también las comprobaciones del primer deploy de la implementación.
+
+Este informe y el recibo se guardan en un commit posterior de documentación; **no se redespliega por documentación**. La exportación completa de EP004 y las comprobaciones físicas de iPhone siguen pendientes. No se anuncia validación completa de Studio V1.
 
 Comprobación humana final única: dentro de Studio en tu iPhone, recorré Inicio → episodio → Editar, reproducí un clip existente y volvé a Inicio; confirmá que la reproducción, el regreso y los controles se sienten claros, sin activar producción ni exportación.

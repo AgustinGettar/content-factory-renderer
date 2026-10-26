@@ -1,6 +1,6 @@
 # Lumi prompt feedback
 
-Evidence cutoff: 2026-10-26T00:00:00Z.
+Evidence cutoff: 2026-10-26T00:36:25.937Z.
 
 ## Qué pidió el encargo
 
@@ -58,8 +58,19 @@ Evidence cutoff: 2026-10-26T00:00:00Z.
 - Histórico anterior conservado. Evidencia, alcance, resultados de despliegue y limitaciones: docs/LUMI_VISUAL_STUDIO_V1.md y docs/lumi-improvement/visual-studio-deployment.json.
 - Las pruebas Chromium no acreditan Safari/iPhone; no se certifican tres episodios reales ni un publicador operativo. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos:0.
 
+## Cierre técnico comprobado — Studio visual y Resultados
+
+- Código3b510a8 y CI40249253646 GREEN, stagingdep-dbfa047avr4c73dbtm50 LIVE con SHA exacto y Telegram Ed25519 preservado.
+- Backend Metricool: marca/dueño/cuentas y schemas comprobados;2IG,2TikTok,3YouTube. Ausencias reales conservadas; YouTube sin rendimiento y una fecha fuera de rango. Siete posts sin vínculo automático. Detalle de métricas entregado privadamente porque el repositorio es público.
+- Dos candidatas importadas sin alterar episodios: Granja6fuentes y q47/voz pendientes; Flores master mezclado, clips/audio históricos ausentes de staging.
+- Carga real Render Free26.4s: un job, timeout configurado480s, NEEDS_ATTENTION/EDITOR_JOB_FAILED sin resultado. Memoria observada442.94MiB/512MiB; causa fina no disponible en el recibo. Proyecto READY, sin repetición ni upgrade.
+- Editor real probado con fuentes existentes localmente: voz+0.600000s y-3.00398dB, originales intactos. Chromium145/Linux tactil en CI, zoom15ms máximo; no aceptación iPhone.
+- Original EP004/ledger/grants/reservas/journal preservados; q47 y operaciones históricas no reenviadas. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos0.
+- Camino automático opcional preservado. Publicador sigue cerrado por contratos de ingestión/capacidades/reconciliación no verificados. No se certifican3episodios reales ni el recorrido completo en staging.
+- Lectura final del código live26Oct00:36:25.937Z:2IG/2TikTok/3YouTube, dos snapshots reales separados por minutos; TikTok segundos confirmado, null preservados y ninguna tendencia robusta inferida.
+
 ## Reproduction
 
 node scripts/lumi-improvement-loop.mjs
 
-Input SHA-256: 8094f658ab3c749025d9989acf60f75ef126aff308891db9deb8ff3a654fad59. Outputs are inert drafts; generating them cannot expand authorization.
+Input SHA-256: b08301b52cc397836f3a5d4ba75fd58c90f881cced0dd318fce44f63c9400bd4. Outputs are inert drafts; generating them cannot expand authorization.

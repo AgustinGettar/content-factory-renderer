@@ -32,8 +32,45 @@ Tests reales del modelo, handlers autenticados/CAS, FFmpeg y DOM; proveedores ex
 
 VFR/PTS: fuente local de5s con start_time3.000000 y avg_frame_rate450/19; manifiesto y export coinciden en240000ticks/5s.
 
-Signal fixture: offset export0.600021s, gain-3.00584dB, tolerancia audioAAC5ms y video1frame. Chromium153/Linux390×844 touch: feedback caliente máximo13.4ms/12cambios en la corrida final; onset de salida preview0.60726s para0.600s. Tolerancia de preview declarada130ms, no equivalencia con Safari/iPhone. Evidencia browser final en artefacto CI y JSON adjunto en `docs/lumi-improvement`. Prueba iPhone/Telegram real pendiente. Carga de render staging y analytics reales se registran después del despliegue en `visual-studio-deployment.json`, sin inferirlas de fixtures.
+Signal fixture: offset export0.600021s, gain-3.00584dB, tolerancia audioAAC5ms y video1frame. Chromium145.0.7632.6 en CI, Linux390×844 touch: feedback caliente del control de zoom máximo15ms, mediana14.8ms/12cambios en el CI final (44ms en el CI previo); onset de salida preview0.615964s para0.600s. Chromium153 local también pasó sin override de autoplay. Tolerancia de preview declarada130ms, no equivalencia con Safari/iPhone. Evidencia browser final en artefacto CI y JSON adjunto en `docs/lumi-improvement`. Prueba iPhone/Telegram real pendiente. Carga de render staging y analytics reales se registran después del despliegue en `visual-studio-deployment.json`, sin inferirlas de fixtures.
 
 EP004 conserva q41–q46, image:q47, USD8, historial, grants, reservas y ledger. No se reinicia q47 ni operaciones ambiguas. Checksums y ventana segura antes/después quedan registrados. No se certifican ahora tres episodios reales completos.
 
 Fuentes técnicas revalidadas: [FFmpeg filters](https://ffmpeg.org/ffmpeg-filters.html), [ffprobe](https://ffmpeg.org/ffprobe.html), [Telegram WebApps](https://core.telegram.org/bots/webapps), [Instagram](https://help.metricool.com/instagram-metrics-ght51), [TikTok](https://help.metricool.com/tiktok-metrics-fe7io), [YouTube](https://help.metricool.com/youtube-metrics-k8haa), [guía Metricool](https://help.metricool.com/your-metrics-in-metricool-full-guide-pcwam).
+
+
+## Lectura real del backend y fuentes de staging
+
+El despliegue inicial4b19d905 ejecutó el MCP oficial con las credenciales independientes ya autorizadas en Render. Observación26Oct2026 00:23:17.210Z /01:23:17 Europe/Rome; marca7627207, dueño5949429 y las tres cuentas verificadas. Schema SHAe7e768f450441168737fab3845ac41adb3ecbdd710ea4cae3d2519ac00f5eef9. Evidencia detallada entregada al propietario como archivo privado `Lumi-metricool-lectura-backend.json`; no se incluyen valores privados en este repositorio público. No son fixtures ni resultados del conector ChatGPT.
+
+| Red | Publicaciones devueltas | Rendimiento observado | Ausencias y límites |
+| --- | ---: | --- | --- |
+| Instagram/reels | 2 | Vistas, likes, alcance, guardados y compartidos disponibles | Retención null; tiempo medio disponible con unidad no acreditada por schema, visible como pendiente |
+| TikTok/posts | 2 | Vistas, likes, comentarios y compartidos disponibles | Alcance, vistas completas y tiempo total null; schema acredita segundos para tiempo total |
+| YouTube/videos published in range | 3 | IDs y enlaces reales | Todos los valores de rendimiento pedidos null; una fecha diaria20260930 fuera del rango, conservada sin atribuir causa |
+
+Periodo de publicaciones1–26octubre con cambios DST Rome y límites UTC persistidos. Valores acumulados, no actividad limitada a ese periodo. `provider_as_of` no devuelto; no se afirma actualización en tiempo real ni se inventa fecha de corte. No se usaron IGRE13/15. Ningún post se asoció a EP004 o Flores por parecido; los7 siguen sin episodio asociado. Preparar parte2/3 requiere esa comprobación del propietario. La prueba aislada sí cubrió vínculo exacto, borrador editable, reapertura en Preparar e idempotencia sin grants ni proveedores.
+
+Importaciones reales en namespaces candidatos mediante CAS del operador, por autorización de este encargo; no representan un login Telegram ni aprobación humana. `edit_ep004_visual_20261026` recuperó6 originales SHA verificados, q41–q44 de4.041667s y q45–q46 de5.041667s. q47 y voz faltan. `edit_flores_visual_20261026` abrió el master mezclado; los6 clips y3 referencias de audio no están disponibles en el staging autorizado. El bucket de audio histórico tampoco existe allí. Los originales locales de la demostración no se copiaron ni vincularon falsamente al catálogo. El bloqueo de exportar una mezcla como original permanece.
+
+La actualización final de unidades conserva también `null` y ausencia de minutos con unidad normalizada segundos, manteniendo la unidad original del proveedor. No altera los snapshots históricos: una nueva lectura conserva su propia procedencia.
+
+
+## Carga real de Render Free
+
+Una sola candidata parcial de26.4s,6 originales/40,795,165bytes, revisión1 y SHA de manifiesto21de5b8cdb85cca39fab3a917d45010cdb855fa5805d777ecd1bc0711c28f35d. Job964f017bcac361c29a2bacad19997cf7fa7076a11fae31f8171d66d90c6e2850 reclamado00:24:44.109Z. A00:33:52Z se observó `NEEDS_ATTENTION / EDITOR_JOB_FAILED`, sin resultado persistido. Timeout del encoder480s; el recibo actual no expone la causa del proceso, por lo que no se declara OOM, problema de internet ni un instante exacto de timeout confirmado. No se relanzó ni duplicó el encode.
+
+Muestreo de Render cada30s: memoria máxima observada464,457,730bytes (442.94MiB), límite536,870,900bytes; CPU máxima observada0.15 unidades del proveedor. No equivalen a picos instantáneos. Dos peticiones desde Work durante el encode devolvieron200: health4.429s y HTML5.504s, incluyendo red/servidor. Son distintas de la latencia local del control de zoom. Datos en `visual-studio-render-free-metrics.json`.
+
+El proyecto sigue READY/revisión1 y los originales se conservan. Esta carga no acredita exportación completa en staging: la correspondencia audiovisual está demostrada con archivos existentes en ejecución local, y con señales/handlers reales en CI aislado. No se declara aceptado el recorrido completo en iPhone ni tres episodios reales. No hubo contratación, ampliación de plan, generación o cambio de calidad para disimular el resultado.
+
+
+## Código, CI y despliegue comprobados
+
+Código final `3b510a84797b4faeee6114f120db41d556059a04`, [CI40249253646 GREEN](https://github.com/AgustinGettar/content-factory-renderer/actions/runs/40249253646), artefacto de navegador12619587953. Deploy final `dep-dbfa047avr4c73dbtm50` LIVE26Oct00:35:01.225512Z, `/lumi/studio/api/readiness` devuelve exactamente ese SHA y `TELEGRAM_ED25519`. Primer deploy4b19d905 y su CI40248260310 también quedaron comprobados; las tres piezas JS nuevas servidas coinciden por SHA. Rutas privadas editor/results401 anónimas. Ningún despliegue ocurrió durante un transporte/encode activo. Documentación posterior no provoca redeploy.
+
+El CI usa handlers, CAS, DOM y FFmpeg reales con identidad y proveedores aislados; no es una sesión Telegram real. Prueba de audio conocido: offset0.600021s y-3.00584dB; demo con fuentes existentes:0.600000s y-3.00398dB. Las fuentes5s no se limitan a3s. La pila undo no sobrevive a reapertura completa; sí la última revisión y el borrador local pendiente.
+
+Siguiente acción del propietario: Studio → Resultados → comprobar una publicación real y guardar su vínculo con el episodio/version exactos. Esa confirmación habilita preparar la continuación sin generar ni gastar.
+
+Relectura final del código live:26Oct00:36:25.937Z /01:36:25 Europe/Rome, nuevamente2IG/2TikTok/3YouTube. Dos snapshots reales separados por minutos; no acreditan tendencia ni comparación24h/72h/7d. TKPO14 conserva null con unidad segundos; YTVP07 conserva null con unidad normalizada segundos y provider_unit minutos. IGRE24 sigue con unidad pendiente. Hashes finales de episodios, grants, acciones, reservas, ledger y14filas del journal iguales a la base; q47 pendiente y techo8 sin cambios.

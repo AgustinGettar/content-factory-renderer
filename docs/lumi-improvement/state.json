@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "observed_at": "2026-10-26T00:00:00Z",
+  "observed_at": "2026-10-26T00:36:25.937Z",
   "repository": "AgustinGettar/content-factory-renderer",
   "branch": "lumi-telegram-review-v1",
-  "source_commit": "88a4def272bc006b409533b10fc908f74bdd59ee",
+  "source_commit": "3b510a84797b4faeee6114f120db41d556059a04",
   "staging_service": "content-factory-av2-staging",
   "supabase_project": "mofjhwathxzfnjapvvst",
-  "deployment_evidence": "Baseline branch88a4def, live7467aac. Visual Studio exact code CI/deploy/read-only analytics evidence is in docs/lumi-improvement/visual-studio-deployment.json; never infer live acceptance from local tests.",
+  "deployment_evidence": "Visual Studio code3b510a84797b4faeee6114f120db41d556059a04; CI40249253646 GREEN; deploydep-dbfa047avr4c73dbtm50 LIVE00:35:01Z; readiness exact SHA. Bounded staging export failed; see visual-studio-deployment.json, not an accepted full production run.",
   "episode_id": "ep_lumi_granja_004_20261008_ee7ab4b3",
   "status": "CHECKPOINT RUNNING; JOB NEEDS_ATTENTION; FUNDING PAUSE PRESERVED",
   "last_completed_action": "shot_review:q46",
@@ -267,14 +267,25 @@
       "Prueba de fuentes Flores locales:7.933333s, voz+0.600000s medida por correlación, ganancia-3.00398dB; fragmento técnico separado y sin aprobación artística.",
       "Histórico anterior conservado. Evidencia, alcance, resultados de despliegue y limitaciones: docs/LUMI_VISUAL_STUDIO_V1.md y docs/lumi-improvement/visual-studio-deployment.json.",
       "Las pruebas Chromium no acreditan Safari/iPhone; no se certifican tres episodios reales ni un publicador operativo. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos:0."
+    ],
+    "Cierre técnico comprobado — Studio visual y Resultados": [
+      "Código3b510a8 y CI40249253646 GREEN, stagingdep-dbfa047avr4c73dbtm50 LIVE con SHA exacto y Telegram Ed25519 preservado.",
+      "Backend Metricool: marca/dueño/cuentas y schemas comprobados;2IG,2TikTok,3YouTube. Ausencias reales conservadas; YouTube sin rendimiento y una fecha fuera de rango. Siete posts sin vínculo automático. Detalle de métricas entregado privadamente porque el repositorio es público.",
+      "Dos candidatas importadas sin alterar episodios: Granja6fuentes y q47/voz pendientes; Flores master mezclado, clips/audio históricos ausentes de staging.",
+      "Carga real Render Free26.4s: un job, timeout configurado480s, NEEDS_ATTENTION/EDITOR_JOB_FAILED sin resultado. Memoria observada442.94MiB/512MiB; causa fina no disponible en el recibo. Proyecto READY, sin repetición ni upgrade.",
+      "Editor real probado con fuentes existentes localmente: voz+0.600000s y-3.00398dB, originales intactos. Chromium145/Linux tactil en CI, zoom15ms máximo; no aceptación iPhone.",
+      "Original EP004/ledger/grants/reservas/journal preservados; q47 y operaciones históricas no reenviadas. Nuevas generaciones/TTS/reservas/publicaciones/servicios pagos0.",
+      "Camino automático opcional preservado. Publicador sigue cerrado por contratos de ingestión/capacidades/reconciliación no verificados. No se certifican3episodios reales ni el recorrido completo en staging.",
+      "Lectura final del código live26Oct00:36:25.937Z:2IG/2TikTok/3YouTube, dos snapshots reales separados por minutos; TikTok segundos confirmado, null preservados y ninguna tendencia robusta inferida."
     ]
   },
-  "first_safe_action": "Studio → Editor: abrir una candidata de medios existentes. Guardar no genera, aprueba ni publica.",
+  "first_safe_action": "Studio → Resultados: comprobar una publicación real y vincularla al episodio/version exactos para preparar una continuación sin gasto.",
   "acceptance": [
     "No new real generations/TTS/reservations/publications; provider guard in tests.",
     "New guided preparation and both production modes reach downloadable fixture masters.",
     "Actual human artistic review, funding and valid consent remain gates.",
-    "Exact code CI and staging deployment must be checked in natural-editing-deployment.json; no claim based on this document alone."
+    "Exact code CI and staging deployment must be checked in natural-editing-deployment.json; no claim based on this document alone.",
+    "Visual editor/Results code CI and live verified; local existing-media/audio proof PASS, bounded26.4s Render Free export NEEDS_ATTENTION, iPhone NOT_TESTED. No full V1 acceptance claim."
   ],
   "tests": [
     {
@@ -295,7 +306,7 @@
     {
       "status": "PASS",
       "command": "node --import ./scripts/director-offline-guard.mjs --test test/lumi-visual-editor.test.js test/lumi-results.test.js",
-      "result": "6 tests: CAS/offset FFmpeg/controles de gasto/lector MCP aislado; prueba browser y despliegue detallados en LUMI_VISUAL_STUDIO_V1.md."
+      "result": "8 tests: CAS/offset FFmpeg/controles de gasto/lector MCP aislado; browser real con identidad fixture, dos pestañas/ACK perdido/voz+0.600s/undo/export exacto. CI40249253646 GREEN."
     }
   ],
   "recent_commits": [
@@ -314,6 +325,14 @@
     {
       "sha": "3fbe0d699af386ad7744817c7814d2eff8e010b7",
       "subject": "Late ACK recovery and renewed plan at future boundaries"
+    },
+    {
+      "sha": "4b19d905bc227f90d75eddf7d6009302e889efbc",
+      "subject": "Touch editor, existing-source export and backend results; full isolated CI green and first live verification"
+    },
+    {
+      "sha": "3b510a84797b4faeee6114f120db41d556059a04",
+      "subject": "Verified TikTok seconds and normalized missing watch-time units; final code CI/live"
     }
   ],
   "activation": {
@@ -401,9 +420,18 @@
   "natural_editing_evidence": "docs/LUMI_NATURAL_EDITING_REVIEW.md",
   "metricool_current": {
     "status": "BACKEND_VERIFIED",
-    "verified_at": "2026-10-25T19:47:59.672Z",
+    "verified_at": "2026-10-26T00:23:07.505Z",
     "brand": 7627207,
     "owner": 5949429,
-    "publication_enabled": false
+    "publication_enabled": false,
+    "analytics_backend_read_at": "2026-10-26T00:36:25.937Z",
+    "analytics_rows": {
+      "instagram": 2,
+      "tiktok": 2,
+      "youtube": 3
+    },
+    "unlinked_posts": 7,
+    "provider_as_of": null,
+    "real_snapshots": 2
   }
 }

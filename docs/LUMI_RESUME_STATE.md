@@ -1,10 +1,10 @@
 # Lumi resume state
 
-Observed: 2026-10-26T00:00:00Z. Input SHA-256: 8094f658ab3c749025d9989acf60f75ef126aff308891db9deb8ff3a654fad59.
+Observed: 2026-10-26T00:36:25.937Z. Input SHA-256: b08301b52cc397836f3a5d4ba75fd58c90f881cced0dd318fce44f63c9400bd4.
 
-Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 88a4def272bc006b409533b10fc908f74bdd59ee.
+Repository: AgustinGettar/content-factory-renderer; branch: lumi-telegram-review-v1; source commit: 3b510a84797b4faeee6114f120db41d556059a04.
 
-Deployment evidence: Baseline branch88a4def, live7467aac. Visual Studio exact code CI/deploy/read-only analytics evidence is in docs/lumi-improvement/visual-studio-deployment.json; never infer live acceptance from local tests.. Always resolve current HEAD/live before writing.
+Deployment evidence: Visual Studio code3b510a84797b4faeee6114f120db41d556059a04; CI40249253646 GREEN; deploydep-dbfa047avr4c73dbtm50 LIVE00:35:01Z; readiness exact SHA. Bounded staging export failed; see visual-studio-deployment.json, not an accepted full production run.. Always resolve current HEAD/live before writing.
 
 Transport: DIRECT_ACTIVE_MAKE_INACTIVE. TelegramDIRECT y Ed25519 preservados. Make6224860 isActive:false observado. Sin cambios de webhook, secretos ni otros escenarios.
 
@@ -58,7 +58,7 @@ SIMULATED_PROGRESS: "2 new episodes,11 shots,24s and29s masters; not real produc
 
 2. TTS / NOT_REACHED: Fernanda V3 intacta. Estimación temporal antes del gasto; medición de voz real antes de editar. No TTS real en la revisión.
 
-Next safe action: Studio → Editor: abrir una candidata de medios existentes. Guardar no genera, aprueba ni publica.
+Next safe action: Studio → Resultados: comprobar una publicación real y vincularla al episodio/version exactos para preparar una continuación sin gasto.
 
 Canonical structured inputs: docs/lumi-improvement/state.json and incidents.json. Regenerate once with node scripts/lumi-improvement-loop.mjs. No provider or database calls.
 

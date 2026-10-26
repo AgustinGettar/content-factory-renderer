@@ -1,0 +1,374 @@
+{
+  "version": 1,
+  "scope": {
+    "repository": "AgustinGettar/content-factory-renderer",
+    "branch": "lumi-telegram-review-v1",
+    "service": "srv-dapgakqd0e5s73fottig",
+    "workspace": "tea-dahl5nh594qs73ffjhcg",
+    "supabase": "mofjhwathxzfnjapvvst"
+  },
+  "baseline": {
+    "head": "88a4def272bc006b409533b10fc908f74bdd59ee",
+    "live": "7467aac20b6ff17867e9e9be998582d421f580c0",
+    "review_revision": 4144,
+    "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+    "reservations_md5": "70f1ae94a0c170ceff71ba6cf198fc22",
+    "ledger_md5": "a6b44884aeec1c38bc9c0b6f1462af34",
+    "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+    "grants_md5": "6b96cba9da006565ae1436306c81ea7c",
+    "journal_all_rows": 14,
+    "journal_all_md5": "d27d6a22b115ba8ef8da5e516037558a",
+    "journal_hash_query": "md5(string_agg(row_to_json(j)::text,'' order by attempt_id))"
+  },
+  "code": "3b510a84797b4faeee6114f120db41d556059a04",
+  "ci": {
+    "run": 40249253646,
+    "status": "SUCCESS",
+    "job": 121337321785,
+    "head_sha": "3b510a84797b4faeee6114f120db41d556059a04",
+    "artifact_id": 12619587953,
+    "artifact_zip_sha256": "775fcb1aa7133cb397b53e7e2261c8b79f041f67a24eeb965305347adb3d8e8e",
+    "browser_evidence": "visual-studio-ci-browser.json"
+  },
+  "backend_analytics": {
+    "route": "BACKEND_OFFICIAL_MCP_OAUTH",
+    "observed_at": "2026-10-26T00:23:17.210Z",
+    "brand": 7627207,
+    "owner": 5949429,
+    "schema_sha": "e7e768f450441168737fab3845ac41adb3ecbdd710ea4cae3d2519ac00f5eef9",
+    "rows": {
+      "instagram": 2,
+      "tiktok": 2,
+      "youtube": 3
+    },
+    "unsupported_deprecated_requested": false,
+    "nulls": {
+      "instagram": [
+        "retention"
+      ],
+      "tiktok": [
+        "reach",
+        "full_video_watched_rate",
+        "total_time_watched"
+      ],
+      "youtube": [
+        "views",
+        "likes",
+        "shares",
+        "watch_time",
+        "average_view_duration"
+      ]
+    },
+    "unlinked_posts": 7,
+    "provider_as_of": null,
+    "youtube_date_outside_range": "20260930; retained without attributing a cause",
+    "history": "Two genuine observations minutes apart; insufficient for trend or age-equivalent comparison.",
+    "last_read_at": "2026-10-26T00:36:25.937Z",
+    "final_units_verified": {
+      "TKPO14": "seconds; null remains NO_DATA",
+      "YTVP07": "seconds even when null; provider_unit minutes retained",
+      "IGRE24": "UNIT_UNVERIFIED; not guessed"
+    }
+  },
+  "operator_requests": {
+    "analytics_request": "studio-backend-read-20261026-v1",
+    "editor_imports": [
+      "edit_ep004_visual_20261026",
+      "edit_flores_visual_20261026"
+    ],
+    "review_revision_after_queue": 4146,
+    "method": "Owner-scoped CAS update of candidate/read namespaces only; not a Telegram login or human approval.",
+    "render_job": "964f017bcac361c29a2bacad19997cf7fa7076a11fae31f8171d66d90c6e2850",
+    "analytics_refresh": "studio-backend-read-20261026-units-v1"
+  },
+  "regressions": {
+    "fixed": [
+      "Subsecond audio clip drag target overlapped trim handles; narrower proportional handles and real Chromium touch test.",
+      "Initial gzip/Brotli size exceeded existing thresholds; cached compression levels9/7 restore thresholds without test relaxation.",
+      "CI shallow checkout omitted pinned policy-browser baseline; explicitly fetch that exact commit without changing assertions.",
+      "CI145 rejected zero-duration touch gesture on subsecond clip at low zoom; regression now uses visible160px/s zoom, verified move region and paced native events, with exact+0.600s assertion retained."
+    ],
+    "remaining": [
+      "iPhone/Safari actual Telegram acceptance not exercised.",
+      "Flores original clips not present in staging catalog; mixed master can be inspected but cannot be re-encoded as final source.",
+      "No authentic publisher receipt; imported posts stay unlinked until explicit owner verification.",
+      "Render Free26.4s candidate did not complete in the bounded trial; durable generic error. Project retained, no automatic retry or paid upgrade."
+    ]
+  },
+  "local_tests": {
+    "regression": {
+      "passed": 68,
+      "failed": 0
+    },
+    "protected_automatic": {
+      "passed": 34,
+      "skipped": 1,
+      "failed": 0,
+      "synthetic_episodes": 2,
+      "local_full_hd_encodes": 2,
+      "real_provider_calls": 0
+    },
+    "editor_results": {
+      "passed": 8,
+      "failed": 0
+    },
+    "startup_http": {
+      "passed": 1,
+      "gzip_bytes": 36820,
+      "brotli_bytes": 33412
+    },
+    "vfr": {
+      "source": {
+        "id": "vfr",
+        "sha256": "eef037c6510cf3e7e948afb7ac4836b890fd9b34f935fac4eced2ee82ce93d7b",
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "profile": "High",
+            "width": 90,
+            "height": 160,
+            "time_base": "1/15360",
+            "start_time": "3.000000",
+            "duration": "5.000000",
+            "duration_ts": 76800,
+            "avg_frame_rate": "450/19",
+            "r_frame_rate": "30/1"
+          }
+        ],
+        "video": true,
+        "audio": false,
+        "video_ticks": 240000,
+        "audio_ticks": 0,
+        "duration_ticks": 240000,
+        "measured_at": "2026-10-25T23:55:24.659Z"
+      },
+      "output": {
+        "streams": [
+          {
+            "codec_type": "video",
+            "codec_name": "h264",
+            "profile": "High",
+            "width": 1080,
+            "height": 1920,
+            "time_base": "1/48000",
+            "start_time": "0.000000",
+            "duration": "5.000000",
+            "duration_ts": 240000,
+            "avg_frame_rate": "30/1",
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_type": "audio",
+            "codec_name": "aac",
+            "profile": "LC",
+            "sample_rate": "48000",
+            "channels": 2,
+            "time_base": "1/48000",
+            "start_time": "0.000000",
+            "duration": "5.000000",
+            "duration_ts": 240000,
+            "avg_frame_rate": "0/0",
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "video": true,
+        "audio": true,
+        "video_ticks": 240000,
+        "audio_ticks": 240000,
+        "duration_ticks": 240000,
+        "measured_at": "2026-10-25T23:55:36.175Z"
+      },
+      "validation": {
+        "duration_ticks": 240000,
+        "warnings": []
+      },
+      "external_calls": 0
+    },
+    "split_same_source": {
+      "manifest_ticks": 195200,
+      "export_ticks": 195200
+    },
+    "gesture_browser": {
+      "environment": "Chromium 153.0.8010.0, Linux, 390x844 touch viewport; isolated owner/store; real handlers/FFmpeg; NOT_IPHONE",
+      "external_requests": 0,
+      "preview_signal": {
+        "scheduled_offset": 0,
+        "timeline_onset_seconds": 0.615963718820862,
+        "scheduling_error_seconds": -1.1102230246251565e-16,
+        "scheduled_context_time": 1.882267573696145,
+        "first_nonzero_context_time": 1.8982312925170068,
+        "rms": 0.041986622139822405
+      },
+      "hot_control_feedback_ms": {
+        "count": 12,
+        "max": 15,
+        "median": 14.699999999254942
+      },
+      "touch": "Chromium CDP touch: short voice at160px/s, independent +0.600s drag + undo",
+      "export": {
+        "sha": "bd0e414abcd882bf94dd28976d4fbd5fcebffa9460f48d2b6dd314d14bcca0be",
+        "revision": 6,
+        "duration_ticks": 216000
+      },
+      "concurrency": "two tabs, explicit alternative retained",
+      "recovery": "lost ACK, reload, unavailable localStorage, expired session rejected",
+      "pass": true,
+      "screenshots": "/tmp/lumi-visual-browser-a0EOcH",
+      "autoplay_policy_override": false
+    }
+  },
+  "artifacts": {
+    "private_delivery_files": [
+      "Lumi-editor-candidata-local.mp4",
+      "Lumi-editor-manifiesto.json",
+      "Lumi-metricool-lectura-backend.json"
+    ],
+    "privacy": "Detailed creator metrics and private media are delivered privately, not committed to the public repository."
+  },
+  "new_external_effects": {
+    "generative": 0,
+    "tts": 0,
+    "reservations": 0,
+    "publications": 0,
+    "metricool_uploads": 0,
+    "paid_services": 0
+  },
+  "ci_history": [
+    {
+      "run": 40246833911,
+      "reason": "Initial transfer budget failure; fixed without relaxing thresholds."
+    },
+    {
+      "run": 40247074658,
+      "reason": "Missing pinned historical baseline in shallow checkout; fixed explicit fetch."
+    },
+    {
+      "run": 40247337372,
+      "attempt": 1,
+      "reason": "Unrelated Ubuntu package repository403; same SHA rerun."
+    }
+  ],
+  "staging_load": {
+    "status": "NEEDS_ATTENTION",
+    "revision": 1,
+    "manifest_sha": "21de5b8cdb85cca39fab3a917d45010cdb855fa5805d777ecd1bc0711c28f35d",
+    "duration_seconds": 26.4,
+    "source_bytes": 40795165,
+    "sources": 6,
+    "partial": true,
+    "missing": [
+      "q47",
+      "narration"
+    ],
+    "timeout_seconds": 480,
+    "encode_concurrency": 1,
+    "project": "edit_ep004_visual_20261026",
+    "http_during_encode": {
+      "environment": "Single Python urllib probe from Work runtime; includes network/server time, not browser control feedback or iPhone",
+      "health_ms": 4429,
+      "html_ms": 5504,
+      "status": 200
+    },
+    "error": "EDITOR_JOB_FAILED",
+    "result": null,
+    "claimed_at": "2026-10-26T00:24:44.109Z",
+    "terminal_observed_at": "2026-10-26T00:33:52Z",
+    "failure_detail": "The durable receipt does not expose the child-process cause. Encoder timeout configured480s; no claim of confirmed OOM/network error or confirmed exact failure instant.",
+    "observed_memory_max_bytes": 464457730,
+    "memory_limit_bytes": 536870900,
+    "observed_cpu_max": 0.15,
+    "metrics_file": "visual-studio-render-free-metrics.json",
+    "project_retained": "READY revision1; no original changed",
+    "new_attempts_after_failure": 0
+  },
+  "initial_ci": {
+    "run": 40248260310,
+    "status": "SUCCESS",
+    "job": 121334357951,
+    "head_sha": "4b19d905bc227f90d75eddf7d6009302e889efbc",
+    "artifact_id": 12620126743,
+    "artifact_zip_sha256": "dcaf2804312c83cbf441d068c8605422be24ea33b3452fba221689355c71958c",
+    "browser_evidence": "visual-studio-ci-browser.json"
+  },
+  "initial_deployment": {
+    "id": "dep-dbf9pv29lscs739apjag",
+    "status": "LIVE",
+    "code_sha": "4b19d905bc227f90d75eddf7d6009302e889efbc",
+    "started_at": "2026-10-26T00:21:16.83072Z",
+    "preflight": "No active production jobs, leases absent; runner/autorun false, ceiling8, latest branch exact CI GREEN.",
+    "finished_at": "2026-10-26T00:21:53.11153Z",
+    "readiness_sha": "4b19d905bc227f90d75eddf7d6009302e889efbc",
+    "health_http": 200,
+    "anonymous_editor_http": 401,
+    "anonymous_results_http": 401,
+    "authentication": "TELEGRAM_ED25519",
+    "asset_sha_checks": {
+      "editor-model.js": "56d92802c03b8ae66c70167f8598f0e0ada4fc0b1e6a4499b20f2b52cd9a4ea5",
+      "editor-ui.js": "81fb1a2f46c3f522894a307e33d62527c0b4f3ddb483b99131d9056625242428",
+      "results-ui.js": "0c864136842639d27afb3dc87cd7461ddfeae264457a0c5af3044a31b2ca9caa"
+    }
+  },
+  "deployment": {
+    "id": "dep-dbfa047avr4c73dbtm50",
+    "status": "LIVE",
+    "started_at": "2026-10-26T00:34:24.180252Z",
+    "finished_at": "2026-10-26T00:35:01.225512Z",
+    "code_sha": "3b510a84797b4faeee6114f120db41d556059a04",
+    "readiness_sha": "3b510a84797b4faeee6114f120db41d556059a04",
+    "readiness_http": 200,
+    "auth_method": "TELEGRAM_ED25519",
+    "preflight": "Exact branch3b510a8 CI GREEN; no active production or editor encode. Failed candidate retained without retry."
+  },
+  "final_preservation": {
+    "observed_at": "2026-10-26T00:36:25.937Z",
+    "review_revision": 4183,
+    "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+    "grants_md5": "6b96cba9da006565ae1436306c81ea7c",
+    "checkpoint": {
+      "autorun": false,
+      "ceiling": 8,
+      "pending": "image:q47",
+      "ledger_md5": "a6b44884aeec1c38bc9c0b6f1462af34",
+      "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+      "runner_enabled": false,
+      "reservations_md5": "70f1ae94a0c170ceff71ba6cf198fc22"
+    },
+    "journal": {
+      "md5": "d27d6a22b115ba8ef8da5e516037558a",
+      "rows": 14
+    },
+    "projects": [
+      {
+        "id": "edit_ep004_visual_20261026",
+        "status": "READY",
+        "current": 1,
+        "missing": [
+          "Toma q47 pendiente",
+          "Voz fuente pendiente; edici\u00f3n visual parcial sin narraci\u00f3n."
+        ],
+        "sources": 6
+      },
+      {
+        "id": "edit_flores_visual_20261026",
+        "status": "READY",
+        "current": 1,
+        "missing": [
+          "Toma q31 pendiente",
+          "Toma q32 pendiente",
+          "Toma q33 pendiente",
+          "Toma q34 pendiente",
+          "Toma q35 pendiente",
+          "Toma q36 pendiente",
+          "Solo master mezclado disponible: no se puede separar la voz.",
+          "Fuente no disponible: 441d62befb96a3d42aab1e18876d8e066698fa6f24283c5a6f4a4dae396dc7bd",
+          "Fuente no disponible: 52592e542c9592f85888279f23a7010f3c744a21ceebda689751119df373a35e",
+          "Fuente no disponible: 9fc2820d3803ae9be0a1be4c07835c2391c08a05ad80680213a1e009f0e32e38"
+        ],
+        "sources": 1
+      }
+    ],
+    "all_protected_hashes_match": true,
+    "new_provider_journal_rows": 0
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "environment": "Chromium 145.0.7632.6, Linux, 390x844 touch viewport; isolated owner/store; real handlers/FFmpeg; NOT_IPHONE",
+  "external_requests": 0,
+  "preview_signal": {
+    "scheduled_offset": 0,
+    "timeline_onset_seconds": 0.6159637188208618,
+    "scheduling_error_seconds": -1.1102230246251565e-16,
+    "scheduled_context_time": 2.1521995464852606,
+    "first_nonzero_context_time": 2.1681632653061222,
+    "rms": 0.0420128080988473
+  },
+  "hot_control_feedback_ms": {
+    "count": 12,
+    "max": 15,
+    "median": 14.79999999993015
+  },
+  "touch": "Chromium CDP touch: short voice at160px/s, independent +0.600s drag + undo",
+  "export": {
+    "sha": "d1ad98962aef56a58b8b10ad01a6947559cf8c379dd3c7eb55ff5e5f1406430e",
+    "revision": 6,
+    "duration_ticks": 216000
+  },
+  "concurrency": "two tabs, explicit alternative retained",
+  "recovery": "lost ACK, reload, unavailable localStorage, expired session rejected",
+  "pass": true,
+  "screenshots": "/tmp/lumi-visual-browser-nXaWam"
+}

@@ -48,9 +48,10 @@ app.get('/lumi/studio/api/library',(_req,res)=>res.json({assets:[],counts:{},sel
 app.get('/lumi/studio/api/library/plan',(_req,res)=>res.json({suggestions:[]}));
 for(const file of ['index.html','app.js','style.css','publication-ui.js','preparation-ui.js','editor-ui.js','editor-model.js','results-ui.js'])app.get(file==='index.html'?'/lumi/studio':'/lumi/studio/'+file,async(_req,res)=>res.type(file.endsWith('.js')?'js':file.endsWith('.css')?'css':'html').send((await readFile(new URL('../public/lumi-studio/'+file,import.meta.url),'utf8')).replace('<script async src="https://telegram.org/js/telegram-web-app.js"></script>','')));
 const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
-let browser;const evidence={environment:'Chromium 153, Linux, 390x844 touch viewport; isolated owner/store; real handlers/FFmpeg; NOT_IPHONE',external_requests:0};
+let browser;const evidence={environment:'Browser version pending launch; Linux, 390x844 touch viewport; isolated owner/store; real handlers/FFmpeg; NOT_IPHONE',external_requests:0};
 try{
- browser=await chromium.launch({headless:true,executablePath:process.env.LUMI_TEST_BROWSER||undefined,args:['--no-sandbox','--disable-gpu','--autoplay-policy=no-user-gesture-required']});
+ browser=await chromium.launch({headless:true,executablePath:process.env.LUMI_TEST_BROWSER||undefined,args:['--no-sandbox','--disable-gpu']});
+ evidence.environment='Chromium '+browser.version()+', Linux, 390x844 touch viewport; isolated owner/store; real handlers/FFmpeg; NOT_IPHONE';
  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});await context.addCookies([{name:'fixture',value:session.cookie,url:base}]);
  await context.route('**/*',route=>{if(new URL(route.request().url()).origin===base)return route.continue();evidence.external_requests++;return route.abort();});
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));

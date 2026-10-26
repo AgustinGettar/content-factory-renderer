@@ -1,0 +1,197 @@
+{
+  "scope": "Editor touch polish on existing Studio; no new system",
+  "branch": "lumi-telegram-review-v1",
+  "baseline_head": "e0499441604aacb9b7eede061fcb6e6698df86e6",
+  "previous_live_sha": "49c57d4e208397a16d998ceada6126d516b5cc62",
+  "code_sha": "61143f1d1c60800b0c3d77af01d0375ae2871ead",
+  "code_tree": "a3c718df1c110c76121e01b220e9b2e31a2ed13a",
+  "ci": {
+    "id": 40361505857,
+    "url": "https://github.com/AgustinGettar/content-factory-renderer/actions/runs/40361505857",
+    "status": "completed",
+    "conclusion": "success",
+    "attempt": 1,
+    "artifacts": [
+      {
+        "id": 12668651848,
+        "name": "lumi-visual-editor-evidence",
+        "size_in_bytes": 1980891
+      }
+    ]
+  },
+  "render": {
+    "service_id": "srv-dapgakqd0e5s73fottig",
+    "workspace_id": "tea-dahl5nh594qs73ffjhcg",
+    "plan": "free",
+    "auto_deploy": "off",
+    "deployment": {
+      "commit": {
+        "createdAt": "2026-10-26T16:41:17Z",
+        "id": "61143f1d1c60800b0c3d77af01d0375ae2871ead",
+        "message": "Polish touch timeline controls and isolate unfinished drags from autosave"
+      },
+      "createdAt": "2026-10-26T16:46:10.480586Z",
+      "finishedAt": "2026-10-26T16:46:53.034246Z",
+      "id": "dep-dbfo7kmq1p3s73f2t850",
+      "startedAt": "2026-10-26T16:46:10.440328Z",
+      "status": "live",
+      "trigger": "api",
+      "updatedAt": "2026-10-26T16:46:53.034492Z"
+    },
+    "finished_at_europe_rome": "2026-10-26T17:46:53+01:00"
+  },
+  "safe_window": {
+    "before": {
+      "at": "2026-10-26T16:45:49.860786+00:00",
+      "live_ops": 0,
+      "active_transport": 0,
+      "active_editor_jobs": 0,
+      "active_episode_leases": 0
+    },
+    "after": {
+      "at": "2026-10-26T16:47:03.528752+00:00",
+      "live_ops": 0,
+      "active_transport": 0,
+      "active_editor_jobs": 0,
+      "active_episode_leases": 0
+    }
+  },
+  "protected_state": {
+    "unchanged": true,
+    "before": {
+      "at": "2026-10-26T16:45:51.509898+00:00",
+      "journal": {
+        "md5": "8a4aae6d88e9d3d735a49715e2017a42",
+        "count": 13
+      },
+      "session": {
+        "revision": 4679,
+        "funding_md5": "5ab1ff50095d9b67e1529ef2b5acd265",
+        "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+        "export_status": "NEEDS_ATTENTION",
+        "metricool_status": "BACKEND_VERIFIED",
+        "authorizations_md5": "6b96cba9da006565ae1436306c81ea7c",
+        "analytics_links_md5": "99914b932bd37a50b983c5e7c90ae93b",
+        "editor_projects_md5": "268dbd7b9a57e17bf1c37c99391e757f",
+        "replacement_grants_md5": "890d6c234213637cd22c0d4909346fa1"
+      },
+      "checkpoint": {
+        "autorun": false,
+        "ceiling": 8,
+        "pending": "image:q47",
+        "ledger_md5": "a6b44884aeec1c38bc9c0b6f1462af34",
+        "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+        "runner_enabled": false,
+        "reservations_md5": "70f1ae94a0c170ceff71ba6cf198fc22",
+        "publication_enabled": false
+      }
+    },
+    "after": {
+      "at": "2026-10-26T16:47:05.164588+00:00",
+      "journal": {
+        "md5": "8a4aae6d88e9d3d735a49715e2017a42",
+        "count": 13
+      },
+      "session": {
+        "revision": 4679,
+        "funding_md5": "5ab1ff50095d9b67e1529ef2b5acd265",
+        "episodes_md5": "b5eba38044da4333237f094e136b3f07",
+        "export_status": "NEEDS_ATTENTION",
+        "metricool_status": "BACKEND_VERIFIED",
+        "authorizations_md5": "6b96cba9da006565ae1436306c81ea7c",
+        "analytics_links_md5": "99914b932bd37a50b983c5e7c90ae93b",
+        "editor_projects_md5": "268dbd7b9a57e17bf1c37c99391e757f",
+        "replacement_grants_md5": "890d6c234213637cd22c0d4909346fa1"
+      },
+      "checkpoint": {
+        "autorun": false,
+        "ceiling": 8,
+        "pending": "image:q47",
+        "ledger_md5": "a6b44884aeec1c38bc9c0b6f1462af34",
+        "actions_md5": "6b3674a224eb152b2333645e8d52afbf",
+        "runner_enabled": false,
+        "reservations_md5": "70f1ae94a0c170ceff71ba6cf198fc22",
+        "publication_enabled": false
+      }
+    }
+  },
+  "live_verification": {
+    "started_at": "2026-10-26T16:47:00.224889+00:00",
+    "live_sha": "61143f1d1c60800b0c3d77af01d0375ae2871ead",
+    "auth_configured": true,
+    "public_shell": {
+      "/lumi/studio": 200,
+      "/lumi/studio/": 200
+    },
+    "private_routes": {
+      "/lumi/studio/api/editor/projects": 401,
+      "/lumi/studio/api/state": 401,
+      "/lumi/studio/api/results": 401,
+      "/lumi/studio/api/editor/projects/edit_ep004_visual_20261026": 401,
+      "/lumi/studio/api/library": 401
+    },
+    "assets": {
+      "app.js": {
+        "bytes": 122422,
+        "sha256": "d1c09f2e709534f4aa0ab2991bded2bc324111ac5534e0f2788bc0c430b266ee",
+        "matches_commit": true
+      },
+      "results-ui.js": {
+        "bytes": 14426,
+        "sha256": "5525023ee8c1494132f10d32d8d49a9d07e5849a0632b1e8261288359226d3b1",
+        "matches_commit": true
+      },
+      "editor-model.js": {
+        "bytes": 6562,
+        "sha256": "56d92802c03b8ae66c70167f8598f0e0ada4fc0b1e6a4499b20f2b52cd9a4ea5",
+        "matches_commit": true
+      },
+      "style.css": {
+        "bytes": 36569,
+        "sha256": "a6b29310c13f5b34a32165f54635537f2b92edfab2fa87001793de8ec9b44700",
+        "matches_commit": true
+      },
+      "editor-ui.js": {
+        "bytes": 45334,
+        "sha256": "cca14cff54acc97e2a01fa05de12b1e0972abbda59eb94a091bed5cdce60ee43",
+        "matches_commit": true
+      },
+      "preparation-ui.js": {
+        "bytes": 10382,
+        "sha256": "aede7604b5e4ea43d9fdebcd1055a6b3f61811a49ca94e3be08aee8c5dc77d53",
+        "matches_commit": true
+      },
+      "secondary-ui.js": {
+        "bytes": 10332,
+        "sha256": "4d43ff37c9b9e28e2abc3fb448ea52ebb5897b043edc427365a6fbc6c48e931e",
+        "matches_commit": true
+      },
+      "publication-ui.js": {
+        "bytes": 9847,
+        "sha256": "24f2b786cdde315a0b38e04f550a7eace56958f3a26bb5638306c99144e38a91",
+        "matches_commit": true
+      }
+    },
+    "health": {
+      "ok": true,
+      "active_video_id": null,
+      "queue_length": 0,
+      "reserved_video_ids": []
+    },
+    "finished_at": "2026-10-26T16:47:33.443562+00:00"
+  },
+  "network_observation": "First pre-deploy health GET timed out at 40 s with no bytes; subsequent post-deploy checks succeeded. No root cause inferred and no media/startup timing claim from these reads.",
+  "limits": [
+    "Chromium CDP touch is not physical iPhone validation.",
+    "EP004 export remains NEEDS_ATTENTION; no retry or newly accredited cause.",
+    "Synthetic local fixtures only; no real episode edits or remote test media.",
+    "Documentation receipt committed after code deployment; no redeploy for documentation."
+  ],
+  "new_paid_generations": 0,
+  "new_tts": 0,
+  "new_reservations": 0,
+  "new_publications": 0,
+  "new_schedules": 0,
+  "new_purchases_or_services": 0,
+  "remote_test_media_uploads": 0
+}

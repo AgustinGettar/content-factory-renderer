@@ -33,3 +33,5 @@ test('RESULTS backend MCP schema discovery and closed read transport use indepen
  const limited=new MetricoolConnection({store:f.store,env:f.env,validateOwner:async()=>true,fetchImpl:async()=>new Response('',{status:429,headers:{'retry-after':'2'}})});await assert.rejects(readResults(limited,'1',range),/RATE_LIMITED/);
  const expired=new MetricoolConnection({store:f.store,env:f.env,validateOwner:async()=>true,fetchImpl:async()=>new Response('',{status:401})});await assert.rejects(readResults(expired,'1',range),/ACCESS_EXPIRED/);
 });
+
+test('RESULTS never attributes analytics to an unverified or changed network account',async()=>{let calls=0;const result=await readResults({analyticsRead:async(_user,read)=>read({verification:{networks:{instagram:false}},call:async()=>{calls++;throw Error('UNEXPECTED_READ');}})},'1',range);assert.equal(calls,0);assert.ok(Object.values(result.networks).every(n=>n.error==='RESULTS_NETWORK_IDENTITY_UNVERIFIED'));});

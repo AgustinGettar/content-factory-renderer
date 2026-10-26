@@ -1,12 +1,12 @@
 {
   "environment": "Chromium 145.0.7632.6, Linux, loopback, real modules/handlers, isolated owner; NOT_IPHONE",
   "external_requests": 0,
-  "shell_before_results_ms": 172,
+  "shell_before_results_ms": 117,
   "play_to_video_ms": {
     "samples": [
-      596,
-      57,
-      58
+      625,
+      56,
+      89
     ],
     "conditions": "loopback, current derivative prepared by opening; cold media benchmark separate"
   },
@@ -128,15 +128,15 @@
     },
     {
       "name": "Nodes",
-      "value": 4498
+      "value": 4546
     },
     {
       "name": "JSHeapUsedSize",
-      "value": 5607612
+      "value": 5019616
     },
     {
       "name": "JSHeapTotalSize",
-      "value": 7475200
+      "value": 7692288
     }
   ],
   "viewport_checks": [

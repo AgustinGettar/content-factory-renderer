@@ -1,0 +1,20 @@
+{
+  "before": true,
+  "environment": "Chromium CDP touch, loopback, real handlers, isolated 20 s timeline / 5 s synthetic source; NOT_IPHONE",
+  "hit_area": {
+    "grip_width": 9,
+    "grip_height": 180,
+    "ruler_height": 28
+  },
+  "ruler_drag": {
+    "target_seconds": 4,
+    "actual_seconds": 3.033333333333333
+  },
+  "zoom_anchor_drift_px": 550,
+  "live_slider_label": "0.60 s",
+  "short_clip_handles": 2,
+  "preview_at_end_seconds": 2,
+  "pass": true,
+  "baseline_commit": "e0499441604aacb9b7eede061fcb6e6698df86e6",
+  "capture_only": true
+}

@@ -1,0 +1,27 @@
+{
+  "before": false,
+  "environment": "Chromium CDP touch, loopback, real handlers, isolated 20 s timeline / 5 s synthetic source; NOT_IPHONE",
+  "hit_area": {
+    "grip_width": 44,
+    "grip_height": 44,
+    "ruler_height": 44
+  },
+  "ruler_drag": {
+    "target_seconds": 4,
+    "actual_seconds": 4
+  },
+  "zoom_anchor_drift_px": 0,
+  "live_slider_label": "1.25 s",
+  "short_clip_handles": 0,
+  "preview_at_end_seconds": 4.966666,
+  "native_seek_seconds": 10,
+  "off_centre_grip_seconds": 2.4,
+  "pan_scroll_px": 110,
+  "edge_scroll_px": 120,
+  "autosave_during_drag": "previous gain received; unfinished offset excluded; cancel and undo preserved",
+  "pinch_zoom": 150,
+  "editing": "touch pan without edits; short voice +0.600 s, receipt, undo; pointercancel and pinch rollback without extra revision; keyboard frame/end; return preserves selection, position and viewport",
+  "pass": true,
+  "baseline_commit": "e0499441604aacb9b7eede061fcb6e6698df86e6",
+  "capture_only": false
+}

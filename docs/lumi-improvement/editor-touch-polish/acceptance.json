@@ -1,0 +1,200 @@
+{
+  "environment": "Chromium 145.0.7632.6, Linux, loopback, real modules/handlers, isolated owner; NOT_IPHONE",
+  "external_requests": 0,
+  "shell_before_results_ms": 133,
+  "play_to_video_ms": {
+    "samples": [
+      594,
+      58,
+      55
+    ],
+    "conditions": "loopback, current derivative prepared by opening; cold media benchmark separate"
+  },
+  "acceptance_snapshot_reads": 1,
+  "touch_polish": {
+    "before": false,
+    "environment": "Chromium CDP touch, loopback, real handlers, isolated 20 s timeline / 5 s synthetic source; NOT_IPHONE",
+    "hit_area": {
+      "grip_width": 44,
+      "grip_height": 44,
+      "ruler_height": 44
+    },
+    "ruler_drag": {
+      "target_seconds": 4,
+      "actual_seconds": 4
+    },
+    "zoom_anchor_drift_px": 0,
+    "live_slider_label": "1.25 s",
+    "short_clip_handles": 0,
+    "preview_at_end_seconds": 4.966666,
+    "native_seek_seconds": 10,
+    "off_centre_grip_seconds": 2.4,
+    "pan_scroll_px": 110,
+    "edge_scroll_px": 120,
+    "autosave_during_drag": "previous gain received; unfinished offset excluded; cancel and undo preserved",
+    "pinch_zoom": 150,
+    "editing": "touch pan without edits; short voice +0.600 s, receipt, undo; pointercancel and pinch rollback without extra revision; keyboard frame/end; return preserves selection, position and viewport",
+    "pass": true
+  },
+  "media_transfers": [
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "audio.wav",
+      "bytes": 96078,
+      "total": 96078,
+      "range": null
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    },
+    {
+      "file": "poster.jpg",
+      "bytes": 7298,
+      "total": 7298,
+      "range": null
+    },
+    {
+      "file": "proxy.mp4",
+      "bytes": 189153,
+      "total": 189153,
+      "range": "bytes=0-189152"
+    }
+  ],
+  "requests": {
+    "total": 96,
+    "snapshot_reads": 3,
+    "provider_reads": 0,
+    "forbidden_writes": 0
+  },
+  "performance": [
+    {
+      "name": "Documents",
+      "value": 3
+    },
+    {
+      "name": "Nodes",
+      "value": 6115
+    },
+    {
+      "name": "JSHeapUsedSize",
+      "value": 4384672
+    },
+    {
+      "name": "JSHeapTotalSize",
+      "value": 7954432
+    }
+  ],
+  "viewport_checks": [
+    "360x780",
+    "390x844",
+    "430x932",
+    "844x390",
+    "125% text"
+  ],
+  "acceptance": "Home → metrics → back → production → existing editor → play → voice +0.6s / -3dB → autosave receipt → back → reopen → publication; isolated only",
+  "pass": true
+}

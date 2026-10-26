@@ -167,3 +167,40 @@ La ventana anterior y posterior tiene cero transporte, operaciones con lease, jo
 Este informe y el recibo se guardan en un commit posterior de documentación; **no se redespliega por documentación**. La exportación completa de EP004 y las comprobaciones físicas de iPhone siguen pendientes. No se anuncia validación completa de Studio V1.
 
 Comprobación humana final única: dentro de Studio en tu iPhone, recorré Inicio → episodio → Editar, reproducí un clip existente y volvé a Inicio; confirmá que la reproducción, el regreso y los controles se sienten claros, sin activar producción ni exportación.
+
+## Pulido táctil del Editor · 26/10/2026
+
+El usuario confirmó que pudo abrir el Editor del episodio y pidió mejorar la barra para mover la línea de tiempo y otros detalles. Esta revisión continúa sobre HEAD `e0499441604aacb9b7eede061fcb6e6698df86e6`, cuyo código live era `49c57d4e208397a16d998ceada6126d516b5cc62`. Cambia sólo la interacción y presentación del Editor, con sus pruebas y evidencia. No cambia modelos, permisos, CAS, proveedor, calidad del master ni almacenamiento.
+
+### Cambios visibles
+
+- Barra «Posición» con tirador mayor y tiempo al lado; Reproducir y Ampliar tienen el mismo ancho y altura, también con texto aumentado. Los sliders comparten el estilo de Lumi y actualizan su valor durante el movimiento.
+- Cursor con agarre de **44 × 44 CSS px** sobre una regla de 44 px. Toda la regla acompaña el arrastre; agarrar el cursor fuera del centro no provoca un salto. Al llegar al borde, la vista se desplaza sólo mientras continúa el gesto. El cursor también admite ajuste por fotograma con teclado.
+- El zoom mantiene el punto visible, incluido el gesto con dos dedos. Al alejarlo, la regla usa marcas menos juntas. Volver conserva posición, selección, zoom y desplazamiento horizontal.
+- Deslizar un clip sin seleccionar recorre la vista; tocarlo lo selecciona para editar. Los clips cortos dejan libre su área de selección/movimiento: los tiradores se muestran sólo en clips seleccionados con espacio suficiente; el recorte sigue disponible en el panel. Cancelar un gesto o iniciar un pinch revierte el cambio transitorio, sin crear una versión accidental.
+- Ir al extremo final muestra el último fotograma, en lugar de conservar una imagen anterior. «Añadir» queda como una acción secundaria discreta cuando no hay selección.
+
+[Comparador visual](lumi-improvement/editor-touch-polish/index.html): [Editor antes](lumi-improvement/editor-touch-polish/before/editor.png) / [después](lumi-improvement/editor-touch-polish/after/editor.png), [audio antes](lumi-improvement/editor-touch-polish/before/audio.png) / [después](lumi-improvement/editor-touch-polish/after/audio.png), [texto al 125%](lumi-improvement/editor-touch-polish/after/texto-ampliado.png). Capturas inspeccionadas personalmente; se corrigió también el margen heredado que desalineaba los botones adyacentes.
+
+### Evidencia de interacción
+
+[Antes](lumi-improvement/editor-touch-polish/before.json) y [después](lumi-improvement/editor-touch-polish/after.json): Chromium 145.0.7632.6, Linux, touch real mediante CDP, módulos y handlers reales, identidad y almacén aislados. Timeline de 20 s compuesto con una fuente sintética local de 5 s repetida; no se renderizó un montaje largo ni se cargó media de prueba en staging. El modo baseline sirve `editor-ui.js` y `style.css` exactamente desde `e049944`; no altera el checkout. Cada medida de gesto corresponde a una muestra del recorrido; no es un estudio estadístico de precisión humana.
+
+| Comprobación | Antes | Después |
+|---|---:|---:|
+| Ancho de agarre del cursor | 9 px | 44 px |
+| Altura de la regla | 28 px | 44 px |
+| Arrastre de regla hacia 4 s | terminaba en 3,03 s | termina en 4,00 s |
+| Desplazamiento visual del cursor al duplicar zoom | 550 px | 0 px |
+| Valor visible mientras el slider pasa a 1,25 s | seguía en 0,60 s | muestra 1,25 s |
+| Seek al final de 20 s: tiempo en la última fuente de 5 s | conservaba 2,00 s | 4,966666 s, último frame de 30 fps |
+
+Se reprodujo además una carrera con autosave: un volumen previo pendiente podía guardar una voz en 0,900 s durante un arrastre que luego se cancelaba, aunque su posición confirmada era 0,600 s. El arrastre ahora dibuja una vista provisional en memoria; sólo al soltar se aplica al edit existente. Autosave conserva el ajuste anterior confirmado, y exportar/deshacer quedan deshabilitados durante el gesto. La prueba sostiene el arrastre 1,2 s, confirma el recibo del volumen anterior, cancela y comprueba que la posición sigue en 0,600 s; no se crea ni modifica un modelo de almacenamiento.
+
+El gesto nativo sobre la barra llegó a 10 s en su punto medio. Se verificaron agarre descentrado, desplazamiento de la vista sin editar, avance en el borde y cese al soltar, voz +0,600 s con recibo de autosave, deshacer, `pointercancel`, pinch durante una edición transitoria, teclado y regreso. Ni recorrer ni cancelar ni hacer zoom creó una revisión. Sin scroll horizontal de página en 360, 390, 430 px y 844×390; botones alineados también al 125% de texto. Son pruebas Chromium, no una validación física de Telegram/iPhone.
+
+[Regresión de Editor](lumi-improvement/editor-touch-polish/editor-contract.json): sincronía de voz, ganancia −3 dB, undo/redo, dos pestañas, CAS, recibo perdido, recuperación local y sesión vencida. El fragmento sintético local de exportación fue de 4,5 s; no es el render real fallido. Doce ajustes cargados tuvieron feedback de 13,9 ms de mediana y 16 ms máximo en ese banco. [Reproducción](lumi-improvement/editor-touch-polish/playback.json) conservó transición con 500 ms de buffering coordinado, reconexión y posición bajo red simulada; sólo poster y primer proxy al abrir. Además pasaron 41 tests focalizados de Editor, Resultados, UI y autenticación. CI y el recibo de staging se registran al cerrar el despliegue.
+
+La apertura física reportada por el usuario corresponde a la versión anterior; los nuevos gestos aún requieren su comprobación en iPhone. EP004 conserva su exportación fallida, sin nueva causa acreditada ni reintento. Cero nuevas generaciones, TTS, reservas, publicaciones, programaciones, contrataciones o cargas de media de prueba remotas. Siguen vigentes la pausa, los consentimientos y el techo de USD 8.
+
+Implementación contrastada con [Pointer Capture](https://developer.mozilla.org/en-US/docs/Web/API/Element/setPointerCapture) y [touch-action](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action); los gestos cancelados se revierten y los listeners/capturas se liberan al salir. La comprobación humana final de esta revisión consiste en mover la barra «Posición» y el cursor naranja, hacer zoom y volver dentro del mismo proyecto.

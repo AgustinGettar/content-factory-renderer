@@ -57,7 +57,7 @@ try{
  await page.addInitScript(()=>{window.previewSamples=[];window.previewStarts=[];const AC=window.AudioContext;window.AudioContext=class extends AC{createGain(){const g=super.createGain(),p=this.createScriptProcessor(256,1,1);g.connect(p);p.connect(this.destination);p.onaudioprocess=e=>{const values=e.inputBuffer.getChannelData(0);let sum=0,peak=0;for(const x of values){sum+=x*x;peak=Math.max(peak,Math.abs(x));}window.previewSamples.push({at:e.playbackTime,peak,rms:Math.sqrt(sum/values.length)});};return g;}createBufferSource(){const n=super.createBufferSource(),start=n.start.bind(n);n.start=(...args)=>{window.previewStarts.push({when:args[0],offset:args[1],duration:args[2],context:this.currentTime});return start(...args);};return n;}};});
  await page.goto(base+'/lumi/studio');await page.locator('[data-tab=editor]').click();await page.locator('[data-edit-action=import]').click();await page.locator('[data-editor-inspector]').waitFor({timeout:90000});
  const projectId=Object.keys((await store.get('1')).state.mini_app.editor_projects)[0];
- await page.locator('[data-source-choice]').selectOption({label:'Narración · audio'});
+ await page.locator('[data-source-choice]').selectOption(digest([audioArtifact.artifact_id,audioArtifact.sha256]));
  await page.locator('[data-edit-action=add-source]').click();
  const project=(await store.get('1')).state.mini_app.editor_projects[projectId];
  await page.locator('[data-lane=voice] [data-clip]').first().click();

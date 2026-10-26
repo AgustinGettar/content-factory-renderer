@@ -44,3 +44,8 @@ test('EDITOR real FFmpeg: measured offset and -3dB, stream profile, original int
  console.log(JSON.stringify({evidence:'EDITOR_SIGNAL_REAL_FFMPEG',onset_seconds:onset/RATE,expected_offset_seconds:.6,measured_db:measuredDb,video_duration_ticks:meta.video_ticks,sample_rate:48000,frame_tolerance_seconds:1/30,originals_intact:true,encode_count:encodes}));
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+test('EDITOR imports shot provenance from the issued checkpoint artifact, never from a similar name',async()=>{
+ const f=await fixture(),a={artifact_id:'original-clip',sha256:'a'.repeat(64),size:100,bucket:'private-test',path:'clip.mp4',mime:'video/mp4'};
+ const service=new EditorStore({...f,validateOwner:async()=>true,media:{probe:async()=>({video:true,audio:false,video_ticks:5*RATE,audio_ticks:0,streams:[]})},manager:{store:{getEpisode:async()=>({metadata:{user:'1',artifacts:{clip:a}},actions:[{key:'video:q41',scene_id:'q41',artifact:a}]})}}});
+ const imported=await service.gather('1',{episode_id:'ep1'});assert.equal(Object.values(imported.sources)[0].shot_id,'q41');assert.equal(imported.edit.clips[0].source_out,5*RATE);assert.equal(imported.edit.clips[0].timeline_start,0);
+});

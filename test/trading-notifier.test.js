@@ -1,0 +1,18 @@
+// Synthetic transport fixtures: no Telegram or market network calls.
+import test from 'node:test';import assert from 'node:assert/strict';
+import {TradingNotifier} from '../lib/trading/notifier.js';
+import {POLICY} from '../lib/trading/core.js';
+function setup({ambiguous=false,expired=false,changed=false}={}){
+ const now=Date.now(),owner='123',q={bid:'99.99',ask:'100',ask_qty:'100',bid_qty:'100',event_at:now,received_at:now};
+ const feed={state:{connected:true,reconciled:true,system:'online',clock:{error_ms:1,checked_at:now},quote:q,trade:{price:'99',event_at:now,received_at:now}},metadata:{status:'online',checked_at:now},snapshot(){return structuredClone(this.state);}};
+ const plan={id:'test',family:'A',direction:'LONG',version:POLICY.version,hash:'f'.repeat(64),decision_at:now-(expired?31000:0),expires_at:now+60000,entry:'101',limit:'102',stop:'90',target:'130',H:32,setup:{family:'A'},criteria:['SYNTHETIC'],sizing:{qty:'.1',spread:'.01',net_rr:'2',risk:'1',risk_pct:'.1',exposure:'10',reserved:'10.1',effective_leverage:'.01',fee:'.008',slippage:'.0002'}};
+ const notice={id:'synthetic-notice',kind:'SIGNAL',payload:{plan},status:'QUEUED'};
+ const store={async queued(){return notice.status==='QUEUED'?[notice]:[];},async tx(p){if(p.phase==='CLAIM'){notice.status='DISPATCHING';notice.claim_id=p.claim_id;if(changed)feed.state.trade.price='105';return {...notice};}Object.assign(notice,p);return notice;}};
+ const db={from(table){const query={select(){return this;},eq(){return table==='cf_bot_admins'?Promise.resolve({data:[{user_id:123,chat_id:123}]}):this;},maybeSingle(){return Promise.resolve({data:{chat_id:123,state_chat_id:'123'}});}};return query;}};
+ const calls=[],transport={async call(method,body){calls.push({method,body});if(method==='getMe')return {is_bot:true,id:9,username:'AppMultimedia_VideosBot'};if(ambiguous)throw Error('timeout');return {message_id:149,chat:{id:123},date:Math.floor(Date.now()/1000)};}};
+ const args={store,db,feed,transport,pending:()=>true,env:{LUMI_TELEGRAM_TRANSPORT_AUTHORITY:'DIRECT',LUMI_TELEGRAM_BOT_ID:'9',LUMI_TELEGRAM_REVIEW_TEST_USERS:owner}};
+ return {notice,calls,args};
+}
+test('outbound adapter sends independent notice with receipt, no buttons or edits, deduplicates',async()=>{const f=setup();await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'DELIVERED');assert.equal(f.notice.receipt.message_id,149);assert(f.notice.receipt.preflight_at<=f.notice.receipt.attempt_at);assert(f.notice.receipt.attempt_at<=f.notice.receipt.response_at);assert.equal(f.notice.receipt.read_confirmed,false);await new TradingNotifier(f.args).drain();const sends=f.calls.filter(x=>x.method==='sendMessage');assert.equal(sends.length,1);assert(!sends[0].body.reply_markup);assert(f.calls.every(x=>['getMe','sendMessage'].includes(x.method)));});
+test('ambiguous Telegram response remains UNKNOWN after a new notifier instance',async()=>{const f=setup({ambiguous:true});await new TradingNotifier(f.args).drain();await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'UNKNOWN');assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,1);});
+test('pre-send checks reject a passed trigger and an old decision',async()=>{for(const opts of [{changed:true},{expired:true}]){const f=setup(opts);await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'EXPIRED');assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,0);}});

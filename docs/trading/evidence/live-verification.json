@@ -1,0 +1,608 @@
+{
+  "kind": "READ_ONLY_LIVE_DIAGNOSTIC_NOT_DEPLOYMENT",
+  "at": 1793227890252,
+  "version": "lumi-paper-1.1.0",
+  "bootstrap_hash": "0df724bed82b6522294de3d17908d86639881041649fc417ba720467ddcbf9d1",
+  "metadata": {
+    "altname": "XBTUSD",
+    "wsname": "XBT/USD",
+    "aclass_base": "currency",
+    "base": "XXBT",
+    "aclass_quote": "currency",
+    "quote": "ZUSD",
+    "lot": "unit",
+    "cost_decimals": 5,
+    "pair_decimals": 1,
+    "lot_decimals": 8,
+    "lot_multiplier": 1,
+    "leverage_buy": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "leverage_sell": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "fees": [],
+    "fees_maker": [],
+    "fee_volume_currency": "ZUSD",
+    "margin_call": 80,
+    "margin_stop": 40,
+    "ordermin": "0.00006",
+    "costmin": "0.5",
+    "tick_size": "0.1",
+    "status": "online",
+    "execution_venue": "international",
+    "long_position_limit": 350,
+    "short_position_limit": 250,
+    "checked_at": 1793227839474,
+    "symbol": "BTC/USD",
+    "kind": "SPOT",
+    "hash": "d44dcbca606097d3622ca32f6f1f97a0583370f77749eec875b9df83a6ff0318"
+  },
+  "samples": [
+    {
+      "at": 1793227840477,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.58946198",
+        "ask_qty": "0.00190008",
+        "event_at": 1793227840395,
+        "received_at": 1793227840477,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295211",
+        "price": "81216.7",
+        "qty": "0.00115301",
+        "event_at": 1793227834568,
+        "received_at": 1793227834654,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227842191,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.29251384",
+        "ask_qty": "0.00190008",
+        "event_at": 1793227840395,
+        "received_at": 1793227842191,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295211",
+        "price": "81216.7",
+        "qty": "0.00115301",
+        "event_at": 1793227834568,
+        "received_at": 1793227834654,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227844090,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.58946198",
+        "ask_qty": "0.00186125",
+        "event_at": 1793227844004,
+        "received_at": 1793227844090,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295212",
+        "price": "81216.7",
+        "qty": "0.00003883",
+        "event_at": 1793227844004,
+        "received_at": 1793227844087,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227845143,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.29251384",
+        "ask_qty": "0.00186125",
+        "event_at": 1793227844816,
+        "received_at": 1793227845143,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295212",
+        "price": "81216.7",
+        "qty": "0.00003883",
+        "event_at": 1793227844004,
+        "received_at": 1793227844087,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227847326,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.58946198",
+        "ask_qty": "0.00186125",
+        "event_at": 1793227847246,
+        "received_at": 1793227847326,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295212",
+        "price": "81216.7",
+        "qty": "0.00003883",
+        "event_at": 1793227844004,
+        "received_at": 1793227844087,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227848876,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.29251384",
+        "ask_qty": "0.08690809",
+        "event_at": 1793227848792,
+        "received_at": 1793227848876,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295216",
+        "price": "81216.7",
+        "qty": "0.0085931",
+        "event_at": 1793227848792,
+        "received_at": 1793227848873,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227852437,
+      "quote": {
+        "bid": "81216.6",
+        "ask": "81216.7",
+        "bid_qty": "0.29251384",
+        "ask_qty": "0.00046173",
+        "event_at": 1793227852349,
+        "received_at": 1793227852437,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295220",
+        "price": "81219.4",
+        "qty": "0.00386224",
+        "event_at": 1793227852349,
+        "received_at": 1793227852432,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227853605,
+      "quote": {
+        "bid": "81219.3",
+        "ask": "81219.4",
+        "bid_qty": "0.29247772",
+        "ask_qty": "0.00046172",
+        "event_at": 1793227853318,
+        "received_at": 1793227853605,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295220",
+        "price": "81219.4",
+        "qty": "0.00386224",
+        "event_at": 1793227852349,
+        "received_at": 1793227852432,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227854664,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.58891625",
+        "ask_qty": "0.00119585",
+        "event_at": 1793227854583,
+        "received_at": 1793227854664,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295226",
+        "price": "81230.7",
+        "qty": "7.8e-7",
+        "event_at": 1793227854462,
+        "received_at": 1793227854543,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227856102,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.52027791",
+        "ask_qty": "0.00165751",
+        "event_at": 1793227854783,
+        "received_at": 1793227856102,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295226",
+        "price": "81230.7",
+        "qty": "7.8e-7",
+        "event_at": 1793227854462,
+        "received_at": 1793227854543,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227857183,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.52037791",
+        "ask_qty": "0.07075751",
+        "event_at": 1793227857102,
+        "received_at": 1793227857183,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295226",
+        "price": "81230.7",
+        "qty": "7.8e-7",
+        "event_at": 1793227854462,
+        "received_at": 1793227854543,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227858313,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.51933871",
+        "ask_qty": "0.15694891",
+        "event_at": 1793227858231,
+        "received_at": 1793227858313,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295227",
+        "price": "81229.7",
+        "qty": "0.0010392",
+        "event_at": 1793227857592,
+        "received_at": 1793227857674,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227859341,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.58027511",
+        "ask_qty": "0.15694891",
+        "event_at": 1793227859259,
+        "received_at": 1793227859341,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295227",
+        "price": "81229.7",
+        "qty": "0.0010392",
+        "event_at": 1793227857592,
+        "received_at": 1793227857674,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227834651,
+        "error_ms": 116,
+        "rtt_ms": 198,
+        "offset_interval": [
+          -116,
+          82
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227862113,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.58027511",
+        "ask_qty": "0.16893444",
+        "event_at": 1793227862027,
+        "received_at": 1793227862113,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295228",
+        "price": "81229.8",
+        "qty": "0.00001447",
+        "event_at": 1793227862027,
+        "received_at": 1793227862109,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227860410,
+        "error_ms": 81,
+        "rtt_ms": 159,
+        "offset_interval": [
+          -78,
+          81
+        ]
+      },
+      "quality": null
+    },
+    {
+      "at": 1793227864161,
+      "quote": {
+        "bid": "81229.7",
+        "ask": "81229.8",
+        "bid_qty": "0.35351406",
+        "ask_qty": "0.01266154",
+        "event_at": 1793227864076,
+        "received_at": 1793227864161,
+        "source": "KRAKEN_WS_V2_BBO",
+        "message_type": "update"
+      },
+      "trade": {
+        "id": "113295230",
+        "price": "81229.8",
+        "qty": "0.00113389",
+        "event_at": 1793227864076,
+        "received_at": 1793227864157,
+        "source": "KRAKEN_WS_V2_TRADE",
+        "message_type": "update"
+      },
+      "clock": {
+        "checked_at": 1793227860410,
+        "error_ms": 81,
+        "rtt_ms": 159,
+        "offset_interval": [
+          -78,
+          81
+        ]
+      },
+      "quality": null
+    }
+  ],
+  "incidents": [
+    {
+      "type": "DATA_INCIDENT",
+      "reason": "BAR_CORRECTION",
+      "at": 1793227839910,
+      "tf": 240,
+      "correction_count": 550
+    }
+  ],
+  "bars": {
+    "15": {
+      "count": 720,
+      "first": 1792579500000,
+      "last": 1793227500000
+    },
+    "60": {
+      "count": 720,
+      "first": 1790632800000,
+      "last": 1793224800000
+    },
+    "240": {
+      "count": 1265,
+      "first": 1775001600000,
+      "last": 1793217600000
+    }
+  },
+  "ruleEvaluation": {
+    "reason": "SIN_OPORTUNIDAD_VALIDA",
+    "context": {
+      "long": false,
+      "short": false,
+      "breakLong": false,
+      "breakShort": false,
+      "range": false
+    },
+    "plans": 0
+  },
+  "staleInjection": {
+    "synthetic": true,
+    "result": "STALE_QUOTE"
+  },
+  "resources": {
+    "memory": {
+      "rss": 75943936,
+      "heapTotal": 22261760,
+      "heapUsed": 17382432,
+      "external": 4589547,
+      "arrayBuffers": 602297
+    },
+    "usage": {
+      "userCPUTime": 386984,
+      "systemCPUTime": 52616,
+      "maxRSS": 74164,
+      "sharedMemorySize": 0,
+      "unsharedDataSize": 0,
+      "unsharedStackSize": 0,
+      "minorPageFault": 24395,
+      "majorPageFault": 0,
+      "swappedOut": 0,
+      "fsRead": 0,
+      "fsWrite": 0,
+      "ipcSent": 0,
+      "ipcReceived": 0,
+      "signalsCount": 0,
+      "voluntaryContextSwitches": 733,
+      "involuntaryContextSwitches": 26
+    }
+  },
+  "telegram_calls": 0
+}

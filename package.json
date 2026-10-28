@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "trading:worker": "node --max-old-space-size=192 scripts/trading-worker.mjs",
+    "trading:probe": "node scripts/trading-live-probe.mjs",
+    "trading:test": "node --test test/trading-*.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.57.4",
     "ajv": "8.20.0",
+    "decimal.js": "10.6.0",
     "express": "5.1.0"
   },
   "devDependencies": {

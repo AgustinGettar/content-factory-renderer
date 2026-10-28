@@ -1,0 +1,21 @@
+name: Lumi Trading paper isolation
+on:
+  push:
+    branches: [lumi-telegram-review-v1]
+    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'data/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paper-tests:
+    if: github.ref == 'refs/heads/lumi-telegram-review-v1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test test/trading-*.test.js test/lumi-direct-telegram.test.js test/lumi-mini-app-auth.test.js

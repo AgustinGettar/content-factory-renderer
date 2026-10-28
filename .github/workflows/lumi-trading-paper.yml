@@ -1,14 +1,14 @@
 name: Lumi Trading paper isolation
 on:
   push:
-    branches: [lumi-telegram-review-v1]
-    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'data/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
+    branches: [lumi-telegram-review-v1, lumi-trading-gcp]
+    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   paper-tests:
-    if: github.ref == 'refs/heads/lumi-telegram-review-v1'
+    if: github.ref == 'refs/heads/lumi-telegram-review-v1' || github.ref == 'refs/heads/lumi-trading-gcp'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

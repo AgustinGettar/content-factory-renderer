@@ -1,0 +1,38 @@
+[Unit]
+Description=Lumi Trading experimental paper monitor
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=lumitrading
+Group=lumitrading
+WorkingDirectory=/opt/lumi-trading/current
+Environment=NODE_ENV=production
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/etc/lumi-trading/worker.env
+ExecStart=/usr/bin/env node --max-old-space-size=192 scripts/trading-worker.mjs
+Restart=on-failure
+RestartSec=60
+TimeoutStopSec=20
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+AmbientCapabilities=
+MemoryMax=448M
+TasksMax=64
+SyslogIdentifier=lumi-trading
+
+[Install]
+WantedBy=multi-user.target

@@ -2,6 +2,8 @@
 
 Estado de entrega: código y pruebas preparados; base de staging migrada. **No está desplegado ni activado. No hay recibo Telegram real.** El 28/10/2026 Render devolvió `suspended: suspended`, `suspenders: [billing]` para `content-factory-av2-staging`, plan `free`. El workspace no tiene otro recurso de cómputo utilizable fuera de producción. La creación de capacidad de pago necesita presupuesto del propietario.
 
+Actualización 29/10/2026: la rama `lumi-trading-gcp` prepara una alternativa en Compute Engine con verificación de identidad por metadata y supervisión systemd. [Preparación Google Cloud](GOOGLE_CLOUD.md). No se ha creado una VM ni comprobado todavía la prueba gratuita de la cuenta. El informe Render siguiente describe la opción original; contratar Render no es un requisito de la alternativa Google Cloud.
+
 ## Aislamiento y ejecución
 
 `npm run trading:worker` ejecuta un worker dedicado, sin servidor HTTP. Usa el mismo `TelegramTransport` de `lib/telegram-review-v1/runtime.js`, mediante importación, y solo llama a `getMe` y `sendMessage`. No cambia dicho transporte, el webhook, las rutas, menús ni callbacks. No consume updates. No toca `server.js`, `public/lumi-studio`, `lib/telegram-mini-app`, sesiones audiovisuales ni panel 148. No se importan `server.js` ni puntos de arranque multimedia.
@@ -23,7 +25,7 @@ flowchart TD
   R --> D
 ```
 
-El worker debe estar supervisado por Render y residir en un servicio separado. El arranque rechaza el ID del web service audiovisual, otro proyecto Supabase, otra rama, un modo distinto de PAPER o variables de claves privadas Kraken. No contiene clientes de órdenes ni fondos.
+El worker debe estar supervisado y residir en un servicio separado: Render o systemd en una VM dedicada de Compute Engine. El guard por defecto conserva la identidad Render original; el modo GCE requiere proyecto, ID numérico y zona coincidentes con la metadata real. Ambos rechazan otro proyecto Supabase, un modo distinto de PAPER o variables de claves privadas Kraken. No contiene clientes de órdenes ni fondos.
 
 ## Parámetros y semántica
 

@@ -1,4 +1,4 @@
-// Dedicated supervised Render background worker. Does NOT start server.js,
+// Dedicated supervised Render or Compute Engine worker. Does NOT start server.js,
 // mount routes, consume Telegram updates, invoke media, or access order APIs.
 import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';
@@ -7,9 +7,9 @@ import {TradingStore} from '../lib/trading/store.js';
 import {TradingEngine} from '../lib/trading/engine.js';
 import {TradingNotifier} from '../lib/trading/notifier.js';
 import {POLICY,hash} from '../lib/trading/core.js';
+import {assertTradingRuntime} from '../lib/trading/runtime-guard.js';
 const env=process.env;
-if(env.LUMI_RUNTIME_ENV!=='staging'||env.LUMI_TRADING_MODE!=='PAPER'||env.SUPABASE_URL!=='https://mofjhwathxzfnjapvvst.supabase.co'||env.RENDER_GIT_BRANCH!=='lumi-telegram-review-v1'||!env.LUMI_TRADING_RENDER_SERVICE_ID||env.RENDER_SERVICE_ID!==env.LUMI_TRADING_RENDER_SERVICE_ID||env.RENDER_SERVICE_ID==='srv-dapgakqd0e5s73fottig')throw Error('TRADING_DEDICATED_STAGING_WORKER_REQUIRED');
-if(Object.keys(env).some(k=>/KRAKEN.*(SECRET|PRIVATE|API_KEY)/.test(k)))throw Error('TRADING_PUBLIC_MARKET_ONLY');
+const runtime=await assertTradingRuntime(env);
 const seed=JSON.parse(await readFile(new URL('../data/trading/bootstrap.json',import.meta.url),'utf8'));
 if(seed.kind!=='HISTORICAL_ONLY'||seed.exchange!=='KRAKEN'||seed.instrument!=='BTC/USD_SPOT')throw Error('HISTORICAL_MARKET_MISMATCH');
 const db=createClient(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{fetch:(url,opts={})=>fetch(url,{...opts,signal:AbortSignal.timeout(8000)})}});
@@ -26,4 +26,4 @@ const resourceTimer=setInterval(()=>{const usage=process.cpuUsage(oldCPU),now=Da
 },60000);
 async function stop(){if(shutting)return;shutting=true;clearInterval(timer);clearInterval(resourceTimer);feed.stop();engine.cancelPending('ORDER_CANCELLED_ON_SHUTDOWN');try{if(!engine.busy)await engine.flush();await store.tx({phase:'RELEASE'});}finally{process.exit(0);}}
 process.on('SIGTERM',stop);process.on('SIGINT',stop);process.on('unhandledRejection',fail);process.on('uncaughtException',fail);
-console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',policy_hash:hash(POLICY),notifications:!!engine.notifier}));
+console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier}));

@@ -1,6 +1,7 @@
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -13,6 +14,19 @@ TARGET='b'*40
 
 
 class UpdateTests(unittest.TestCase):
+    def test_public_release_readable_by_worker_and_private_umask_restored(self):
+        with tempfile.TemporaryDirectory() as temp:
+            release=Path(temp)/'release'
+            def fake_git(args):
+                release.mkdir();(release/'code.js').write_text('public code')
+            previous=os.umask(0o077)
+            try:
+                with patch.object(update,'run',side_effect=fake_git):update.create_worktree(Path(temp),release,TARGET)
+                self.assertEqual(release.stat().st_mode&0o777,0o755)
+                self.assertEqual((release/'code.js').stat().st_mode&0o777,0o644)
+                restored=os.umask(0o077);self.assertEqual(restored,0o077)
+            finally:os.umask(previous)
+
     def exercise(self,committed=None,scope_bad=False,preflight_error=False,success=False):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);releases=root/'releases';releases.mkdir()

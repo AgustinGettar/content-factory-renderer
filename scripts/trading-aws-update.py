@@ -62,6 +62,16 @@ def switch_to(path):
     temp.replace(CURRENT)
 
 
+def create_worktree(old,release,target):
+    # The service runs as lumitrading; public source must remain readable by it.
+    # The installer otherwise retains a private umask and never rewrites secrets.
+    previous=os.umask(0o022)
+    try:
+        run(['git','-C',str(old),'worktree','add','--detach',str(release),target])
+    finally:
+        os.umask(previous)
+
+
 def update(target):
     if os.geteuid()!=0 or not re.fullmatch('[a-f0-9]{40}',target):
         raise RuntimeError('ROOT_AND_PINNED_REVISION_REQUIRED')
@@ -84,7 +94,7 @@ def update(target):
         raise RuntimeError('UPDATE_OUTSIDE_TRADING_SCOPE')
     release=RELEASES/target
     if not release.exists():
-        run(['git','-C',str(old),'worktree','add','--detach',str(release),target])
+        create_worktree(old,release,target)
     if run(['git','-C',str(release),'rev-parse','HEAD'])!=target:
         raise RuntimeError('TARGET_REVISION_MISMATCH')
     run(['git','-C',str(release),'diff','--exit-code'])

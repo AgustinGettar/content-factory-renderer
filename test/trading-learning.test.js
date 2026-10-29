@@ -63,8 +63,8 @@ test('engine initialization persists learning once and does not reset either bal
  await new TradingEngine({store,feed:new EventEmitter(),now:()=>start+1}).initialize();assert.equal(saved.frequency.account.cash,'86');assert.equal(notices.filter(n=>n.payload.type==='LEARNING_ENABLED').length,1);assert.equal(saved.learning.protocol.changesEntryRules,false);
 });
 test('brief Telegram messages include the panel, event status, costs and uncertainty without raw model payloads',()=>{
- const p={id:'x'.repeat(64),family:'F',entry:'80000',limit:'80040',stop:'79900',target:'81500',expires_at:start+120000,sizing:{qty:'.0001',risk:'.25'},study:{prediction:{status:'UNAVAILABLE'}}};
- const signal=renderNotice({kind:'SIGNAL',payload:{plan:p,account:ledger}},{quote:{event_at:start}},start);assert(signal.length<850);assert(signal.includes(PANEL_URL));assert.match(signal,/PLAN DE COMPRA/);assert.match(signal,/NO DISPONIBLE/);assert.doesNotMatch(signal,/\{.*\}|policy_hash/);
- const open=renderNotice({kind:'RESULT',payload:{type:'PAPER_OPENED',ledger,plan:p,price:'80001',qty:'.0001',at:start,id:p.id}},null,start);assert.match(open,/COMPRA EJECUTADA/);assert(open.includes(PANEL_URL));
- const close=renderNotice({kind:'RESULT',payload:{ledger,entry:'80001',price:'79900',pnl:'-.25',fees:'.21',at:start,id:p.id,quality:'GAP_CONSERVATIVE',reason:'STOP'}},null,start);assert.match(close,/Neto: -0.25/);assert.match(close,/Datos incompletos/);assert(close.includes(PANEL_URL));
+ const p={id:'x'.repeat(64),family:'F',entry:'80000',limit:'80040',stop:'79900',target:'81500',expires_at:start+120000,sizing:{qty:'.0001',risk:'.25',fee:'.008',slippage:'.0002',spread:'.1',net_rr:'1.5'},study:{prediction:{status:'UNAVAILABLE'}}};
+ const signal=renderNotice({kind:'SIGNAL',payload:{plan:p,account:ledger}},{quote:{event_at:start}},start);assert(signal.length<850);assert(signal.includes(PANEL_URL));assert.match(signal,/Todavía no se ejecutó/);assert.match(signal,/NO DISPONIBLE/);assert.doesNotMatch(signal,/\{.*\}|policy_hash/);
+ const open=renderNotice({kind:'RESULT',payload:{type:'PAPER_OPENED',ledger,plan:p,price:'80001',qty:'.0001',at:start,id:p.id}},null,start);assert.match(open,/abrí una compra simulada/);assert(open.includes(PANEL_URL));
+ const close=renderNotice({kind:'RESULT',payload:{ledger,entry:'80001',price:'79900',pnl:'-.25',fees:'.21',at:start,id:p.id,quality:'GAP_CONSERVATIVE',reason:'STOP'}},null,start);assert.match(close,/Resultado neto: -0.25/);assert.match(close,/datos incompletos/);assert(close.includes(PANEL_URL));
 });

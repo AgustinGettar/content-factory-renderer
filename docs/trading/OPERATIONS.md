@@ -1,5 +1,7 @@
 # Lumi Trading — implementación experimental 1.1.0
 
+Estado comprobado el 29/10/2026 a las 01:44 UTC: worker AWS activo, revisión persistida 141 y lease vigente. Aviso técnico DELIVERED, message_id 163, a las 01:37:40 UTC; el propietario confirmó recepción. Cotización al intentar ese envío: 51 ms; trade: 188 ms. La instancia conserva la revisión c054ccf; el cambio posterior a 100 USD queda pendiente de ejecutar y verificar. Probabilidad NO DISPONIBLE; sin operaciones simuladas maduras. Los apartados siguientes conservan el historial de preparación.
+
 Estado de entrega: código y pruebas preparados; base de staging migrada. **No está desplegado ni activado. No hay recibo Telegram real.** El 28/10/2026 Render devolvió `suspended: suspended`, `suspenders: [billing]` para `content-factory-av2-staging`, plan `free`. El workspace no tiene otro recurso de cómputo utilizable fuera de producción. La creación de capacidad de pago necesita presupuesto del propietario.
 
 Actualización 29/10/2026: la rama `lumi-trading-gcp` prepara una alternativa en Compute Engine con verificación de identidad por metadata y supervisión systemd. [Preparación Google Cloud](GOOGLE_CLOUD.md). No se ha creado una VM ni comprobado todavía la prueba gratuita de la cuenta. El informe Render siguiente describe la opción original; contratar Render no es un requisito de la alternativa Google Cloud.
@@ -31,7 +33,7 @@ El worker debe estar supervisado y residir en un servicio separado: Render o sys
 
 ## Parámetros y semántica
 
-Todas las reglas, costes e hipótesis de fill siguen EXPERIMENTALES. Cuenta ficticia inicial reproducible: 10.000 USD, no atribuida al usuario. Riesgo 0,25 %, riesgo abierto máximo 0,50 %, una posición/reserva por cartera, 10 % de efectivo, exposición máxima 1×, pausa diaria 1 % y drawdown 5 %. Sin préstamo, cortos ejecutables, martingala, parciales ni stops móviles. Los candidatos bajistas se registran como no ejecutables en este spot.
+Todas las reglas, costes e hipótesis de fill siguen EXPERIMENTALES. Capital inicial solicitado el 29/10/2026: 100 USD ficticios. El código actual usa ese importe; su aplicación a la VM exige el actualizador dedicado. La migración solo admite cuentas sin operaciones ejecutadas ni abiertas y conserva los eventos anteriores. Riesgo 0,25 %, riesgo abierto máximo 0,50 %, una posición/reserva por cartera, 10 % de efectivo, exposición máxima 1×, pausa diaria 1 % y drawdown 5 %. Sin préstamo, cortos ejecutables, martingala, parciales ni stops móviles. Los candidatos bajistas se registran como no ejecutables en este spot.
 
 Plan A/B/C de la especificación y adenda: 4 h / 1 h / 15 min; H=32/24/16; entrada stop-limit con límite de 0,10 ATR15; vencimiento dos velas; prioridad A/B/C. Solo confirmaciones posteriores al setup, con join por disponibilidad. EMA y RMA se inicializan mediante SMA; Bollinger usa desviación poblacional. Rechazos por distancia técnica, R neto, costes, liquidez o saldo no alteran niveles para forzar una señal.
 

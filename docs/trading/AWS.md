@@ -158,3 +158,28 @@ Fuentes oficiales:
 [Node en AL2023](https://docs.aws.amazon.com/linux/al2023/ug/nodejs.html),
 [EC2 Instance Connect](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-methods.html),
 [IMDSv2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html).
+
+## Cambio solicitado a 100 USD — 29/10/2026
+
+La instancia i-0ae2ad0bb886f3d7f arrancó el monitor PAPER y entregó el aviso
+técnico 163. El usuario confirmó recepción. El registro de arranque mezcla
+las copias de tee/cloud-init; los asistentes móviles recuperan una clave
+Ed25519 completa del registro EC2 autenticado y comprueban la huella cuando
+consta. Se mantiene StrictHostKeyChecking y el acceso temporal /32.
+
+El propietario pidió reducir el capital inicial de 10.000 a 100 USD.
+`trading-aws-update.py` prepara una revisión exacta, con dependencias idénticas,
+comprueba que la cartera siga sin fills y reinicia solo el servicio de trading.
+El worker migra bajo lease y registra estado anterior, motivo, política y aviso
+durable en el mismo commit de estado. Si encuentra una operación abierta o
+resultados anteriores, rechaza la migración; no elimina pérdidas para reiniciar.
+Tras un checkpoint de 100 USD nunca vuelve automáticamente a la política vieja.
+Un error ambiguo de lectura tampoco autoriza ese rollback.
+
+El riesgo inicial sigue siendo 0,25 %: presupuesto de 0,25 USD por entrada.
+No se aumentan cantidades para superar mínimos, costes o liquidez. Los mensajes
+usan el capital de la política, sin textos fijos de 10.000 USD. La señal técnica
+original no se repite; el cambio de capital tiene su propio aviso deduplicado.
+
+El código no constituye evidencia de despliegue: comprobar `state.capital`,
+ambas carteras, el evento PAPER_INITIAL_CAPITAL_CHANGED y el nuevo recibo.

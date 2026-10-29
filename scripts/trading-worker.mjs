@@ -1,4 +1,4 @@
-// Dedicated supervised Render or Compute Engine worker. Does NOT start server.js,
+// Dedicated supervised Render, Compute Engine or EC2 worker. Does NOT start server.js,
 // mount routes, consume Telegram updates, invoke media, or access order APIs.
 import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';

@@ -1,14 +1,14 @@
 name: Lumi Trading paper isolation
 on:
   push:
-    branches: [lumi-telegram-review-v1, lumi-trading-gcp]
-    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
+    branches: [lumi-telegram-review-v1, lumi-trading-gcp, lumi-trading-aws]
+    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   paper-tests:
-    if: github.ref == 'refs/heads/lumi-telegram-review-v1' || github.ref == 'refs/heads/lumi-trading-gcp'
+    if: github.ref == 'refs/heads/lumi-telegram-review-v1' || github.ref == 'refs/heads/lumi-trading-gcp' || github.ref == 'refs/heads/lumi-trading-aws'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -19,3 +19,5 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --test test/trading-*.test.js test/lumi-direct-telegram.test.js test/lumi-mini-app-auth.test.js
+      - run: python3 -m unittest discover -s test -p 'trading_aws_*_test.py' -v
+      - run: bash -n deploy/trading/aws-bootstrap.sh

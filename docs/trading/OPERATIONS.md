@@ -4,6 +4,8 @@ Estado de entrega: código y pruebas preparados; base de staging migrada. **No e
 
 Actualización 29/10/2026: la rama `lumi-trading-gcp` prepara una alternativa en Compute Engine con verificación de identidad por metadata y supervisión systemd. [Preparación Google Cloud](GOOGLE_CLOUD.md). No se ha creado una VM ni comprobado todavía la prueba gratuita de la cuenta. El informe Render siguiente describe la opción original; contratar Render no es un requisito de la alternativa Google Cloud.
 
+Actualización posterior 29/10/2026: Google Cloud exige un prepago de 25 EUR que no está autorizado. El propietario mostró una cuenta AWS con Free Plan activo y 100 USD iniciales. La rama `lumi-trading-aws` prepara un instalador para una sola instancia EC2, con comprobación del plan por API, identidad IMDSv2 y supervisión systemd. [Instalación y verificación AWS](AWS.md). Sigue pendiente ejecutarlo en esa cuenta y verificar feed, persistencia y recibo real; no se ha creado ni activado infraestructura AWS desde esta entrega.
+
 ## Aislamiento y ejecución
 
 `npm run trading:worker` ejecuta un worker dedicado, sin servidor HTTP. Usa el mismo `TelegramTransport` de `lib/telegram-review-v1/runtime.js`, mediante importación, y solo llama a `getMe` y `sendMessage`. No cambia dicho transporte, el webhook, las rutas, menús ni callbacks. No consume updates. No toca `server.js`, `public/lumi-studio`, `lib/telegram-mini-app`, sesiones audiovisuales ni panel 148. No se importan `server.js` ni puntos de arranque multimedia.
@@ -25,7 +27,7 @@ flowchart TD
   R --> D
 ```
 
-El worker debe estar supervisado y residir en un servicio separado: Render o systemd en una VM dedicada de Compute Engine. El guard por defecto conserva la identidad Render original; el modo GCE requiere proyecto, ID numérico y zona coincidentes con la metadata real. Ambos rechazan otro proyecto Supabase, un modo distinto de PAPER o variables de claves privadas Kraken. No contiene clientes de órdenes ni fondos.
+El worker debe estar supervisado y residir en un servicio separado: Render o systemd en una VM dedicada de Compute Engine o EC2. El guard por defecto conserva la identidad Render original; GCE requiere proyecto, ID numérico y zona coincidentes con metadata; EC2 requiere cuenta, instancia y región coincidentes con IMDSv2. Todos rechazan otro proyecto Supabase, un modo distinto de PAPER o variables de claves privadas Kraken. No contiene clientes de órdenes ni fondos.
 
 ## Parámetros y semántica
 

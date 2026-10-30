@@ -92,7 +92,7 @@ test('promoted primary and next secondary trial operate concurrently with indepe
  const engine=await new TradingEngine({feed,store,now:h.now}).initialize();engine.repairing=false;engine.laboratory.maintain();
  const t=engine.laboratory.trial();Object.assign(t,qualifyingTrial());t.frames=Object.fromEntries([1,15,60,240].map(tf=>[tf,{training:25,validation:50}]));t.status='ELIGIBLE_PAPER';t.report=promotionReport(t,start+100*DAY);
  assert(engine.laboratory.promote(t,start+100*DAY));engine.laboratory.maintain();assert.equal(engine.laboratory.trial().recipe.id,MARGIN_RECIPES[1].id);
- const cutoff=start+HOUR;h.time(cutoff+2000);const bars=trendBars(HOUR,cutoff,h.now());bars.at(-2).low=78000;feed.series['60']=bars;
+ const cutoff=start+HOUR;h.time(cutoff+2000);const bars=trendBars(HOUR,cutoff,h.now());bars.at(-2).low=78000;feed.series['60']=bars;for(const tf of [1,15])feed.series[tf]=trendBars(tf*60000,cutoff,h.now());
  feed.state.quote.ask=String(bars.at(-1).close);feed.state.quote.bid=String(+feed.state.quote.ask-.1);feed.state.trade.price=feed.state.quote.ask;
  await engine.tick();const primary=engine.active().account,secondary=engine.state.frequency.account;
  assert(primary.pending);assert(secondary.pending);assert.notEqual(primary.pending.plan.version,secondary.pending.plan.version);assert.notEqual(primary.pending.plan.id,secondary.pending.plan.id);

@@ -7,7 +7,7 @@ test('engine wires closed-bar candidate, reservation, durable outbox, fill and a
  const feed=new KrakenFeed({now:()=>now});const meta={lot_decimals:8,ordermin:'.00006',costmin:'.5',tick_size:'.1',status:'online',checked_at:now};feed.metadata=meta;
  feed.state={connected:true,reconciled:true,system:'online',clock:{checked_at:now,error_ms:100},quote:{bid:'3009.8',ask:'3009.9',bid_qty:'100',ask_qty:'100',event_at:now,received_at:now},trade:{price:'3009.8',event_at:now,received_at:now}};
  const bars=(n,tf,base)=>Array.from({length:n},(_,i)=>({start:cutoff-(n-i)*tf,end:cutoff-(n-i-1)*tf,open:base+i-1,high:base+i+3,low:base+i-3,close:base+i,volume:10,trades:1,available_at:cutoff-(n-i-1)*tf+1}));
- feed.series={'240':bars(1001,H4,2000),'60':bars(300,H1,2000),'15':bars(300,M15,2700)};Object.assign(feed.series['15'].at(-1),{open:2996,low:2995,high:3010,close:3009});
+ feed.series={'1':bars(120,60000,2800),'240':bars(1001,H4,2000),'60':bars(300,H1,2000),'15':bars(300,M15,2700)};Object.assign(feed.series['15'].at(-1),{open:2996,low:2995,high:3010,close:3009});
  feed.reconcile=async()=>true;
  const engine=await new TradingEngine({store,feed,now:()=>now}).initialize();engine.repairing=false;engine.state.last_cutoff=cutoff-M15;
  engine.active().strategy.setups.ALONG={id:'synthetic-setup',family:'A',direction:'LONG',at:cutoff-M15,expires:cutoff+M15,atr:100,low:2750,high:3100};

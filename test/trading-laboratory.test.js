@@ -1,3 +1,4 @@
+import {MULTIFRAME_RECIPES} from '../lib/trading/timeframes.js';
 // Synthetic fixtures. These tests are not market-performance evidence.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -88,8 +89,8 @@ test('promoted primary and next secondary trial operate concurrently with indepe
  const h=harness();let saved=h.s;const feed=Object.assign(new KrakenFeed({now:h.now}),h.feed);feed.reconcile=async()=>true;
  const store={async acquire(){return structuredClone(saved);},async renew(){},async commit(s){saved=structuredClone(s);}};
  const engine=await new TradingEngine({feed,store,now:h.now}).initialize();engine.repairing=false;engine.laboratory.maintain();
- const t=engine.laboratory.trial();Object.assign(t,qualifyingTrial());t.status='ELIGIBLE_PAPER';t.report=promotionReport(t,start+100*DAY);
- assert(engine.laboratory.promote(t,start+100*DAY));engine.laboratory.maintain();assert.equal(engine.laboratory.trial().recipe.id,RECIPES[1].id);
+ const t=engine.laboratory.trial();Object.assign(t,qualifyingTrial());t.frames=Object.fromEntries([1,15,60,240].map(tf=>[tf,{training:25,validation:50}]));t.status='ELIGIBLE_PAPER';t.report=promotionReport(t,start+100*DAY);
+ assert(engine.laboratory.promote(t,start+100*DAY));engine.laboratory.maintain();assert.equal(engine.laboratory.trial().recipe.id,MULTIFRAME_RECIPES[1].id);
  const cutoff=start+HOUR;h.time(cutoff+2000);const bars=trendBars(HOUR,cutoff,h.now());bars.at(-2).low=78000;feed.series['60']=bars;
  feed.state.quote.ask=String(bars.at(-1).close);feed.state.quote.bid=String(+feed.state.quote.ask-.1);feed.state.trade.price=feed.state.quote.ask;
  await engine.tick();const primary=engine.active().account,secondary=engine.state.frequency.account;

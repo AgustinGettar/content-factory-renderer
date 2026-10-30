@@ -1,3 +1,4 @@
+import {initializeMakerSizing,MAKER_SIZING_VERSION} from '../lib/trading/maker-sizing.js';
 // Synthetic causal and accounting tests, not a profitability backtest.
 import test from 'node:test';import assert from 'node:assert/strict';
 import {D,POLICY,hash} from '../lib/trading/core.js';
@@ -8,7 +9,7 @@ import {initializeLearning,TradingLearning} from '../lib/trading/learning.js';
 import {initializeLaboratory,TradingLaboratory,laboratoryPlan,CONTEXT_RECIPES} from '../lib/trading/laboratory.js';
 import {initializePortfolio,portfolioPolicy} from '../lib/trading/portfolio.js';
 import {initializeTimeframes} from '../lib/trading/timeframes.js';
-import {initializeMargin,MARGIN_VERSION,marginEconomics} from '../lib/trading/margin.js';
+import {initializeMargin,MARGIN_VERSION,marginEconomics,marginRiskPlan} from '../lib/trading/margin.js';
 import {initializeSecondaryRisk} from '../lib/trading/secondary-risk.js';
 import {initializeEntryProfile} from '../lib/trading/entry-profile.js';
 import {initializeContextProfile,CONTEXT_VERSION,MAKER_ORDER} from '../lib/trading/context-profile.js';
@@ -89,4 +90,34 @@ test('missing candles stop REST retries at four attempts and never select retros
  const engine=await new TradingEngine({feed,store:{async acquire(){return h.s},async commit(){}},now:()=>now}).initialize();engine.repairing=false;engine.state.last_frame_cutoff=NOW-60000;
  for(let i=0;i<6;i++){await engine.boundary();now+=1100;}assert.equal(calls,4);assert.equal(engine.state.last_frame_cutoff,NOW);assert.equal(h.a.pending,null);
  now=NOW+11000;await engine.laboratory.boundary();assert.equal(h.a.pending,null);
+});
+
+function sized(){const h=active();initializeMakerSizing(h.s,NOW,true);h.lab.maintain();return h;}
+test('thin BBO no longer prevents a passive order; actual maker fill still needs sufficient later liquidity',()=>{
+ const thin={...quote,ask_qty:'.0001',bid_qty:'.0001'},minimum={...meta,ordermin:'.00006'},old=active();
+ assert.equal(select(old.a,plan(),thin,minimum,NOW).reason,'MINIMUM_OR_LIQUIDITY');
+ const h=sized(),e=select(h.a,plan(),thin,minimum,NOW);assert.equal(e.type,'SELECTED',JSON.stringify(e));assert(D(e.plan.sizing.qty).gte(minimum.ordermin));assert(D(e.plan.sizing.risk).lte(3));assert(D(e.plan.sizing.reserved).lte(270));
+ assert.equal(e.plan.sizing.sizing_model,'RISK_CAPITAL_AT_POSTING');
+ const f=market();f.quote={...f.quote,...thin,event_at:NOW+2000,received_at:NOW+2000};step(h.a,f,NOW+2000);assert.equal(h.a.position,null);
+ f.trade=market(NOW+3000).trade;step(h.a,f,NOW+3000);assert.equal(h.a.position,null,'insufficient displayed liquidity cannot fill');
+ const fill=step(h.a,market(NOW+4000),NOW+4000).find(e=>e.type==='FILLED');assert(fill);assert.equal(fill.fill_model,'POST_ONLY_TRADE_THROUGH_10X');
+});
+test('maker revision sizes within cash and margin and explains real exchange-minimum failures',()=>{
+ const h=sized(),policy=portfolioPolicy(plan(),quote,POLICY,h.a);
+ const lowCash={...h.a,cash:'31'},affordable=marginRiskPlan(plan(),lowCash,quote,meta,policy);assert(!affordable.reason);assert(D(affordable.reserved).lte(1));assert(D(affordable.risk).lte(3));
+ const tiny=marginRiskPlan(plan(),h.a,quote,{...meta,ordermin:'2'},policy);assert.equal(tiny.reason,'RISK_BELOW_ORDER_MINIMUM');assert.equal(tiny.sizing_diagnostics.limiting,'RISK');assert.equal(tiny.sizing_diagnostics.minimum_qty,'2');
+ const noCash=marginRiskPlan(plan(),{...h.a,cash:'30'},quote,meta,policy);assert.equal(noCash.reason,'CAPITAL_BELOW_ORDER_MINIMUM');assert.equal(noCash.sizing_diagnostics.qty,'0');
+ const primary=h.s.research.versions[h.s.research.active].account;assert.equal(portfolioPolicy(plan(),quote,POLICY,primary).makerSizingModel,undefined);
+ const legacy=marginRiskPlan({...plan(),order:'SIMULATED_STOP_LIMIT'},h.a,{...quote,ask_qty:'.00001'},meta,policy);assert.equal(legacy.reason,'MINIMUM_OR_LIQUIDITY');
+});
+test('sizing correction archives a separate trial only when flat and preserves frozen orders and balances',async()=>{
+ const h=active(),p=selected(h),original=structuredClone(h.a.pendingOrders),version=h.s.laboratory.active,cash=h.a.cash,primary=structuredClone(h.s.research),funding=structuredClone(h.s.laboratory.funding);
+ initializeMakerSizing(h.s,NOW);assert.equal(h.s.makerSizing,undefined);initializeMakerSizing(h.s,NOW,true);h.lab.maintain();assert.equal(h.s.makerSizing.status,'WAITING_FLAT');assert.deepEqual(h.a.pendingOrders,original);assert.equal(h.s.laboratory.active,version);
+ step(h.a,market(NOW+120000),NOW+120000);h.lab.maintain();assert.equal(h.s.makerSizing.status,'ACTIVE');assert.equal(h.a.cash,cash);assert.deepEqual(h.s.research,primary);assert.deepEqual(h.s.laboratory.funding,funding);assert.notEqual(h.s.laboratory.active,version);assert.equal(h.lab.trial().recipe.sizingRevision,MAKER_SIZING_VERSION);assert(h.s.laboratory.execution_archives.some(x=>x.active===version));
+ h.lab.maintain();assert.equal(h.events.filter(e=>e.type==='MAKER_SIZING_ENABLED').length,1);
+ const engine=await new TradingEngine({feed:new KrakenFeed(),store:{async acquire(){return structuredClone(h.s)},async commit(){}},now:()=>NOW+130000,makerSizingRequested:true}).initialize();assert.equal(engine.state.schema,8);assert.equal(engine.state.laboratory.active,h.s.laboratory.active);
+ const view=projectMonitor({states:[{state:h.s}],now:NOW});assert.equal(view.maker_sizing.status,'ACTIVE');assert.equal(view.frequency.maker_sizing_profile.model,'RISK_CAPITAL_AT_POSTING');
+});
+test('precise rejected sizing diagnostics survive selection for the monitor',()=>{
+ const h=sized(),r=select(h.a,plan(),quote,{...meta,ordermin:'2'},NOW);assert.equal(r.reason,'RISK_BELOW_ORDER_MINIMUM');assert.equal(r.sizing_diagnostics.minimum_qty,'2');assert.equal(h.a.pending,null);
 });

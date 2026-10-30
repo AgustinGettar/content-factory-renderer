@@ -17,7 +17,8 @@ const seed=JSON.parse(await readFile(new URL('../data/trading/bootstrap.json',im
 if(seed.kind!=='HISTORICAL_ONLY'||seed.exchange!=='KRAKEN'||seed.instrument!=='BTC/USD_SPOT')throw Error('HISTORICAL_MARKET_MISMATCH');
 const local=env.LUMI_TRADING_STORAGE==='SQLITE';
 const db=local?null:createClient(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{fetch:(url,opts={})=>fetch(url,{...opts,signal:AbortSignal.timeout(8000)})}});
-const store=local?new SQLiteStore(env.LUMI_TRADING_DB_PATH):new TradingStore(db),feed=new KrakenFeed({seed:seed.bars240}),engine=new TradingEngine({store,feed});
+if(env.LUMI_TRADING_SECONDARY_PROFILE&&env.LUMI_TRADING_SECONDARY_PROFILE!=='secondary-growth-1.0.0')throw Error('SECONDARY_RISK_PROFILE_UNKNOWN');
+const store=local?new SQLiteStore(env.LUMI_TRADING_DB_PATH):new TradingStore(db),feed=new KrakenFeed({seed:seed.bars240}),engine=new TradingEngine({store,feed,secondaryRiskRequested:local&&env.LUMI_TRADING_SECONDARY_PROFILE==='secondary-growth-1.0.0'});
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
 await engine.initialize();engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(seed),at:Date.now()});if(local){if(!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}}feed.start();
 const publisher=local?new DashboardPublisher({store,feed,env}):null;

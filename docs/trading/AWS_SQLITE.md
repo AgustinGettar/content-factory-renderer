@@ -73,3 +73,23 @@ No se contratan planes ni se crea otra VM. La instancia y su disco siguen
 consumiendo los créditos AWS existentes. SQLite no añade un servidor de base
 de datos. El disco tiene capacidad finita; no se borra historial automáticamente.
 La publicación web no certifica que se haya ejecutado la instalación en AWS.
+
+## Reparación del arranque y verificación de Telegram
+
+El primer tick con SQLITE verificaba `getChat` mediante el transporte audiovisual,
+cuyo listado de métodos no lo permite. Se reproducía
+`single_message_method_forbidden` después de `getMe`; el mensaje genérico del
+worker ocultaba esa causa. Trading usa ahora un adaptador propio que permite
+únicamente `getMe`, `getChat` de un ID privado positivo y `sendMessage`. Conserva
+la verificación de bot y destinatario y no amplía el transporte audiovisual.
+Las pruebas ejecutan el primer tick con SQLite y el adaptador real, simulando
+solo las respuestas HTTP, y comprueban entrega, deduplicación y saldos.
+
+`trading-aws-repair-update.py` actualiza solo código en la instancia existente.
+Exige SQLITE/PAPER e identidad EC2, limita los archivos modificados, prueba el
+adaptador antes de detener el servicio y crea una copia SQLite consistente.
+Compara todo el estado, eventos, outbox, metadatos y configuración antes de
+iniciar; no importa una exportación ni reinicia cuentas. Exige 65 segundos de
+proceso estable, heartbeat, muestra reciente de mercado, publicación, copia
+cifrada y recibo de Telegram para confirmar el resultado. Los nuevos errores
+registran códigos, clase y líneas de Trading sin mensajes ni secretos.

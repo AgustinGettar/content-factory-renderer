@@ -6,7 +6,7 @@ import {KrakenFeed} from '../lib/trading/feed.js';
 import {initializeFrequency,FrequencyExperiment} from '../lib/trading/frequency.js';
 import {initializeLearning,TradingLearning} from '../lib/trading/learning.js';
 import {initializeLaboratory,refillSecondary,laboratoryPlan,TradingLaboratory,RECIPES,promotionReport,LAB_PROTOCOL,laboratoryPolicy} from '../lib/trading/laboratory.js';
-import {D} from '../lib/trading/core.js';
+import {D,indicators} from '../lib/trading/core.js';
 import {select,step,repairPosition,invalidate} from '../lib/trading/simulator.js';
 import {renderNotice,PANEL_URL} from '../lib/trading/notifier.js';
 const DAY=86400000,HOUR=3600000,start=Date.parse('2026-10-29T14:00:00Z');
@@ -74,7 +74,7 @@ test('promotion waits for all primary positions, then copies rule without money,
 function trendBars(tf,cutoff,now){return Array.from({length:120},(_,i)=>{const p=50000+i*300;return {start:cutoff-(120-i)*tf,end:cutoff-(119-i)*tf,open:p-150,close:p,high:p+100,low:p-1500,volume:10,trades:10,available_at:now};});}
 test('laboratory rules use closed causal bars and a natural target, refusing costs instead of inflating TP',()=>{
  const h=harness(),recipe=RECIPES[0],bars=trendBars(HOUR,start,start+2000);h.time(start+2000);h.feed.state.quote.ask=String(bars.at(-1).close);h.feed.state.quote.bid=String(+h.feed.state.quote.ask-.1);h.feed.state.trade.price=h.feed.state.quote.ask;
- const r=laboratoryPlan(recipe,'test',{'60':bars},h.feed.state,h.feed.metadata,start,h.now());assert(r.plan,JSON.stringify(r));assert.equal(r.plan.recipe,recipe.id);assert.equal(r.plan.holding_ms,48*HOUR);assert.equal(invalidate(r.plan,h.feed.state,h.now(),{long:false}),null);
+ const r=laboratoryPlan(recipe,'test',{'60':bars},h.feed.state,h.feed.metadata,start,h.now());assert(r.plan,JSON.stringify(r));assert.equal(r.plan.recipe,recipe.id);assert.equal(r.plan.evidence.at,h.now());assert(r.plan.evidence.panels[0].candles.every(b=>b.end<=start));for(const [name,key] of [['EMA 20','ema20'],['EMA 50','ema50']])assert.equal(r.plan.evidence.panels[0].lines.find(l=>l.name===name).points.at(-1).value,indicators(bars).at(-1)[key]);assert.equal(r.plan.holding_ms,48*HOUR);assert.equal(invalidate(r.plan,h.feed.state,h.now(),{long:false}),null);
  const future={...bars.at(-1),end:start+HOUR,close:999999,available_at:h.now()+1};assert.equal(laboratoryPlan(recipe,'test',{'60':[...bars,future]},h.feed.state,h.feed.metadata,start,h.now()).plan.hash,r.plan.hash);
  const narrow=bars.map(b=>({...b,open:+b.close-50,high:+b.close+100,low:+b.close-100}));assert.equal(laboratoryPlan(recipe,'test',{'60':narrow},h.feed.state,h.feed.metadata,start,h.now()).reason,'LAB_COSTS_TOO_HIGH');
 });

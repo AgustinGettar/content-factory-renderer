@@ -19,7 +19,7 @@ import time
 import urllib.request
 import urllib.error
 
-BASES={'0490929d46971285303f62ceb7443d8efdf792d7','b62f45c6f80de411a1ef69fc79427d5a2884b005'}
+BASES={'0490929d46971285303f62ceb7443d8efdf792d7','b62f45c6f80de411a1ef69fc79427d5a2884b005','55347e09eb4e1fdeb9b7dbeb65dbe9acc180be6a'}
 BASE='0490929d46971285303f62ceb7443d8efdf792d7'
 ORIGIN='https://github.com/AgustinGettar/content-factory-renderer.git'
 SITE='https://lumi-trading-monitor.aguzz-gettar.chatgpt.site/'
@@ -40,6 +40,47 @@ def write_private(path,text):
     with os.fdopen(fd,'w') as f:
         f.write(text);f.flush();os.fsync(f.fileno())
     temp.replace(path)
+
+def assert_writer_stopped(cgroup_root=Path('/sys/fs/cgroup')):
+    """A failed unit can be fully stopped; never infer that from its label alone."""
+    def inspect():
+        raw=run(['systemctl','show','lumi-trading.service',
+                 '--property=LoadState,ActiveState,SubState,MainPID,ControlPID,ControlGroup'])
+        state=dict(line.split('=',1) for line in raw.splitlines() if '=' in line)
+        if state.get('LoadState')!='loaded':raise RuntimeError('OLD_WRITER_UNIT_NOT_LOADED')
+        if (state.get('ActiveState'),state.get('SubState')) not in {('inactive','dead'),('failed','failed')}:
+            raise RuntimeError('OLD_WRITER_STATE_NOT_STOPPED')
+        if state.get('MainPID')!='0' or state.get('ControlPID')!='0':
+            raise RuntimeError('OLD_WRITER_PROCESS_STILL_PRESENT')
+        if state.get('ControlGroup') not in {'','/system.slice/lumi-trading.service'}:
+            raise RuntimeError('OLD_WRITER_CGROUP_UNEXPECTED')
+
+    inspect()
+    # Check the known service cgroup even when systemd reports an empty path.
+    # cgroup.events includes descendants; the v1 fallback examines each group.
+    unified=(cgroup_root/'cgroup.controllers').is_file()
+    base=cgroup_root if unified else cgroup_root/'systemd'
+    if not base.is_dir():raise RuntimeError('OLD_WRITER_CGROUP_UNVERIFIABLE')
+    group=base/'system.slice/lumi-trading.service'
+    if group.exists():
+        try:
+            if unified:
+                events=dict(line.split() for line in (group/'cgroup.events').read_text().splitlines())
+                if events.get('populated')!='0':raise RuntimeError('OLD_WRITER_PROCESS_STILL_PRESENT')
+            else:
+                paths=[group]+[p for p in group.rglob('*') if p.is_dir()]
+                for path in paths:
+                    if (path/'cgroup.procs').read_text().strip():
+                        raise RuntimeError('OLD_WRITER_PROCESS_STILL_PRESENT')
+        except OSError:
+            # A disappearing empty cgroup is normal after stop. Missing files
+            # inside a surviving group do not prove that its processes exited.
+            if group.exists():raise RuntimeError('OLD_WRITER_CGROUP_UNVERIFIABLE') from None
+    inspect()
+
+def stop_writer():
+    run(['systemctl','stop','lumi-trading.service'],timeout=35)
+    assert_writer_stopped()
 
 def source_barrier(env,bundle):
     url=env.get('SUPABASE_URL')
@@ -134,8 +175,7 @@ def update(target,payload):
     if STATE.is_symlink() or DB.is_symlink():raise RuntimeError('UNSAFE_STATE_PATH')
     STATE.mkdir(mode=0o700,exist_ok=True);user=pwd.getpwnam('lumitrading');os.chown(STATE,user.pw_uid,user.pw_gid)
     if not DB.exists() and __import__('shutil').disk_usage(STATE).free<512*1024*1024:raise RuntimeError('DISK_SPACE_REQUIRED')
-    run(['systemctl','stop','lumi-trading.service'],timeout=35)
-    if run(['systemctl','show','lumi-trading.service','--property=ActiveState','--value'])!='inactive':raise RuntimeError('OLD_WRITER_NOT_STOPPED')
+    stop_writer()
     if not DB.exists():
         try:source_barrier(env,bundle)
         except Exception:

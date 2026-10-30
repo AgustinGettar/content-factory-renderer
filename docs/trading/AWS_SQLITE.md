@@ -15,6 +15,14 @@ sobrescribir una base existente. La revisión exportada y los estados de entrega
 se conservan. La actualización de cartera ya autorizada se aplica al iniciar;
 mantiene saldos y planes anteriores.
 
+El apagado acepta tanto `inactive/dead` como `failed/failed`, siempre con
+MainPID y ControlPID en cero y sin procesos en el cgroup del servicio ni sus
+descendientes. Se comprueba otra vez el estado tras revisar el cgroup. Un fallo
+recordado por systemd no equivale a un proceso activo; tampoco se omite la
+barrera cuando todavía hay procesos o no se puede verificar su ausencia.
+Un reintento conserva la exportación, reutiliza la misma instancia y no
+sobrescribe una base importada.
+
 SQLite usa WAL, synchronous FULL, CAS, fencing, lease y una cola transaccional.
 Un envío interrumpido pasa a UNKNOWN; nunca se reenvía automáticamente como si
 no se hubiera entregado. Los planes vencidos no se presentan como oportunidades

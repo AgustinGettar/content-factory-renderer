@@ -8,6 +8,8 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 import urllib.error
+import subprocess
+import tempfile
 
 spec=importlib.util.spec_from_file_location('sqlite_update',Path(__file__).parents[1]/'scripts/trading-aws-sqlite-update.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
@@ -18,6 +20,62 @@ def fixture():
     p={'export_gzip':base64.b64encode(z).decode(),'export_sha256':hashlib.sha256(z).hexdigest(),'runtime':{'LUMI_TRADING_SITE_ACCESS':'x'*64,'LUMI_TRADING_PUBLISH_KEY':'y'*64,'LUMI_TRADING_BACKUP_KEY':'a'*64}}
     env={'LUMI_TELEGRAM_REVIEW_TEST_USERS':'123','SUPABASE_URL':'https://mofjhwathxzfnjapvvst.supabase.co','SUPABASE_SERVICE_ROLE_KEY':'synthetic'}
     return p,env,b
+
+def service(**changes):
+    state={'LoadState':'loaded','ActiveState':'failed','SubState':'failed',
+           'MainPID':'0','ControlPID':'0','ControlGroup':'/system.slice/lumi-trading.service'}
+    state.update(changes)
+    return '\n'.join(k+'='+v for k,v in state.items())
+
+class StoppedWriterTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.root=Path(self.temp.name);(self.root/'cgroup.controllers').touch()
+        self.group=self.root/'system.slice/lumi-trading.service';self.group.mkdir(parents=True)
+        (self.group/'cgroup.events').write_text('populated 0\nfrozen 0\n')
+    def check(self,**changes):
+        with patch.object(m,'run',return_value=service(**changes)) as run:
+            m.assert_writer_stopped(self.root)
+            self.assertEqual(run.call_count,2)
+    def test_failed_unit_with_no_processes_is_stopped(self):self.check()
+    def test_inactive_unit_with_no_processes_is_stopped(self):self.check(ActiveState='inactive',SubState='dead')
+    def test_absent_cgroup_after_stop_is_accepted(self):
+        (self.group/'cgroup.events').unlink();self.group.rmdir();self.check(ControlGroup='')
+    def test_active_transitional_and_unknown_states_are_rejected(self):
+        for active,sub in [('active','running'),('activating','auto-restart'),('deactivating','stop-sigterm'),('failed','unknown')]:
+            with self.subTest(active=active),self.assertRaisesRegex(RuntimeError,'STATE_NOT_STOPPED'):
+                self.check(ActiveState=active,SubState=sub)
+    def test_main_and_control_processes_are_rejected_even_when_failed(self):
+        for changes in [{'MainPID':'123'},{'ControlPID':'456'},{'MainPID':''}]:
+            with self.subTest(changes=changes),self.assertRaisesRegex(RuntimeError,'PROCESS_STILL_PRESENT'):self.check(**changes)
+    def test_lingering_descendant_is_rejected_even_when_path_is_empty(self):
+        (self.group/'cgroup.events').write_text('populated 1\nfrozen 0\n')
+        with self.assertRaisesRegex(RuntimeError,'PROCESS_STILL_PRESENT'):self.check(ControlGroup='')
+    def test_missing_process_evidence_fails_closed(self):
+        (self.group/'cgroup.events').unlink()
+        with self.assertRaisesRegex(RuntimeError,'CGROUP_UNVERIFIABLE'):self.check()
+    def test_unknown_unit_and_cgroup_are_rejected(self):
+        for changes in [{'LoadState':'not-found'},{'ControlGroup':'/other.service'}]:
+            with self.subTest(changes=changes),self.assertRaises(RuntimeError):self.check(**changes)
+    def test_restart_during_verification_is_rejected(self):
+        with patch.object(m,'run',side_effect=[service(),service(ActiveState='active',SubState='running')]):
+            with self.assertRaisesRegex(RuntimeError,'STATE_NOT_STOPPED'):m.assert_writer_stopped(self.root)
+    def test_v1_descendants_are_checked(self):
+        (self.root/'cgroup.controllers').unlink()
+        group=self.root/'systemd/system.slice/lumi-trading.service';child=group/'child';child.mkdir(parents=True)
+        (group/'cgroup.procs').write_text('');(child/'cgroup.procs').write_text('')
+        self.check()
+        (child/'cgroup.procs').write_text('123\n')
+        with self.assertRaisesRegex(RuntimeError,'PROCESS_STILL_PRESENT'):self.check()
+    def test_failed_stop_command_never_passes_to_verification(self):
+        with patch.object(m,'run',side_effect=subprocess.CalledProcessError(1,['systemctl'])) as run,patch.object(m,'assert_writer_stopped') as verify:
+            with self.assertRaises(subprocess.CalledProcessError):m.stop_writer()
+            verify.assert_not_called()
+            run.assert_called_once_with(['systemctl','stop','lumi-trading.service'],timeout=35)
+    def test_stop_command_precedes_process_verification(self):
+        calls=[]
+        with patch.object(m,'run',side_effect=lambda *a,**k:calls.append('stop')),patch.object(m,'assert_writer_stopped',side_effect=lambda:calls.append('verify')):m.stop_writer()
+        self.assertEqual(calls,['stop','verify'])
 
 class MigrationTests(unittest.TestCase):
     def test_verified_bootstrap_does_not_change_payload(self):

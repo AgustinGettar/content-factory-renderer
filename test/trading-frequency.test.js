@@ -32,8 +32,16 @@ test('minute evaluation selects at most once, with durable scope and no original
  const h=harness(),before=structuredClone(h.state.research);await h.ex.boundary();await h.ex.boundary();assert.equal(h.calls(),1);assert.equal(h.state.frequency.counts.selected,1);assert.equal(h.state.frequency.daySelections,1);assert.equal(h.state.frequency.lastDecision.reason,'ENTRY_SELECTED');assert.deepEqual(h.state.research,before);
  assert.equal(h.notices[0][0],'SIGNAL');assert.equal(h.notices[0][1].account,'FREQUENT_PAPER');assert(h.events.every(e=>e.ledger==='FREQUENT_PAPER'));
 });
-test('stale quotes, daily cap, pause and open positions suppress evaluations without REST or forced trades',async()=>{
- for(const [change,reason] of [[h=>{h.feed.state.quote.event_at=now-6000;},'STALE_QUOTE'],[h=>{h.state.frequency.selectionDay='2026-10-29';h.state.frequency.daySelections=12;},'DAILY_SELECTION_LIMIT'],[h=>{h.state.frequency.account.halted=true;},'DRAWDOWN_HALT'],[h=>{h.state.frequency.account.position={};},'POSITION_OR_ENTRY_IN_PROGRESS']]){const h=harness();change(h);await h.ex.boundary();assert.equal(h.state.frequency.lastDecision.reason,reason);assert.equal(h.calls(),0);assert.equal(h.state.frequency.counts.selected,0);}
+test('minute entries continue after twelve or many earlier selections without reusing a candle',async()=>{
+ for(const count of [12,1200]){
+  const h=harness();h.state.frequency.selectionDay='2026-10-29';h.state.frequency.daySelections=count;
+  await h.ex.boundary();await h.ex.boundary();
+  assert.equal(h.state.frequency.lastDecision.reason,'ENTRY_SELECTED');assert.equal(h.state.frequency.daySelections,count+1);assert.equal(h.state.frequency.counts.selected,1);assert.equal(h.calls(),1);
+  assert(D(h.state.frequency.account.pending.plan.sizing.risk).lte('.25'));
+ }
+});
+test('after twelve selections, stale quotes, cooldown, pause and open positions still suppress entries',async()=>{
+ for(const [change,reason] of [[h=>{h.feed.state.quote.event_at=now-6000;},'STALE_QUOTE'],[h=>{h.state.frequency.cooldownUntil=now+60000;},'COOLDOWN'],[h=>{h.state.frequency.account.halted=true;},'DRAWDOWN_HALT'],[h=>{h.state.frequency.account.position={};},'POSITION_OR_ENTRY_IN_PROGRESS']]){const h=harness();h.state.frequency.selectionDay='2026-10-29';h.state.frequency.daySelections=12;change(h);await h.ex.boundary();assert.equal(h.state.frequency.lastDecision.reason,reason);assert.equal(h.calls(),0);assert.equal(h.state.frequency.counts.selected,0);assert.equal(h.state.frequency.daySelections,12);}
  const h=harness();h.feed.fetchImpl=async()=>{h.time(now+11000);return Response.json({error:[],result:{}});};await h.ex.boundary();assert.equal(h.state.frequency.lastDecision.reason,'BAR_RECONCILIATION_DEADLINE');
 });
 test('small account obeys exchange minimums and daily budget; no extra leverage to force an entry',()=>{

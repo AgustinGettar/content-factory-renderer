@@ -85,10 +85,11 @@ test('Kraken REST minute reconciliation discards the uncommitted last element',a
  h.feed.fetchImpl=async()=>new Response(JSON.stringify({error:[],result:response}));
  assert(await h.feed.reconcile({timeframes:[1]}));assert.equal(h.feed.series['1'].at(-1).end,START+60000);assert.equal(h.feed.series['1'].length,120);assert.equal(restBars(response,1,h.now()).length,120);
 });
-test('a promoted four-frame bundle retains the shared daily limit of its experiment',async()=>{
+test('a promoted four-frame bundle selects a thirteenth plan and retains daily counts and slots',async()=>{
  const h=harness();const store={async acquire(){return {};},async commit(){},async renew(){}};
  h.feed.reconcile=async()=>true;const e=await new TradingEngine({feed:h.feed,store,now:h.now}).initialize();e.repairing=false;e.laboratory.maintain();
  const v=e.active();v.recipe=structuredClone(e.laboratory.trial().recipe);v.selectionDay='2026-10-30';v.daySelections=12;
- h.time(START+60000+2000);h.seed(START+60000);await e.boundary();assert.equal(orders(v.account).length,0);assert(e.events.some(x=>x.reason==='DAILY_SELECTION_LIMIT'));
+ h.time(START+60000+2000);h.seed(START+60000);await e.boundary();assert.equal(orders(v.account).length,1);assert.equal(v.daySelections,13);assert(e.events.some(x=>x.type==='SELECTED'&&x.ledger==='ENGINE'));assert(!e.events.some(x=>x.reason==='DAILY_SELECTION_LIMIT'));
+ await e.boundary();assert.equal(v.daySelections,13);assert.equal(orders(v.account).length,1);
  h.time(START+86400000+2000);h.seed(START+86400000);await e.boundary();assert.equal(v.selectionDay,'2026-10-31');assert(v.daySelections>0);assert(v.daySelections<=3);
 });

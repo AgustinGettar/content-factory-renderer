@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';
 import {KrakenFeed} from '../lib/trading/feed.js';
 import {SQLiteStore} from '../lib/trading/sqlite-store.js';
-import {DashboardPublisher} from '../lib/trading/dashboard-publisher.js';
+import {DashboardPublisher,LIVE_PUBLISH_MS} from '../lib/trading/dashboard-publisher.js';
 import {TradingStore} from '../lib/trading/store.js';
 import {TradingEngine} from '../lib/trading/engine.js';
 import {TradingNotifier} from '../lib/trading/notifier.js';
@@ -29,7 +29,7 @@ const controls=local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0'?new PaperCon
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
 await engine.initialize();engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(seed),at:Date.now()});if(local){if(!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}}feed.start();
 const publisher=local?new DashboardPublisher({store,feed,env,controls}):null;
-const publishTimer=publisher?setInterval(()=>{void publisher.publish();},15000):null;
+const publishTimer=publisher?setInterval(()=>{void publisher.publish();},LIVE_PUBLISH_MS):null;
 if(publisher)void publisher.publish();
 const controlTimer=controls?setInterval(()=>{void controls.poll();},3000):null;
 let shutting=false;

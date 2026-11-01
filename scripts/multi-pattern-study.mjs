@@ -3,18 +3,26 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {PROTOCOL,closedBars,evaluatePatterns,economics} from '../lib/trading/multi-pattern-paper.js';
 const out=process.argv[2]??'/tmp/lumi-multi-pattern-study';
-const end=Math.floor(Date.now()/60000)*60000,start=end-14*86400000,warm=start-2*86400000,split=start+10*86400000;
+const requestedEnd=process.argv[3]?Date.parse(process.argv[3]):Date.now();
+if(!Number.isFinite(requestedEnd)||requestedEnd>Date.now())throw Error('STUDY_END_INVALID');
+const end=Math.floor(requestedEnd/60000)*60000,start=end-14*86400000,warm=start-2*86400000,split=start+10*86400000;
 async function get(path){const r=await fetch('https://futures.kraken.com'+path,{method:'GET',redirect:'error',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('PUBLIC_DATA_HTTP_'+r.status);return r.json();}
 async function history(tf){
- let to=Math.floor(end/1000)-1;const result=new Map();
- for(let page=0;page<16;page++){
-  const path='/api/charts/v1/trade/PF_XBTUSD/'+tf+'m?count=2000&from='+Math.floor(warm/1000)+'&to='+to;
-  const d=await get(path),rows=closedBars(d,tf,end);if(!rows.length)break;
-  for(const b of rows)if(b.start>=warm&&b.end<=end)result.set(b.start,b);
-  const next=Math.floor(rows[0].start/1000)-1;if(next>=to)throw Error('PUBLIC_DATA_PAGINATION_STALLED');to=next;
-  if(rows[0].start<=warm||!d.more_candles)break;
+ const result=new Map(),duration=tf*60000;
+ // The chart service can return the earliest rows of a bounded range. Request
+ // explicit forward chunks; do not infer pagination from more_candles.
+ for(let cursor=Math.ceil(warm/duration)*duration,page=0;cursor<end;page++){
+  if(page>=16)throw Error('PUBLIC_DATA_PAGE_BOUND_EXCEEDED');
+  const until=Math.min(end,cursor+1999*duration);
+  const path='/api/charts/v1/trade/PF_XBTUSD/'+tf+'m?count=2000&from='+Math.floor(cursor/1000)+'&to='+(Math.floor(until/1000)-1);
+  const rows=closedBars(await get(path),tf,end);
+  for(const b of rows)if(b.start>=cursor&&b.start<until&&b.end<=end)result.set(b.start,b);
+  cursor=until;
  }
- return [...result.values()].sort((a,b)=>a.start-b.start);
+ const rows=[...result.values()].sort((a,b)=>a.start-b.start);
+ const first=Math.ceil(warm/duration)*duration,last=Math.floor(end/duration)*duration,expected=(last-first)/duration;
+ if(rows.length!==expected||rows[0]?.start!==first||rows.at(-1)?.end!==last||rows.some((b,i)=>i&&b.start!==rows[i-1].end))throw Error('HISTORICAL_COVERAGE_INCOMPLETE_'+tf);
+ return rows;
 }
 const bars={};for(const tf of [1,5,15])bars[tf]=await history(tf);
 const rawRates=await get('/derivatives/api/v3/historical-funding-rates?symbol=PF_XBTUSD');
@@ -50,6 +58,6 @@ for(const pattern of PROTOCOL.patterns){
  }
  results[pattern]={all:metrics(trades),development:metrics(trades.filter(t=>t.at<split)),holdout:metrics(trades.filter(t=>t.at>=split)),decisions,trades};
 }
-const dataset={symbol:PROTOCOL.symbol,from:new Date(warm).toISOString(),to:new Date(end).toISOString(),counts:Object.fromEntries(Object.entries(bars).map(([k,v])=>[k,v.length])),sha256:createHash('sha256').update(JSON.stringify({bars,rates})).digest('hex')};
+const dataset={symbol:PROTOCOL.symbol,from:new Date(warm).toISOString(),to:new Date(end).toISOString(),counts:Object.fromEntries(Object.entries(bars).map(([k,v])=>[k,v.length])),coverage_complete:true,ranges:Object.fromEntries(Object.entries(bars).map(([k,v])=>[k,{first:v[0].start,last:v.at(-1).end}])),sha256:createHash('sha256').update(JSON.stringify({bars,rates})).digest('hex')};
 const summary={generated_at:new Date().toISOString(),kind:'COARSE_OHLC_RESEARCH_NOT_EXECUTION_EVIDENCE',protocol:PROTOCOL,window:{start:new Date(start).toISOString(),split:new Date(split).toISOString(),end:new Date(end).toISOString()},dataset,assumptions:['Closed 5m signals and closed 15m context; no parameter optimization.','Next 1m open entry, assumed one USD full spread, two taker fees and 2 bps slippage on each side.','One position per pattern, 1000 USD fixed notional before quantity rounding; independent comparisons, not summed portfolio returns.','One-minute intrabar path is unknown; both barriers resolves stop first.','Funding uses public hourly rates; missing funding is charged conservatively and flagged.','Stress adds 50% trading fees and 5 bps slippage on each side.','Missing minute paths are counted separately and excluded, not called fills.','Four-day chronological holdout is too short to establish profitability.'],results:Object.fromEntries(Object.entries(results).map(([k,v])=>[k,{...v,trades:undefined}])),automatic_promotion:false};
 await mkdir(out,{recursive:true,mode:0o700});await writeFile(out+'/data.json',JSON.stringify({dataset,bars,rates}),{mode:0o600});await writeFile(out+'/trades.json',JSON.stringify(results),{mode:0o600});await writeFile(out+'/summary.json',JSON.stringify(summary,null,2),{mode:0o600});console.log(JSON.stringify(summary));

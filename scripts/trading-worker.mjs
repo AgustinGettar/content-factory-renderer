@@ -1,7 +1,7 @@
+import {installOperational,attachOperationalProjection} from '../lib/trading/secondary-futures-runtime.js';
 import {installMultiPattern,attachResearchProjection} from '../lib/trading/multi-pattern-paper.js';
 import {PaperControlClient} from '../lib/trading/paper-controls.js';
-// Dedicated supervised Render, Compute Engine or EC2 worker. Does NOT start server.js,
-// mount routes, consume Telegram updates, invoke media, or access order APIs.
+// Dedicated supervised PAPER worker. Does not start Lumi or submit exchange orders.
 import {readFile} from 'node:fs/promises';
 import {createClient} from '@supabase/supabase-js';
 import {KrakenFeed} from '../lib/trading/feed.js';
@@ -29,8 +29,13 @@ if(env.LUMI_TRADING_CAPACITY_PROFILE&&env.LUMI_TRADING_CAPACITY_PROFILE!=='secon
 const store=local?new SQLiteStore(env.LUMI_TRADING_DB_PATH):new TradingStore(db),feed=new KrakenFeed({seed:seed.bars240}),engine=new TradingEngine({store,feed,secondaryRiskRequested:local&&env.LUMI_TRADING_SECONDARY_PROFILE==='secondary-growth-1.0.0',entryProfileRequested:local&&env.LUMI_TRADING_ENTRY_PROFILE==='agile-5bars-1.0.0',contextProfileRequested:local&&env.LUMI_TRADING_CONTEXT_PROFILE==='context-maker-1.0.0',makerSizingRequested:local&&env.LUMI_TRADING_MAKER_SIZING==='maker-sizing-1.0.0',netExitsRequested:local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0',boostRequested:local&&env.LUMI_TRADING_LEVERAGE_PROFILE==='secondary-boost-1.0.0',capacityRequested:local&&env.LUMI_TRADING_CAPACITY_PROFILE==='secondary-capacity-1.0.0'});
 const controls=local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0'?new PaperControlClient({env,store}):null;engine.controls=controls;
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
-await engine.initialize();const multiResearch=installMultiPattern(engine,env);engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(seed),at:Date.now()});if(local){if(!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}}feed.start();
-const publisher=local?new DashboardPublisher({store,feed,env,controls}):null;if(multiResearch)attachResearchProjection(publisher,store);
+await engine.initialize();
+const operational=installOperational(engine,env),multiResearch=operational??installMultiPattern(engine,env);
+engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(seed),at:Date.now()});
+if(local&&!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}
+feed.start();
+const publisher=local?new DashboardPublisher({store,feed,env,controls}):null;
+if(operational)attachOperationalProjection(publisher,store);else if(multiResearch)attachResearchProjection(publisher,store);
 const publishTimer=publisher?setInterval(()=>{void publisher.publish();},LIVE_PUBLISH_MS):null;
 if(publisher)void publisher.publish();
 const controlTimer=controls?setInterval(()=>{void controls.poll();},3000):null;
@@ -39,9 +44,9 @@ const fail=(error)=>{if(shutting)return;shutting=true;multiResearch?.stop();feed
 const timer=setInterval(()=>{void engine.tick().catch(fail);},1000);
 let oldCPU=process.cpuUsage(),oldTime=Date.now();
 const resourceTimer=setInterval(()=>{const usage=process.cpuUsage(oldCPU),now=Date.now(),cpu=(usage.user+usage.system)/(now-oldTime)/1000;oldCPU=process.cpuUsage();oldTime=now;const rss=process.memoryUsage().rss;
-  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,mode:'PAPER',multi_pattern:multiResearch?.state.version??null}));
+  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null}));
   if(rss>320*1024*1024||cpu>.5){engine.cancelPending('RESOURCE_LIMIT');engine.event({type:'DATA_INCIDENT',reason:'RESOURCE_LIMIT',at:now});void engine.flush().finally(fail);}
 },60000);
 async function stop(){if(shutting)return;shutting=true;clearInterval(timer);clearInterval(resourceTimer);clearInterval(publishTimer);clearInterval(controlTimer);multiResearch?.stop();feed.stop();engine.cancelPending('ORDER_CANCELLED_ON_SHUTDOWN');try{if(!engine.busy)await engine.flush();await store.tx({phase:'RELEASE'});}finally{process.exit(0);}}
 process.on('SIGTERM',stop);process.on('SIGINT',stop);process.on('unhandledRejection',fail);process.on('uncaughtException',fail);
-console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier}));
+console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null}));

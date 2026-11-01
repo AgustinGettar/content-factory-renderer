@@ -3,14 +3,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {initialState,TradingEngine} from '../lib/trading/engine.js';
 import {initializeFrequency} from '../lib/trading/frequency.js';
+import {freshness} from '../lib/trading/core.js';
 const C=Date.parse('2026-11-01T02:15:00Z');
 function harness(){
  let now=C+196,includeOpen=false,repairs=0;
- const feed={series:{1:[],15:[],60:[],240:[]},metadata:{status:'online',checked_at:now},state:{connected:true,reconciled:true,system:'online',clock:{checked_at:now,error_ms:0},quote:{ask:'100.1',bid:'100',ask_qty:'10',bid_qty:'10',event_at:now,received_at:now},trade:{price:'100',event_at:now,received_at:now}},fetchImpl:async()=>{
+ const feed={series:{1:[],15:[],60:[],240:[]},metadata:{status:'online',checked_at:now},state:{connected:true,reconciled:true,system:'online',clock:{checked_at:now,error_ms:0},quote:{ask:'100.01',bid:'100',ask_qty:'10',bid_qty:'10',event_at:now,received_at:now},trade:{price:'100',event_at:now,received_at:now}},fetchImpl:async()=>{
   const rows=[[C/1000-60,'100','101','99','100','100','1',10]];
   if(includeOpen)rows.push([C/1000,'100','101','99','100','100','1',1]);
   return Response.json({error:[],result:{XXBTZUSD:rows,last:C/1000}});
  }};
+ assert.equal(freshness(feed.state,now,feed.metadata),null);
  const engine=new TradingEngine({feed,store:{},now:()=>now});engine.state=initialState(C+100);initializeFrequency(engine.state,C+100);engine.state.technicalQueued=true;
  engine.state.frequency.account.position={fixture:true};engine.frequency={recover(){repairs++;}};
  return {engine,repairs:()=>repairs,time(at){now=at;feed.metadata.checked_at=at;feed.state.clock.checked_at=at;for(const k of ['quote','trade'])feed.state[k].event_at=feed.state[k].received_at=at;},open(){includeOpen=true;}};

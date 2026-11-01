@@ -1,0 +1,13 @@
+# Operational entry revision — 2026-11-02
+
+User authorized diagnosing and repairing the existing PAPER bot, without enabling exchange orders. Initial AWS read (2026-11-01 23:51 UTC): running release e506c43a3620df9ac47c08de4fc19b6599d7de0d, ACTIVE_PAPER, 13 five-minute cycles / 39 pattern evaluations since activation, zero selected orders. Breakout and pullback both waited 13 times; range waited 12 times and rejected one setup on net costs. This is a selective-rule issue, not a crashed service or a daily trade quota.
+
+The former breakout demanded an already established 15m EMA20/EMA50 trend. The revision additionally considers a confirmed transition out of a range: a closed 5m breakout, directional 5m averages and slope, sufficient body/close location and volume, with no strong opposing 15m context. It also recognizes same-candle pullback recovery and wick-based range reentry. The preceding range close is compared with its own preceding band rather than a band containing that close. Targets are rounded toward entry, not outward.
+
+This is an experimental entry-rule change, NOT evidence of profitability. No historical winner, guaranteed daily entry count or actual fill is claimed. It never injects a signal retrospectively, removes the cost filter or converts a mere touch into an execution.
+
+The previous secondary-futures.js implementation is mechanically retained as secondary-futures-engine.js (identical Git blob) and remains the ONLY broker, public feed adapter, capital writer and exit manager. The entry-facing module extends that runtime and replaces its signal evaluation. There is no extra process, wallet or trading service. Existing contracts and frozen positions use the same execution model. No environment change is needed beyond the already active PAPER configuration.
+
+Entry revision has its own durable hash and an idempotent audit event. Original capital, losses, risk baseline, account halt, loss streak and cooldown remain unchanged. Per-entry budget (lesser of 0.5% and 2 USD), 1% aggregate planned risk, maker/taker fees, 20x observed trade-through requirement, 30-minute exit request, daily loss and drawdown controls all remain in force. Candidates retain minimum net reward/risk 1.5 and the short-horizon target ceiling. Exact blockers are now recorded in criteria instead of only a generic waiting label.
+
+Offline tests reproduce both a blocked range breakout and a qualified pending entry followed by evidence-based simulated execution. They do not create events in the deployed ledger, send Telegram messages or establish investment returns. Deployment and natural-cycle readback must be verified separately.

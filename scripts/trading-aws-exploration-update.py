@@ -2,10 +2,11 @@
 """Deploy the authorized secondary PAPER profile with an additive, tested migration.
 
 No dependency installation, test suites, exchange orders or infrastructure changes.
-After migration the supported reversal is PROFILE=OFF on this compatible code;
+After migration the supported reversal is the requested policy OFF on this compatible code;
 never restore an older binary or a stale ledger over newly recorded operations.
 """
 import argparse
+from decimal import Decimal
 import fcntl
 import hashlib
 import json
@@ -25,6 +26,12 @@ ENV = Path('/etc/lumi-trading/worker.env')
 DB = Path('/var/lib/lumi-trading/trading.sqlite')
 SERVICE = 'lumi-trading.service'
 PROFILE = 'secondary-paper-exploration-1.0.0'
+PROFIT_POLICY = 'secondary-profit-policy-1.0.0'
+PROFIT_ENV_KEYS = ('LUMI_TRADING_SECONDARY_PROFIT_POLICY',
+                   'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION',
+                   'LUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION',
+                   'LUMI_TRADING_SECONDARY_TRAILING_EXTENSION_MS',
+                   'LUMI_TRADING_SECONDARY_TRAILING_STAGNATION_MS')
 BRANCH = 'lumi-trading-aws'
 BACKUP_MARGIN_BYTES = 256 * 1024 * 1024
 ALLOWED = {
@@ -38,6 +45,13 @@ ALLOWED = {
     'test/secondary-exploration-execution.test.js', 'test/secondary-exploration-monitor.test.js',
     'test/trading-exploration-persistence.test.js', 'test/trading_aws_exploration_update_test.py',
     'lib/trading/dashboard-publisher.js', 'test/trading-dashboard-backup.test.js',
+    'lib/trading/secondary-profit-policy.js', 'lib/trading/secondary-profit-protection.js',
+    'lib/trading/secondary-entry-economics.js', 'test/secondary-entry-economics.test.js',
+    'test/secondary-entry-profit-context.test.js', 'test/secondary-profit-monitor.test.js',
+    'test/secondary-profit-policy.test.js', 'test/secondary-profit-protection.test.js',
+    'test/secondary-profit-integration.test.js',
+    'lib/trading/paper-controls.js', 'test/secondary-profit-controls.test.js',
+    'docs/secondary-profit-policy-1.0.0.md',
 }
 
 
@@ -74,9 +88,33 @@ def validate_env(env):
         raise RuntimeError('EXISTING_AUTHORIZED_PAPER_WORKER_REQUIRED')
 
 
-def updated_env(text, profile, nominal):
+def profit_env_changes(profit_policy=None, min_expected_net_target_fraction=None,
+                       trailing_retracement_fraction=None, trailing_extension_ms=None,
+                       trailing_stagnation_ms=None):
+    values = [min_expected_net_target_fraction, trailing_retracement_fraction,
+              trailing_extension_ms, trailing_stagnation_ms]
+    if profit_policy is None:
+        if any(value is not None for value in values):
+            raise RuntimeError('PROFIT_POLICY_FLAG_REQUIRED')
+        return {}
+    if profit_policy not in [PROFIT_POLICY, 'OFF']:
+        raise RuntimeError('PROFIT_POLICY_VERSION_UNSUPPORTED')
+    if profit_policy == 'OFF' and any(value is not None for value in values):
+        raise RuntimeError('PROFIT_PARAMETERS_REQUIRE_ACTIVE_POLICY')
+    for value in values[:2]:
+        if value is not None and (not re.fullmatch(r'(?:\d+\.?\d*|\.\d+)', value)
+                                  or not 0 < Decimal(value) < 1):
+            raise RuntimeError('PROFIT_FRACTION_INVALID')
+    for value in values[2:]:
+        if value is not None and (not re.fullmatch(r'\d+', value) or not 0 < int(value) <= 86400000):
+            raise RuntimeError('PROFIT_DURATION_INVALID')
+    return {key: value for key, value in zip(PROFIT_ENV_KEYS, [profit_policy, *values])
+            if value is not None}
+
+
+def updated_env(text, profile, nominal, profit_changes=None):
     changes = {'LUMI_TRADING_SECONDARY_PROFILE': profile,
-               'LUMI_TRADING_SECONDARY_NOMINAL_USD': nominal}
+               'LUMI_TRADING_SECONDARY_NOMINAL_USD': nominal, **(profit_changes or {})}
     lines = []
     for line in text.splitlines():
         key = line.split('=', 1)[0].strip() if '=' in line else ''
@@ -194,7 +232,7 @@ def consistent_backup(stamp):
             'disk_space': space}
 
 
-def verify_migration(release, profile, nominal):
+def verify_migration(release, profile, nominal, profit_env=None):
     # Read the authoritative JSON once; exercise only pure migration functions on
     # an in-memory clone, without a feed, writer lease, transport or real order.
     script = """
@@ -202,33 +240,48 @@ import {DatabaseSync} from 'node:sqlite';
 import {isDeepStrictEqual} from 'node:util';
 import {initializeSecondary} from './lib/trading/secondary-futures-engine.js';
 import {installExploration} from './lib/trading/secondary-exploration.js';
-const db=new DatabaseSync('/var/lib/lumi-trading/trading.sqlite',{readOnly:true,timeout:3000});
+import {installProfitPolicy} from './lib/trading/secondary-profit-policy.js';
+const db=new DatabaseSync(process.argv[4],{readOnly:true,timeout:3000});
 const row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get();db.close();
 const original=JSON.parse(row.state),state=structuredClone(original),events=[];
 initializeSecondary(state,Date.now());
-const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2]};
+const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2],...JSON.parse(process.argv[3])};
 installExploration(state,env,Date.now(),e=>events.push(e));
-const once=structuredClone(state);installExploration(state,env,Date.now(),e=>events.push(e));
+installProfitPolicy(state,env,Date.now(),e=>events.push(e));
+const once=structuredClone(state),eventCount=events.length;installExploration(state,env,Date.now(),e=>events.push(e));installProfitPolicy(state,env,Date.now(),e=>events.push(e));
 if(!isDeepStrictEqual(once,state))throw Error('MIGRATION_NOT_IDEMPOTENT');
+if(events.length!==eventCount)throw Error('MIGRATION_DUPLICATED_EVENTS');
 for(const key of Object.keys(original))if(key!=='secondaryExecution'&&!isDeepStrictEqual(original[key],state[key]))throw Error('MIGRATION_CHANGED_PROTECTED_STATE');
 for(const key of ['protocol','protocol_hash','entry_rules','baseline'])if(!isDeepStrictEqual(original.secondaryExecution[key],state.secondaryExecution[key]))throw Error('MIGRATION_REWROTE_HISTORY');
-console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false}));
+for(const key of ['positions','pendingOrders'])if(!isDeepStrictEqual(original.frequency.account[key],state.frequency.account[key]))throw Error('MIGRATION_REWROTE_EXECUTION_CONTRACTS');
+const profit=state.secondaryExecution.profit_policy,expectedProfit=profit?{version:profit.version,active:profit.active,policy_hash:profit.policy_hash,policy:profit.policy}:null;
+console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,positions_preserved:true,pending_preserved:true,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false,profit_policy:expectedProfit}));
 """
     return json.loads(run(['runuser', '-u', 'lumitrading', '--', '/usr/bin/node-24',
                            '--max-old-space-size=96', '--input-type=module', '-e', script,
-                           profile, nominal], cwd=release))
+                           profile, nominal, json.dumps({key: value for key, value in (profit_env or {}).items()
+                                                         if key in PROFIT_ENV_KEYS}), str(DB)], cwd=release))
 
 
-def wait_active(previous_revision, active):
+def profit_state_matches(current, expected):
+    if expected is None:
+        return current is None
+    return isinstance(current, dict) and all(current.get(key) == expected.get(key)
+                                             for key in ['version', 'active', 'policy_hash', 'policy'])
+
+
+def wait_active(previous_revision, active, expected_profit=None):
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline:
         try:
             running = run(['systemctl', 'is-active', SERVICE], timeout=5) == 'active'
             row = snapshot()
             x = row['state'].get('secondaryExecution', {})
-            if running and row['revision'] > previous_revision and x.get('exploration', {}).get('active') is active:
+            if (running and row['revision'] > previous_revision
+                    and x.get('exploration', {}).get('active') is active
+                    and profit_state_matches(x.get('profit_policy'), expected_profit)):
                 return {'revision': row['revision'], 'profile': x.get('exploration', {}).get('version'),
-                        'profile_active': active, 'counts': row['counts']}
+                        'profile_active': active, 'profit_policy': expected_profit, 'counts': row['counts']}
         except (RuntimeError, sqlite3.Error):
             pass
         time.sleep(1)
@@ -241,15 +294,26 @@ def main():
     parser.add_argument('--expected-current', required=True)
     parser.add_argument('--profile', choices=[PROFILE, 'OFF'], default=PROFILE)
     parser.add_argument('--nominal', default='100')
+    parser.add_argument('--profit-policy', choices=[PROFIT_POLICY, 'OFF'], default=None)
+    parser.add_argument('--min-expected-net-target-fraction', default=None)
+    parser.add_argument('--trailing-retracement-fraction', default=None)
+    parser.add_argument('--trailing-extension-ms', default=None)
+    parser.add_argument('--trailing-stagnation-ms', default=None)
     args = parser.parse_args()
     if not all(re.fullmatch(r'[0-9a-f]{40}', sha) for sha in [args.target, args.expected_current]):
         raise RuntimeError('EXACT_COMMIT_REQUIRED')
     if not re.fullmatch(r'(?:\d+\.?\d*|\.\d+)', args.nominal) or not 0 < float(args.nominal) < float('inf'):
         raise RuntimeError('FINITE_POSITIVE_NOMINAL_REQUIRED')
+    profit_changes = profit_env_changes(args.profit_policy, args.min_expected_net_target_fraction,
+                                       args.trailing_retracement_fraction, args.trailing_extension_ms,
+                                       args.trailing_stagnation_ms)
     with (DB.parent / 'deploy-exploration.lock').open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         original_env = ENV.read_text()
         validate_env(read_env(original_env))
+        candidate_env = updated_env(original_env, args.profile, args.nominal, profit_changes)
+        effective_env = read_env(candidate_env)
+        effective_profit_env = {key: effective_env[key] for key in PROFIT_ENV_KEYS if key in effective_env}
         old = CURRENT.resolve()
         require_deployment_lease(old, args.expected_current, original_env)
         require_clean(old)
@@ -269,13 +333,12 @@ def main():
         if any(path not in ALLOWED for path in changed):
             raise RuntimeError('OUTSIDE_TRADING_EXPLORATION_SCOPE')
         share_dependencies(old, release)
-        migration = verify_migration(release, args.profile, args.nominal)
+        migration = verify_migration(release, args.profile, args.nominal, effective_profit_env)
         disk_space = require_backup_space()
         stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
         stopped = False
         swapped = False
         configuration_written = False
-        candidate_env = updated_env(original_env, args.profile, args.nominal)
         try:
             # A previous preflight is not permission to overwrite a newer
             # configuration, active release, candidate tree or branch head.
@@ -295,7 +358,7 @@ def main():
                 file.write(original_env)
             # Validate the final quiescent snapshot, including any naturally
             # created order since the earlier preflight.
-            migration = verify_migration(release, args.profile, args.nominal)
+            migration = verify_migration(release, args.profile, args.nominal, effective_profit_env)
             require_deployment_lease(old, args.expected_current, original_env)
             require_clean(old)
             require_candidate(release, args.target)
@@ -313,13 +376,16 @@ def main():
             os.replace(link, CURRENT)
             swapped = True
             run(['systemctl', 'start', SERVICE], timeout=20)
-            after = wait_active(before['revision'], args.profile == PROFILE)
+            after = wait_active(before['revision'], args.profile == PROFILE, migration.get('profit_policy'))
             report = {'status': 'DEPLOYED', 'at': stamp, 'previous_commit': args.expected_current,
                       'commit': args.target, 'release': str(release), 'backup': backup,
                       'migration': migration, 'before_revision': before['revision'], 'after': after,
                       'profile': args.profile, 'nominal_usd': args.nominal,
+                      'profit_configuration': effective_profit_env,
                       'disk_space_preflight': disk_space,
-                      'rollback': {'compatible_commit': args.target, 'profile': 'OFF',
+                      'rollback': {'compatible_commit': args.target,
+                                   'profile': args.profile if effective_profit_env else 'OFF',
+                                   'profit_policy': 'OFF' if effective_profit_env else None,
                                    'restore_old_database': False, 'old_binary_rollback_allowed': False},
                       'changed_paths': changed}
             report_path = DB.parent / ('deploy-exploration-' + stamp + '.json')
@@ -345,7 +411,14 @@ def main():
                 if CURRENT.resolve() != release or ENV.read_text() != candidate_env:
                     raise RuntimeError('DEPLOYMENT_LEASE_LOST_DURING_RECOVERY')
                 run(['systemctl', 'stop', SERVICE], timeout=30)
-                write_env(updated_env(original_env, 'OFF', args.nominal))
+                # Profit admission can be disabled without reintroducing the
+                # old financial gates or abandoning the recovered exploration.
+                # Existing position contracts still use this compatible binary.
+                if effective_profit_env:
+                    write_env(updated_env(candidate_env, args.profile, args.nominal,
+                                          {'LUMI_TRADING_SECONDARY_PROFIT_POLICY': 'OFF'}))
+                else:
+                    write_env(updated_env(original_env, 'OFF', args.nominal))
                 run(['systemctl', 'start', SERVICE], timeout=20)
             raise
 

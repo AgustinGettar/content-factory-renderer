@@ -5,6 +5,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -36,6 +37,111 @@ class ExplorationDeploymentTests(unittest.TestCase):
         for key, value in [('LUMI_TRADING_MODE', 'LIVE'), ('LUMI_TRADING_AWS_INSTANCE_ID', 'another'), ('LUMI_TRADING_SOURCE_BRANCH', 'main')]:
             with self.assertRaisesRegex(RuntimeError, 'AUTHORIZED_PAPER'):
                 M.validate_env({**env, key: value})
+
+    def test_omitted_profit_options_preserve_current_policy_and_parameters_exactly(self):
+        source = ('UNRELATED="keep=a=b"\nLUMI_TRADING_SECONDARY_PROFIT_POLICY="' + M.PROFIT_POLICY + '"\n'
+                  'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION=0.004\n'
+                  'LUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION=.3\n'
+                  'LUMI_TRADING_SECONDARY_TRAILING_EXTENSION_MS=1200000\n'
+                  'LUMI_TRADING_SECONDARY_TRAILING_STAGNATION_MS=300000\n')
+        changed = M.updated_env(source, M.PROFILE, '100', M.profit_env_changes())
+        self.assertTrue(changed.startswith(source))
+        for key in M.PROFIT_ENV_KEYS:
+            self.assertEqual(M.read_env(changed)[key], M.read_env(source)[key])
+
+    def test_explicit_profit_configuration_is_idempotent_and_off_keeps_parameters(self):
+        changes = M.profit_env_changes(M.PROFIT_POLICY, '0.002', '0.25', '900000', '600000')
+        self.assertEqual(list(changes.values()), [M.PROFIT_POLICY, '0.002', '0.25', '900000', '600000'])
+        updated = M.updated_env('UNRELATED=kept\n', M.PROFILE, '100', changes)
+        self.assertEqual(M.updated_env(updated, M.PROFILE, '100', changes), updated)
+        off = M.read_env(M.updated_env(updated, M.PROFILE, '100', M.profit_env_changes('OFF')))
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], 'OFF')
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_PROFILE'], M.PROFILE)
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION'], '0.002')
+        self.assertEqual(off['UNRELATED'], 'kept')
+
+    def test_profit_parameters_require_an_explicit_valid_active_flag(self):
+        with self.assertRaisesRegex(RuntimeError, 'PROFIT_POLICY_FLAG_REQUIRED'):
+            M.profit_env_changes(min_expected_net_target_fraction='0.002')
+        with self.assertRaisesRegex(RuntimeError, 'PROFIT_PARAMETERS_REQUIRE_ACTIVE_POLICY'):
+            M.profit_env_changes('OFF', trailing_retracement_fraction='0.25')
+        with self.assertRaisesRegex(RuntimeError, 'PROFIT_POLICY_VERSION_UNSUPPORTED'):
+            M.profit_env_changes('LIVE')
+        for fraction in ['0', '-.2', '1', 'Infinity', 'NaN', '1e-3', '', '$(ignored)']:
+            with self.subTest(fraction=fraction), self.assertRaisesRegex(RuntimeError, 'PROFIT_FRACTION_INVALID'):
+                M.profit_env_changes(M.PROFIT_POLICY, fraction)
+        for duration in ['0', '-1', '1.5', '86400001', 'NaN']:
+            with self.subTest(duration=duration), self.assertRaisesRegex(RuntimeError, 'PROFIT_DURATION_INVALID'):
+                M.profit_env_changes(M.PROFIT_POLICY, trailing_extension_ms=duration)
+
+    def test_wait_active_requires_the_effective_policy_hash_parameters_and_state(self):
+        expected = {'version': M.PROFIT_POLICY, 'active': True, 'policy_hash': 'a' * 64,
+                    'policy': {'min_expected_net_target_fraction': '0.002'}}
+        row = {'revision': 21, 'state': {'secondaryExecution': {
+            'exploration': {'active': True, 'version': M.PROFILE}, 'profit_policy': expected}},
+            'counts': {'events': 3, 'outbox': 2}}
+        with patch.object(M, 'run', return_value='active'), patch.object(M, 'snapshot', return_value=row):
+            result = M.wait_active(20, True, expected)
+        self.assertEqual(result['profit_policy'], expected)
+        for wrong in [{**expected, 'active': False}, {**expected, 'policy_hash': 'b' * 64},
+                      {**expected, 'policy': {'min_expected_net_target_fraction': '0.0002'}}, None]:
+            altered = {**row, 'state': {'secondaryExecution': {**row['state']['secondaryExecution'], 'profit_policy': wrong}}}
+            with self.subTest(wrong=wrong), patch.object(M, 'run', return_value='active'), \
+                    patch.object(M, 'snapshot', return_value=altered), patch.object(M.time, 'sleep'), \
+                    patch.object(M.time, 'monotonic', side_effect=[0, 1, 46]), \
+                    self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+                M.wait_active(20, True, expected)
+
+
+class IsolatedMigrationTests(unittest.TestCase):
+    """Actual pure Node migration over a read-only temporary SQLite database."""
+
+    def test_profit_migration_is_idempotent_preserves_existing_contracts_and_never_writes_source(self):
+        repository = Path(__file__).parents[1]
+        node = shutil.which('node')
+        self.assertIsNotNone(node)
+        with tempfile.TemporaryDirectory(prefix='lumi-profit-migration-isolated-') as directory:
+            database = Path(directory) / 'isolated.sqlite'
+            seed = """
+import {DatabaseSync} from 'node:sqlite';
+import {hash} from './lib/trading/core.js';
+import {newAccount} from './lib/trading/simulator.js';
+import {enablePortfolio} from './lib/trading/portfolio.js';
+import {initializeSecondary,SECONDARY_MODEL} from './lib/trading/secondary-futures-engine.js';
+import {installExploration,explorationContract,EXPLORATION_POLICY,EXPLORATION_VERSION} from './lib/trading/secondary-exploration.js';
+import {installEntryRevision} from './lib/trading/secondary-entry-context.js';
+const at=1793601000000,account=newAccount();enablePortfolio(account);
+const root={frequency:{account},laboratory:{status:'RESEARCH_COMPLETE',trial:'REJECTED'},primary:{cash:'101',position:{id:'untouched'}}};
+initializeSecondary(root,at);installEntryRevision(root,at);
+installExploration(root,{LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:EXPLORATION_VERSION},at);
+function plan(id){const contract=explorationContract(EXPLORATION_POLICY,'PULLBACK',at);const p={id,execution_model:SECONDARY_MODEL,pattern:'PULLBACK',direction:'SHORT',entry:'80000',target:'78000',stop:'81000',decision_at:at,expires_at:contract.expires_at,holding_ms:1800000,execution_contract:contract,sizing:{qty:'.0012',qty_step:'.0001'}};p.hash=hash(p);return p;}
+const open=plan('legacy-open'),pending=plan('legacy-pending');
+account.positions[open.id]={plan:open,qty:'.0012',entry:'80000',entry_fee:'.048',initial_margin:'48',accrued_funding:'0',entered_at:at+1100,expires_at:at+1801100};
+account.pendingOrders[pending.id]={plan:pending,remaining_qty:'.0012',filled_qty:'0',remaining_reserved:'48.048',observed_capacity:'0',placed_at:pending.execution_contract.not_before};
+const db=new DatabaseSync(process.argv[1]);db.exec('CREATE TABLE state(id TEXT PRIMARY KEY,revision INTEGER,state TEXT)');db.prepare('INSERT INTO state VALUES (?,?,?)').run('KRAKEN_BTCUSD_PAPER',10,JSON.stringify(root));db.close();
+"""
+            subprocess.run([node, '--input-type=module', '-e', seed, str(database)], cwd=repository,
+                           capture_output=True, text=True, check=True, timeout=15)
+            before = database.read_bytes()
+
+            def isolated_run(args, cwd=None, timeout=45):
+                self.assertEqual(args[:5], ['runuser', '-u', 'lumitrading', '--', '/usr/bin/node-24'])
+                result = subprocess.run([node, *args[5:]], cwd=cwd, capture_output=True, text=True,
+                                        check=True, timeout=timeout)
+                return result.stdout.strip()
+
+            settings = M.profit_env_changes(M.PROFIT_POLICY, '0.002', '0.25', '900000', '600000')
+            with patch.object(M, 'DB', database), patch.object(M, 'run', side_effect=isolated_run):
+                proof = M.verify_migration(repository, M.PROFILE, '100', settings)
+            self.assertTrue(proof['idempotent'])
+            self.assertTrue(proof['positions_preserved'])
+            self.assertTrue(proof['pending_preserved'])
+            self.assertEqual((proof['positions'], proof['pending']), (1, 1))
+            self.assertEqual(proof['profit_policy']['version'], M.PROFIT_POLICY)
+            self.assertTrue(proof['profit_policy']['active'])
+            self.assertEqual(proof['profit_policy']['policy']['min_expected_net_target_fraction'], '0.002')
+            self.assertEqual(len(proof['profit_policy']['policy_hash']), 64)
+            self.assertEqual(database.read_bytes(), before, 'all migration state remained on an in-memory clone')
 
 
 class IsolatedDeploymentTests(unittest.TestCase):
@@ -122,9 +228,9 @@ class IsolatedDeploymentTests(unittest.TestCase):
                                 capture_output=True, text=True, check=True, timeout=15)
         return result.stdout.strip()
 
-    def deploy(self, target=None):
+    def deploy(self, target=None, extra=None):
         with patch.object(sys, 'argv', ['isolated-update', target or self.target,
-                                       '--expected-current', self.before]), \
+                                       '--expected-current', self.before, *(extra or [])]), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
             M.main()
         return json.loads(output.getvalue().splitlines()[-1])
@@ -267,6 +373,39 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assertEqual(self.current.resolve(), self.releases / self.target)
         self.assertEqual(M.read_env(self.actions[-1]['env'])['LUMI_TRADING_SECONDARY_PROFILE'], 'OFF')
         self.assertEqual(M.read_env(self.env.read_text())['UNRELATED_TEST_VALUE'], 'preserve-this')
+        self.assert_source_and_ledger_preserved()
+
+    def test_explicit_profit_deploy_passes_effective_configuration_to_both_migration_checks(self):
+        report = self.deploy(extra=['--profit-policy', M.PROFIT_POLICY,
+                                    '--min-expected-net-target-fraction', '0.002',
+                                    '--trailing-retracement-fraction', '0.25',
+                                    '--trailing-extension-ms', '900000', '--trailing-stagnation-ms', '600000'])
+        expected = M.profit_env_changes(M.PROFIT_POLICY, '0.002', '0.25', '900000', '600000')
+        self.assertEqual(report['profit_configuration'], expected)
+        self.assertEqual(self.migration.call_count, 2)
+        for call in self.migration.call_args_list:
+            self.assertEqual(call.args[3], expected)
+        current = M.read_env(self.env.read_text())
+        self.assertTrue(all(current[key] == value for key, value in expected.items()))
+        self.assertEqual(current['UNRELATED_TEST_VALUE'], 'preserve-this')
+        self.assertEqual(report['rollback']['profit_policy'], 'OFF')
+        self.assertEqual(report['rollback']['profile'], M.PROFILE)
+        self.assert_source_and_ledger_preserved()
+
+    def test_failed_profit_start_uses_same_binary_and_disables_only_profit_policy(self):
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(extra=['--profit-policy', M.PROFIT_POLICY,
+                               '--min-expected-net-target-fraction', '0.002',
+                               '--trailing-retracement-fraction', '0.25',
+                               '--trailing-extension-ms', '900000', '--trailing-stagnation-ms', '600000'])
+        self.assertEqual([row['action'] for row in self.actions], ['stop', 'start', 'stop', 'start'])
+        self.assertEqual(self.current.resolve(), self.releases / self.target)
+        current = M.read_env(self.actions[-1]['env'])
+        self.assertEqual(current['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], 'OFF')
+        self.assertEqual(current['LUMI_TRADING_SECONDARY_PROFILE'], M.PROFILE)
+        self.assertEqual(current['LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION'], '0.002')
+        self.assertEqual(current['UNRELATED_TEST_VALUE'], 'preserve-this')
         self.assert_source_and_ledger_preserved()
 
     def test_backup_space_gate_uses_database_bytes_plus_margin_before_stopping(self):

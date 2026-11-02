@@ -2,7 +2,7 @@ name: Lumi Trading paper isolation
 on:
   push:
     branches: [lumi-telegram-review-v1, lumi-trading-gcp, lumi-trading-aws]
-    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
+    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'test/secondary-*.test.js', 'test/multi-pattern*.test.js', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +18,6 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts
-      - run: node --test test/trading-*.test.js test/lumi-direct-telegram.test.js test/lumi-mini-app-auth.test.js
+      - run: node --test test/trading-*.test.js test/secondary-*.test.js test/multi-pattern*.test.js test/lumi-direct-telegram.test.js test/lumi-mini-app-auth.test.js
       - run: python3 -m unittest discover -s test -p 'trading_aws_*_test.py' -v
       - run: bash -n deploy/trading/aws-bootstrap.sh

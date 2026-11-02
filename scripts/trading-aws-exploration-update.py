@@ -37,6 +37,7 @@ ALLOWED = {
     'test/secondary-futures.test.js', 'test/secondary-exploration-profile.test.js',
     'test/secondary-exploration-execution.test.js', 'test/secondary-exploration-monitor.test.js',
     'test/trading-exploration-persistence.test.js', 'test/trading_aws_exploration_update_test.py',
+    'lib/trading/dashboard-publisher.js', 'test/trading-dashboard-backup.test.js',
 }
 
 

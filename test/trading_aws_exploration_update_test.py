@@ -129,6 +129,57 @@ class ExplorationDeploymentTests(unittest.TestCase):
         self.assertNotIn('lib/trading/learning.js', M.ALLOWED)
         self.assertFalse(any('*' in value for value in M.ALLOWED))
 
+    def test_capital_configuration_is_explicit_versioned_and_preserves_other_policies(self):
+        changes = M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000',
+                                        'user-capital-20261102-1000')
+        self.assertEqual(set(changes), set(M.CAPITAL_ENV_KEYS))
+        source = ('LUMI_TRADING_SECONDARY_PROFILE=' + M.PROFILE + '\n'
+                  'LUMI_TRADING_SECONDARY_NOMINAL_USD=100\n'
+                  'LUMI_TRADING_SECONDARY_PROFIT_POLICY=' + M.PROFIT_POLICY + '\n'
+                  'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION=.002\n'
+                  'LUMI_TRADING_SECONDARY_NEURAL_MODE=ADVISORY\nSECRET="test-only=a=b"\n')
+        updated = M.updated_env(source, M.PROFILE, '100', capital_changes=changes)
+        self.assertTrue(updated.startswith(source))
+        self.assertEqual(M.updated_env(updated, M.PROFILE, '100', capital_changes=changes), updated)
+        off = M.read_env(M.updated_env(updated, M.PROFILE, '100', capital_changes=M.capital_env_changes('OFF')))
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION'], 'OFF')
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_CAPITAL_REQUEST_ID'], 'user-capital-20261102-1000')
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_ALLOCATION_BASE_USD'], '300')
+        for key, value in M.read_env(source).items():
+            self.assertEqual(off[key], value)
+
+    def test_capital_parameters_reject_implicit_real_or_malformed_updates(self):
+        self.assertEqual(M.capital_env_changes(), {})
+        with self.assertRaisesRegex(RuntimeError, 'FLAG_REQUIRED'):
+            M.capital_env_changes(base_usd='300')
+        with self.assertRaisesRegex(RuntimeError, 'VERSION_UNSUPPORTED'):
+            M.capital_env_changes('REAL')
+        with self.assertRaisesRegex(RuntimeError, 'REQUIRE_ACTIVE_POLICY'):
+            M.capital_env_changes('OFF', target_equity_usd='1000')
+        for value in ['0', '-1', 'NaN', 'Infinity', '1e3', '$(ignored)']:
+            with self.subTest(value=value), self.assertRaisesRegex(RuntimeError, 'PARAMETER_INVALID'):
+                M.capital_env_changes(M.CAPITAL_ALLOCATION, base_usd=value)
+        for multiplier in ['.5', '2.1']:
+            with self.assertRaisesRegex(RuntimeError, 'PARAMETER_INVALID'):
+                M.capital_env_changes(M.CAPITAL_ALLOCATION, preferred_multiplier=multiplier)
+        with self.assertRaisesRegex(RuntimeError, 'REQUEST_ID_INVALID'):
+            M.capital_env_changes(M.CAPITAL_ALLOCATION, request_id='../unsafe')
+
+    def test_capital_confirmation_checks_effective_policy_without_resetting_funding_receipt(self):
+        expected = {'version': M.CAPITAL_ALLOCATION, 'active': True, 'policy_hash': 'a' * 64,
+                    'policy': {'base_nominal_usd': '300'}}
+        current = {**expected, 'funding_request': {'status': 'APPLIED', 'amount': '50'}}
+        self.assertTrue(M.capital_state_matches(current, expected))
+        for wrong in [None, {**current, 'active': False}, {**current, 'policy_hash': 'b' * 64},
+                      {**current, 'policy': {'base_nominal_usd': '100'}}]:
+            self.assertFalse(M.capital_state_matches(wrong, expected))
+        row = {'revision': 21, 'state': {'secondaryExecution': {'exploration': {'active': True},
+               'capital_allocation': current}}, 'counts': {'events': 4, 'outbox': 2}}
+        with patch.object(M, 'run', return_value='active'), patch.object(M, 'snapshot', return_value=row):
+            result = M.wait_active(20, True, expected_capital=expected)
+        self.assertEqual(result['capital_funding_status'], 'APPLIED')
+        self.assertEqual(result['capital_allocation'], expected)
+
 
 class IsolatedMigrationTests(unittest.TestCase):
     """Actual pure Node migration over a read-only temporary SQLite database."""
@@ -214,6 +265,54 @@ db.prepare("UPDATE state SET state=? WHERE id='KRAKEN_BTCUSD_PAPER'").run(JSON.s
                 self.assertTrue(existing['positions_preserved'])
                 self.assertEqual(existing['neural']['requested_mode'], mode)
                 self.assertEqual(database.read_bytes(), seeded)
+
+            # Capital allocation is a sidecar over the already deployed policies.
+            # Its installation must not apply the contribution on a clone or edit
+            # existing orders; the single live worker applies funding separately.
+            seed_profit = """
+import {DatabaseSync} from 'node:sqlite';
+import {installProfitPolicy} from './lib/trading/secondary-profit-policy.js';
+const db=new DatabaseSync(process.argv[1]),row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get(),state=JSON.parse(row.state);
+installProfitPolicy(state,{LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',...JSON.parse(process.argv[2])},1793601000000);
+db.prepare("UPDATE state SET state=? WHERE id='KRAKEN_BTCUSD_PAPER'").run(JSON.stringify(state));db.close();
+"""
+            subprocess.run([node, '--input-type=module', '-e', seed_profit, str(database),
+                            json.dumps(settings)], cwd=repository,
+                           capture_output=True, text=True, check=True, timeout=15)
+            seeded = database.read_bytes()
+            capital_settings = M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000',
+                                                     'isolated-capital-request')
+            with patch.object(M, 'DB', database), patch.object(M, 'run', side_effect=isolated_run):
+                capital_proof = M.verify_migration(repository, M.PROFILE, '100', settings,
+                                                   neural_settings, capital_settings)
+            self.assertTrue(capital_proof['idempotent'])
+            self.assertTrue(capital_proof['capital_install_account_preserved'])
+            self.assertTrue(capital_proof['positions_preserved'])
+            self.assertTrue(capital_proof['pending_preserved'])
+            self.assertTrue(capital_proof['neural_records_preserved'])
+            self.assertEqual(capital_proof['capital_allocation']['version'], M.CAPITAL_ALLOCATION)
+            self.assertTrue(capital_proof['capital_allocation']['active'])
+            self.assertEqual(database.read_bytes(), seeded)
+            seed_capital = """
+import {DatabaseSync} from 'node:sqlite';
+import {installCapitalAllocation} from './lib/trading/secondary-capital-allocation.js';
+const db=new DatabaseSync(process.argv[1]),row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get(),state=JSON.parse(row.state);
+installCapitalAllocation(state,{LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',...JSON.parse(process.argv[2])},1793601000000);
+db.prepare("UPDATE state SET state=? WHERE id='KRAKEN_BTCUSD_PAPER'").run(JSON.stringify(state));db.close();
+"""
+            subprocess.run([node, '--input-type=module', '-e', seed_capital, str(database),
+                            json.dumps(capital_settings)], cwd=repository,
+                           capture_output=True, text=True, check=True, timeout=15)
+            seeded = database.read_bytes()
+            with patch.object(M, 'DB', database), patch.object(M, 'run', side_effect=isolated_run):
+                capital_off = M.verify_migration(repository, M.PROFILE, '100', settings, neural_settings,
+                                                {**capital_settings, **M.capital_env_changes('OFF')})
+            self.assertFalse(capital_off['capital_allocation']['active'])
+            self.assertEqual(capital_off['capital_allocation']['policy_hash'],
+                             capital_proof['capital_allocation']['policy_hash'])
+            self.assertEqual(capital_off['profit_policy'], capital_proof['profit_policy'])
+            self.assertEqual(capital_off['neural'], capital_proof['neural'])
+            self.assertEqual(database.read_bytes(), seeded)
 
 
 class IsolatedDeploymentTests(unittest.TestCase):
@@ -536,6 +635,78 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assertEqual(settings['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'OFF')
         self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.PROFIT_POLICY)
         self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFILE'], M.PROFILE)
+        self.assert_source_and_ledger_preserved()
+
+    def test_capital_deploy_preserves_legacy_nominal_economics_and_neural_configuration(self):
+        self.configure_existing_profit(nominal='100')
+        self.original_env = M.updated_env(self.original_env, M.PROFILE, '100',
+                                         neural_changes=M.neural_env_changes('ADVISORY'))
+        self.env.write_text(self.original_env)
+        report = self.deploy(extra=['--capital-allocation', M.CAPITAL_ALLOCATION,
+            '--allocation-base-usd', '300', '--preferred-multiplier', '1.5',
+            '--target-equity-usd', '1000', '--capital-request-id', 'user-capital-20261102-1000'])
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], value)
+        expected = M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000',
+                                        'user-capital-20261102-1000')
+        self.assertEqual(report['capital_configuration'], expected)
+        self.assertEqual(report['nominal_usd'], '100')
+        self.assertEqual(report['rollback']['capital_allocation'], 'OFF')
+        self.assertEqual(report['rollback']['profit_policy'], M.PROFIT_POLICY)
+        self.assertIsNone(report['rollback']['neural_mode'])
+        for call in self.migration.call_args_list:
+            self.assertEqual(call.args[4], M.neural_env_changes('ADVISORY'))
+            self.assertEqual(call.args[5], expected)
+        self.assert_source_and_ledger_preserved()
+
+    def test_capital_deploy_rejects_incidental_profile_profit_neural_or_legacy_nominal_changes(self):
+        self.configure_existing_profit(nominal='100')
+        for extra, reason in [(['--nominal', '300'], 'MUST_PRESERVE'),
+                              (['--profile', 'OFF'], 'MUST_PRESERVE'),
+                              (['--profit-policy', 'OFF'], 'CANNOT_CHANGE'),
+                              (['--neural-mode', 'OFF'], 'CANNOT_CHANGE')]:
+            with self.subTest(extra=extra), self.assertRaisesRegex(RuntimeError, reason):
+                self.deploy(extra=['--capital-allocation', M.CAPITAL_ALLOCATION, *extra])
+        self.assertEqual(self.actions, [])
+        self.assertEqual(self.env.read_text(), self.original_env)
+
+    def test_capital_failure_keeps_compatible_binary_and_only_disables_allocation(self):
+        self.configure_existing_profit(nominal='100')
+        self.original_env = M.updated_env(self.original_env, M.PROFILE, '100',
+                                         neural_changes=M.neural_env_changes('ADVISORY'))
+        self.env.write_text(self.original_env)
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(extra=['--capital-allocation', M.CAPITAL_ALLOCATION,
+                               '--allocation-base-usd', '300', '--capital-request-id', 'one-request'])
+        self.assertEqual([r['action'] for r in self.actions], ['stop', 'start', 'stop', 'start'])
+        self.assertEqual(self.current.resolve(), self.releases / self.target)
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], value)
+        self.assertEqual(after['LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION'], 'OFF')
+        self.assertEqual(after['LUMI_TRADING_SECONDARY_CAPITAL_REQUEST_ID'], 'one-request')
+        self.assertEqual(after['LUMI_TRADING_SECONDARY_ALLOCATION_BASE_USD'], '300')
+        self.assert_source_and_ledger_preserved()
+
+    def test_capital_off_same_release_preserves_receipt_configuration_without_database_copy(self):
+        self.configure_existing_profit(nominal='100')
+        self.original_env = M.updated_env(self.original_env, M.PROFILE, '100',
+            neural_changes=M.neural_env_changes('ADVISORY'),
+            capital_changes=M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000', 'one-request'))
+        self.env.write_text(self.original_env)
+        with patch.object(M, 'consistent_backup', side_effect=AssertionError('no database copy for same-code OFF')), \
+                patch.object(M, 'require_backup_space', side_effect=AssertionError('no full backup for OFF')), \
+                patch.object(M, 'fetch_target', side_effect=AssertionError('same compatible binary')):
+            report = self.deploy(target=self.before, extra=['--capital-allocation', 'OFF'])
+        self.assertEqual(report['status'], 'CAPITAL_ALLOCATION_OFF_SAME_COMPATIBLE_RELEASE')
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], 'OFF' if key == 'LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION' else value)
+        self.assertEqual(self.current.resolve(), self.old)
+        self.assertFalse(report['database_restored'])
+        self.assertEqual([r['action'] for r in self.actions], ['stop', 'start'])
         self.assert_source_and_ledger_preserved()
 
     def test_off_same_compatible_release_works_without_copying_database_or_fetching(self):

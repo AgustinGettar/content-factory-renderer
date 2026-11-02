@@ -2,7 +2,7 @@ name: Lumi Trading paper isolation
 on:
   push:
     branches: [lumi-telegram-review-v1, lumi-trading-gcp, lumi-trading-aws]
-    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'test/secondary-*.test.js', 'test/multi-pattern*.test.js', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', '.github/workflows/lumi-trading-paper.yml']
+    paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'test/secondary-*.test.js', 'test/multi-pattern*.test.js', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', 'requirements-trading-neural.txt', '.github/workflows/lumi-trading-paper.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,3 +21,27 @@ jobs:
       - run: node --test test/trading-*.test.js test/secondary-*.test.js test/multi-pattern*.test.js test/lumi-direct-telegram.test.js test/lumi-mini-app-auth.test.js
       - run: python3 -m unittest discover -s test -p 'trading_aws_*_test.py' -v
       - run: bash -n deploy/trading/aws-bootstrap.sh
+  neural-tests:
+    # Synthetic isolated tests only. Private datasets/checkpoints/weights never
+    # enter this public repository's CI. This is not the live training scheduler.
+    if: github.ref == 'refs/heads/lumi-trading-aws'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-trading-neural.txt
+      - run: npm ci --ignore-scripts
+      - run: python3 -m pip install --only-binary=:all: --requirement requirements-trading-neural.txt
+      - run: python3 -m unittest discover -s test -p 'trading_neural_*_test.py' -v

@@ -92,6 +92,43 @@ class ExplorationDeploymentTests(unittest.TestCase):
                     self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
                 M.wait_active(20, True, expected)
 
+    def test_neural_configuration_is_limited_to_optional_mode_and_fixed_private_paths(self):
+        self.assertEqual(M.neural_env_changes(), {})
+        with self.assertRaisesRegex(RuntimeError, 'NEURAL_MODE_UNSUPPORTED'):
+            M.neural_env_changes('LIVE')
+        source = ('UNRELATED="keep=a=b"\nLUMI_TRADING_SECONDARY_PROFILE=' + M.PROFILE + '\n'
+                  'LUMI_TRADING_SECONDARY_NOMINAL_USD=100\n'
+                  'LUMI_TRADING_SECONDARY_PROFIT_POLICY=' + M.PROFIT_POLICY + '\n'
+                  'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION=.002\n'
+                  'LUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION=.25\n')
+        changed = M.updated_env(source, M.PROFILE, '100', neural_changes=M.neural_env_changes('ADVISORY'))
+        self.assertTrue(changed.startswith(source))
+        self.assertEqual(M.updated_env(changed, M.PROFILE, '100', neural_changes=M.neural_env_changes('ADVISORY')), changed)
+        settings = M.read_env(changed)
+        self.assertEqual(set(M.neural_env_changes('ADVISORY')), set(M.NEURAL_ENV_KEYS))
+        for key, value in M.NEURAL_PATHS.items():
+            self.assertEqual(settings[key], value)
+            self.assertTrue(value.startswith('/var/lib/lumi-trading/neural/'))
+        off = M.read_env(M.updated_env(changed, M.PROFILE, '100', neural_changes=M.neural_env_changes('OFF')))
+        self.assertEqual(off['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'OFF')
+        for key, value in M.read_env(source).items():
+            self.assertEqual(off[key], value)
+
+    def test_neural_confirmation_requires_persisted_protocol_and_requested_mode(self):
+        expected = {'version': 'secondary-neural-1.0.0', 'protocol_hash': 'a' * 64, 'requested_mode': 'ADVISORY'}
+        self.assertTrue(M.neural_state_matches({**expected, 'runtime': {'effective_mode': 'COLLECTING'}}, expected))
+        for current in [None, {**expected, 'requested_mode': 'OFF'}, {**expected, 'protocol_hash': 'b' * 64}]:
+            self.assertFalse(M.neural_state_matches(current, expected))
+        self.assertTrue(M.neural_state_matches(None, None))
+
+    def test_neural_scope_allowlist_has_only_exact_named_training_changes(self):
+        self.assertIn('scripts/trading-neural-train.py', M.ALLOWED)
+        self.assertIn('requirements-trading-neural.txt', M.ALLOWED)
+        self.assertIn('.github/workflows/lumi-trading-paper.yml', M.ALLOWED)
+        self.assertNotIn('package.json', M.ALLOWED)
+        self.assertNotIn('lib/trading/learning.js', M.ALLOWED)
+        self.assertFalse(any('*' in value for value in M.ALLOWED))
+
 
 class IsolatedMigrationTests(unittest.TestCase):
     """Actual pure Node migration over a read-only temporary SQLite database."""
@@ -142,6 +179,41 @@ const db=new DatabaseSync(process.argv[1]);db.exec('CREATE TABLE state(id TEXT P
             self.assertEqual(proof['profit_policy']['policy']['min_expected_net_target_fraction'], '0.002')
             self.assertEqual(len(proof['profit_policy']['policy_hash']), 64)
             self.assertEqual(database.read_bytes(), before, 'all migration state remained on an in-memory clone')
+
+            # Neural migration stays on an in-memory clone as well; repeated
+            # initializer instances simulate restart, without wrapping one engine
+            # twice and without a model read, feed, writer or training process.
+            neural_settings = M.neural_env_changes('ADVISORY')
+            with patch.object(M, 'DB', database), patch.object(M, 'run', side_effect=isolated_run):
+                neural_proof = M.verify_migration(repository, M.PROFILE, '100', settings, neural_settings)
+            self.assertTrue(neural_proof['idempotent'])
+            self.assertTrue(neural_proof['neural_records_preserved'])
+            self.assertEqual(neural_proof['neural']['requested_mode'], 'ADVISORY')
+            self.assertEqual(neural_proof['profit_policy'], proof['profit_policy'])
+            self.assertEqual(database.read_bytes(), before)
+
+            seed_neural = """
+import {DatabaseSync} from 'node:sqlite';
+import {installSecondaryNeural} from './lib/trading/secondary-neural.js';
+const db=new DatabaseSync(process.argv[1]),row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get(),state=JSON.parse(row.state);
+const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_NEURAL_MODE:'ADVISORY'};
+installSecondaryNeural({state,event:()=>{},notice:()=>{},now:()=>1793601000000},env);
+state.secondaryNeural.pending['legacy-open']={snapshot:{snapshot_hash:'isolated-before-entry',x:[.1,.2]},entries:[],exits:[],funding:[],label:null};
+state.secondaryNeural.recent['isolated-closed']={label:{label_revision:2,label_hash:'isolated-label-v2'}};
+state.secondaryNeural.counts.captures=1;state.secondaryNeural.counts.usable=1;
+state.secondaryNeural.last_decisions=[{signal_id:'isolated-signal',effective_action:'ENTRY_PENDING'}];
+db.prepare("UPDATE state SET state=? WHERE id='KRAKEN_BTCUSD_PAPER'").run(JSON.stringify(state));db.close();
+"""
+            subprocess.run([node, '--input-type=module', '-e', seed_neural, str(database)], cwd=repository,
+                           capture_output=True, text=True, check=True, timeout=15)
+            seeded = database.read_bytes()
+            for mode in ['ADVISORY', 'OFF']:
+                with patch.object(M, 'DB', database), patch.object(M, 'run', side_effect=isolated_run):
+                    existing = M.verify_migration(repository, M.PROFILE, '100', settings, M.neural_env_changes(mode))
+                self.assertTrue(existing['neural_records_preserved'])
+                self.assertTrue(existing['positions_preserved'])
+                self.assertEqual(existing['neural']['requested_mode'], mode)
+                self.assertEqual(database.read_bytes(), seeded)
 
 
 class IsolatedDeploymentTests(unittest.TestCase):
@@ -415,6 +487,95 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assertEqual(self.actions, [])
         self.assertEqual(self.current.resolve(), self.old)
         self.assertEqual(self.env.read_text(), self.original_env)
+        self.assert_source_and_ledger_preserved()
+
+    def configure_existing_profit(self, nominal='127'):
+        self.original_env = M.updated_env(self.original_env, M.PROFILE, nominal,
+            M.profit_env_changes(M.PROFIT_POLICY, '.004', '.33', '1200000', '400000'))
+        self.env.write_text(self.original_env)
+
+    def test_neural_deploy_preserves_current_economic_profile_and_all_parameters(self):
+        self.configure_existing_profit()
+        report = self.deploy(extra=['--neural-mode', 'ADVISORY'])
+        settings = M.read_env(self.env.read_text())
+        before = M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(settings[key], value)
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'ADVISORY')
+        self.assertEqual(report['nominal_usd'], '127')
+        self.assertEqual(report['neural_configuration'], M.neural_env_changes('ADVISORY'))
+        self.assertEqual(report['rollback']['neural_mode'], 'OFF')
+        self.assertEqual(report['rollback']['profit_policy'], M.PROFIT_POLICY)
+        self.assertEqual(report['rollback']['profile'], M.PROFILE)
+        for call in self.migration.call_args_list:
+            self.assertEqual(call.args[4], M.neural_env_changes('ADVISORY'))
+        self.assert_source_and_ledger_preserved()
+
+    def test_neural_update_refuses_incidental_profile_nominal_or_profit_changes(self):
+        self.configure_existing_profit()
+        for extra, reason in [
+            (['--nominal', '100'], 'MUST_PRESERVE'),
+            (['--profile', 'OFF'], 'MUST_PRESERVE'),
+            (['--profit-policy', 'OFF'], 'CANNOT_CHANGE_PROFIT'),
+        ]:
+            with self.subTest(extra=extra), self.assertRaisesRegex(RuntimeError, reason):
+                self.deploy(extra=['--neural-mode', 'ADVISORY', *extra])
+        self.assertEqual(self.actions, [])
+        self.assertEqual(self.env.read_text(), self.original_env)
+
+    def test_neural_failure_after_swap_disables_only_neural_layer(self):
+        self.configure_existing_profit()
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(extra=['--neural-mode', 'ADVISORY'])
+        self.assertEqual([r['action'] for r in self.actions], ['stop', 'start', 'stop', 'start'])
+        self.assertEqual(self.current.resolve(), self.releases / self.target)
+        settings, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(settings[key], value)
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'OFF')
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.PROFIT_POLICY)
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFILE'], M.PROFILE)
+        self.assert_source_and_ledger_preserved()
+
+    def test_off_same_compatible_release_works_without_copying_database_or_fetching(self):
+        self.configure_existing_profit()
+        with patch.object(M, 'consistent_backup', side_effect=AssertionError('must not copy database')), \
+                patch.object(M, 'require_backup_space', side_effect=AssertionError('same-code OFF needs no full DB copy')), \
+                patch.object(M, 'fetch_target', side_effect=AssertionError('no new binary')), \
+                patch.object(M, 'share_dependencies', side_effect=AssertionError('same existing binary')):
+            report = self.deploy(target=self.before, extra=['--neural-mode', 'OFF'])
+        self.assertEqual(report['status'], 'NEURAL_OFF_SAME_COMPATIBLE_RELEASE')
+        self.assertFalse(report['binary_changed'])
+        self.assertFalse(report['database_restored'])
+        self.assertFalse(report['schema_changed'])
+        self.assertEqual(self.current.resolve(), self.old)
+        self.assertEqual([r['action'] for r in self.actions], ['stop', 'start'])
+        self.assertEqual(Path(report['backup']['path']).read_text(), self.original_env)
+        self.assertEqual(self.migration.call_count, 2)
+        settings = M.read_env(self.env.read_text())
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'OFF')
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.PROFIT_POLICY)
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_NOMINAL_USD'], '127')
+        self.assert_source_and_ledger_preserved()
+
+    def test_off_with_a_new_binary_still_requires_the_full_consistent_backup(self):
+        self.configure_existing_profit()
+        with patch.object(M, 'require_backup_space', side_effect=RuntimeError('BACKUP_DISK_SPACE_INSUFFICIENT')):
+            with self.assertRaisesRegex(RuntimeError, 'BACKUP_DISK_SPACE_INSUFFICIENT'):
+                self.deploy(extra=['--neural-mode', 'OFF'])
+        self.assertEqual(self.actions, [])
+        self.assertEqual(self.env.read_text(), self.original_env)
+
+    def test_failed_same_release_off_never_reactivates_neural_or_changes_profit(self):
+        self.configure_existing_profit()
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(target=self.before, extra=['--neural-mode', 'OFF'])
+        settings = M.read_env(self.env.read_text())
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_NEURAL_MODE'], 'OFF')
+        self.assertEqual(settings['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.PROFIT_POLICY)
+        self.assertEqual(self.current.resolve(), self.old)
         self.assert_source_and_ledger_preserved()
 
 

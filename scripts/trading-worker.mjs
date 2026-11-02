@@ -32,6 +32,10 @@ const controls=local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0'?new PaperCon
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
 await engine.initialize();
 const operational=installOperational(engine,env),multiResearch=operational??installMultiPattern(engine,env);
+// Optional local artifacts are refreshed off the tick path. No training/download
+// is awaited by startup, lease renewal, feed or position management.
+const neuralTimer=engine.secondaryNeural?setInterval(()=>{void engine.secondaryNeural.refresh();},60000):null;
+if(engine.secondaryNeural)void engine.secondaryNeural.refresh();
 engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(seed),at:Date.now()});
 if(local&&!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}
 feed.start();
@@ -48,6 +52,6 @@ const resourceTimer=setInterval(()=>{const usage=process.cpuUsage(oldCPU),now=Da
   console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null}));
   if(rss>320*1024*1024||cpu>.5){engine.cancelPending('RESOURCE_LIMIT');engine.event({type:'DATA_INCIDENT',reason:'RESOURCE_LIMIT',at:now});void engine.flush().finally(fail);}
 },60000);
-async function stop(){if(shutting)return;shutting=true;clearInterval(timer);clearInterval(resourceTimer);clearInterval(publishTimer);clearInterval(controlTimer);multiResearch?.stop();feed.stop();engine.cancelPending('ORDER_CANCELLED_ON_SHUTDOWN');try{if(!engine.busy)await engine.flush();await store.tx({phase:'RELEASE'});}finally{process.exit(0);}}
+async function stop(){if(shutting)return;shutting=true;clearInterval(timer);clearInterval(resourceTimer);clearInterval(publishTimer);clearInterval(controlTimer);clearInterval(neuralTimer);multiResearch?.stop();feed.stop();engine.cancelPending('ORDER_CANCELLED_ON_SHUTDOWN');try{if(!engine.busy)await engine.flush();await store.tx({phase:'RELEASE'});}finally{process.exit(0);}}
 process.on('SIGTERM',stop);process.on('SIGINT',stop);process.on('unhandledRejection',fail);process.on('uncaughtException',fail);
 console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null}));

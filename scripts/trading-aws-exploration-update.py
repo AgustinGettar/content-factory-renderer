@@ -32,6 +32,14 @@ PROFIT_ENV_KEYS = ('LUMI_TRADING_SECONDARY_PROFIT_POLICY',
                    'LUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION',
                    'LUMI_TRADING_SECONDARY_TRAILING_EXTENSION_MS',
                    'LUMI_TRADING_SECONDARY_TRAILING_STAGNATION_MS')
+NEURAL_MODES = ('OFF', 'COLLECTING', 'ADVISORY', 'ASSISTED')
+NEURAL_PATHS = {
+    'LUMI_TRADING_NEURAL_MODEL_PATH': '/var/lib/lumi-trading/neural/model.json',
+    'LUMI_TRADING_NEURAL_CANDIDATE_PATH': '/var/lib/lumi-trading/neural/candidate.json',
+    'LUMI_TRADING_NEURAL_LAST_GOOD_PATH': '/var/lib/lumi-trading/neural/last-good.json',
+    'LUMI_TRADING_NEURAL_STATUS_PATH': '/var/lib/lumi-trading/neural/status.json',
+}
+NEURAL_ENV_KEYS = ('LUMI_TRADING_SECONDARY_NEURAL_MODE', *NEURAL_PATHS)
 BRANCH = 'lumi-trading-aws'
 BACKUP_MARGIN_BYTES = 256 * 1024 * 1024
 ALLOWED = {
@@ -52,6 +60,16 @@ ALLOWED = {
     'test/secondary-profit-integration.test.js',
     'lib/trading/paper-controls.js', 'test/secondary-profit-controls.test.js',
     'docs/secondary-profit-policy-1.0.0.md',
+    'lib/trading/secondary-neural.js', 'lib/trading/secondary-neural-data.js',
+    'lib/trading/secondary-neural-runtime.js', 'lib/trading/secondary-neural-dataset.js',
+    'scripts/trading-neural-export.py', 'scripts/trading-neural-train.py',
+    'scripts/trading-neural-cycle.mjs', 'scripts/trading-neural-publish.py',
+    'requirements-trading-neural.txt', '.github/workflows/lumi-trading-paper.yml',
+    'test/secondary-neural-data.test.js', 'test/secondary-neural-runtime.test.js',
+    'test/secondary-neural-dataset.test.js', 'test/secondary-neural-integration.test.js',
+    'test/secondary-neural-cycle.test.js', 'test/trading_neural_trainer_test.py',
+    'test/trading_neural_export_test.py', 'test/trading_neural_publish_test.py',
+    'docs/trading/NEURAL-TRAINER.md', 'docs/trading/NEURAL-INTEGRATION.md',
 }
 
 
@@ -112,9 +130,18 @@ def profit_env_changes(profit_policy=None, min_expected_net_target_fraction=None
             if value is not None}
 
 
-def updated_env(text, profile, nominal, profit_changes=None):
+def neural_env_changes(mode=None):
+    if mode is None:
+        return {}
+    if mode not in NEURAL_MODES:
+        raise RuntimeError('NEURAL_MODE_UNSUPPORTED')
+    return {'LUMI_TRADING_SECONDARY_NEURAL_MODE': mode, **NEURAL_PATHS}
+
+
+def updated_env(text, profile, nominal, profit_changes=None, neural_changes=None):
     changes = {'LUMI_TRADING_SECONDARY_PROFILE': profile,
-               'LUMI_TRADING_SECONDARY_NOMINAL_USD': nominal, **(profit_changes or {})}
+               'LUMI_TRADING_SECONDARY_NOMINAL_USD': nominal,
+               **(profit_changes or {}), **(neural_changes or {})}
     lines = []
     for line in text.splitlines():
         key = line.split('=', 1)[0].strip() if '=' in line else ''
@@ -232,7 +259,7 @@ def consistent_backup(stamp):
             'disk_space': space}
 
 
-def verify_migration(release, profile, nominal, profit_env=None):
+def verify_migration(release, profile, nominal, profit_env=None, neural_env=None):
     # Read the authoritative JSON once; exercise only pure migration functions on
     # an in-memory clone, without a feed, writer lease, transport or real order.
     script = """
@@ -244,23 +271,29 @@ import {installProfitPolicy} from './lib/trading/secondary-profit-policy.js';
 const db=new DatabaseSync(process.argv[4],{readOnly:true,timeout:3000});
 const row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get();db.close();
 const original=JSON.parse(row.state),state=structuredClone(original),events=[];
-initializeSecondary(state,Date.now());
-const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2],...JSON.parse(process.argv[3])};
-installExploration(state,env,Date.now(),e=>events.push(e));
-installProfitPolicy(state,env,Date.now(),e=>events.push(e));
-const once=structuredClone(state),eventCount=events.length;installExploration(state,env,Date.now(),e=>events.push(e));installProfitPolicy(state,env,Date.now(),e=>events.push(e));
+const at=Date.now();initializeSecondary(state,at);
+const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2],...JSON.parse(process.argv[3]),...JSON.parse(process.argv[5]??'{}')};
+let installNeural=null;
+if(env.LUMI_TRADING_SECONDARY_NEURAL_MODE||state.secondaryNeural)({installSecondaryNeural:installNeural}=await import('./lib/trading/secondary-neural.js'));
+const migrate=()=>{installExploration(state,env,at,e=>events.push(e));installProfitPolicy(state,env,at,e=>events.push(e));
+ if(installNeural)installNeural({state,now:()=>at,event:e=>events.push(e),notice:()=>{}},env);};
+migrate();const once=structuredClone(state),eventCount=events.length;migrate();
 if(!isDeepStrictEqual(once,state))throw Error('MIGRATION_NOT_IDEMPOTENT');
 if(events.length!==eventCount)throw Error('MIGRATION_DUPLICATED_EVENTS');
-for(const key of Object.keys(original))if(key!=='secondaryExecution'&&!isDeepStrictEqual(original[key],state[key]))throw Error('MIGRATION_CHANGED_PROTECTED_STATE');
+for(const key of Object.keys(original))if(!['secondaryExecution','secondaryNeural'].includes(key)&&!isDeepStrictEqual(original[key],state[key]))throw Error('MIGRATION_CHANGED_PROTECTED_STATE');
 for(const key of ['protocol','protocol_hash','entry_rules','baseline'])if(!isDeepStrictEqual(original.secondaryExecution[key],state.secondaryExecution[key]))throw Error('MIGRATION_REWROTE_HISTORY');
 for(const key of ['positions','pendingOrders'])if(!isDeepStrictEqual(original.frequency.account[key],state.frequency.account[key]))throw Error('MIGRATION_REWROTE_EXECUTION_CONTRACTS');
+if(original.secondaryNeural)for(const key of ['protocol','protocol_hash','counts','pending','recent','last_decisions','feature_exclusions','label_exclusions'])if(!isDeepStrictEqual(original.secondaryNeural[key],state.secondaryNeural[key]))throw Error('MIGRATION_REWROTE_NEURAL_RECORDS');
 const profit=state.secondaryExecution.profit_policy,expectedProfit=profit?{version:profit.version,active:profit.active,policy_hash:profit.policy_hash,policy:profit.policy}:null;
-console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,positions_preserved:true,pending_preserved:true,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false,profit_policy:expectedProfit}));
+const n=state.secondaryNeural,neural=n?{version:n.version,protocol_hash:n.protocol_hash,requested_mode:n.requested_mode}:null;
+console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,positions_preserved:true,pending_preserved:true,neural_records_preserved:true,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false,profit_policy:expectedProfit,neural}));
 """
     return json.loads(run(['runuser', '-u', 'lumitrading', '--', '/usr/bin/node-24',
                            '--max-old-space-size=96', '--input-type=module', '-e', script,
                            profile, nominal, json.dumps({key: value for key, value in (profit_env or {}).items()
-                                                         if key in PROFIT_ENV_KEYS}), str(DB)], cwd=release))
+                                                         if key in PROFIT_ENV_KEYS}), str(DB),
+                           json.dumps({key: value for key, value in (neural_env or {}).items()
+                                       if key in NEURAL_ENV_KEYS})], cwd=release))
 
 
 def profit_state_matches(current, expected):
@@ -270,7 +303,14 @@ def profit_state_matches(current, expected):
                                              for key in ['version', 'active', 'policy_hash', 'policy'])
 
 
-def wait_active(previous_revision, active, expected_profit=None):
+def neural_state_matches(current, expected):
+    if expected is None:
+        return True  # Legacy deployment does not introduce a neuronal requirement.
+    return isinstance(current, dict) and all(current.get(key) == expected.get(key)
+        for key in ['version', 'protocol_hash', 'requested_mode'])
+
+
+def wait_active(previous_revision, active, expected_profit=None, expected_neural=None):
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline:
         try:
@@ -279,21 +319,75 @@ def wait_active(previous_revision, active, expected_profit=None):
             x = row['state'].get('secondaryExecution', {})
             if (running and row['revision'] > previous_revision
                     and x.get('exploration', {}).get('active') is active
-                    and profit_state_matches(x.get('profit_policy'), expected_profit)):
+                    and profit_state_matches(x.get('profit_policy'), expected_profit)
+                    and neural_state_matches(row['state'].get('secondaryNeural'), expected_neural)):
                 return {'revision': row['revision'], 'profile': x.get('exploration', {}).get('version'),
-                        'profile_active': active, 'profit_policy': expected_profit, 'counts': row['counts']}
+                        'profile_active': active, 'profit_policy': expected_profit,
+                        'neural': expected_neural, 'counts': row['counts']}
         except (RuntimeError, sqlite3.Error):
             pass
         time.sleep(1)
     raise RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
 
 
+def neural_off_same_release(release, expected_current, original_env, candidate_env,
+                            profile, nominal, profit_env, neural_env):
+    """Optional config reversal: retain the compatible binary and current DB.
+
+    A second full DB backup is unnecessary for disabling optional inference and
+    could make recovery impossible on a nearly full disk. Preserve private config
+    and verify contracts using read-only clones. No schema/code rollback occurs.
+    """
+    require_deployment_lease(release, expected_current, original_env)
+    require_candidate(release, expected_current)
+    migration = verify_migration(release, profile, nominal, profit_env, neural_env)
+    stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
+    backup = ENV.with_name('worker.env.before-neural-off-' + stamp)
+    fd = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, 'w') as file:
+        file.write(original_env); file.flush(); os.fsync(file.fileno())
+    stopped = False
+    written = False
+    try:
+        require_deployment_lease(release, expected_current, original_env)
+        run(['systemctl', 'stop', SERVICE], timeout=30)
+        stopped = True
+        before = snapshot()
+        migration = verify_migration(release, profile, nominal, profit_env, neural_env)
+        require_deployment_lease(release, expected_current, original_env)
+        require_candidate(release, expected_current)
+        write_env(candidate_env); written = True
+        run(['systemctl', 'start', SERVICE], timeout=20)
+        after = wait_active(before['revision'], profile == PROFILE, migration.get('profit_policy'),
+                            migration.get('neural'))
+        report = {'status': 'NEURAL_OFF_SAME_COMPATIBLE_RELEASE', 'at': stamp,
+            'commit': expected_current, 'release': str(release),
+            'backup': {'kind': 'PRIVATE_CONFIGURATION_ONLY', 'path': str(backup),
+                       'database_backup_not_required': 'NO_CODE_OR_SCHEMA_CHANGE'},
+            'migration': migration, 'before_revision': before['revision'], 'after': after,
+            'profile': profile, 'nominal_usd': nominal, 'profit_configuration': profit_env,
+            'neural_configuration': neural_env, 'schema_changed': False,
+            'database_restored': False, 'binary_changed': False}
+        report_path = DB.parent / ('neural-off-' + stamp + '.json')
+        report_path.write_text(json.dumps(report, indent=2) + '\n'); os.chmod(report_path, 0o600)
+        return report
+    except Exception:
+        if stopped:
+            expected_env = candidate_env if written else original_env
+            if CURRENT.resolve() != release or ENV.read_text() != expected_env:
+                raise RuntimeError('NEURAL_OFF_LEASE_LOST_DURING_RECOVERY')
+            # Once OFF is written, a failure cannot turn inference back on.
+            run(['systemctl', 'start', SERVICE], timeout=20)
+        raise
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('target')
     parser.add_argument('--expected-current', required=True)
-    parser.add_argument('--profile', choices=[PROFILE, 'OFF'], default=PROFILE)
-    parser.add_argument('--nominal', default='100')
+    parser.add_argument('--profile', choices=[PROFILE, 'OFF'], default=None)
+    parser.add_argument('--nominal', default=None)
+    parser.add_argument('--neural-mode', choices=NEURAL_MODES, default=None)
     parser.add_argument('--profit-policy', choices=[PROFIT_POLICY, 'OFF'], default=None)
     parser.add_argument('--min-expected-net-target-fraction', default=None)
     parser.add_argument('--trailing-retracement-fraction', default=None)
@@ -302,21 +396,46 @@ def main():
     args = parser.parse_args()
     if not all(re.fullmatch(r'[0-9a-f]{40}', sha) for sha in [args.target, args.expected_current]):
         raise RuntimeError('EXACT_COMMIT_REQUIRED')
-    if not re.fullmatch(r'(?:\d+\.?\d*|\.\d+)', args.nominal) or not 0 < float(args.nominal) < float('inf'):
+    if args.nominal is not None and (not re.fullmatch(r'(?:\d+\.?\d*|\.\d+)', args.nominal) or not 0 < float(args.nominal) < float('inf')):
         raise RuntimeError('FINITE_POSITIVE_NOMINAL_REQUIRED')
     profit_changes = profit_env_changes(args.profit_policy, args.min_expected_net_target_fraction,
                                        args.trailing_retracement_fraction, args.trailing_extension_ms,
                                        args.trailing_stagnation_ms)
+    neural_changes = neural_env_changes(args.neural_mode)
+    if neural_changes and profit_changes:
+        raise RuntimeError('NEURAL_UPDATE_CANNOT_CHANGE_PROFIT_POLICY')
     with (DB.parent / 'deploy-exploration.lock').open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         original_env = ENV.read_text()
-        validate_env(read_env(original_env))
-        candidate_env = updated_env(original_env, args.profile, args.nominal, profit_changes)
+        previous_settings = read_env(original_env)
+        validate_env(previous_settings)
+        if neural_changes:
+            profile = previous_settings.get('LUMI_TRADING_SECONDARY_PROFILE')
+            nominal = previous_settings.get('LUMI_TRADING_SECONDARY_NOMINAL_USD')
+            if (profile not in [PROFILE, 'OFF'] or nominal is None
+                    or args.profile is not None and args.profile != profile
+                    or args.nominal is not None and args.nominal != nominal):
+                raise RuntimeError('NEURAL_UPDATE_MUST_PRESERVE_EXPLORATION_AND_NOMINAL')
+            if args.neural_mode != 'OFF' and (profile != PROFILE
+                    or previous_settings.get('LUMI_TRADING_SECONDARY_PROFIT_POLICY') != PROFIT_POLICY):
+                raise RuntimeError('EXISTING_EXPLORATION_AND_PROFIT_POLICY_REQUIRED')
+        else:
+            profile, nominal = args.profile or PROFILE, args.nominal or '100'
+        candidate_env = updated_env(original_env, profile, nominal, profit_changes, neural_changes)
         effective_env = read_env(candidate_env)
         effective_profit_env = {key: effective_env[key] for key in PROFIT_ENV_KEYS if key in effective_env}
+        effective_neural_env = {key: effective_env[key] for key in NEURAL_ENV_KEYS if key in effective_env}
+        def migration_check():
+            extra = [effective_neural_env] if effective_neural_env else []
+            return verify_migration(release, profile, nominal, effective_profit_env, *extra)
         old = CURRENT.resolve()
         require_deployment_lease(old, args.expected_current, original_env)
         require_clean(old)
+        if args.neural_mode == 'OFF' and args.target == args.expected_current:
+            report = neural_off_same_release(old, args.expected_current, original_env, candidate_env,
+                profile, nominal, effective_profit_env, effective_neural_env)
+            print(json.dumps(report))
+            return
         fetch_target(old, args.target)
         release = RELEASES / args.target
         if not release.exists():
@@ -333,7 +452,7 @@ def main():
         if any(path not in ALLOWED for path in changed):
             raise RuntimeError('OUTSIDE_TRADING_EXPLORATION_SCOPE')
         share_dependencies(old, release)
-        migration = verify_migration(release, args.profile, args.nominal, effective_profit_env)
+        migration = migration_check()
         disk_space = require_backup_space()
         stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
         stopped = False
@@ -358,7 +477,7 @@ def main():
                 file.write(original_env)
             # Validate the final quiescent snapshot, including any naturally
             # created order since the earlier preflight.
-            migration = verify_migration(release, args.profile, args.nominal, effective_profit_env)
+            migration = migration_check()
             require_deployment_lease(old, args.expected_current, original_env)
             require_clean(old)
             require_candidate(release, args.target)
@@ -376,16 +495,20 @@ def main():
             os.replace(link, CURRENT)
             swapped = True
             run(['systemctl', 'start', SERVICE], timeout=20)
-            after = wait_active(before['revision'], args.profile == PROFILE, migration.get('profit_policy'))
+            after = wait_active(before['revision'], profile == PROFILE, migration.get('profit_policy'),
+                                migration.get('neural'))
             report = {'status': 'DEPLOYED', 'at': stamp, 'previous_commit': args.expected_current,
                       'commit': args.target, 'release': str(release), 'backup': backup,
                       'migration': migration, 'before_revision': before['revision'], 'after': after,
-                      'profile': args.profile, 'nominal_usd': args.nominal,
+                      'profile': profile, 'nominal_usd': nominal,
                       'profit_configuration': effective_profit_env,
+                      'neural_configuration': effective_neural_env,
                       'disk_space_preflight': disk_space,
                       'rollback': {'compatible_commit': args.target,
-                                   'profile': args.profile if effective_profit_env else 'OFF',
-                                   'profit_policy': 'OFF' if effective_profit_env else None,
+                                   'profile': profile if neural_changes or effective_profit_env else 'OFF',
+                                   'profit_policy': effective_profit_env.get('LUMI_TRADING_SECONDARY_PROFIT_POLICY')
+                                                    if neural_changes else 'OFF' if effective_profit_env else None,
+                                   'neural_mode': 'OFF' if neural_changes else None,
                                    'restore_old_database': False, 'old_binary_rollback_allowed': False},
                       'changed_paths': changed}
             report_path = DB.parent / ('deploy-exploration-' + stamp + '.json')
@@ -414,11 +537,16 @@ def main():
                 # Profit admission can be disabled without reintroducing the
                 # old financial gates or abandoning the recovered exploration.
                 # Existing position contracts still use this compatible binary.
-                if effective_profit_env:
-                    write_env(updated_env(candidate_env, args.profile, args.nominal,
+                if neural_changes:
+                    # The authorized integration cannot disable useful-margin
+                    # admission or trailing/exploration as a recovery shortcut.
+                    write_env(updated_env(candidate_env, profile, nominal,
+                                          neural_changes=neural_env_changes('OFF')))
+                elif effective_profit_env:
+                    write_env(updated_env(candidate_env, profile, nominal,
                                           {'LUMI_TRADING_SECONDARY_PROFIT_POLICY': 'OFF'}))
                 else:
-                    write_env(updated_env(original_env, 'OFF', args.nominal))
+                    write_env(updated_env(original_env, 'OFF', nominal))
                 run(['systemctl', 'start', SERVICE], timeout=20)
             raise
 

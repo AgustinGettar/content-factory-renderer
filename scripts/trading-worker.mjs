@@ -35,7 +35,7 @@ engine.event({type:'BOOTSTRAP_MANIFEST',sources:seed.sources,input_hash:hash(see
 if(local&&!engine.state.aws_sqlite_enabled_at){engine.state.aws_sqlite_enabled_at=Date.now();engine.notice('VERSION',{type:'AWS_SQLITE_ENABLED',at:engine.state.aws_sqlite_enabled_at},'aws-sqlite-v1');await engine.flush();}
 feed.start();
 const publisher=local?new DashboardPublisher({store,feed,env,controls}):null;
-if(operational)attachOperationalProjection(publisher,store);else if(multiResearch)attachResearchProjection(publisher,store);
+if(operational)attachOperationalProjection(publisher,store,operational);else if(multiResearch)attachResearchProjection(publisher,store);
 const publishTimer=publisher?setInterval(()=>{void publisher.publish();},LIVE_PUBLISH_MS):null;
 if(publisher)void publisher.publish();
 const controlTimer=controls?setInterval(()=>{void controls.poll();},3000):null;

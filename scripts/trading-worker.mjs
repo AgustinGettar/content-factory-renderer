@@ -19,7 +19,7 @@ const seed=JSON.parse(await readFile(new URL('../data/trading/bootstrap.json',im
 if(seed.kind!=='HISTORICAL_ONLY'||seed.exchange!=='KRAKEN'||seed.instrument!=='BTC/USD_SPOT')throw Error('HISTORICAL_MARKET_MISMATCH');
 const local=env.LUMI_TRADING_STORAGE==='SQLITE';
 const db=local?null:createClient(env.SUPABASE_URL,env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false},global:{fetch:(url,opts={})=>fetch(url,{...opts,signal:AbortSignal.timeout(8000)})}});
-if(env.LUMI_TRADING_SECONDARY_PROFILE&&env.LUMI_TRADING_SECONDARY_PROFILE!=='secondary-growth-1.0.0')throw Error('SECONDARY_RISK_PROFILE_UNKNOWN');
+if(env.LUMI_TRADING_SECONDARY_PROFILE&&!['secondary-growth-1.0.0','secondary-paper-exploration-1.0.0','OFF'].includes(env.LUMI_TRADING_SECONDARY_PROFILE))throw Error('SECONDARY_RISK_PROFILE_UNKNOWN');
 if(env.LUMI_TRADING_ENTRY_PROFILE&&env.LUMI_TRADING_ENTRY_PROFILE!=='agile-5bars-1.0.0')throw Error('ENTRY_PROFILE_UNKNOWN');
 if(env.LUMI_TRADING_CONTEXT_PROFILE&&env.LUMI_TRADING_CONTEXT_PROFILE!=='context-maker-1.0.0')throw Error('CONTEXT_PROFILE_UNKNOWN');
 if(env.LUMI_TRADING_MAKER_SIZING&&env.LUMI_TRADING_MAKER_SIZING!=='maker-sizing-1.0.0')throw Error('MAKER_SIZING_UNKNOWN');

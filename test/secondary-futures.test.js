@@ -43,8 +43,8 @@ test('spot quotes cannot value or settle a futures position',()=>{
  const h=fixture(),p=open(h),before=h.b.a.cash;const at=T+3000,spot={...q(at,1),source:'KRAKEN_WS_V2_BBO'};h.b.market(spot,null,{[H]:0},at);assert(h.b.a.positions.p1);assert.equal(h.b.a.cash,before);
  const v=exitEstimate(p,spot,at);assert(v&&Number(v.quote_price)>99);assert.equal(v.model,'PF_XBTUSD_FUTURES_OBSERVED_BBO');
 });
-test('gaps close at the next observed quote, never a fabricated stop; funding is signed',()=>{
- const h=fixture(),p=open(h);h.time(T+3300);h.b.market(q(T+3300,100.2),null,{[H]:0.2},T+3300);assert(D(p.accrued_funding).gt(0));h.time(T+20000);h.b.market(q(T+3300),null,{[H]:0.2},T+20000);assert(h.b.a.positions.p1);h.time(T+21000);h.b.market(q(T+21000,100.2),null,{[H]:0.2},T+21000);const e=h.events.find(e=>e.type==='CLOSED');assert.equal(e.reason,'DATA_GAP_CLOSE');assert.equal(e.quality,'FUTURES_DATA_GAP');assert(Number(e.price)>100);assert.notEqual(e.price,'99');
+test('gaps preserve uncertainty and resume; only an observed barrier can stop the position; funding is signed',()=>{
+ const h=fixture(),p=open(h);h.time(T+3300);h.b.market(q(T+3300,100.2),null,{[H]:0.2},T+3300);assert(D(p.accrued_funding).gt(0));h.time(T+20000);h.b.market(q(T+3300),null,{[H]:0.2},T+20000);assert(h.b.a.positions.p1);h.time(T+21000);h.b.market(q(T+21000,100.2),null,{[H]:0.2},T+21000);assert(h.b.a.positions.p1);assert.equal(h.events.filter(e=>e.type==='CLOSED').length,0);assert.equal(p.quality,'UNRESOLVED_MARKET_GAP');assert(!p.exit_requested);assert(h.events.some(e=>e.type==='SECONDARY_DATA_RECOVERED'));h.time(T+22000);h.b.market(q(T+22000,98.9),null,{[H]:0.2},T+22000);const e=h.events.find(e=>e.type==='CLOSED');assert.equal(e.reason,'STOP');assert.equal(e.quality,'UNRESOLVED_MARKET_GAP');assert(Number(e.price)<98.9);assert.notEqual(e.price,'99');
  const short=fixture(),p2=open(short,plan('p1','BREAKOUT','SHORT'));short.time(T+3300);short.b.market(q(T+3300,100),null,{[H]:0.2},T+3300);assert(D(p2.accrued_funding).lt(0));
 });
 test('normal stop, pending expiry and time exits do not become hidden holds',()=>{
@@ -73,7 +73,7 @@ test('future candles and unavailable funding cannot fabricate a candidate',()=>{
 });
 test('wire adapter ignores snapshots and duplicate trade identifiers, preserving the observed market source',()=>{
  const h=fixture(),handlers={},socket={addEventListener:(k,v)=>handlers[k]=v,send(){}},engine={state:h.r,event:e=>h.events.push(e),notice:(...a)=>h.notices.push(a)},r=new OperationalSecondary({engine,now:h.now,socketFactory:()=>socket}).initialize();r.stopped=false;r.connect();
- const emit=x=>handlers.message({data:JSON.stringify(x)}),base={product_id:'PF_XBTUSD',time:T,uid:'unique',side:'sell',price:99.99,qty:100};emit({...base,feed:'trade_snapshot'});assert.equal(r.queue.length,0);emit({...base,feed:'trade'});emit({...base,feed:'trade'});assert.equal(r.queue.length,1);emit({...base,product_id:'OTHER',uid:'other',feed:'trade'});assert.equal(r.queue.length,1);
+ const emit=x=>handlers.message({data:JSON.stringify(x)}),base={product_id:'PF_XBTUSD',time:T,uid:'unique',type:'fill',side:'sell',price:99.99,qty:100};emit({...base,feed:'trade_snapshot'});assert.equal(r.queue.length,0);emit({...base,feed:'trade'});emit({...base,feed:'trade'});assert.equal(r.queue.length,1);emit({...base,product_id:'OTHER',uid:'other',feed:'trade'});assert.equal(r.queue.length,1);
 });
 test('real mode or missing flag with migrated state fails closed',()=>{
  assert.throws(()=>installOperational({state:{secondaryExecution:{}}},{}),/FLAG_REQUIRED/);assert.throws(()=>installOperational({}, {LUMI_TRADING_SECONDARY_EXECUTION:SECONDARY_VERSION,LUMI_TRADING_MODE:'LIVE'}),/PAPER_ONLY/);

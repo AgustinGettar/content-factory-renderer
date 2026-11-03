@@ -47,6 +47,10 @@ CAPITAL_ENV_KEYS = ('LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION',
                     'LUMI_TRADING_SECONDARY_PREFERRED_MULTIPLIER',
                     'LUMI_TRADING_SECONDARY_TARGET_EQUITY_USD',
                     'LUMI_TRADING_SECONDARY_CAPITAL_REQUEST_ID')
+RISK_BUDGET = 'secondary-risk-budget-1.0.0'
+TIMEFRAMES = 'secondary-timeframes-1.0.0'
+RISK_ENV_KEYS = ('LUMI_TRADING_SECONDARY_RISK_BUDGET',)
+TIMEFRAME_ENV_KEYS = ('LUMI_TRADING_SECONDARY_TIMEFRAMES',)
 BRANCH = 'lumi-trading-aws'
 BACKUP_MARGIN_BYTES = 256 * 1024 * 1024
 ALLOWED = {
@@ -60,8 +64,7 @@ ALLOWED = {
     'test/secondary-exploration-execution.test.js', 'test/secondary-exploration-monitor.test.js',
     'test/trading-exploration-persistence.test.js', 'test/trading_aws_exploration_update_test.py',
     'lib/trading/dashboard-publisher.js', 'test/trading-dashboard-backup.test.js',
-    'test/secondary-early-profit-protection.test.js',
-    'docs/trading/EARLY-PROTECTION-2.0.0.md',
+    'test/trading-live-dashboard.test.js',
     'lib/trading/secondary-profit-policy.js', 'lib/trading/secondary-profit-protection.js',
     'lib/trading/secondary-entry-economics.js', 'test/secondary-entry-economics.test.js',
     'test/secondary-entry-profit-context.test.js', 'test/secondary-profit-monitor.test.js',
@@ -83,6 +86,15 @@ ALLOWED = {
     'test/secondary-capital-allocation.test.js',
     'test/secondary-capital-integration.test.js',
     'docs/trading/CAPITAL-ALLOCATION.md',
+    'lib/trading/secondary-risk-budget.js', 'lib/trading/secondary-timeframes.js',
+    'lib/trading/secondary-exit-advisory.js', 'lib/trading/multi-pattern-paper.js',
+    'lib/trading/secondary-history-publisher.js',
+    'test/secondary-risk-budget.test.js', 'test/secondary-independent-timeframes.test.js',
+    'test/secondary-early-profit-protection.test.js', 'test/secondary-exit-advisory.test.js',
+    'test/secondary-history-publisher.test.js', 'test/trading-secondary-monitor-activity.test.js',
+    'docs/trading/EARLY-PROTECTION-2.0.0.md', 'docs/trading/EXIT-ADVISORY.md',
+    'docs/trading/INDEPENDENT-TIMEFRAMES.md', 'docs/trading/RISK-BUDGET-AND-PYRAMID.md',
+    'docs/trading/DURABLE-SECONDARY-HISTORY.md', 'docs/trading/EXPERIMENTAL-EVALUATION.md',
 }
 
 
@@ -174,11 +186,28 @@ def capital_env_changes(mode=None, base_usd=None, preferred_multiplier=None,
             if value is not None}
 
 
+def risk_env_changes(mode=None):
+    if mode is None:
+        return {}
+    if mode not in [RISK_BUDGET, 'OFF']:
+        raise RuntimeError('RISK_BUDGET_VERSION_UNSUPPORTED')
+    return {RISK_ENV_KEYS[0]: mode}
+
+
+def timeframe_env_changes(mode=None):
+    if mode is None:
+        return {}
+    if mode not in [TIMEFRAMES, 'OFF']:
+        raise RuntimeError('TIMEFRAMES_VERSION_UNSUPPORTED')
+    return {TIMEFRAME_ENV_KEYS[0]: mode}
+
+
 def updated_env(text, profile, nominal, profit_changes=None, neural_changes=None,
-                capital_changes=None):
+                capital_changes=None, risk_changes=None, timeframe_changes=None):
     changes = {'LUMI_TRADING_SECONDARY_PROFILE': profile,
                'LUMI_TRADING_SECONDARY_NOMINAL_USD': nominal,
-               **(profit_changes or {}), **(neural_changes or {}), **(capital_changes or {})}
+               **(profit_changes or {}), **(neural_changes or {}), **(capital_changes or {}),
+               **(risk_changes or {}), **(timeframe_changes or {})}
     lines = []
     for line in text.splitlines():
         key = line.split('=', 1)[0].strip() if '=' in line else ''
@@ -297,7 +326,7 @@ def consistent_backup(stamp):
 
 
 def verify_migration(release, profile, nominal, profit_env=None, neural_env=None,
-                     capital_env=None):
+                     capital_env=None, risk_env=None, timeframe_env=None):
     # Read the authoritative JSON once; exercise only pure migration functions on
     # an in-memory clone, without a feed, writer lease, transport or real order.
     script = """
@@ -310,13 +339,18 @@ const db=new DatabaseSync(process.argv[4],{readOnly:true,timeout:3000});
 const row=db.prepare("SELECT state FROM state WHERE id='KRAKEN_BTCUSD_PAPER'").get();db.close();
 const original=JSON.parse(row.state),state=structuredClone(original),events=[];
 const at=Date.now();initializeSecondary(state,at);
-const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2],...JSON.parse(process.argv[3]),...JSON.parse(process.argv[5]??'{}'),...JSON.parse(process.argv[6]??'{}')};
+const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:process.argv[1],LUMI_TRADING_SECONDARY_NOMINAL_USD:process.argv[2],...JSON.parse(process.argv[3]),...JSON.parse(process.argv[5]??'{}'),...JSON.parse(process.argv[6]??'{}'),...JSON.parse(process.argv[7]??'{}'),...JSON.parse(process.argv[8]??'{}')};
 let installNeural=null;
 if(env.LUMI_TRADING_SECONDARY_NEURAL_MODE||state.secondaryNeural)({installSecondaryNeural:installNeural}=await import('./lib/trading/secondary-neural.js'));
 let installCapital=null;
 if(env.LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION||state.secondaryExecution.capital_allocation)({installCapitalAllocation:installCapital}=await import('./lib/trading/secondary-capital-allocation.js'));
+let installRisk=null,installTimeframes=null;
+if(env.LUMI_TRADING_SECONDARY_RISK_BUDGET||state.secondaryExecution.risk_budget)({installSecondaryRiskBudget:installRisk}=await import('./lib/trading/secondary-risk-budget.js'));
+if(env.LUMI_TRADING_SECONDARY_TIMEFRAMES||state.secondaryExecution.timeframe_execution)({installSecondaryTimeframes:installTimeframes}=await import('./lib/trading/secondary-timeframes.js'));
 const migrate=()=>{installExploration(state,env,at,e=>events.push(e));installProfitPolicy(state,env,at,e=>events.push(e));
  if(installCapital)installCapital(state,env,at,e=>events.push(e));
+ if(installRisk)installRisk(state,env,at,e=>events.push(e));
+ if(installTimeframes)installTimeframes(state,env,at,e=>events.push(e));
  if(installNeural)installNeural({state,now:()=>at,event:e=>events.push(e),notice:()=>{}},env);};
 migrate();const once=structuredClone(state),eventCount=events.length;migrate();
 if(!isDeepStrictEqual(once,state))throw Error('MIGRATION_NOT_IDEMPOTENT');
@@ -330,11 +364,21 @@ if(installCapital){
  if(!isDeepStrictEqual(original.secondaryExecution.profit_policy,state.secondaryExecution.profit_policy)&&env.LUMI_TRADING_SECONDARY_PROFIT_POLICY===original.secondaryExecution.profit_policy?.version)throw Error('CAPITAL_INSTALL_REWROTE_PROFIT_POLICY');
  if(!isDeepStrictEqual(original.secondaryExecution.capital,state.secondaryExecution.capital))throw Error('CAPITAL_INSTALL_CHANGED_FUNDING_LEDGER');
 }
+const advancedChanged=['risk_budget','timeframe_execution'].some(key=>!isDeepStrictEqual(original.secondaryExecution[key],state.secondaryExecution[key]));
+if(advancedChanged){
+ const except=(object,keys)=>Object.fromEntries(Object.entries(object).filter(([key])=>!keys.includes(key)));
+ if(!isDeepStrictEqual(except(original.secondaryExecution,['risk_budget','timeframe_execution']),except(state.secondaryExecution,['risk_budget','timeframe_execution'])))throw Error('NEW_POLICIES_CHANGED_EXISTING_EXECUTION_STATE');
+ if(!isDeepStrictEqual(except(original,['secondaryExecution']),except(state,['secondaryExecution'])))throw Error('NEW_POLICIES_CHANGED_PROTECTED_ROOT_STATE');
+ if(!isDeepStrictEqual(original.secondaryExecution.capital_allocation,state.secondaryExecution.capital_allocation))throw Error('NEW_POLICIES_CHANGED_FUNDING_REQUEST');
+}
+if(events.some(event=>event.type==='PAPER_CAPITAL_TOPUP'))throw Error('MIGRATION_ATTEMPTED_CAPITAL_TOPUP');
 if(original.secondaryNeural)for(const key of ['protocol','protocol_hash','counts','pending','recent','last_decisions','feature_exclusions','label_exclusions'])if(!isDeepStrictEqual(original.secondaryNeural[key],state.secondaryNeural[key]))throw Error('MIGRATION_REWROTE_NEURAL_RECORDS');
 const profit=state.secondaryExecution.profit_policy,expectedProfit=profit?{version:profit.version,active:profit.active,policy_hash:profit.policy_hash,policy:profit.policy}:null;
 const n=state.secondaryNeural,neural=n?{version:n.version,protocol_hash:n.protocol_hash,requested_mode:n.requested_mode}:null;
 const ca=state.secondaryExecution.capital_allocation,capital=ca?{version:ca.version,active:ca.active,policy_hash:ca.policy_hash,policy:ca.policy}:null;
-console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,positions_preserved:true,pending_preserved:true,neural_records_preserved:true,capital_install_account_preserved:!!installCapital,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false,profit_policy:expectedProfit,neural,capital_allocation:capital}));
+const projectPolicy=p=>p?{version:p.version,active:p.active,policy_hash:p.policy_hash,policy:p.policy}:null;
+const riskBudget=projectPolicy(state.secondaryExecution.risk_budget),timeframes=projectPolicy(state.secondaryExecution.timeframe_execution);
+console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.keys(state.frequency.account.positions).length,pending:Object.keys(state.frequency.account.pendingOrders).length,positions_preserved:true,pending_preserved:true,neural_records_preserved:true,capital_install_account_preserved:!!installCapital,migration_events:events.length,profile:state.secondaryExecution.exploration?.version,active:state.secondaryExecution.exploration?.active??false,profit_policy:expectedProfit,neural,capital_allocation:capital,risk_budget:riskBudget,timeframes,new_layers_account_preserved:isDeepStrictEqual(original.frequency,state.frequency),new_layers_funding_preserved:isDeepStrictEqual(original.secondaryExecution.capital_allocation,state.secondaryExecution.capital_allocation),capital_added:'0'}));
 """
     return json.loads(run(['runuser', '-u', 'lumitrading', '--', '/usr/bin/node-24',
                            '--max-old-space-size=96', '--input-type=module', '-e', script,
@@ -343,7 +387,11 @@ console.log(JSON.stringify({compatible:true,idempotent:true,positions:Object.key
                            json.dumps({key: value for key, value in (neural_env or {}).items()
                                        if key in NEURAL_ENV_KEYS}),
                            json.dumps({key: value for key, value in (capital_env or {}).items()
-                                       if key in CAPITAL_ENV_KEYS})], cwd=release))
+                                       if key in CAPITAL_ENV_KEYS}),
+                           json.dumps({key: value for key, value in (risk_env or {}).items()
+                                       if key in RISK_ENV_KEYS}),
+                           json.dumps({key: value for key, value in (timeframe_env or {}).items()
+                                       if key in TIMEFRAME_ENV_KEYS})], cwd=release))
 
 
 def profit_state_matches(current, expected):
@@ -368,7 +416,7 @@ def capital_state_matches(current, expected):
 
 
 def wait_active(previous_revision, active, expected_profit=None, expected_neural=None,
-                expected_capital=None):
+                expected_capital=None, expected_risk=None, expected_timeframes=None):
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline:
         try:
@@ -379,10 +427,13 @@ def wait_active(previous_revision, active, expected_profit=None, expected_neural
                     and x.get('exploration', {}).get('active') is active
                     and profit_state_matches(x.get('profit_policy'), expected_profit)
                     and neural_state_matches(row['state'].get('secondaryNeural'), expected_neural)
-                    and capital_state_matches(x.get('capital_allocation'), expected_capital)):
+                    and capital_state_matches(x.get('capital_allocation'), expected_capital)
+                    and capital_state_matches(x.get('risk_budget'), expected_risk)
+                    and capital_state_matches(x.get('timeframe_execution'), expected_timeframes)):
                 return {'revision': row['revision'], 'profile': x.get('exploration', {}).get('version'),
                         'profile_active': active, 'profit_policy': expected_profit,
                         'neural': expected_neural, 'capital_allocation': expected_capital,
+                        'risk_budget': expected_risk, 'timeframes': expected_timeframes,
                         'capital_funding_status': (x.get('capital_allocation', {}).get('funding_request') or {}).get('status'),
                         'counts': row['counts']}
         except (RuntimeError, sqlite3.Error):
@@ -393,7 +444,7 @@ def wait_active(previous_revision, active, expected_profit=None, expected_neural
 
 def neural_off_same_release(release, expected_current, original_env, candidate_env,
                             profile, nominal, profit_env, neural_env, capital_env=None,
-                            layer='neural'):
+                            layer='neural', risk_env=None, timeframe_env=None):
     """Optional config reversal: retain the compatible binary and current DB.
 
     A second full DB backup is unnecessary for disabling optional inference and
@@ -402,7 +453,7 @@ def neural_off_same_release(release, expected_current, original_env, candidate_e
     """
     require_deployment_lease(release, expected_current, original_env)
     require_candidate(release, expected_current)
-    migration = verify_migration(release, profile, nominal, profit_env, neural_env, capital_env)
+    migration = verify_migration(release, profile, nominal, profit_env, neural_env, capital_env, risk_env, timeframe_env)
     stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
     backup = ENV.with_name('worker.env.before-' + layer + '-off-' + stamp)
     fd = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -415,21 +466,26 @@ def neural_off_same_release(release, expected_current, original_env, candidate_e
         run(['systemctl', 'stop', SERVICE], timeout=30)
         stopped = True
         before = snapshot()
-        migration = verify_migration(release, profile, nominal, profit_env, neural_env, capital_env)
+        migration = verify_migration(release, profile, nominal, profit_env, neural_env, capital_env, risk_env, timeframe_env)
         require_deployment_lease(release, expected_current, original_env)
         require_candidate(release, expected_current)
         write_env(candidate_env); written = True
         run(['systemctl', 'start', SERVICE], timeout=20)
         after = wait_active(before['revision'], profile == PROFILE, migration.get('profit_policy'),
-                            migration.get('neural'), migration.get('capital_allocation'))
+                            migration.get('neural'), migration.get('capital_allocation'),
+                            migration.get('risk_budget'), migration.get('timeframes'))
         report = {'status': 'NEURAL_OFF_SAME_COMPATIBLE_RELEASE' if layer == 'neural'
-                           else 'CAPITAL_ALLOCATION_OFF_SAME_COMPATIBLE_RELEASE', 'at': stamp,
+                           else 'CAPITAL_ALLOCATION_OFF_SAME_COMPATIBLE_RELEASE' if layer == 'capital-allocation'
+                           else 'RISK_BUDGET_OFF_SAME_COMPATIBLE_RELEASE' if layer == 'risk-budget'
+                           else 'TIMEFRAMES_OFF_SAME_COMPATIBLE_RELEASE' if layer == 'timeframes'
+                           else 'RISK_AND_TIMEFRAMES_OFF_SAME_COMPATIBLE_RELEASE', 'at': stamp,
             'commit': expected_current, 'release': str(release),
             'backup': {'kind': 'PRIVATE_CONFIGURATION_ONLY', 'path': str(backup),
                        'database_backup_not_required': 'NO_CODE_OR_SCHEMA_CHANGE'},
             'migration': migration, 'before_revision': before['revision'], 'after': after,
             'profile': profile, 'nominal_usd': nominal, 'profit_configuration': profit_env,
             'neural_configuration': neural_env, 'capital_configuration': capital_env or {},
+            'risk_configuration': risk_env or {}, 'timeframe_configuration': timeframe_env or {},
             'schema_changed': False,
             'database_restored': False, 'binary_changed': False}
         report_path = DB.parent / (layer + '-off-' + stamp + '.json')
@@ -440,7 +496,8 @@ def neural_off_same_release(release, expected_current, original_env, candidate_e
             expected_env = candidate_env if written else original_env
             if CURRENT.resolve() != release or ENV.read_text() != expected_env:
                 raise RuntimeError('NEURAL_OFF_LEASE_LOST_DURING_RECOVERY' if layer == 'neural'
-                                   else 'CAPITAL_ALLOCATION_OFF_LEASE_LOST_DURING_RECOVERY')
+                                   else 'CAPITAL_ALLOCATION_OFF_LEASE_LOST_DURING_RECOVERY' if layer == 'capital-allocation'
+                                   else 'POLICY_OFF_LEASE_LOST_DURING_RECOVERY')
             # Once OFF is written, a failure cannot reactivate the optional layer.
             run(['systemctl', 'start', SERVICE], timeout=20)
         raise
@@ -452,6 +509,8 @@ def main():
     parser.add_argument('--expected-current', required=True)
     parser.add_argument('--profile', choices=[PROFILE, 'OFF'], default=None)
     parser.add_argument('--nominal', default=None)
+    parser.add_argument('--risk-budget', choices=[RISK_BUDGET, 'OFF'], default=None)
+    parser.add_argument('--timeframes', choices=[TIMEFRAMES, 'OFF'], default=None)
     parser.add_argument('--neural-mode', choices=NEURAL_MODES, default=None)
     parser.add_argument('--capital-allocation', choices=[CAPITAL_ALLOCATION, 'OFF'], default=None)
     parser.add_argument('--allocation-base-usd', default=None)
@@ -475,6 +534,11 @@ def main():
     capital_changes = capital_env_changes(args.capital_allocation, args.allocation_base_usd,
                                           args.preferred_multiplier, args.target_equity_usd,
                                           args.capital_request_id)
+    risk_changes = risk_env_changes(args.risk_budget)
+    timeframe_changes = timeframe_env_changes(args.timeframes)
+    advanced_changes = bool(risk_changes or timeframe_changes)
+    if advanced_changes and (profit_changes or neural_changes or capital_changes):
+        raise RuntimeError('RISK_TIMEFRAME_UPDATE_CANNOT_CHANGE_EXISTING_POLICIES')
     if neural_changes and profit_changes:
         raise RuntimeError('NEURAL_UPDATE_CANNOT_CHANGE_PROFIT_POLICY')
     if capital_changes and (profit_changes or neural_changes):
@@ -484,7 +548,18 @@ def main():
         original_env = ENV.read_text()
         previous_settings = read_env(original_env)
         validate_env(previous_settings)
-        if neural_changes or capital_changes:
+        if advanced_changes:
+            profile = previous_settings.get('LUMI_TRADING_SECONDARY_PROFILE')
+            nominal = previous_settings.get('LUMI_TRADING_SECONDARY_NOMINAL_USD')
+            if (profile not in [PROFILE, 'OFF'] or nominal is None
+                    or args.profile is not None and args.profile != profile
+                    or args.nominal is not None and args.nominal != nominal):
+                raise RuntimeError('RISK_TIMEFRAME_UPDATE_MUST_PRESERVE_EXPLORATION_AND_NOMINAL')
+            if any(value != 'OFF' for value in [args.risk_budget, args.timeframes] if value is not None):
+                if (profile != PROFILE or previous_settings.get('LUMI_TRADING_SECONDARY_PROFIT_POLICY') != EARLY_PROFIT_POLICY
+                        or previous_settings.get('LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION') not in [CAPITAL_ALLOCATION, 'OFF']):
+                    raise RuntimeError('EXISTING_V2_PROFIT_AND_FINITE_CAPITAL_REQUIRED')
+        elif neural_changes or capital_changes:
             profile = previous_settings.get('LUMI_TRADING_SECONDARY_PROFILE')
             nominal = previous_settings.get('LUMI_TRADING_SECONDARY_NOMINAL_USD')
             if (profile not in [PROFILE, 'OFF'] or nominal is None
@@ -500,12 +575,17 @@ def main():
             # profile or nominal. Only explicitly supplied values may change.
             profile = args.profile or (previous_settings.get('LUMI_TRADING_SECONDARY_PROFILE', PROFILE) if args.profit_policy == EARLY_PROFIT_POLICY else PROFILE)
             nominal = args.nominal or (previous_settings.get('LUMI_TRADING_SECONDARY_NOMINAL_USD', '100') if args.profit_policy == EARLY_PROFIT_POLICY else '100')
-        candidate_env = updated_env(original_env, profile, nominal, profit_changes, neural_changes, capital_changes)
+        candidate_env = updated_env(original_env, profile, nominal, profit_changes, neural_changes, capital_changes, risk_changes, timeframe_changes)
         effective_env = read_env(candidate_env)
         effective_profit_env = {key: effective_env[key] for key in PROFIT_ENV_KEYS if key in effective_env}
         effective_neural_env = {key: effective_env[key] for key in NEURAL_ENV_KEYS if key in effective_env}
         effective_capital_env = {key: effective_env[key] for key in CAPITAL_ENV_KEYS if key in effective_env}
+        effective_risk_env = {key: effective_env[key] for key in RISK_ENV_KEYS if key in effective_env}
+        effective_timeframe_env = {key: effective_env[key] for key in TIMEFRAME_ENV_KEYS if key in effective_env}
         def migration_check():
+            if effective_risk_env or effective_timeframe_env:
+                return verify_migration(release, profile, nominal, effective_profit_env, effective_neural_env,
+                                        effective_capital_env, effective_risk_env, effective_timeframe_env)
             extra = [effective_neural_env] if effective_neural_env or effective_capital_env else []
             if effective_capital_env:
                 extra.append(effective_capital_env)
@@ -513,10 +593,12 @@ def main():
         old = CURRENT.resolve()
         require_deployment_lease(old, args.expected_current, original_env)
         require_clean(old)
-        if (args.neural_mode == 'OFF' or args.capital_allocation == 'OFF') and args.target == args.expected_current:
+        advanced_off = advanced_changes and all(value == 'OFF' for value in [args.risk_budget, args.timeframes] if value is not None)
+        if (args.neural_mode == 'OFF' or args.capital_allocation == 'OFF' or advanced_off) and args.target == args.expected_current:
+            layer = ('risk-timeframes' if risk_changes and timeframe_changes else 'risk-budget' if risk_changes else 'timeframes') if advanced_off else 'neural' if args.neural_mode == 'OFF' else 'capital-allocation'
             report = neural_off_same_release(old, args.expected_current, original_env, candidate_env,
                 profile, nominal, effective_profit_env, effective_neural_env, effective_capital_env,
-                'neural' if args.neural_mode == 'OFF' else 'capital-allocation')
+                layer, effective_risk_env, effective_timeframe_env)
             print(json.dumps(report))
             return
         fetch_target(old, args.target)
@@ -588,7 +670,8 @@ def main():
             swapped = True
             run(['systemctl', 'start', SERVICE], timeout=20)
             after = wait_active(before['revision'], profile == PROFILE, migration.get('profit_policy'),
-                                migration.get('neural'), migration.get('capital_allocation'))
+                                migration.get('neural'), migration.get('capital_allocation'),
+                            migration.get('risk_budget'), migration.get('timeframes'))
             report = {'status': 'DEPLOYED', 'at': stamp, 'previous_commit': args.expected_current,
                       'commit': args.target, 'release': str(release), 'backup': backup,
                       'migration': migration, 'before_revision': before['revision'], 'after': after,
@@ -596,13 +679,16 @@ def main():
                       'profit_configuration': effective_profit_env,
                       'neural_configuration': effective_neural_env,
                       'capital_configuration': effective_capital_env,
+                      'risk_configuration': effective_risk_env, 'timeframe_configuration': effective_timeframe_env,
                       'disk_space_preflight': disk_space,
                       'rollback': {'compatible_commit': args.target,
-                                   'profile': profile if neural_changes or capital_changes or effective_profit_env else 'OFF',
+                                   'profile': profile if advanced_changes or neural_changes or capital_changes or effective_profit_env else 'OFF',
                                    'profit_policy': effective_profit_env.get('LUMI_TRADING_SECONDARY_PROFIT_POLICY')
-                                                    if neural_changes or effective_capital_env else 'OFF' if effective_profit_env else None,
+                                                    if advanced_changes or neural_changes or effective_capital_env else 'OFF' if effective_profit_env else None,
                                    'neural_mode': 'OFF' if neural_changes else None,
-                                   'capital_allocation': 'OFF' if effective_capital_env and not neural_changes else None,
+                                   'capital_allocation': 'OFF' if effective_capital_env and not neural_changes and not advanced_changes else None,
+                                   'risk_budget': 'OFF' if risk_changes else None,
+                                   'timeframes': 'OFF' if timeframe_changes else None,
                                    'restore_old_database': False, 'old_binary_rollback_allowed': False},
                       'changed_paths': changed}
             report_path = DB.parent / ('deploy-exploration-' + stamp + '.json')
@@ -631,7 +717,13 @@ def main():
                 # Profit admission can be disabled without reintroducing the
                 # old financial gates or abandoning the recovered exploration.
                 # Existing position contracts still use this compatible binary.
-                if neural_changes:
+                if advanced_changes:
+                    # Keep early protection, finite capital, neural mode and signed
+                    # positions; disable only the explicitly requested new layers.
+                    write_env(updated_env(candidate_env, profile, nominal,
+                                          risk_changes=risk_env_changes('OFF') if risk_changes else None,
+                                          timeframe_changes=timeframe_env_changes('OFF') if timeframe_changes else None))
+                elif neural_changes:
                     # The authorized integration cannot disable useful-margin
                     # admission or trailing/exploration as a recovery shortcut.
                     write_env(updated_env(candidate_env, profile, nominal,

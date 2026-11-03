@@ -143,6 +143,26 @@ class NeuralExportTests(unittest.TestCase):
         self.assertEqual(result['cursor_end'], 7)
         self.assertEqual(rows[0]['manifest']['legacy_learning'], {'NO_PRE_ENTRY_FEATURES': 8})
 
+    def test_exit_advisory_exports_only_explicit_no_authority_domain_and_preserves_group(self):
+        snapshot = {'version': 'secondary-exit-advisory-snapshot-1.0.0',
+                    'authority': 'NONE', 'operation_id': 'isolated-operation-1',
+                    'at': 1793606400001, 'domain': {'timeframe': 240, 'movement_id': 'group-1'},
+                    'inputs': {'net': '.4', 'peak_net': '.4'}, 'label': None}
+        self.add(1, kind='SECONDARY_EXIT_ADVISORY_SNAPSHOT', snapshot=snapshot,
+                 token='NEVER_EXPORT_EVENT_SECRET')
+        self.add(2, kind='SECONDARY_EXIT_ADVISORY_SNAPSHOT', snapshot={**snapshot, 'authority': 'EXECUTE'})
+        self.add(3, kind='SECONDARY_EXIT_ADVISORY_SNAPSHOT', snapshot={**snapshot, 'version': 'unknown'})
+        self.add(4, kind='FILLED', plan={'timeframe': 240, 'movement_id': 'group-1',
+                                       'parent_id': 'parent-1', 'leg_index': 1})
+        result = self.export()
+        rows = self.records()
+        self.assertEqual([row['rowid'] for row in rows[1:-1]], [1, 4])
+        self.assertEqual(rows[1]['payload']['snapshot'], snapshot)
+        self.assertNotIn('NEVER_EXPORT', json.dumps(rows))
+        self.assertEqual(rows[2]['payload']['plan']['movement_id'], 'group-1')
+        self.assertEqual(rows[2]['payload']['plan']['timeframe'], 240)
+        self.assertEqual(result['cursor_end'], 4)
+
     def test_rejects_real_mode_wrong_contract_and_missing_state(self):
         with self.assertRaisesRegex(ValueError, 'PAPER_ONLY'):
             self.export(mode='REAL')

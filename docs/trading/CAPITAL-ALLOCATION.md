@@ -92,3 +92,11 @@ Nunca restaura una base antigua ni un binario que ignore esta política persisti
 
 Las pruebas y datos sintéticos se ejecutan fuera de la EC2 operativa. Una orden
 natural no se fuerza para acreditar la publicación.
+
+## Extensión posterior: presupuestos por riesgo para contratos nuevos
+
+La política histórica descrita arriba conserva sus invariantes y recibos. Cuando
+está activa `secondary-risk-budget-1.0.0`, las señales nuevas pasan al asignador de
+presupuesto por stop/costes/estrés y contratos de ejecución nuevos hasta ×10. No se
+modifican los contratos ×2, el aporte anterior ni los saldos. La configuración y
+sus límites están documentados en [RISK-BUDGET-AND-PYRAMID.md](RISK-BUDGET-AND-PYRAMID.md).

@@ -123,6 +123,14 @@ test('market gaps and manual partials remain excluded even when final PnL is pos
  const manual={type:'PARTIAL_CLOSE',id:f.plan.id,fill_id:'manual-fragment',at:f.closed.at-1000,reason:'MANUAL_CLOSE',management_override:true};assert.equal(buildSecondaryNeuralLabel({...f,exitEvents:[manual]}).exclusion,'MANUAL_OR_MANAGEMENT_OVERRIDE');
  f.closed.management_override=undefined;assert.equal(buildSecondaryNeuralLabel(f).exclusion,'MANAGEMENT_EVIDENCE_UNAVAILABLE');
 });
+test('15m, 1h and 4h closes cannot silently enter the 5m neural training domain',()=>{
+ for(const timeframe of [15,60,240]){
+  const f=closedFixture();f.closed.plan.timeframe=timeframe;
+  const label=buildSecondaryNeuralLabel(f);
+  assert.equal(label.status,'EXCLUDED');assert.equal(label.exclusion,'TIMEFRAME_NOT_IN_NEURAL_DOMAIN');
+  assert.equal(label.net_return,null);
+ }
+});
 test('exit versions, chronology, balances and topups cannot become a label shortcut',()=>{
  const f=closedFixture(),before=structuredClone(f);f.closed.plan.exit_policy={...f.closed.plan.exit_policy,version:'LEGACY_FIXED_EXIT'};assert.equal(buildSecondaryNeuralLabel(f).exclusion,'ENTRY_OR_EXIT_CONTRACT_MISMATCH');
  f.closed=before.closed;f.closed.entered_at=T-1;assert.equal(buildSecondaryNeuralLabel(f).exclusion,'INVALID_LABEL_CHRONOLOGY');f.closed=before.closed;f.closed.entered_at=T+1100;
@@ -136,4 +144,11 @@ test('one new-engine signal retains its pre-entry vector, closes with observed e
  const target=Number(f.plan.target);now=T+2200;b.market(quote(now,target),null,{[H]:0},now);assert.equal(a.positions[f.plan.id].profit_protection.state,'TRAILING_ACTIVE');now=T+3300;b.market(quote(now,target+1),null,{[H]:0},now);now=T+4400;b.market(quote(now,target),null,{[H]:0},now);now=T+5500;b.market(quote(now,target),null,{[H]:0},now);
  const closed=events.find(event=>event.type==='CLOSED');assert(closed);const label=buildSecondaryNeuralLabel({snapshot,closed,entryEvents:events,exitEvents:events,fundingEvents:events});assert.equal(label.status,'MATURE',JSON.stringify(label));assert.deepEqual(snapshot,saved);assert.deepEqual(buildSecondaryNeuralLabel({snapshot,closed,entryEvents:events,exitEvents:events,fundingEvents:events,previous:label}),label);assert.equal(events.filter(event=>event.type==='CLOSED').length,1);
  const persisted=JSON.parse(JSON.stringify({snapshot,label}));assert.equal(validateSecondaryNeuralSnapshot(persisted.snapshot).input_hash,snapshot.input_hash);assert.deepEqual(buildSecondaryNeuralLabel({snapshot:persisted.snapshot,closed,entryEvents:events,exitEvents:events,fundingEvents:events,previous:persisted.label}),label);
+});
+
+test('new pyramid snapshots group by signed movement identity while old context and hashes remain unchanged',()=>{
+ const f=fixture(),legacy=captureSecondaryNeuralSignal(f.args);assert.equal(legacy.context.movement_key,f.plan.entry_context.movement_key);
+ const movement=hash(['ISOLATED_SIGNED_MOVEMENT']),first={...structuredClone(f.plan),movement_id:movement,parent_id:null,leg_index:0},second={...structuredClone(f.plan),id:'second-causal-leg',movement_id:movement,parent_id:f.plan.id,leg_index:1,entry_context:{...f.plan.entry_context,movement_key:'different-pattern-structure',confirmation_key:'new-confirmation'}};
+ const a=captureSecondaryNeuralSignal({...f.args,decision:{...f.decision,plan:first}}),b=captureSecondaryNeuralSignal({...f.args,decision:{...f.decision,plan:second}});
+ assert.equal(a.exclusion,null);assert.equal(b.exclusion,null);assert.equal(a.context.movement_key,movement);assert.equal(b.context.movement_key,movement);assert.equal(a.domain.execution_policy_hash,legacy.domain.execution_policy_hash);assert.equal(a.domain.economic_policy_hash,legacy.domain.economic_policy_hash);assert.equal(a.domain.exit_policy_hash,legacy.domain.exit_policy_hash);assert.notEqual(a.snapshot_hash,legacy.snapshot_hash);assert.equal(validateSecondaryNeuralSnapshot(a),a);assert.equal(validateSecondaryNeuralSnapshot(b),b);assert.equal(f.plan.movement_id,undefined);
 });

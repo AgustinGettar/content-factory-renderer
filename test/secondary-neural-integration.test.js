@@ -101,6 +101,16 @@ test('a database integrity error is not treated as an optional neural outage',()
  const h=fakeHarness({variant:'DATABASE_FAILURE'});assert.throws(()=>h.tick(T),/TRADING_EVENT_CONFLICT/);assert.equal(h.events.some(e=>e.type==='SELECTED'),false);assert.deepEqual(h.engine.state.frequency.account.pendingOrders,{});
 });
 
+test('runtime compact closure retains non-5m timeframe and records domain exclusion without a fabricated feature snapshot',()=>{
+ const h=fakeHarness({variant:'COLLECTING'}),before=structuredClone(h.engine.state.frequency),primary=structuredClone(h.engine.state.research);
+ const id='ISOLATED_60M_CLOSED',closed={type:'CLOSED',id,at:T+60000,entered_at:T+1000,timeframe:60,version:SECONDARY_VERSION,ledger:'FREQUENT_PAPER',realTrading:false,reason:'TIMEOUT',pnl:'.25',fees:'.1',gross:'.35',funding:'0',qty:'.1',remaining_qty:'0',quality:'OBSERVED',result_final:true,funding_complete:true,
+  plan:{id,version:SECONDARY_VERSION,instrument:'PAPER:KRAKEN_FUTURES:PF_XBTUSD',execution_model:SECONDARY_MODEL,timeframe:60,exit_policy:{version:'secondary-net-protection-2.0.0'}}};
+ h.engine.event(closed);h.neural.observe(closed);
+ const labels=h.events.filter(e=>e.type==='NEURAL_LABEL_RECORDED'&&e.id===id);assert.equal(labels.length,1);assert.equal(labels[0].label.status,'EXCLUDED');assert.equal(labels[0].label.exclusion,'TIMEFRAME_NOT_IN_NEURAL_DOMAIN');assert.equal(labels[0].label.snapshot_hash,null);
+ assert.equal(h.neural.state.recent[id].closed.plan.timeframe,60);assert.equal(h.neural.state.recent[id].closed.timeframe,60);assert.equal(h.neural.state.counts.usable,0);assert.equal(h.neural.state.counts.captures,0);assert.equal(h.neural.state.counts.excluded,1);assert.equal(h.neural.state.label_exclusions.TIMEFRAME_NOT_IN_NEURAL_DOMAIN,1);
+ assert.deepEqual(h.engine.state.frequency,before);assert.deepEqual(h.engine.state.research,primary);assert.equal(h.events.some(e=>e.type==='NEURAL_SIGNAL_CAPTURED'),false);
+});
+
 test('a successful reinstall clears the optional constructor fault and preserves its durable recovery history',()=>{
  const h=fakeHarness({variant:'CONSTRUCTOR_FAILURE'}),root=h.engine.state,fault=structuredClone(root.secondaryNeuralFault),account=structuredClone(root.frequency.account),primary=structuredClone(root.research),history=structuredClone(root.laboratory),started=root.secondaryNeural.started_at;
  assert.equal(neuralView(root).mode,'DEGRADED');root.secondaryNeural.runtime=structuredClone(root.secondaryNeural.runtime);

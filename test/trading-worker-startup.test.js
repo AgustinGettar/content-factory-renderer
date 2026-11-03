@@ -80,3 +80,27 @@ test('worker bootstrap still refuses a trading-key environment with v2',()=>{
  assert.equal(result.status,1);assert.equal(result.stdout,'');
  assert.match(result.stderr,/TRADING_PUBLIC_MARKET_ONLY/);
 });
+
+for(const [key,version,code] of [
+ ['LUMI_TRADING_SECONDARY_RISK_BUDGET','secondary-risk-budget-1.0.0','SECONDARY_RISK_BUDGET_UNKNOWN'],
+ ['LUMI_TRADING_SECONDARY_TIMEFRAMES','secondary-timeframes-1.0.0','SECONDARY_TIMEFRAMES_UNKNOWN'],
+]){
+ for(const mode of [version,'OFF'])test(`worker bootstrap accepts ${key}=${mode}`,()=>{
+  const result=start({LUMI_TRADING_SECONDARY_PROFIT_POLICY:'secondary-profit-policy-2.0.0',[key]:mode});
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(JSON.parse(result.stdout).boundary,'PRE_STORE');
+ });
+ test(`worker bootstrap rejects an unknown ${key} before the store`,()=>{
+  const result=start({LUMI_TRADING_SECONDARY_PROFIT_POLICY:'secondary-profit-policy-2.0.0',[key]:'unknown-policy'});
+  assert.equal(result.status,1);assert.equal(result.stdout,'');
+  assert.match(result.stderr,new RegExp(code));
+ });
+}
+
+test('worker bootstrap accepts both new layers together with early protection',()=>{
+ const result=start({LUMI_TRADING_SECONDARY_PROFIT_POLICY:'secondary-profit-policy-2.0.0',
+  LUMI_TRADING_SECONDARY_RISK_BUDGET:'secondary-risk-budget-1.0.0',
+  LUMI_TRADING_SECONDARY_TIMEFRAMES:'secondary-timeframes-1.0.0'});
+ assert.equal(result.status,0,result.stderr);
+ assert.equal(JSON.parse(result.stdout).boundary,'PRE_STORE');
+});

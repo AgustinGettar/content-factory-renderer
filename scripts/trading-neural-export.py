@@ -18,20 +18,30 @@ VERSION = 'secondary-neural-export-1.0.0'
 STATE_ID = 'KRAKEN_BTCUSD_PAPER'
 KINDS = ('NEURAL_SIGNAL_CAPTURED', 'NEURAL_ENTRY_DECISION', 'NEURAL_LABEL_RECORDED',
          'NEURAL_RECONCILIATION_REQUIRED', 'SELECTED', 'FILLED', 'PARTIAL_FILL', 'PARTIAL_CLOSE',
-         'CLOSED', 'FUNDING_RECONCILED', 'NOT_FILLED', 'ORDER_REMAINDER_CANCELLED')
+         'CLOSED', 'FUNDING_RECONCILED', 'NOT_FILLED', 'ORDER_REMAINDER_CANCELLED',
+         'SECONDARY_EXIT_ADVISORY_SNAPSHOT')
 EVENT_KEYS = ('type', 'id', 'fill_id', 'at', 'price', 'qty', 'fee', 'pnl', 'fees',
               'gross', 'funding', 'entered_at', 'remaining_qty', 'reason', 'quality',
               'management_override', 'result_final', 'funding_complete', 'entry_fills',
               'excursions', 'data_gaps', 'amount', 'net_adjustment', 'net_after',
               'position_open', 'remaining_intervals', 'ledger', 'version', 'realTrading')
 PLAN_KEYS = ('id', 'version', 'entry_revision', 'instrument', 'execution_model',
-             'execution_contract', 'economic_policy', 'exit_policy', 'sizing')
+             'execution_contract', 'economic_policy', 'exit_policy', 'sizing',
+             'timeframe', 'movement_id', 'parent_id', 'leg_index')
 MAX_EVENT_BYTES = 1_048_576
 MAX_EXPORT_BYTES = 32_000_000
 
 def compact(payload, kind):
     if payload.get('ledger') != 'FREQUENT_PAPER' or payload.get('realTrading') is True:
         return None
+    if kind == 'SECONDARY_EXIT_ADVISORY_SNAPSHOT':
+        snapshot = payload.get('snapshot')
+        if (not isinstance(snapshot, dict)
+                or snapshot.get('version') != 'secondary-exit-advisory-snapshot-1.0.0'
+                or snapshot.get('authority') != 'NONE'):
+            return None
+        return {'type': kind, 'at': payload.get('at'), 'id': payload.get('id'),
+                'ledger': 'FREQUENT_PAPER', 'realTrading': False, 'snapshot': snapshot}
     if kind.startswith('NEURAL_'):
         key = {'NEURAL_SIGNAL_CAPTURED': 'snapshot', 'NEURAL_ENTRY_DECISION': 'decision',
                'NEURAL_LABEL_RECORDED': 'label'}.get(kind)

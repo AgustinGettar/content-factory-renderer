@@ -808,5 +808,249 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assert_source_and_ledger_preserved()
 
 
+    def configure_existing_advanced_base(self, active_layers=False):
+        self.original_env = M.updated_env(self.original_env, M.PROFILE, '100',
+            M.profit_env_changes(M.EARLY_PROFIT_POLICY, '.002', '.25', '900000', '600000'),
+            neural_changes=M.neural_env_changes('COLLECTING'),
+            capital_changes=M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000', 'already-applied-request'),
+            risk_changes=M.risk_env_changes(M.RISK_BUDGET) if active_layers else None,
+            timeframe_changes=M.timeframe_env_changes(M.TIMEFRAMES) if active_layers else None)
+        self.env.write_text(self.original_env)
+
+    def test_risk_and_timeframe_deploy_preserves_existing_policies_funding_and_nominal(self):
+        self.configure_existing_advanced_base()
+        report = self.deploy(extra=['--risk-budget', M.RISK_BUDGET, '--timeframes', M.TIMEFRAMES])
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], value)
+        self.assertEqual(after[M.RISK_ENV_KEYS[0]], M.RISK_BUDGET)
+        self.assertEqual(after[M.TIMEFRAME_ENV_KEYS[0]], M.TIMEFRAMES)
+        self.assertEqual(report['risk_configuration'], M.risk_env_changes(M.RISK_BUDGET))
+        self.assertEqual(report['timeframe_configuration'], M.timeframe_env_changes(M.TIMEFRAMES))
+        self.assertEqual(report['rollback']['profit_policy'], M.EARLY_PROFIT_POLICY)
+        self.assertIsNone(report['rollback']['capital_allocation'])
+        self.assertIsNone(report['rollback']['neural_mode'])
+        self.assertEqual(report['rollback']['risk_budget'], 'OFF')
+        self.assertEqual(report['rollback']['timeframes'], 'OFF')
+        for call in self.migration.call_args_list:
+            self.assertEqual(call.args[6], M.risk_env_changes(M.RISK_BUDGET))
+            self.assertEqual(call.args[7], M.timeframe_env_changes(M.TIMEFRAMES))
+        self.assert_source_and_ledger_preserved()
+
+    def test_new_layers_reject_mixed_funding_neural_profit_or_implicit_nominal_changes(self):
+        self.configure_existing_advanced_base()
+        for extra in [['--capital-allocation', 'OFF'], ['--target-equity-usd', '1200'],
+                      ['--neural-mode', 'OFF'], ['--profit-policy', M.EARLY_PROFIT_POLICY],
+                      ['--nominal', '300'], ['--profile', 'OFF']]:
+            with self.subTest(extra=extra), self.assertRaises(RuntimeError):
+                self.deploy(extra=['--risk-budget', M.RISK_BUDGET, '--timeframes', M.TIMEFRAMES, *extra])
+        self.assertEqual(self.actions, [])
+        self.assertEqual(self.env.read_text(), self.original_env)
+
+    def test_new_layers_require_already_active_early_protection_and_finite_capital(self):
+        self.configure_existing_profit()
+        with self.assertRaisesRegex(RuntimeError, 'EXISTING_V2_PROFIT_AND_FINITE_CAPITAL_REQUIRED'):
+            self.deploy(extra=['--risk-budget', M.RISK_BUDGET])
+        self.assertEqual(self.actions, [])
+        self.assertEqual(self.env.read_text(), self.original_env)
+
+    def test_advanced_failure_retains_new_binary_database_and_existing_policies_disables_only_requested_layers(self):
+        self.configure_existing_advanced_base()
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(extra=['--risk-budget', M.RISK_BUDGET, '--timeframes', M.TIMEFRAMES])
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], value)
+        self.assertEqual(after[M.RISK_ENV_KEYS[0]], 'OFF')
+        self.assertEqual(after[M.TIMEFRAME_ENV_KEYS[0]], 'OFF')
+        self.assertEqual(self.current.resolve(), self.releases / self.target)
+        self.assertEqual([r['action'] for r in self.actions], ['stop', 'start', 'stop', 'start'])
+        self.assert_source_and_ledger_preserved()
+
+    def test_single_layer_failed_deploy_does_not_disable_other_active_layer(self):
+        self.configure_existing_advanced_base(active_layers=True)
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(extra=['--risk-budget', M.RISK_BUDGET])
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], 'OFF' if key == M.RISK_ENV_KEYS[0] else value)
+        self.assertEqual(after[M.TIMEFRAME_ENV_KEYS[0]], M.TIMEFRAMES)
+        self.assert_source_and_ledger_preserved()
+
+    def test_same_compatible_release_off_disables_only_two_requested_layers_without_db_copy(self):
+        self.configure_existing_advanced_base(active_layers=True)
+        with patch.object(M, 'consistent_backup', side_effect=AssertionError('no database copy for OFF')), \
+                patch.object(M, 'require_backup_space', side_effect=AssertionError('no full backup for OFF')), \
+                patch.object(M, 'fetch_target', side_effect=AssertionError('same compatible binary')):
+            report = self.deploy(target=self.before, extra=['--risk-budget', 'OFF', '--timeframes', 'OFF'])
+        self.assertEqual(report['status'], 'RISK_AND_TIMEFRAMES_OFF_SAME_COMPATIBLE_RELEASE')
+        after, before = M.read_env(self.env.read_text()), M.read_env(self.original_env)
+        for key, value in before.items():
+            self.assertEqual(after[key], 'OFF' if key in (*M.RISK_ENV_KEYS, *M.TIMEFRAME_ENV_KEYS) else value)
+        self.assertEqual(self.current.resolve(), self.old)
+        self.assertFalse(report['database_restored'])
+        self.assertFalse(report['binary_changed'])
+        self.assert_source_and_ledger_preserved()
+
+    def test_failed_same_release_off_never_reactivates_new_layers(self):
+        self.configure_existing_advanced_base(active_layers=True)
+        self.wait_active.side_effect = RuntimeError('DEPLOYMENT_NOT_CONFIRMED')
+        with self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+            self.deploy(target=self.before, extra=['--risk-budget', 'OFF', '--timeframes', 'OFF'])
+        after = M.read_env(self.env.read_text())
+        self.assertEqual(after[M.RISK_ENV_KEYS[0]], 'OFF')
+        self.assertEqual(after[M.TIMEFRAME_ENV_KEYS[0]], 'OFF')
+        self.assertEqual(after['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.EARLY_PROFIT_POLICY)
+        self.assertEqual(after['LUMI_TRADING_SECONDARY_CAPITAL_REQUEST_ID'], 'already-applied-request')
+        self.assertEqual(self.current.resolve(), self.old)
+        self.assert_source_and_ledger_preserved()
+
+
+class AdvancedPolicyConfigurationTests(unittest.TestCase):
+    def test_only_exact_versioned_flags_are_accepted_and_have_no_funding_parameters(self):
+        self.assertEqual(M.risk_env_changes(), {})
+        self.assertEqual(M.timeframe_env_changes(), {})
+        self.assertEqual(M.risk_env_changes(M.RISK_BUDGET), {M.RISK_ENV_KEYS[0]: M.RISK_BUDGET})
+        self.assertEqual(M.timeframe_env_changes(M.TIMEFRAMES), {M.TIMEFRAME_ENV_KEYS[0]: M.TIMEFRAMES})
+        for fn in [M.risk_env_changes, M.timeframe_env_changes]:
+            for value in ['REAL', 'LIVE', 'v2', '', '$(ignored)']:
+                with self.subTest(value=value), self.assertRaisesRegex(RuntimeError, 'VERSION_UNSUPPORTED'):
+                    fn(value)
+        self.assertFalse(set(M.RISK_ENV_KEYS + M.TIMEFRAME_ENV_KEYS) & set(M.CAPITAL_ENV_KEYS))
+
+    def test_confirmation_checks_new_policy_identity_while_live_cursors_and_groups_may_advance(self):
+        risk = {'version': M.RISK_BUDGET, 'active': True, 'policy_hash': 'a' * 64, 'policy': {'max_slots': 10}}
+        frames = {'version': M.TIMEFRAMES, 'active': True, 'policy_hash': 'b' * 64,
+                  'policy': {'entry_frames': [5, 15, 60, 240]}}
+        row = {'revision': 21, 'state': {'secondaryExecution': {
+            'exploration': {'active': True, 'version': M.PROFILE},
+            'risk_budget': {**risk, 'movements': {'natural-new-group': {'legs': ['one']}}},
+            'timeframe_execution': {**frames, 'frames': {'60': {'last_cutoff': 1793721600000, 'counts': {'completed': 3}}}},
+        }}, 'counts': {'events': 3, 'outbox': 2}}
+        with patch.object(M, 'run', return_value='active'), patch.object(M, 'snapshot', return_value=row):
+            result = M.wait_active(20, True, expected_risk=risk, expected_timeframes=frames)
+        self.assertEqual(result['risk_budget'], risk)
+        self.assertEqual(result['timeframes'], frames)
+        for field, wrong in [('risk_budget', {**risk, 'active': False}),
+                             ('risk_budget', {**risk, 'policy_hash': 'c' * 64}),
+                             ('timeframe_execution', {**frames, 'policy': {'entry_frames': [5]}})]:
+            changed = json.loads(json.dumps(row)); changed['state']['secondaryExecution'][field] = wrong
+            with self.subTest(field=field), patch.object(M, 'run', return_value='active'), \
+                    patch.object(M, 'snapshot', return_value=changed), patch.object(M.time, 'sleep'), \
+                    patch.object(M.time, 'monotonic', side_effect=[0, 1, 46]), \
+                    self.assertRaisesRegex(RuntimeError, 'DEPLOYMENT_NOT_CONFIRMED'):
+                M.wait_active(20, True, expected_risk=risk, expected_timeframes=frames)
+
+
+class ActualAdvancedMigrationTests(unittest.TestCase):
+    """Actual broker contracts and pure migration over synthetic, local SQLite."""
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix='lumi-risk-timeframe-migration-isolated-')
+        self.addCleanup(self.temporary.cleanup)
+        self.database = Path(self.temporary.name) / 'isolated.sqlite'
+        self.repository = Path(__file__).parents[1]
+        self.node = shutil.which('node')
+        self.assertIsNotNone(self.node)
+        self.profit = M.profit_env_changes(M.EARLY_PROFIT_POLICY)
+        self.neural = M.neural_env_changes('COLLECTING')
+        self.capital = M.capital_env_changes(M.CAPITAL_ALLOCATION, '300', '1.5', '1000', 'isolated-already-applied')
+        self.risk = M.risk_env_changes(M.RISK_BUDGET)
+        self.frames = M.timeframe_env_changes(M.TIMEFRAMES)
+
+    def seed(self, advanced=False):
+        script = """
+import {DatabaseSync} from 'node:sqlite';
+import {D,hash} from './lib/trading/core.js';
+import {newAccount} from './lib/trading/simulator.js';
+import {enablePortfolio} from './lib/trading/portfolio.js';
+import {SecondaryBroker,secondaryEconomics,SECONDARY_MODEL,SECONDARY_VERSION} from './lib/trading/secondary-futures-engine.js';
+import {EXPLORATION_VERSION,installExploration,getExplorationPolicy,explorationContract} from './lib/trading/secondary-exploration.js';
+import {installEntryRevision} from './lib/trading/secondary-entry-context.js';
+import {PROFIT_POLICY_VERSION,EARLY_PROFIT_POLICY_VERSION,installProfitPolicy,getProfitPolicy,makeProfitContracts} from './lib/trading/secondary-profit-policy.js';
+import {CAPITAL_ALLOCATION_VERSION,installCapitalAllocation,applyCapitalAllocationFunding} from './lib/trading/secondary-capital-allocation.js';
+import {installSecondaryNeural} from './lib/trading/secondary-neural.js';
+import {installSecondaryRiskBudget,RISK_BUDGET_VERSION,prepareRiskCandidates} from './lib/trading/secondary-risk-budget.js';
+import {installSecondaryTimeframes,SECONDARY_TIMEFRAMES_VERSION} from './lib/trading/secondary-timeframes.js';
+const T=Date.parse('2026-11-03T16:00:02Z'),H=Math.floor(T/3600000)*3600000;let now=T;
+const env={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:EXPLORATION_VERSION,LUMI_TRADING_SECONDARY_PROFIT_POLICY:PROFIT_POLICY_VERSION,LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION:CAPITAL_ALLOCATION_VERSION,LUMI_TRADING_SECONDARY_ALLOCATION_BASE_USD:'300',LUMI_TRADING_SECONDARY_PREFERRED_MULTIPLIER:'1.5',LUMI_TRADING_SECONDARY_TARGET_EQUITY_USD:'1000',LUMI_TRADING_SECONDARY_CAPITAL_REQUEST_ID:'isolated-already-applied',LUMI_TRADING_SECONDARY_NEURAL_MODE:'COLLECTING'};
+const a=newAccount();enablePortfolio(a);Object.assign(a,{cash:'1000',equity:'1000',peak:'1000'});
+const root={frequency:{account:a,counts:{},history:[]},laboratory:{status:'RESEARCH_COMPLETE',funding:{initial:'1000',added:'0'}},primary:{cash:'100',net:'-4',position:{id:'must-survive'}},audiovisual:{episode:'untouched'}};
+const b=new SecondaryBroker({root,now:()=>now});installEntryRevision(root,now);installExploration(root,env,now);installProfitPolicy(root,env,now);installCapitalAllocation(root,env,now);
+const funded=applyCapitalAllocationFunding(root,now,b.topup.bind(b));if(funded.amount!=='0')throw Error('ISOLATED_NO_FUNDING_EXPECTED');
+installCapitalAllocation(root,{...env,LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION:'OFF'},now);
+const q=at=>({source:'KRAKEN_FUTURES_WS_TICKER',symbol:'PF_XBTUSD',event_at:at,received_at:at,bid:'100',ask:'100.01',bid_qty:'1000',ask_qty:'1000'}),meta={symbol:'PF_XBTUSD',qty_step:'0.0001',tick_size:'.01',checked_at:T};
+function plan(id,direction='LONG',pattern='BREAKOUT',timeframe=5){
+ const c=explorationContract(getExplorationPolicy(root),pattern,now),short=direction==='SHORT',entry=D(short?'100':'100.01').mul(short?'.9998':'1.0002'),contracts=makeProfitContracts(getProfitPolicy(root),{timeframe}),target=short?'97':'103',stop=short?'101':'99';
+ return {id,signal_key:hash(['ISOLATED-MIGRATION',id]),version:SECONDARY_VERSION,entry_revision:getProfitPolicy(root).entryRevision,execution_model:SECONDARY_MODEL,instrument:'PAPER:KRAKEN_FUTURES:PF_XBTUSD',pattern,direction,timeframe,entry:entry.toString(),limit:'100',stop,target,confirmed_at:T-2000,decision_at:now,expires_at:c.expires_at,holding_ms:contracts.exit_policy.base_holding_ms,execution_contract:c,order:'FUTURES_TAKER_IOC',fill_model:c.liquidity_model,economics:secondaryEconomics(entry,stop,target,direction,0,c,contracts.economic_policy.funding_estimation_ms),...contracts,entry_context:{structure_key:'s:'+id,movement_key:'m:'+id,confirmation_key:'c:'+id,confirmation_event_at:T-2000,confirmation_at:T-2000,price_tick:'.01',remaining_distance:D(target).minus(entry).mul(short?-1:1).toString(),remaining_distance_fraction:D(target).minus(entry).abs().div(entry).toString()}};
+}
+if(b.choose(plan('legacy-open'),q(now),meta,now)!=='ENTRY_PENDING')throw Error('ISOLATED_OLD_OPEN_FAILED');now=T+1100;b.market(q(now),null,{[H]:0},now);
+now=T+2200;if(b.choose(plan('legacy-pending','LONG','PULLBACK'),q(now),meta,now)!=='ENTRY_PENDING')throw Error('ISOLATED_OLD_PENDING_FAILED');
+env.LUMI_TRADING_SECONDARY_PROFIT_POLICY=EARLY_PROFIT_POLICY_VERSION;installProfitPolicy(root,env,now);installCapitalAllocation(root,env,now);installSecondaryNeural({state:root,now:()=>now,event:()=>{},notice:()=>{}},env);
+if(process.argv[2]==='advanced'){
+ env.LUMI_TRADING_SECONDARY_RISK_BUDGET=RISK_BUDGET_VERSION;env.LUMI_TRADING_SECONDARY_TIMEFRAMES=SECONDARY_TIMEFRAMES_VERSION;installSecondaryRiskBudget(root,env,now);installSecondaryTimeframes(root,env,now);
+ now=T+3300;const p=plan('new-risk-hour','SHORT','RANGE_REENTRY',60);p.timeframe_contract={version:SECONDARY_TIMEFRAMES_VERSION,timeframe:60,context_timeframe:240,source:'KRAKEN_FUTURES_TRADE_CANDLES',closed_candles_only:true};
+ const d=prepareRiskCandidates(root,[{plan:p,pattern:p.pattern}],{quote:q(now),meta,now,preflight:b.preflight.bind(b)}).ordered[0];if(d.capital_allocation_rejection||b.choose(d.plan,q(now),meta,now)!=='ENTRY_PENDING')throw Error('ISOLATED_NEW_RISK_FAILED');
+}
+const db=new DatabaseSync(process.argv[1]);db.exec('PRAGMA journal_mode=WAL;CREATE TABLE state(id TEXT PRIMARY KEY,revision INTEGER,state TEXT)');db.prepare('INSERT INTO state VALUES (?,?,?)').run('KRAKEN_BTCUSD_PAPER',10,JSON.stringify(root));db.close();
+console.log(JSON.stringify({positions:Object.keys(a.positions).length,pending:Object.keys(a.pendingOrders).length,cash:a.cash,net:a.net,funding_status:root.secondaryExecution.capital_allocation.funding_request.status}));
+"""
+        result = subprocess.run([self.node, '--input-type=module', '-e', script, str(self.database),
+                                 'advanced' if advanced else 'phase1'], cwd=self.repository,
+                                capture_output=True, text=True, check=True, timeout=20)
+        return json.loads(result.stdout)
+
+    def isolated_run(self, args, cwd=None, timeout=45):
+        self.assertEqual(args[:5], ['runuser', '-u', 'lumitrading', '--', '/usr/bin/node-24'])
+        result = subprocess.run([self.node, *args[5:]], cwd=cwd, capture_output=True,
+                                text=True, check=True, timeout=timeout)
+        return result.stdout.strip()
+
+    def migrate(self, risk=None, frames=None):
+        with patch.object(M, 'DB', self.database), patch.object(M, 'run', side_effect=self.isolated_run):
+            return M.verify_migration(self.repository, M.PROFILE, '100', self.profit,
+                                      self.neural, self.capital, risk or self.risk,
+                                      frames or self.frames)
+
+    def test_actual_new_layer_install_preserves_old_open_pending_balances_capital_receipt_and_neural(self):
+        seed = self.seed();before = self.database.read_bytes()
+        proof = self.migrate()
+        self.assertTrue(proof['idempotent'])
+        self.assertTrue(proof['positions_preserved'])
+        self.assertTrue(proof['pending_preserved'])
+        self.assertTrue(proof['new_layers_account_preserved'])
+        self.assertTrue(proof['new_layers_funding_preserved'])
+        self.assertEqual((proof['positions'], proof['pending']), (seed['positions'], seed['pending']))
+        self.assertEqual((proof['positions'], proof['pending']), (1, 1))
+        self.assertEqual(proof['capital_added'], '0')
+        self.assertEqual(seed['funding_status'], 'APPLIED')
+        self.assertEqual(proof['profit_policy']['version'], M.EARLY_PROFIT_POLICY)
+        self.assertEqual(proof['neural']['requested_mode'], 'COLLECTING')
+        self.assertEqual(proof['risk_budget']['policy']['max_leverage'], 10)
+        self.assertEqual(proof['timeframes']['policy']['entry_frames'], [5, 15, 60, 240])
+        self.assertEqual(self.database.read_bytes(), before)
+
+    def test_actual_off_on_compatible_code_recovers_new_signed_hourly_contract_without_rewriting_any_order(self):
+        seed = self.seed(advanced=True);before = self.database.read_bytes()
+        for risk, frames in [(self.risk, self.frames), (M.risk_env_changes('OFF'), self.frames),
+                             (self.risk, M.timeframe_env_changes('OFF')),
+                             (M.risk_env_changes('OFF'), M.timeframe_env_changes('OFF'))]:
+            with self.subTest(risk=risk, frames=frames):
+                proof = self.migrate(risk, frames)
+                self.assertTrue(proof['idempotent'])
+                self.assertTrue(proof['positions_preserved'])
+                self.assertTrue(proof['pending_preserved'])
+                self.assertTrue(proof['new_layers_account_preserved'])
+                self.assertTrue(proof['new_layers_funding_preserved'])
+                self.assertEqual((proof['positions'], proof['pending']), (1, 2))
+                self.assertEqual(proof['risk_budget']['active'], risk[M.RISK_ENV_KEYS[0]] != 'OFF')
+                self.assertEqual(proof['timeframes']['active'], frames[M.TIMEFRAME_ENV_KEYS[0]] != 'OFF')
+                self.assertEqual(proof['profit_policy']['version'], M.EARLY_PROFIT_POLICY)
+                self.assertTrue(proof['capital_allocation']['active'])
+                self.assertEqual(proof['neural']['requested_mode'], 'COLLECTING')
+                self.assertEqual(self.database.read_bytes(), before)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,14 +1,14 @@
 name: Lumi Trading paper isolation
 on:
   push:
-    branches: [lumi-telegram-review-v1, lumi-trading-gcp, lumi-trading-aws]
+    branches: [lumi-telegram-review-v1, lumi-trading-gcp, lumi-trading-aws, lumi-trading-regime-observation-v1]
     paths: ['lib/trading/**', 'scripts/trading-*', 'test/trading-*', 'test/trading_*', 'test/secondary-*.test.js', 'test/multi-pattern*.test.js', 'data/trading/**', 'deploy/trading/**', 'supabase/migrations/*_lumi_trading_*.sql', 'package*.json', 'requirements-trading-neural.txt', '.github/workflows/lumi-trading-paper.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   paper-tests:
-    if: github.ref == 'refs/heads/lumi-telegram-review-v1' || github.ref == 'refs/heads/lumi-trading-gcp' || github.ref == 'refs/heads/lumi-trading-aws'
+    if: github.ref == 'refs/heads/lumi-telegram-review-v1' || github.ref == 'refs/heads/lumi-trading-gcp' || (github.ref == 'refs/heads/lumi-trading-aws' || github.ref == 'refs/heads/lumi-trading-regime-observation-v1')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

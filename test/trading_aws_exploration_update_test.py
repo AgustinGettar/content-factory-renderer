@@ -20,6 +20,13 @@ SPEC.loader.exec_module(M)
 
 
 class ExplorationDeploymentTests(unittest.TestCase):
+    def test_early_policy_is_explicit_and_does_not_reuse_entry_minimum_for_exit(self):
+        changes = M.profit_env_changes(M.EARLY_PROFIT_POLICY)
+        self.assertEqual(changes, {'LUMI_TRADING_SECONDARY_PROFIT_POLICY': M.EARLY_PROFIT_POLICY})
+        source = 'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION=0.002\nLUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION=0.25\n'
+        configured = M.read_env(M.updated_env(source, M.PROFILE, '100', changes))
+        self.assertEqual(configured['LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION'], '0.002')
+        self.assertNotIn('LUMI_TRADING_SECONDARY_TARGET_EQUITY_USD', configured)
     def test_update_preserves_every_unrelated_setting_and_secret_value(self):
         source = '# existing worker\nLUMI_TRADING_MODE=PAPER\nTOKEN="test-only=a=b"\nLUMI_TRADING_SECONDARY_PROFILE=secondary-growth-1.0.0\n'
         changed = M.updated_env(source, M.PROFILE, '100')
@@ -435,6 +442,18 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assertEqual(self.env.stat().st_mode & 0o777, 0o640)
         self.assertEqual(report['backup']['disk_space']['margin_bytes'], 256 * 1024 * 1024)
         self.assert_source_and_ledger_preserved()
+
+    def test_early_policy_deploy_preserves_existing_profile_nominal_and_no_capital_request(self):
+        text = self.original_env.replace('secondary-growth-1.0.0', M.PROFILE)
+        text += 'LUMI_TRADING_SECONDARY_NOMINAL_USD=125\n'
+        self.env.write_text(text)
+        report = self.deploy(extra=['--profit-policy', M.EARLY_PROFIT_POLICY])
+        configured = M.read_env(self.env.read_text())
+        self.assertEqual(configured['LUMI_TRADING_SECONDARY_NOMINAL_USD'], '125')
+        self.assertEqual(configured['LUMI_TRADING_SECONDARY_PROFILE'], M.PROFILE)
+        self.assertEqual(configured['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.EARLY_PROFIT_POLICY)
+        self.assertNotIn('LUMI_TRADING_SECONDARY_TARGET_EQUITY_USD', configured)
+        self.assertEqual(report['profit_configuration']['LUMI_TRADING_SECONDARY_PROFIT_POLICY'], M.EARLY_PROFIT_POLICY)
 
     def test_mismatched_remote_head_stops_before_service_or_configuration_changes(self):
         with self.assertRaisesRegex(RuntimeError, 'TRADING_BRANCH_HEAD_CHANGED'):

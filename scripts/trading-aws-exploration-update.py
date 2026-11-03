@@ -27,6 +27,7 @@ DB = Path('/var/lib/lumi-trading/trading.sqlite')
 SERVICE = 'lumi-trading.service'
 PROFILE = 'secondary-paper-exploration-1.0.0'
 PROFIT_POLICY = 'secondary-profit-policy-1.0.0'
+EARLY_PROFIT_POLICY = 'secondary-profit-policy-2.0.0'
 PROFIT_ENV_KEYS = ('LUMI_TRADING_SECONDARY_PROFIT_POLICY',
                    'LUMI_TRADING_SECONDARY_MIN_EXPECTED_NET_TARGET_FRACTION',
                    'LUMI_TRADING_SECONDARY_TRAILING_RETRACEMENT_FRACTION',
@@ -59,6 +60,8 @@ ALLOWED = {
     'test/secondary-exploration-execution.test.js', 'test/secondary-exploration-monitor.test.js',
     'test/trading-exploration-persistence.test.js', 'test/trading_aws_exploration_update_test.py',
     'lib/trading/dashboard-publisher.js', 'test/trading-dashboard-backup.test.js',
+    'test/secondary-early-profit-protection.test.js',
+    'docs/trading/EARLY-PROTECTION-2.0.0.md',
     'lib/trading/secondary-profit-policy.js', 'lib/trading/secondary-profit-protection.js',
     'lib/trading/secondary-entry-economics.js', 'test/secondary-entry-economics.test.js',
     'test/secondary-entry-profit-context.test.js', 'test/secondary-profit-monitor.test.js',
@@ -125,7 +128,7 @@ def profit_env_changes(profit_policy=None, min_expected_net_target_fraction=None
         if any(value is not None for value in values):
             raise RuntimeError('PROFIT_POLICY_FLAG_REQUIRED')
         return {}
-    if profit_policy not in [PROFIT_POLICY, 'OFF']:
+    if profit_policy not in [PROFIT_POLICY, EARLY_PROFIT_POLICY, 'OFF']:
         raise RuntimeError('PROFIT_POLICY_VERSION_UNSUPPORTED')
     if profit_policy == 'OFF' and any(value is not None for value in values):
         raise RuntimeError('PROFIT_PARAMETERS_REQUIRE_ACTIVE_POLICY')
@@ -324,7 +327,7 @@ for(const key of ['positions','pendingOrders'])if(!isDeepStrictEqual(original.fr
 if(installCapital){
  if(!isDeepStrictEqual(original.frequency,state.frequency))throw Error('CAPITAL_INSTALL_CHANGED_ACCOUNT');
  if(!isDeepStrictEqual(original.secondaryExecution.exploration,state.secondaryExecution.exploration))throw Error('CAPITAL_INSTALL_REWROTE_EXPLORATION');
- if(!isDeepStrictEqual(original.secondaryExecution.profit_policy,state.secondaryExecution.profit_policy))throw Error('CAPITAL_INSTALL_REWROTE_PROFIT_POLICY');
+ if(!isDeepStrictEqual(original.secondaryExecution.profit_policy,state.secondaryExecution.profit_policy)&&env.LUMI_TRADING_SECONDARY_PROFIT_POLICY===original.secondaryExecution.profit_policy?.version)throw Error('CAPITAL_INSTALL_REWROTE_PROFIT_POLICY');
  if(!isDeepStrictEqual(original.secondaryExecution.capital,state.secondaryExecution.capital))throw Error('CAPITAL_INSTALL_CHANGED_FUNDING_LEDGER');
 }
 if(original.secondaryNeural)for(const key of ['protocol','protocol_hash','counts','pending','recent','last_decisions','feature_exclusions','label_exclusions'])if(!isDeepStrictEqual(original.secondaryNeural[key],state.secondaryNeural[key]))throw Error('MIGRATION_REWROTE_NEURAL_RECORDS');
@@ -455,7 +458,7 @@ def main():
     parser.add_argument('--preferred-multiplier', default=None)
     parser.add_argument('--target-equity-usd', default=None)
     parser.add_argument('--capital-request-id', default=None)
-    parser.add_argument('--profit-policy', choices=[PROFIT_POLICY, 'OFF'], default=None)
+    parser.add_argument('--profit-policy', choices=[PROFIT_POLICY, EARLY_PROFIT_POLICY, 'OFF'], default=None)
     parser.add_argument('--min-expected-net-target-fraction', default=None)
     parser.add_argument('--trailing-retracement-fraction', default=None)
     parser.add_argument('--trailing-extension-ms', default=None)
@@ -493,7 +496,10 @@ def main():
                     or previous_settings.get('LUMI_TRADING_SECONDARY_PROFIT_POLICY') != PROFIT_POLICY):
                 raise RuntimeError('EXISTING_EXPLORATION_AND_PROFIT_POLICY_REQUIRED')
         else:
-            profile, nominal = args.profile or PROFILE, args.nominal or '100'
+            # A profit-policy update does not implicitly reset the active entry
+            # profile or nominal. Only explicitly supplied values may change.
+            profile = args.profile or (previous_settings.get('LUMI_TRADING_SECONDARY_PROFILE', PROFILE) if args.profit_policy == EARLY_PROFIT_POLICY else PROFILE)
+            nominal = args.nominal or (previous_settings.get('LUMI_TRADING_SECONDARY_NOMINAL_USD', '100') if args.profit_policy == EARLY_PROFIT_POLICY else '100')
         candidate_env = updated_env(original_env, profile, nominal, profit_changes, neural_changes, capital_changes)
         effective_env = read_env(candidate_env)
         effective_profit_env = {key: effective_env[key] for key in PROFIT_ENV_KEYS if key in effective_env}

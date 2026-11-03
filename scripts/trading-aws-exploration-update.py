@@ -54,7 +54,7 @@ ALLOWED = {
     'lib/trading/secondary-futures.js', 'lib/trading/secondary-futures-engine.js',
     'lib/trading/secondary-futures-math.js', 'lib/trading/secondary-futures-runtime.js',
     'lib/trading/secondary-monitor-activity.js', 'lib/trading/monitor-projection.js',
-    'lib/trading/portfolio.js', 'scripts/trading-worker.mjs',
+    'lib/trading/portfolio.js', 'scripts/trading-worker.mjs', 'test/trading-worker-startup.test.js',
     'scripts/trading-aws-exploration-update.py', 'docs/trading/PAPER-EXPLORATION.md',
     'test/secondary-futures.test.js', 'test/secondary-exploration-profile.test.js',
     'test/secondary-exploration-execution.test.js', 'test/secondary-exploration-monitor.test.js',

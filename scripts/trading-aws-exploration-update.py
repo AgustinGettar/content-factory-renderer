@@ -219,7 +219,7 @@ def require_deployment_lease(old, expected_current, original_env):
 
 
 def fetch_target(old, target):
-    # Fetch through the established repository configuration. A shared clone
+    # Fetch through the established repository configuration. A local clone
     # intentionally does not inherit repository-local authentication settings.
     # Fetching objects and refs never changes the active working tree or HEAD.
     run(['git', 'fetch', '--no-tags', 'origin', BRANCH], cwd=old, timeout=60)
@@ -524,7 +524,16 @@ def main():
         if not release.exists():
             previous_umask = os.umask(0o022)
             try:
-                run(['git', 'clone', '--shared', '--no-checkout', str(old), str(release)], timeout=60)
+                # Transfer objects locally into the new release rather than
+                # adding another alternates hop to the active release chain.
+                # No remote credentials/network or changes to the source tree.
+                run(['git', '-c', 'pack.threads=1', '-c', 'pack.windowMemory=16m',
+                     'clone', '--no-local', '--no-checkout', str(old), str(release)], timeout=60)
+                # The verified target may exist only in the source FETCH_HEAD,
+                # outside refs advertised by clone. Copy that exact SHA locally.
+                run(['git', '-c', 'pack.threads=1', '-c', 'pack.windowMemory=16m',
+                     'fetch', '--no-tags', '--no-write-fetch-head', str(old), args.target],
+                    cwd=release, timeout=60)
                 run(['git', 'remote', 'set-url', 'origin', ORIGIN], cwd=release)
                 run(['git', 'checkout', '--detach', args.target], cwd=release)
             finally:

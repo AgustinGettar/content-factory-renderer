@@ -443,6 +443,45 @@ class IsolatedDeploymentTests(unittest.TestCase):
         self.assertEqual(report['backup']['disk_space']['margin_bytes'], 256 * 1024 * 1024)
         self.assert_source_and_ledger_preserved()
 
+    def test_deploy_from_deep_alternates_uses_independent_local_objects(self):
+        initial = self.old
+        previous = initial
+        alternates = {}
+        # Reproduce the inherited release layout until the next shared clone
+        # exceeds this Git version's object-alternate nesting limit.
+        for level in range(1, 13):
+            candidate = self.releases / ('legacy-shared-' + str(level))
+            result = subprocess.run(['git', 'clone', '--shared', '--no-checkout',
+                                     str(previous), str(candidate)],
+                                    capture_output=True, text=True, timeout=15)
+            if result.returncode:
+                self.assertIn('nesting too deep', result.stderr)
+                break
+            previous = candidate
+            alternate = candidate / '.git' / 'objects' / 'info' / 'alternates'
+            alternates[alternate] = alternate.read_bytes()
+        else:
+            self.fail('fixture did not reproduce the legacy alternates failure')
+        self.assertGreaterEqual(len(alternates), 4)
+        self.git('checkout', '--detach', self.before, cwd=previous)
+        self.git('remote', 'set-url', 'origin', str(self.remote), cwd=previous)
+        (previous / 'node_modules').symlink_to(initial / 'node_modules', target_is_directory=True)
+        self.current.unlink()
+        self.current.symlink_to(previous, target_is_directory=True)
+        self.old = previous
+        self.tracked = self.old / self.relative
+
+        report = self.deploy()
+        release = self.releases / self.target
+        self.assertEqual(report['status'], 'DEPLOYED')
+        self.assertEqual(self.git('rev-parse', 'HEAD', cwd=release), self.target)
+        self.assertEqual((release / self.relative).read_text(), 'new isolated source\n')
+        self.assertFalse((release / '.git' / 'objects' / 'info' / 'alternates').exists())
+        self.git('fsck', '--connectivity-only', cwd=release)
+        self.assertEqual({path: path.read_bytes() for path in alternates}, alternates)
+        self.assertEqual(self.git('rev-parse', 'HEAD', cwd=initial), self.before)
+        self.assert_source_and_ledger_preserved()
+
     def test_early_policy_deploy_preserves_existing_profile_nominal_and_no_capital_request(self):
         text = self.original_env.replace('secondary-growth-1.0.0', M.PROFILE)
         text += 'LUMI_TRADING_SECONDARY_NOMINAL_USD=125\n'

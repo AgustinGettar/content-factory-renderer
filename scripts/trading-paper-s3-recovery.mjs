@@ -4,7 +4,6 @@
 import {DatabaseSync} from 'node:sqlite';
 import {createReadStream,createWriteStream} from 'node:fs';
 import {readFile,writeFile,appendFile,readdir,stat,statfs,mkdtemp,rm,open} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
 import {join,basename} from 'node:path';
 import {createCipheriv,createDecipheriv,randomBytes,createHash} from 'node:crypto';
 import {createGzip,createGunzip} from 'node:zlib';
@@ -126,7 +125,7 @@ async function main(){
  if(free<source.size*1.6+128*MiB)throw Error('BACKUP_STORAGE_SPACE_LOW');
  recoveryPhase='PRIVATE_KEY_LOAD';
  const envContent=await readFile(PAPER_RECOVERY_ENV,'utf8'),key=keyFromPrivateEnv(envContent);
- const tmp=await mkdtemp(join(tmpdir(),'lumi-paper-remote-'));
+ const tmp=await mkdtemp(join(PAPER_RECOVERY_DIR,'.remote-verify-'));
  try{
   const encrypted=join(tmp,'backup.lumi-gcm'),downloaded=join(tmp,'download.lumi-gcm');
   const restored=join(tmp,'restored.sqlite');

@@ -93,6 +93,7 @@ function headOrNull(slot){
  try{return aws(['head-object','--bucket',PAPER_RECOVERY_BUCKET,'--key',keyFor(slot)],20000);}
  catch(e){if(String(e.stderr??'').includes('404')||String(e.message??'').includes('404'))return null;throw e;}
 }
+let recoveryPhase='PREPARE';
 async function main(){
  if(process.getuid?.()!==0)throw Error('ROOT_ONLY_NO_EXPORTED_KEY');
  process.umask(0o077);
@@ -104,48 +105,66 @@ async function main(){
  const source=chooseLocalSnapshot(files);
  if(!source)throw Error('NO_RECENT_SQLITE_BACKUP');
  const slot=basename(source.name).match(/^daily-([012])\.sqlite$/)[1],src=join(PAPER_RECOVERY_DIR,source.name);
+ recoveryPhase='SOURCE_SQLITE_INTEGRITY';
  const item=keyFor(slot),checkpoint=verifySqliteSnapshot(src);
  const reference={source_size:String(source.size),source_mtime_ms:String(Math.trunc(source.mtimeMs)),
   revision:String(checkpoint.revision)};
+ recoveryPhase='REMOTE_EXISTING_HEAD';
  const existing=headOrNull(slot);
- if(existing?.Metadata?.source_size===reference.source_size&&
+ const remoteMatches=existing?.Metadata?.source_size===reference.source_size&&
     existing?.Metadata?.source_mtime_ms===reference.source_mtime_ms&&
-    existing?.Metadata?.revision===reference.revision&&existing?.Metadata?.sha256){
+    existing?.Metadata?.revision===reference.revision&&
+    /^[a-f0-9]{64}$/.test(existing?.Metadata?.sha256??'');
+ if(remoteMatches&&!process.argv.includes('--verify-existing')){
   console.log(JSON.stringify({status:'REMOTE_ALREADY_MATCHES',revision:checkpoint.revision,
    size:existing.ContentLength,source:source.name,remote_key:item,verified_again:false}));
   return;
  }
+ recoveryPhase='STORAGE_SPACE_PREFLIGHT';
  const disk=await statfs(PAPER_RECOVERY_DIR);
  const free=Number(disk.bavail)*Number(disk.bsize);
  if(free<source.size*1.6+128*MiB)throw Error('BACKUP_STORAGE_SPACE_LOW');
+ recoveryPhase='PRIVATE_KEY_LOAD';
  const envContent=await readFile(PAPER_RECOVERY_ENV,'utf8'),key=keyFromPrivateEnv(envContent);
  const tmp=await mkdtemp(join(tmpdir(),'lumi-paper-remote-'));
  try{
   const encrypted=join(tmp,'backup.lumi-gcm'),downloaded=join(tmp,'download.lumi-gcm');
   const restored=join(tmp,'restored.sqlite');
-  const local=await encryptSnapshot(src,encrypted,key);
-  aws(['put-object','--bucket',PAPER_RECOVERY_BUCKET,'--key',item,'--body',encrypted,
-   '--server-side-encryption','AES256','--metadata',
-   'source_size='+reference.source_size+',source_mtime_ms='+reference.source_mtime_ms+
-   ',revision='+reference.revision+',sha256='+local.sha256],180000);
+  let local;
+  if(!remoteMatches){
+   recoveryPhase='ENCRYPT';
+   local=await encryptSnapshot(src,encrypted,key);
+   recoveryPhase='S3_UPLOAD';
+   aws(['put-object','--bucket',PAPER_RECOVERY_BUCKET,'--key',item,'--body',encrypted,
+    '--server-side-encryption','AES256','--metadata',
+    'source_size='+reference.source_size+',source_mtime_ms='+reference.source_mtime_ms+
+    ',revision='+reference.revision+',sha256='+local.sha256],180000);
+  }
+  recoveryPhase='REMOTE_HEAD_CONFIRM';
   const head=aws(['head-object','--bucket',PAPER_RECOVERY_BUCKET,'--key',item],25000);
-  if(head.ContentLength!==local.size||head.Metadata?.sha256!==local.sha256||
+  const expectedSha=remoteMatches?existing.Metadata.sha256:local.sha256;
+  const expectedSize=remoteMatches?existing.ContentLength:local.size;
+  if(head.ContentLength!==expectedSize||head.Metadata?.sha256!==expectedSha||
      head.Metadata?.revision!==reference.revision||head.ServerSideEncryption!=='AES256')
    throw Error('REMOTE_HEAD_VERIFICATION_FAILED');
+  recoveryPhase='REMOTE_DOWNLOAD';
   aws(['get-object','--bucket',PAPER_RECOVERY_BUCKET,'--key',item,downloaded],180000);
+  recoveryPhase='REMOTE_SHA256';
   const downloadedDigest=await sha256File(downloaded);
-  if(downloadedDigest!==local.sha256)throw Error('REMOTE_DOWNLOAD_SHA256_MISMATCH');
+  if(downloadedDigest!==expectedSha)throw Error('REMOTE_DOWNLOAD_SHA256_MISMATCH');
+  recoveryPhase='DECRYPT_AES_GCM';
   await decryptSnapshot(downloaded,restored,key);
+  recoveryPhase='RESTORED_SQLITE_INTEGRITY';
   const restoredState=verifySqliteSnapshot(restored);
   if(restoredState.revision!==checkpoint.revision)throw Error('RESTORED_REVISION_MISMATCH');
   console.log(JSON.stringify({status:'RESTORE_VERIFIED',version:PAPER_RECOVERY_VERSION,
-   revision:checkpoint.revision,remote_key:item,encrypted_bytes:local.size,
-   source_bytes:source.size,source:source.name,sha256:local.sha256,
+   revision:checkpoint.revision,remote_key:item,encrypted_bytes:expectedSize,
+   source_bytes:source.size,source:source.name,sha256:expectedSha,
    verified_again:true,worker_restarted:false,positions_modified:false}));
  }finally{key.fill(0);await rm(tmp,{recursive:true,force:true});}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)
- main().catch(e=>{console.error(JSON.stringify({status:'FAIL',error:(
+ main().catch(e=>{console.error(JSON.stringify({status:'FAIL',phase:recoveryPhase,error:(
  ['NO_RECENT_SQLITE_BACKUP','BACKUP_STORAGE_SPACE_LOW','SNAPSHOT_INTEGRITY_FAILED',
  'PAPER_LEDGER_MISSING','BACKUP_KEY_INVALID','PRIVATE_BACKUP_KEY_UNAVAILABLE',
  'REMOTE_HEAD_VERIFICATION_FAILED','REMOTE_DOWNLOAD_SHA256_MISMATCH','RESTORED_REVISION_MISMATCH',

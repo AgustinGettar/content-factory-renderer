@@ -9,7 +9,7 @@ const bars=(count=100,dir='LONG')=>Array.from({length:count},(_,i)=>{
 function fixture(direction='LONG') {
  const series=bars(120,direction),long=direction==='LONG';
  series.at(-2).low=long?80000:81900;
- series.at(-2).high=long?80800:82400;
+ series.at(-2).high=long?80800:82100;
  series.at(-2).close=long?80300:81800;
  series.at(-1).open=long?80350:81750;
  series.at(-1).close=long?80400:81700;

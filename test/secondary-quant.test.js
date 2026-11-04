@@ -16,6 +16,10 @@ import {featureSnapshot,causalBars,atr,timeCycles,classifyQuantRegime} from '../
 import {referenceLiquidation,quantMarkMargin,evaluateQuantExit,updateQuantPositionContext,observeQuantMicrostructure} from '../lib/trading/quant-management.js';
 import {quantitativeMetrics,blockBootstrap,walkForwardSplits,compareExitPaths,calibration,promotionDecision} from '../lib/trading/quant-evaluation.js';
 import {secondaryMessage} from '../lib/trading/secondary-futures-runtime.js';
+import {QuantResearchBroker,partitionQuantity,planScaleIn,checkScaleInLeg} from '../lib/trading/quant-experiments.js';
+import {projectSecondaryActivity} from '../lib/trading/secondary-monitor-activity.js';
+import {operationExitView,liveBody} from '../lib/trading/dashboard-publisher.js';
+import {evaluateQuantMeta,META_FEATURES,quantMetaDataset} from '../lib/trading/quant-meta-label.js';
 const C=Date.parse('2026-11-04T12:00:00Z'),T=C+2000;
 const ENV={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:EXPLORATION_VERSION,LUMI_TRADING_SECONDARY_PROFIT_POLICY:EARLY_PROFIT_POLICY_VERSION,LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION:CAPITAL_ALLOCATION_VERSION,LUMI_TRADING_SECONDARY_RISK_BUDGET:QUANT_RISK_VERSION,LUMI_TRADING_SECONDARY_TIMEFRAMES:QUANT_TIMEFRAMES_VERSION,LUMI_TRADING_SECONDARY_QUANT:QUANT_VERSION};
 const META={symbol:'PF_XBTUSD',qty_step:.0001,tick_size:.01,checked_at:T,margin_schedule:[{numNonContractUnits:0,initialMargin:.1,maintenanceMargin:.05},{numNonContractUnits:30000000,initialMargin:.2,maintenanceMargin:.1}]};
@@ -70,6 +74,12 @@ test('1m/15m/1h/4h can reserve independently but BTC directional risk stays with
  h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);assert.equal(Object.keys(h.b.a.positions).length,2);
  const root=JSON.parse(JSON.stringify(h.root));assert.doesNotThrow(()=>new SecondaryBroker({root,now:()=>T+1200}));
  const first=h.b.a.positions.fast;h.b.close(first,quote(T+2200),T+2200,'MANUAL_CLOSE');h.b.close(first,quote(T+3300),T+3300,'MANUAL_CLOSE');assert(!h.b.a.positions.fast);assert(h.b.a.positions.slow);
+ const settled=structuredClone(h.root.frequency.account),count=h.events.length;
+ assert.equal(h.b.close(first,quote(T+4400),T+4400,'MANUAL_CLOSE'),false);
+ assert.deepEqual(h.root.frequency.account,settled);assert.equal(h.events.length,count);
+ const stale=structuredClone(h.b.a.positions.slow);
+ assert.equal(h.b.close(stale,quote(T+4400),T+4400,'MANUAL_CLOSE'),false);
+ assert.deepEqual(h.root.frequency.account,settled);
 });
 test('risk v2 retains old signed positions and blocks unsupported hedging',()=>{
  const h=fixture({version:RISK_BUDGET_VERSION,quant:false}),p=prepare(h,[signal(h,{timeframe:5})]).ordered[0].plan;assert.equal(h.b.choose(p,quote(),META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);const before=structuredClone(h.b.a.positions.one);
@@ -141,4 +151,87 @@ test('all operational and auxiliary intervals, including 30m, pass candle normal
   assert.equal(closedBars({candles:rows},tf,C).length,256);
  }
  assert.throws(()=>closedBars({candles:[]},2,C),/RESEARCH_CANDLES_INVALID/);
+});
+
+test('planned scale-out uses actual broker costs, exact lots, latency, restoration and isolated positions',()=>{
+ const h=fixture(),batch=prepare(h,[signal(h,{id:'reduce'}),signal(h,{id:'other',timeframe:60})]);
+ for(const d of batch.ordered)assert.equal(h.b.choose(d.plan,quote(),META,T),'ENTRY_PENDING');
+ h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);
+ const untouched=structuredClone(h.root),events=[];let b=new QuantResearchBroker({root:h.root,event:e=>events.push(e),now:()=>T+2200});
+ const originalQty=b.a.positions.reduce.qty,partition=partitionQuantity(originalQty,'.0001');
+ assert(D(partition.legs.reduce((s,n)=>s.plus(n),D(0))).eq(originalQty));
+ const initialAccount=structuredClone(b.a),other=JSON.parse(JSON.stringify(b.a.positions.other));
+ const first=b.requestReduction('reduce',{requestId:'leg-1',quantity:partition.legs[0],quote:quote(T+2200,101),now:T+2200});assert.equal(first.status,'PENDING');assert.equal(b.a.positions.reduce.qty,originalQty);
+ b=new QuantResearchBroker({root:JSON.parse(JSON.stringify(b.root)),event:e=>events.push(e),now:()=>T+3300});
+ b.close(b.a.positions.reduce,quote(T+3300,101),T+3300,'RESEARCH_SCALE_OUT');
+ assert.equal(b.root.quant_experiment.requests['leg-1'].status,'FILLED');assert.equal(b.a.positions.reduce.exit_intent,undefined);
+ assert(D(b.a.positions.reduce.qty).eq(D(originalQty).minus(partition.legs[0])));assert.equal(b.a.closed,initialAccount.closed);
+ const afterFirst=structuredClone(b.a);assert(b.requestReduction('reduce',{requestId:'leg-1',quantity:partition.legs[0],quote:quote(T+4400,101),now:T+4400}).duplicate);assert.deepEqual(b.a,afterFirst);
+ const remaining=b.a.positions.reduce,valuation=b.observePosition(remaining,quote(T+4300,101),T+4300);assert(D(remaining.excursions.max_favourable_net).eq(D(remaining.realized.net).plus(valuation.net)));
+ assert.doesNotThrow(()=>new QuantResearchBroker({root:JSON.parse(JSON.stringify(b.root)),now:()=>T+4400}));
+ b.requestReduction('reduce',{requestId:'leg-2',quantity:partition.legs[1],quote:quote(T+4400,102),now:T+4400});b.close(b.a.positions.reduce,quote(T+5500,102),T+5500,'RESEARCH_SCALE_OUT');
+ const last=b.a.positions.reduce;assert(D(last.qty).eq(partition.legs[2]));b.close(last,quote(T+6600,103),T+6600,'MANUAL_CLOSE');b.close(last,quote(T+7700,103),T+7700,'MANUAL_CLOSE');
+ const fragments=events.filter(e=>['PARTIAL_CLOSE','CLOSED'].includes(e.type)),final=fragments.at(-1);assert.equal(fragments.length,3);assert.equal(final.type,'CLOSED');
+ assert(D(final.pnl).eq(fragments.reduce((s,e)=>s.plus(e.fill_pnl),D(0))));assert(D(final.fees).eq(fragments.reduce((s,e)=>s.plus(e.fill_exit_fee).plus(e.fill_funding).plus(D(initialAccount.positions.reduce.entry_fee).mul(D(e.execution_receipt.quantity).div(originalQty))),D(0))));
+ assert.equal(b.a.closed,initialAccount.closed+1);assert.deepEqual(b.a.positions.other,other);assert.deepEqual(h.root,untouched);
+ const settled=structuredClone(b.a);b.close(last,quote(T+8800,103),T+8800,'MANUAL_CLOSE');assert.deepEqual(b.a,settled);
+});
+
+test('scale-out IOC cancels unfilled fraction and scale-in reserves all legs without averaging losses',()=>{
+ const h=fixture(),d=prepare(h,[signal(h)]).ordered[0];h.b.choose(d.plan,quote(),META,T);h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);
+ const b=new QuantResearchBroker({root:h.root,now:()=>T+2200}),p=b.a.positions.one,part=partitionQuantity(p.qty,'.0001');
+ b.requestReduction('one',{requestId:'limited',quantity:part.legs[0],quote:quote(T+2200,101),now:T+2200});
+ const available=D(part.legs[0]).div(2),bookSize=available.div(p.plan.execution_contract.participation);b.close(p,quote(T+3300,101,bookSize),T+3300,'RESEARCH_SCALE_OUT');
+ assert.equal(b.root.quant_experiment.requests.limited.status,'PARTIAL_IOC_REMAINDER_CANCELLED');assert(!p.exit_intent);assert(D(p.qty).gt(part.legs[2]));
+ const args={id:'planned',qty:'.01',step:'.0001',riskPerBTC:400,marginPerBTC:8000,costPerBTC:80,equity:1000,availableCash:100,existingRisk:0,now:T,expiresAt:T+60000};
+ const plan=planScaleIn(args);assert.equal(plan.status,'PLANNED_NOT_ADMITTED');assert.equal(plan.reserved_risk,'4');assert.equal(plan.reserved_cash,'80.8');assert.equal(plan.automatic_execution,false);
+ assert.equal(planScaleIn({...args,availableCash:60}).rejection,'CASH_RESERVATION');
+ const evidence={now:T+1000,confirmationId:'new',confirmationAt:T+500,remainingRisk:4,remainingCash:81};assert(checkScaleInLeg(plan,0,evidence).accepted);
+ assert.equal(checkScaleInLeg(plan,1,{...evidence,previousLegs:[plan.legs[0].id],previousNet:-1,protectedNet:1}).reason,'WINNING_PROTECTED_PREVIOUS_LEG_REQUIRED');
+ assert.equal(checkScaleInLeg(plan,0,{...evidence,usedConfirmations:['new']}).reason,'NEW_CONFIRMATION_REQUIRED');
+ assert(checkScaleInLeg(plan,1,{...evidence,previousLegs:[plan.legs[0].id],previousNet:1,protectedNet:.1}).accepted);
+ assert.throws(()=>partitionQuantity('.0002','.0001'),/BELOW_LOT/);
+});
+
+test('current frame summaries exclude preserved legacy patterns and older candles',()=>{
+ const h=fixture(),f=getSecondaryTimeframes(h.root).frames[5];
+ const fresh={at:T,cutoff:C,pattern:'BREAKOUT_RETEST',reason:'WAIT_RETEST',timeframe:5};
+ f.decisions={BREAKOUT:{...fresh,pattern:'BREAKOUT',cutoff:C-300000},BREAKOUT_RETEST:fresh,MOMENTUM:{...fresh,pattern:'MOMENTUM',cutoff:C-300000}};f.last_decision=fresh;f.last_evaluation_at=T;f.last_cutoff=C;
+ const d=projectSecondaryActivity({revision:1,updated_at:new Date(T).toISOString()},h.root,T);
+ assert.deepEqual(d.secondary_activity.frames[5].last_evaluation.pattern_decisions.map(x=>x.pattern),['BREAKOUT_RETEST']);
+ assert.equal(Object.keys(f.decisions).length,3);
+});
+
+test('live close evidence preserves finality and reconciled net without relabelling open positions',()=>{
+ const closed={id:'closed',type:'CLOSED',ledger:'FREQUENT_PAPER',at:T,pnl:'.0675',result_final:true,funding_complete:true,quality:'OBSERVED',reason:'TRAILING_RETRACEMENT'};
+ const exit=operationExitView(closed);assert.equal(exit.result_final,true);assert.equal(JSON.parse(liveBody({operations:[{id:closed.id,ledger:closed.ledger,status:'CLOSED',exit}]})).operations[0].exit.result_final,true);
+ const pending={...closed,pnl:'-.1',result_final:false,funding_complete:false},reconciled={id:'closed',ledger:'FREQUENT_PAPER',type:'FUNDING_RECONCILED',at:T+1000,net_after:'-.12',funding_complete:true};
+ assert.equal(operationExitView(pending,reconciled).pnl,'-.12');assert.equal(operationExitView(pending,reconciled).result_final,true);
+ assert.equal(operationExitView(pending,{...reconciled,id:'another'}).result_final,false);assert.equal(operationExitView(null),null);
+});
+
+test('daily Calmar uses one consistent equity series and realized drawdown follows close order',()=>{
+ const rows=[{net:20,end:3},{net:-10,end:1},{net:-10,end:2}],m=quantitativeMetrics(rows,{initialEquity:100});assert.equal(m.max_closed_equity_drawdown_usd,20);
+ const dates=[{at:0,equity:100},{at:86400000,equity:90},{at:172800000,equity:100}];
+ const daily=quantitativeMetrics([],{dailyEquity:dates});assert.equal(daily.max_daily_equity_drawdown,.1);assert.equal(daily.calmar,0);
+ assert.equal(quantitativeMetrics([],{dailyEquity:[...dates,{at:259200000,equity:NaN}]}).periodicity_valid,false);
+ assert.equal(quantitativeMetrics([{net:true},{net:''}]).eligible,0);
+});
+
+test('external meta-label baseline purges overlapping labels and never fits on the test period',()=>{
+ assert.equal(evaluateQuantMeta([]).status,'INSUFFICIENT_DATA');
+ const rows=Array.from({length:500},(_,i)=>({id:'sample-'+i,start:i*3600000,end:(i+2)*3600000,net:i%3===0?-1:.5,label:i%3===0?0:1,domain:'synthetic-only',features:META_FEATURES.map((_,j)=>j===0?null:Math.sin(i+j)),final:true,quality:'SYNTHETIC_TEST_ONLY'}));
+ const first=evaluateQuantMeta(rows),changed=structuredClone(rows);for(const r of changed.slice(400)){r.features=r.features.map(v=>v===null?null:v*100);r.net=-r.net;r.label=1-r.label;}
+ const second=evaluateQuantMeta(changed);assert.equal(first.status,'EVALUATED_NOT_PROMOTED');assert(first.splits.purged>0);assert(first.model.trained_through<first.splits.test_start-first.embargo_ms);
+ assert.equal(first.walk_forward.length,3);for(const f of first.walk_forward){assert.equal(f.status,'EVALUATED_NOT_PROMOTED');assert(f.trained_through<f.splits.test_start-first.embargo_ms);}
+ assert.deepEqual(first.model.preprocessing,second.model.preprocessing);assert.deepEqual(first.model.logistic,second.model.logistic);assert.deepEqual(first.model.platt,second.model.platt);assert.equal(first.automatic_promotion,false);assert.equal(first.execution_authority,'NONE');
+ assert.throws(()=>evaluateQuantMeta([...rows,rows[0]]),/DATASET_INVALID/);
+ assert.equal(quantMetaDataset([{type:'CLOSED',plan:{}}]).excluded.QUANT_FEATURE_SNAPSHOT_REQUIRED,1);
+});
+
+test('mark margin stress supersedes a pending discretionary exit and retains its execution latency',()=>{
+ const h=fixture(),d=prepare(h,[signal(h)]).ordered[0];h.b.choose(d.plan,quote(),META,T);h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);
+ const p=h.b.a.positions.one;h.b.close(p,quote(T+2200),T+2200,'MANUAL_CLOSE');const deadline=p.exit_intent.not_before;
+ const stressed={...quote(T+2300),mark_price:'20'};h.b.manageProfitPosition(p,stressed,{[C]:0},T+2300);
+ assert.equal(p.exit_intent.reason,'ISOLATED_MARGIN_STRESS');assert.equal(p.exit_intent.not_before,deadline);assert(h.b.a.positions.one);
 });

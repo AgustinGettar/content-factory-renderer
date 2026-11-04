@@ -23,6 +23,7 @@ ALLOWED={
  'lib/trading/secondary-risk-budget.js','lib/trading/secondary-timeframes.js',
  'scripts/trading-worker.mjs','scripts/trading-aws-quant-update.py',
  'scripts/trading-quant-download.py','scripts/trading-quant-research.mjs',
+ 'scripts/trading-quant-meta.mjs',
  'test/secondary-quant.test.js','test/trading_aws_quant_update_test.py',
  'test/trading-compact-panel-v2.test.js',
 }

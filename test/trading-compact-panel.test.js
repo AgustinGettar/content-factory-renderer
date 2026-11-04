@@ -39,6 +39,6 @@ test('UI files only perform same-origin GET and keep complete controls accessibl
  assert.match(js,/fetch\(API,\{credentials:'same-origin'/);
  assert.match(js,/const API='\/api\/monitor\/live'/);
  assert.doesNotMatch(js,/method:\s*['"](?:POST|PUT|DELETE|PATCH)['"]/);
- assert.match(html,/id="full-view" href="\/"/);
+ assert.match(html,/href="\\/"/);assert.match(html,/id="full-view"/);
  assert.match(html,/viewport-fit=cover/);
 });

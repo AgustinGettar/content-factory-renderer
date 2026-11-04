@@ -65,3 +65,26 @@ test('standalone Sites panel renders all three tabs after successful PAPER fetch
  click('resumen');
  assert.match(root.innerHTML,/Posiciones ahora/);
 });
+
+test('failed refresh and tab navigation cannot turn old data green; 401 clears it',async()=>{
+ const script=html.split('<script type="module">')[1].split('</script>')[0];
+ let clock=Date.now(),mode='ok';const start=clock;
+ const data={revision:1,generated_at:start,secondary_finances:{mode:'PAPER',ledger:'FREQUENT_PAPER',equity:'989'},
+  secondary_activity:{process:{status:'RECENT_COMMIT_AND_LEASE'},market:{usable:true,issue:null}},frequency:{account:{}}};
+ const root={innerHTML:'',querySelectorAll:()=>[]},status={};let click;
+ const buttons=['resumen','operaciones','actividad'].map(view=>({dataset:{view},classList:{toggle(){}},setAttribute(){}}));
+ const nav={addEventListener(t,fn){click=fn;},querySelectorAll:()=>buttons};
+ const intervals=[];
+ vm.runInNewContext(script,{Date:class extends Date{static now(){return clock;}},Intl,AbortSignal,
+  document:{hidden:false,querySelector:s=>({'#content':root,'#status':status,'#nav':nav})[s],addEventListener(){}},
+  window:{addEventListener(){}},setInterval(fn,ms){intervals.push({fn,ms});},
+  fetch:async()=>{if(mode==='network')throw Error('offline');return {ok:mode==='ok',status:mode==='auth'?401:200,json:async()=>data};}});
+ await new Promise(resolve=>setImmediate(resolve));assert.match(status.textContent,/actualizados/);
+ clock+=16000;intervals.find(i=>i.ms===1000).fn();assert.match(status.textContent,/no recientes/);
+ mode='network';await intervals.find(i=>i.ms===2000).fn();
+ click({target:{closest:()=>buttons[1]}});assert.match(status.textContent,/No se pudo actualizar/);
+ clock+=40000;mode='auth';await intervals.find(i=>i.ms===2000).fn();
+ assert.doesNotMatch(root.innerHTML,/989/);assert.match(root.innerHTML,/renovarse/);
+ click({target:{closest:()=>buttons[0]}});assert.doesNotMatch(root.innerHTML,/989/);
+});
+

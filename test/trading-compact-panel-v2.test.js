@@ -21,7 +21,7 @@ const sample=()=>({
   },
  frequency:{account:{equity:'992',cash:'970',positions:[{plan:{id:'pos1',instrument:'PF_XBTUSD',timeframe:5,
   direction:'SHORT',pattern:'PULLBACK',entry:'85000',stop:'85900',target:'83900',execution_contract:{leverage:5}},
-  entry:'85000',live_exit:{net:'0.41',funding_complete:true,result_final:true},
+  entry:'85000',live_exit:{net:'0.41',funding_complete:true,result_final:true,fresh:true,quote_at:T,liquidity_ok:true},
   max_favourable:'0.62',profit_protection:{protected_net:'0.28'}}],pending_orders:[{plan:{id:'order1'}}]}},
  operations:[
   {id:'pos1',ledger:'FREQUENT_PAPER',status:'OPEN',at:T,plan:{timeframe:5,direction:'SHORT'},live_position:{live_exit:{net:'0.41'}}},
@@ -105,4 +105,26 @@ test('positions without confirmed futures instrument are excluded',()=>{
  const d=sample();d.frequency.account.positions.push({plan:{id:'legacy'} });
  const m=viewModel(d,T+1000);
  assert.equal(m.positions.length,1);assert.equal(m.openCount,1);
+});
+
+test('canonical live PAPER instrument keeps open cards and actual sizing',()=>{
+ const d=sample(),p=d.frequency.account.positions[0];
+ p.plan.instrument='PAPER:KRAKEN_FUTURES:PF_XBTUSD';p.plan.sizing={leverage:10};
+ const m=viewModel(d,T+1000);
+ assert.equal(m.positions.length,1);assert.equal(m.positions[0].net,'0.41');
+ assert.equal(m.positions[0].leverage,10);
+ p.plan.instrument='PAPER:KRAKEN_FUTURES:PF_ETHUSD';
+ assert.equal(viewModel(d,T+1000).positions.length,0);
+});
+test('expired, illiquid and funding-incomplete quotes never appear as current net',()=>{
+ for(const change of [p=>p.live_exit.fresh=false,p=>p.live_exit.quote_at=T-6000,
+  p=>p.live_exit.liquidity_ok=false,p=>p.funding_uncertain=true,p=>p.funding_pending=[{}],
+  p=>p.funding_gaps=[{}],p=>p.closed_funding_pending=[{}]]){
+  const d=sample();change(d.frequency.account.positions[0]);
+  assert.equal(viewModel(d,T+1000).positions[0].net,null);
+ }
+});
+test('latest blocked evaluation is not hidden behind an earlier completed candle',()=>{
+ const d=sample();d.secondary_activity.frames[5].last_evaluation_at=T;
+ assert.equal(viewModel(d,T+1000).frames[0].lastAt,T);
 });

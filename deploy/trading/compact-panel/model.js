@@ -57,19 +57,22 @@ export function viewModel(payload, now=Date.now()) {
  const positions=Array.isArray(account.positions)?account.positions:Object.values(account.positions??{});
  const pending=Array.isArray(account.pending_orders)?account.pending_orders:
   Array.isArray(account.pendingOrders)?account.pendingOrders:Object.values(account.pendingOrders??{});
- const resultPositions=positions.filter(p=>p?.plan&&String(p.plan.instrument??'')==='PF_XBTUSD')
+ const resultPositions=positions.filter(p=>p?.plan&&['PF_XBTUSD','PAPER:KRAKEN_FUTURES:PF_XBTUSD'].includes(String(p.plan.instrument??'')))
   .map(p=>{
    const plan=p.plan,exit=p.live_exit??{},protection=p.profit_protection??{};
-   const complete=exit.funding_complete!==false && exit.result_final!==false && numeric(exit.net);
+   const quoteAt=pick(exit.quote_at,exit.at,fin.quote_at);
+   const quoteFresh=exit.fresh===true && numeric(quoteAt) && now-Number(quoteAt)>=-1000 && now-Number(quoteAt)<=5000;
+   const complete=quoteFresh && exit.liquidity_ok!==false && exit.funding_complete!==false && exit.result_final!==false
+    && !p.funding_uncertain && !p.funding_pending?.length && !p.funding_gaps?.length && !p.closed_funding_pending?.length && numeric(exit.net);
    return {
     id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
     pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
     net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
     stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
-    leverage:pick(p.leverage,plan.execution_contract?.leverage),
-    maxFavourable:pick(p.max_favourable,p.excursions?.max_favourable_net),
+    leverage:pick(plan.sizing?.leverage,plan.execution_contract?.leverage,p.leverage),
+    maxFavourable:pick(p.excursions?.max_favourable_net,p.max_favourable),
     protectedFloor:pick(protection.protected_net,protection.floor_net),
-    quoteAt:pick(exit.quote_at,fin.quote_at),
+    quoteAt,
     exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
    };
   });
@@ -77,7 +80,7 @@ export function viewModel(payload, now=Date.now()) {
  const frames=times.map(key=>{
   const f=activity.frames?.[key]??{};
   const evaluation=f.last_evaluation??null;
-  return {key,tf:tfName(key),lastAt:pick(f.last_completed_at,f.last_evaluation_at,evaluation?.at),
+  return {key,tf:tfName(key),lastAt:pick(f.last_evaluation_at,evaluation?.at,f.last_completed_at),
    status:f.evaluation_status??null,stale:f.stale!==false,
    reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),
     pick(evaluation?.reason_text,f.reason_text)),

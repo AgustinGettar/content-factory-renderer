@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light"><meta name="referrer" content="same-origin"><meta name="theme-color" content="#f5f7fc">
-<title>Lumi Trading · Vista simple</title><style>
-:root {font:15px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,'Segoe UI',sans-serif;color:#1b2b41;background:#f5f7fc;--muted:#62728b;--line:#e3e9f2;--blue:#2762ad;--white:#fff}
+<title>Lumi Trading · Vista simple</title><style>:root {font:15px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,'Segoe UI',sans-serif;color:#1b2b41;background:#f5f7fc;--muted:#62728b;--line:#e3e9f2;--blue:#2762ad;--white:#fff}
 *{box-sizing:border-box}body{margin:0;min-height:100dvh}button,a{touch-action:manipulation}button,summary{cursor:pointer}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #3979da;outline-offset:3px}
 .shell{max-width:770px;padding:calc(15px + env(safe-area-inset-top)) 15px calc(94px + env(safe-area-inset-bottom));margin:auto}
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}.eyebrow{font-size:10px;color:#6a7b93;letter-spacing:1px;font-weight:750;margin:0 0 7px}
@@ -85,19 +84,22 @@ function viewModel(payload, now=Date.now()) {
  const positions=Array.isArray(account.positions)?account.positions:Object.values(account.positions??{});
  const pending=Array.isArray(account.pending_orders)?account.pending_orders:
   Array.isArray(account.pendingOrders)?account.pendingOrders:Object.values(account.pendingOrders??{});
- const resultPositions=positions.filter(p=>p?.plan&&String(p.plan.instrument??'')==='PF_XBTUSD')
+ const resultPositions=positions.filter(p=>p?.plan&&['PF_XBTUSD','PAPER:KRAKEN_FUTURES:PF_XBTUSD'].includes(String(p.plan.instrument??'')))
   .map(p=>{
    const plan=p.plan,exit=p.live_exit??{},protection=p.profit_protection??{};
-   const complete=exit.funding_complete!==false && exit.result_final!==false && numeric(exit.net);
+   const quoteAt=pick(exit.quote_at,exit.at,fin.quote_at);
+   const quoteFresh=exit.fresh===true && numeric(quoteAt) && now-Number(quoteAt)>=-1000 && now-Number(quoteAt)<=5000;
+   const complete=quoteFresh && exit.liquidity_ok!==false && exit.funding_complete!==false && exit.result_final!==false
+    && !p.funding_uncertain && !p.funding_pending?.length && !p.funding_gaps?.length && !p.closed_funding_pending?.length && numeric(exit.net);
    return {
     id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
     pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
     net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
     stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
-    leverage:pick(p.leverage,plan.execution_contract?.leverage),
-    maxFavourable:pick(p.max_favourable,p.excursions?.max_favourable_net),
+    leverage:pick(plan.sizing?.leverage,plan.execution_contract?.leverage,p.leverage),
+    maxFavourable:pick(p.excursions?.max_favourable_net,p.max_favourable),
     protectedFloor:pick(protection.protected_net,protection.floor_net),
-    quoteAt:pick(exit.quote_at,fin.quote_at),
+    quoteAt,
     exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
    };
   });
@@ -105,7 +107,7 @@ function viewModel(payload, now=Date.now()) {
  const frames=times.map(key=>{
   const f=activity.frames?.[key]??{};
   const evaluation=f.last_evaluation??null;
-  return {key,tf:tfName(key),lastAt:pick(f.last_completed_at,f.last_evaluation_at,evaluation?.at),
+  return {key,tf:tfName(key),lastAt:pick(f.last_evaluation_at,evaluation?.at,f.last_completed_at),
    status:f.evaluation_status??null,stale:f.stale!==false,
    reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),
     pick(evaluation?.reason_text,f.reason_text)),
@@ -152,10 +154,11 @@ function viewModel(payload, now=Date.now()) {
   processStatus:process.status??null
  };
 }
+
 const h=escapeHTML;
 // The private site MUST serve the UI and the API under the same origin.
 const API='/api/monitor/live',root=document.querySelector('#content'),status=document.querySelector('#status'),nav=document.querySelector('#nav');
-let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0;
+let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0,source=null,readError=null;
 const signed=x=>fmtUSD(x,{signed:true});
 const tone=x=>x==null?'neutral':Number(x)>0?'good':Number(x)<0?'bad':'neutral';
 const present=x=>x===null||x===undefined||x===''?'—':String(x);
@@ -200,10 +203,17 @@ function activity(m){const history=m.recent.map(o=>`<article class="history"><di
  return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
  section('Observador de scalping',research(m));}
 function draw(){if(!model)return;
+ if(source)model=viewModel(source);
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
  root.innerHTML=({resumen:summary,operaciones:operations,actividad:activity})[tab](model);
  root.querySelectorAll('details[data-detail]').forEach(el=>{el.open=open.has(el.dataset.detail);});
  nav.querySelectorAll('button[data-view]').forEach(b=>{const active=b.dataset.view===tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false');});
+ updateStatus();
+}
+function updateStatus(){
+ if(readError){status.className='status warn';status.textContent=readError;return;}
+ if(!source)return;
+ model=viewModel(source);
  const labels={LIVE_PAPER:['ok','Motor y mercado actualizados'],STALE_SNAPSHOT:['warn','Datos no recientes'],WORKER_UNVERIFIED:['warn','Motor sin latido confirmado'],MARKET_ISSUE:['error','Datos de mercado no fiables']};
  const [state,label]=labels[model.status]??['pending','Sin estado'];
  status.className='status '+state;status.textContent=label+' · '+fmtDate(model.asOf);
@@ -211,15 +221,17 @@ function draw(){if(!model)return;
 nav.addEventListener('click',e=>{const target=e.target.closest('button[data-view]');if(!target)return;tab=target.dataset.view;draw();});
 async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;updating=true;
  try{const res=await fetch(API,{credentials:'same-origin',redirect:'error',cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(9000)});
-  if(res.status===401||res.status===403){status.className='status error';status.textContent='Acceso privado vencido. Abrí el monitor desde Telegram.';nextRetry=Date.now()+20000;return;}
+  if(res.status===401||res.status===403){source=null;model=null;readError='Acceso privado vencido. Abrí el monitor desde Telegram.';root.innerHTML='<div class="panel">La sesión privada debe renovarse.</div>';updateStatus();nextRetry=Date.now()+20000;return;}
   if(!res.ok)throw new Error('MONITOR_HTTP_'+res.status);
-  const value=viewModel(await res.json());
+  const payload=await res.json(),value=viewModel(payload);
   // Reject stale replays, but accept the latest source with equal revision.
-  if(!model||value.revision==null||model.revision==null||value.revision>=model.revision&&Number(value.asOf??0)>=Number(model.asOf??0)){model=value;draw();}
+  if(!model||value.revision==null||model.revision==null||value.revision>=model.revision&&Number(value.asOf??0)>=Number(model.asOf??0)){source=payload;model=value;readError=null;draw();}
+  else {readError='La respuesta recibida es anterior a la última lectura.';updateStatus();}
   backoff=2000;nextRetry=0;
- }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);status.className='status warn';status.textContent='No se pudo actualizar. Se conserva la última lectura.';}
+ }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);readError='No se pudo actualizar. Se conserva la última lectura.';updateStatus();}
  finally{updating=false;}}
-setInterval(poll,2000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
+setInterval(poll,2000);setInterval(updateStatus,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
 window.addEventListener('online',()=>{nextRetry=0;void poll();});void poll();
+
 </script>
 </body></html>

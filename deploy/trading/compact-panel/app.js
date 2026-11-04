@@ -1,7 +1,7 @@
 import {viewModel,fmtUSD,fmtDate,reasonText,escapeHTML as h} from './model.js';
 // The private site MUST serve the UI and the API under the same origin.
 const API='/api/monitor/live',root=document.querySelector('#content'),status=document.querySelector('#status'),nav=document.querySelector('#nav');
-let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0;
+let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0,source=null,readError=null;
 const signed=x=>fmtUSD(x,{signed:true});
 const tone=x=>x==null?'neutral':Number(x)>0?'good':Number(x)<0?'bad':'neutral';
 const present=x=>x===null||x===undefined||x===''?'—':String(x);
@@ -46,10 +46,17 @@ function activity(m){const history=m.recent.map(o=>`<article class="history"><di
  return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
  section('Observador de scalping',research(m));}
 function draw(){if(!model)return;
+ if(source)model=viewModel(source);
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
  root.innerHTML=({resumen:summary,operaciones:operations,actividad:activity})[tab](model);
  root.querySelectorAll('details[data-detail]').forEach(el=>{el.open=open.has(el.dataset.detail);});
  nav.querySelectorAll('button[data-view]').forEach(b=>{const active=b.dataset.view===tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false');});
+ updateStatus();
+}
+function updateStatus(){
+ if(readError){status.className='status warn';status.textContent=readError;return;}
+ if(!source)return;
+ model=viewModel(source);
  const labels={LIVE_PAPER:['ok','Motor y mercado actualizados'],STALE_SNAPSHOT:['warn','Datos no recientes'],WORKER_UNVERIFIED:['warn','Motor sin latido confirmado'],MARKET_ISSUE:['error','Datos de mercado no fiables']};
  const [state,label]=labels[model.status]??['pending','Sin estado'];
  status.className='status '+state;status.textContent=label+' · '+fmtDate(model.asOf);
@@ -57,13 +64,14 @@ function draw(){if(!model)return;
 nav.addEventListener('click',e=>{const target=e.target.closest('button[data-view]');if(!target)return;tab=target.dataset.view;draw();});
 async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;updating=true;
  try{const res=await fetch(API,{credentials:'same-origin',redirect:'error',cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(9000)});
-  if(res.status===401||res.status===403){status.className='status error';status.textContent='Acceso privado vencido. Abrí el monitor desde Telegram.';nextRetry=Date.now()+20000;return;}
+  if(res.status===401||res.status===403){source=null;model=null;readError='Acceso privado vencido. Abrí el monitor desde Telegram.';root.innerHTML='<div class="panel">La sesión privada debe renovarse.</div>';updateStatus();nextRetry=Date.now()+20000;return;}
   if(!res.ok)throw new Error('MONITOR_HTTP_'+res.status);
-  const value=viewModel(await res.json());
+  const payload=await res.json(),value=viewModel(payload);
   // Reject stale replays, but accept the latest source with equal revision.
-  if(!model||value.revision==null||model.revision==null||value.revision>=model.revision&&Number(value.asOf??0)>=Number(model.asOf??0)){model=value;draw();}
+  if(!model||value.revision==null||model.revision==null||value.revision>=model.revision&&Number(value.asOf??0)>=Number(model.asOf??0)){source=payload;model=value;readError=null;draw();}
+  else {readError='La respuesta recibida es anterior a la última lectura.';updateStatus();}
   backoff=2000;nextRetry=0;
- }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);status.className='status warn';status.textContent='No se pudo actualizar. Se conserva la última lectura.';}
+ }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);readError='No se pudo actualizar. Se conserva la última lectura.';updateStatus();}
  finally{updating=false;}}
-setInterval(poll,2000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
+setInterval(poll,2000);setInterval(updateStatus,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
 window.addEventListener('online',()=>{nextRetry=0;void poll();});void poll();

@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodic private S3 recovery snapshot for Lumi PAPER
+
+[Timer]
+OnCalendar=*-*-* 00,06,12,18:25:00 UTC
+RandomizedDelaySec=5min
+AccuracySec=1min
+Persistent=true
+Unit=lumi-trading-s3-recovery.service
+
+[Install]
+WantedBy=timers.target

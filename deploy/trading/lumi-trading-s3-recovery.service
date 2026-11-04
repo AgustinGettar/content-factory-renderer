@@ -1,0 +1,32 @@
+[Unit]
+Description=Lumi Trading secondary PAPER encrypted off-instance SQLite recovery snapshot
+Documentation=https://github.com/AgustinGettar/content-factory-renderer
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/var/lib/lumi-trading/backups
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/lumi-trading/recovery
+ExecStart=/usr/bin/node-24 /opt/lumi-trading/recovery/s3-backup.mjs
+Environment=AWS_DEFAULT_REGION=eu-north-1
+Environment=AWS_PAGER=
+TimeoutStartSec=10min
+UMask=0077
+Nice=15
+IOSchedulingClass=idle
+CPUQuota=40%
+MemoryMax=384M
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/lumi-trading/backups
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+
+# Does not start/stop/restart lumi-trading.service; no SQL writes.

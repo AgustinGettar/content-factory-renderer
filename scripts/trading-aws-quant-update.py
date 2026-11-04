@@ -16,7 +16,7 @@ FLAGS={
  'LUMI_TRADING_SECONDARY_QUANT':'secondary-quant-1.0.0',
 }
 ALLOWED={
- 'lib/trading/dashboard-publisher.js','lib/trading/multi-pattern-paper.js',
+ 'lib/trading/dashboard-publisher.js','lib/trading/multi-pattern-paper.js','lib/trading/monitor-projection.js',
  'lib/trading/secondary-entry-economics.js','lib/trading/secondary-futures-engine.js',
  'lib/trading/secondary-futures-runtime.js','lib/trading/secondary-futures.js',
  'lib/trading/secondary-monitor-activity.js','lib/trading/secondary-profit-policy.js',
@@ -25,7 +25,7 @@ ALLOWED={
  'scripts/trading-quant-download.py','scripts/trading-quant-research.mjs',
  'scripts/trading-quant-meta.mjs',
  'test/secondary-quant.test.js','test/trading_aws_quant_update_test.py',
- 'test/trading-compact-panel-v2.test.js',
+ 'test/trading-compact-panel-v2.test.js','test/trading-compact-onefile.test.js',
 }
 PREFIXES=('lib/trading/quant-','docs/trading/QUANT-','deploy/trading/compact-panel/')
 def allowed_path(path):

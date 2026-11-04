@@ -1,7 +1,8 @@
 import {viewModel,fmtUSD,fmtDate,reasonText,escapeHTML as h} from './model.js';
 // The private site MUST serve the UI and the API under the same origin.
 const API='/api/monitor/live',root=document.querySelector('#content'),status=document.querySelector('#status'),nav=document.querySelector('#nav');
-let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0,source=null,readError=null;
+const fullTab={resumen:'overview',operaciones:'operations',actividad:'activity'};
+let tab=Object.hasOwn(fullTab,window.location.hash.slice(1))?window.location.hash.slice(1):'resumen',model=null,updating=false,backoff=2000,nextRetry=0,source=null,readError=null;
 const signed=x=>fmtUSD(x,{signed:true});
 const tone=x=>x==null?'neutral':Number(x)>0?'good':Number(x)<0?'bad':'neutral';
 const present=x=>x===null||x===undefined||x===''?'—':String(x);
@@ -11,7 +12,7 @@ const hUSD=x=>h(fmtUSD(x)),hSigned=x=>h(signed(x));
 function position(p){
  return `<article class="position"><div class="poshead"><strong class="name">BTC/USD · ${h(p.timeframe)}</strong><span class="side ${p.side==='SHORT'?'short':'long'}">${p.side==='SHORT'?'↓ Venta':p.side==='LONG'?'↑ Compra':'Dirección no disponible'}</span></div>
  <div class="small-label">Resultado abierto neto estimado</div><strong class="bigresult ${tone(p.net)}">${hSigned(p.net)}</strong>
- <p class="pattern">${h(p.pattern)}</p>${p.net==null?'<div class="hint">No hay valoración neta final verificable para esta posición.</div>':''}
+ <p class="pattern">${h(p.pattern)} · ${h(p.origin)}</p>${p.net==null?'<div class="hint">No hay valoración neta final verificable para esta posición.</div>':''}
  <details data-detail="pos-${h(p.id)}"><summary>Ver entrada, objetivo y protección</summary><div class="details-grid">
  <div><label>Entrada</label><strong>${h(present(p.entry))}</strong></div><div><label>Stop loss</label><strong>${h(present(p.stop))}</strong></div>
  <div><label>Objetivo</label><strong>${h(present(p.target))}</strong></div><div><label>Apalancamiento simulado</label><strong>${h(present(p.leverage))}×</strong></div>
@@ -19,10 +20,11 @@ function position(p){
  <div><label>Margen reservado</label><strong>${hUSD(p.margin)}</strong></div>
  <div><label>Máxima excursión neta</label><strong>${hSigned(p.maxFavourable)}</strong></div><div><label>Piso de protección</label><strong>${hSigned(p.protectedFloor)}</strong></div>
  </div><p>Los precios pueden ejecutarse con deslizamiento. No se garantiza cerrar exactamente en el piso indicado.</p>
+ ${p.fibonacci?`<p>Fibonacci: ${p.fibonacci.confluence?'rechazo confirmado en '+h((p.fibonacci.confirmed_level.ratio*100).toFixed(1))+'%':p.fibonacci.status==='READY'?'niveles registrados':'sin swing confirmado'}. ${p.fibonacci.status==='READY'?p.fibonacci.levels.map(l=>h((l.ratio*100).toFixed(1))+'%: '+hUSD(l.price)).join(' · '):''}</p>`:''}
  ${p.exitReason?`<p>Estado de ejecución: ${h(reasonText(p.exitReason))}</p>`:''}</details></article>`;
 }
 function timeframes(m){return `<div>${m.frames.map(f=>`<article class="frame"><div class="frame-head"><div class="tf">${f.tf}</div><div class="frame-text"><strong>${h(f.regime)} ${f.stale?'<span class="stale-flag">Por actualizar</span>':''}</strong><small>Última evaluación: ${h(fmtDate(f.lastAt))}</small></div></div><div class="frame-note">${h(f.reason)}</div></article>`).join('')}</div>`;}
-function research(m){if(m.quant?.active){const q=m.quant,g=q.guard??{},blocked=g.review_required?'Pausadas las nuevas entradas por drawdown; las salidas siguen supervisadas.':g.daily_blocked?'Límite de pérdida diaria alcanzado; las salidas siguen supervisadas.':'Evaluación de patrones activa según régimen, costes y riesgo.';return `<div class="panel"><strong>Patrones y scalping PAPER</strong><p>${h(blocked)}</p><p>${Object.keys(q.strategies??{}).length} estrategias registradas · entradas de 1m, 5m, 15m, 1h y 4h.</p><details data-detail="quant"><summary>Ver estrategias</summary><p>${Object.values(q.strategies??{}).map(s=>h(s.title)).join(' · ')}</p><p>Reglas experimentales. La rentabilidad y las probabilidades todavía no están validadas. Las técnicas avanzadas sin datos suficientes permanecen en investigación.</p></details></div>`;}const s=m.shadow;
+function research(m){if(m.quant?.active){const q=m.quant,g=q.guard??{},blocked=g.review_required?'Pausadas las nuevas entradas por drawdown; las salidas siguen supervisadas.':g.daily_blocked?'Límite de pérdida diaria alcanzado; las salidas siguen supervisadas.':'Evaluación de patrones activa según régimen, costes y riesgo.';return `<div class="panel"><strong>Patrones y scalping PAPER</strong><p>${h(blocked)}</p><p>${Object.keys(q.strategies??{}).length} estrategias registradas · entradas de 1m, 5m, 15m, 1h y 4h.</p>${q.fibonacci?'<p>Fibonacci activo: swings confirmados, retrocesos y objetivos acotados. No abre por tocar un nivel.</p>':''}<details data-detail="quant"><summary>Ver estrategias</summary><p>${Object.values(q.strategies??{}).map(s=>h(s.title)).join(' · ')}</p><p>Reglas experimentales. La rentabilidad y las probabilidades todavía no están validadas. Las técnicas avanzadas sin datos suficientes permanecen en investigación.</p></details></div>`;}const s=m.shadow;
  const explanation=s?`${s.status==='CANDIDATE'?'Hipótesis detectada, sin orden simulada automática.':'Sin entrada experimental aprobada.'} ${reasonText(s.reason)}`:'El nuevo observador aún no publicó una lectura de 5m.';
  return `<div class="panel"><strong>Scalping experimental · solo observación</strong><p>${h(explanation)}</p><p>No modifica posiciones, stop loss, capital ni apalancamiento. Las hipótesis no equivalen a operaciones rentables.</p></div>`;}
 function summary(m){const f=m.metrics;
@@ -40,14 +42,15 @@ function summary(m){const f=m.metrics;
  <div><label>Exposición bruta</label><strong>${hUSD(f.exposure)}</strong></div><div><label>Margen reservado</label><strong>${hUSD(f.margin)}</strong></div><div><label>Riesgo agregado estimado</label><strong>${hUSD(f.openRisk)}</strong></div><div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
 }
 function operations(m){return section('Posiciones abiertas',m.positions.length?m.positions.map(position).join(''):'<div class="panel">Sin posiciones abiertas.</div>','Cada operación se presenta individualmente.')+
- section('Órdenes pendientes',`<div class="panel">${m.pendingCount} pendientes. Los controles de ejecución permanecen en la vista completa.</div>`)+
+ section('Señales del motor nuevo · pendientes',m.pendingPlans.map(p=>`<article class="position"><strong>${h(p.tf)} · ${h(p.side)} · ${h(p.pattern)}</strong><p>Entrada ${hUSD(p.entry)} · SL ${hUSD(p.stop)} · TP ${hUSD(p.target)}</p><small>Pendiente de ejecución · ${h(p.id.slice(0,10))}</small></article>`).join('')+`<div class="panel">${m.pendingCount} pendientes. Los controles de ejecución permanecen en la vista completa.</div>`)+
  section('Estado del mercado',timeframes(m));}
 function activity(m){const history=m.recent.map(o=>`<article class="history"><div class="flex"><span class="name">${h(o.tf)} · ${o.side==='SHORT'?'↓ Venta':o.side==='LONG'?'↑ Compra':'Dirección no disponible'} · ${o.status==='CLOSED'?'Cerrada':o.status==='OPEN'?'Abierta':o.status==='PENDING'?'Pendiente':'No ejecutada'}</span>
  <strong class="${tone(o.recordedCloseNet)}">${o.status==='CLOSED'?hSigned(o.recordedCloseNet):'—'}</strong></div>
  <small>${h(fmtDate(o.at))}${o.status==='CLOSED'?' · Motivo: '+h(o.reason):''}</small>${o.status==='CLOSED'&&!o.closeIsFinal?'<div class="hint">Resultado registrado; liquidación final no comprobada.</div>':''}</article>`).join('');
- return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
+ return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Motor cuantitativo. Las posiciones abiertas nunca se contabilizan como cierres.')+
+ (m.legacyCount?`<p><a href="/#activity">Historial anterior: ${m.legacyCount} registros en la muestra · ver panel completo</a></p>`:'')+
  section('Patrones y scalping',research(m));}
-function draw(){if(!model)return;
+function draw(){document.querySelector('#full-view').href='/#'+fullTab[tab];if(!model)return;
  if(source)model=viewModel(source);
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
  root.innerHTML=({resumen:summary,operaciones:operations,actividad:activity})[tab](model);
@@ -63,7 +66,7 @@ function updateStatus(){
  const [state,label]=labels[model.status]??['pending','Sin estado'];
  status.className='status '+state;status.textContent=label+' · '+fmtDate(model.asOf);
 }
-nav.addEventListener('click',e=>{const target=e.target.closest('button[data-view]');if(!target)return;tab=target.dataset.view;draw();});
+nav.addEventListener('click',e=>{const target=e.target.closest('button[data-view]');if(!target)return;tab=target.dataset.view;window.history.replaceState(null,'','#'+tab);draw();});
 async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;updating=true;
  try{const res=await fetch(API,{credentials:'same-origin',redirect:'error',cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(9000)});
   if(res.status===401||res.status===403){source=null;model=null;readError='Acceso privado vencido. Abrí el monitor desde Telegram.';root.innerHTML='<div class="panel">La sesión privada debe renovarse.</div>';updateStatus();nextRetry=Date.now()+20000;return;}
@@ -75,5 +78,6 @@ async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;
   backoff=2000;nextRetry=0;
  }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);readError='No se pudo actualizar. Se conserva la última lectura.';updateStatus();}
  finally{updating=false;}}
+window.addEventListener('hashchange',()=>{const value=window.location.hash.slice(1);if(Object.hasOwn(fullTab,value)){tab=value;draw();}});draw();
 setInterval(poll,2000);setInterval(updateStatus,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
 window.addEventListener('online',()=>{nextRetry=0;void poll();});void poll();

@@ -1,6 +1,7 @@
 // Run ONLY on an external workstation/CI. Public candle scenarios are not live fills.
 import {readFile,writeFile,access} from 'node:fs/promises';
 import path from 'node:path';
+import {FIBONACCI_POLICY} from '../lib/trading/quant-fibonacci.js';
 import {hash} from '../lib/trading/core.js';
 import {quantCandidates,QUANT_VERSION,QUANT_POLICY} from '../lib/trading/quant-strategies.js';
 import {entryCandidates} from '../lib/trading/secondary-entry-context.js';
@@ -15,7 +16,7 @@ if(!args.data||!args.output)throw Error('--data and --output required');
 const researchProfitPolicy={...EARLY_PROFIT_POLICY,min_expected_net_target_fraction:args['scalp-net-fraction']??EARLY_PROFIT_POLICY.min_expected_net_target_fraction};
 const manifest=JSON.parse(await readFile(path.join(args.data,'manifest.json'),'utf8')),series={};
 for(const tf of Object.keys(manifest.frames))series[tf]=JSON.parse(await readFile(path.join(args.data,tf+'.json'),'utf8'));
-const protocol={version:'quant-candle-research-1.2.0',scalping_net_fraction:Number(researchProfitPolicy.min_expected_net_target_fraction),strategy_version:QUANT_VERSION,policy_hash:hash(QUANT_POLICY),fixed_parameters:true,optimized_parameters:0,
+const protocol={version:'quant-candle-research-1.3.0',fibonacci_policy:FIBONACCI_POLICY,fibonacci_policy_hash:hash(FIBONACCI_POLICY),scalping_net_fraction:Number(researchProfitPolicy.min_expected_net_target_fraction),strategy_version:QUANT_VERSION,policy_hash:hash(QUANT_POLICY),fixed_parameters:true,optimized_parameters:0,
  initial_equity:1000,risk_usd_per_signal:5,notional_cap:600,taker_fee:.0005,slippage_per_side:.0002,assumed_spread_fraction:.0001,assumed_adverse_funding_fraction_per_hour:.00003,
  intrabar_order:'STOP_FIRST_WHEN_AMBIGUOUS',execution:'NEXT_NATIVE_BAR_OPEN_PLUS_ASSUMED_SPREAD_SLIPPAGE',simultaneous_portfolio:false,
  limitations:['Historical BBO, full depth, latency and actual funding are unavailable in this candle dataset.','Fees and funding are declared scenarios, not historical account receipts.','Independent strategy streams are NOT additive portfolio returns.','Higher timeframe intrabar order is unknown; adverse stop-first assumption.','Exit variants use sampled closes and do not prove executable profit.']};
@@ -52,7 +53,7 @@ for(const tf of [1,5,15,60,240]){
    }
    if(closed&&samples.length)samples.at(-1).net=closed.net;
    if(!closed){rejects[key].RIGHT_CENSORED=(rejects[key].RIGHT_CENSORED??0)+1;continue;}
-   const row={id:p.id,start:cutoff,end:closed.at,strategy:key,timeframe:tf,regime:p.quant_contract?.regime??d.facts?.regime??'UNKNOWN',direction:p.direction,qty,entry,target:Number(p.target),stop:Number(p.stop),net:closed.net,gross:closed.gross,costs:closed.costs,initial_risk:unitLoss*qty,mfe,mae,excursion_basis:'OHLC_BOUNDS_NOT_OBSERVED_ORDERED_PATH',holding_ms:closed.at-cutoff,reason:closed.reason,final:true,quality:'CANDLE_SCENARIO_NOT_EXECUTION_VALIDATED',cost_stress_150_net:closed.net-.5*closed.costs,cost_stress_200_net:closed.net-closed.costs};
+   const row={id:p.id,start:cutoff,end:closed.at,strategy:key,timeframe:tf,fibonacci_policy:p.quant_contract?.fibonacci?.policy_hash??'NONE',fibonacci_target_limited:d.facts?.fibonacci?.target_limited??false,fibonacci_confluence:d.facts?.fibonacci?.confluence??false,regime:p.quant_contract?.regime??d.facts?.regime??'UNKNOWN',direction:p.direction,qty,entry,target:Number(p.target),stop:Number(p.stop),net:closed.net,gross:closed.gross,costs:closed.costs,initial_risk:unitLoss*qty,mfe,mae,excursion_basis:'OHLC_BOUNDS_NOT_OBSERVED_ORDERED_PATH',holding_ms:closed.at-cutoff,reason:closed.reason,final:true,quality:'CANDLE_SCENARIO_NOT_EXECUTION_VALIDATED',cost_stress_150_net:closed.net-.5*closed.costs,cost_stress_200_net:closed.net-closed.costs};
    (trades[key]??=[]).push(row);nextEligible[key]=closed.at;signalCount++;
    allPaths.push({id:p.id,target_net:Number(e.expected_net_target)*qty,original_net:row.net,samples,final:true,quality:row.quality});
   }

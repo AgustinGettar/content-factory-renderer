@@ -235,3 +235,43 @@ test('mark margin stress supersedes a pending discretionary exit and retains its
  const stressed={...quote(T+2300),mark_price:'20'};h.b.manageProfitPosition(p,stressed,{[C]:0},T+2300);
  assert.equal(p.exit_intent.reason,'ISOLATED_MARGIN_STRESS');assert.equal(p.exit_intent.not_before,deadline);assert(h.b.a.positions.one);
 });
+
+test('Fibonacci uses confirmed closed pivots, symmetric levels and only closer targets',async()=>{
+ const {fibonacciContext,fibonacciTarget,fibonacciContract,validateFibonacci}=await import('../lib/trading/quant-fibonacci.js');
+ const values=[105,104,101,104,107,110,114,111,110,109,108,109];
+ const b=values.map((c,i)=>({start:C-(values.length-i)*60000,end:C-(values.length-i-1)*60000,open:c-.2,close:c,high:c+1,low:c-1}));
+ const f=fibonacciContext(b,{direction:'LONG',atr:1,cutoff:C,timeframe:1});assert.equal(f.status,'READY');assert.equal(f.anchor_start.price,100);assert.equal(f.anchor_end.price,115);assert.equal(f.levels.find(x=>x.ratio===.618).price,105.73);assert.equal(f.anchor_end.confirmed_at,b[8].end);
+ const rejection=b.map(x=>({...x}));rejection.at(-1).low=107.4;const confirmed=fibonacciContext(rejection,{direction:'LONG',atr:1,cutoff:C,timeframe:1});assert.equal(confirmed.confluence,true);assert.equal(confirmed.confirmed_level.ratio,.5);
+ const future={...b.at(-1),start:C,end:C+60000,high:999};assert.deepEqual(fibonacciContext([...b,future],{direction:'LONG',atr:1,cutoff:C,timeframe:1}),f);
+ const unconfirmed=b.slice(0,8);assert.equal(fibonacciContext(unconfirmed,{direction:'LONG',atr:1,cutoff:unconfirmed.at(-1).end,timeframe:1}).status,'UNAVAILABLE');
+ const mirror=b.map(x=>({...x,open:220-x.open,close:220-x.close,high:220-x.low,low:220-x.high})),short=fibonacciContext(mirror,{direction:'SHORT',atr:1,cutoff:C,timeframe:1});assert.equal(short.status,'READY');assert(Math.abs(short.levels[3].price-(220-f.levels[3].price))<1e-10);
+ assert.equal(fibonacciTarget(f,110,120).target,115);assert.equal(fibonacciTarget(f,110,113).target,113);assert.equal(fibonacciTarget(short,110,100).target,105);
+ const invalid=b.map(x=>({...x}));invalid.at(-1).low=99;assert.equal(fibonacciContext(invalid,{direction:'LONG',atr:1,cutoff:C,timeframe:1}).reason,'FIBONACCI_SWING_INVALIDATED');
+ const plan={direction:'LONG',timeframe:1,confirmed_at:C,entry:'110',target:'115',quant_contract:{fibonacci:fibonacciContract(f,110,120,115)}};assert(validateFibonacci(plan));plan.target='116';assert.throws(()=>validateFibonacci(plan),/FIBONACCI_CONTRACT_INTEGRITY/);
+});
+
+test('quant provenance and Fibonacci survive detailed and live monitor projections',async()=>{
+ const {planView}=await import('../lib/trading/monitor-projection.js');
+ const p={id:'quant-plan',quant_contract:{version:QUANT_VERSION,strategy:'SCALP_CONTINUATION',fibonacci:{version:'secondary-fibonacci-1.0.0',status:'READY'}}};
+ assert.deepEqual(planView(p).quant_contract,p.quant_contract);
+ const h=fixture();const before=structuredClone(h.root.frequency);installQuant(h.root,ENV,T);assert.equal(h.root.secondaryExecution.quant.fibonacci.version,'secondary-fibonacci-1.0.0');assert.deepEqual(h.root.frequency,before);
+});
+
+test('new quant Telegram messages are short, distinguish estimates, partial execution and final net',()=>{
+ const h=fixture(),p=signal(h);p.recipe_title='Scalping de continuación';p.quant_contract={version:QUANT_VERSION};p.sizing={qty:'1',risk:'0.6',target_net:'1.2',leverage:2};
+ const base={id:p.id,plan:p,price:'100',entry:'99',qty:'1',pnl:'0.067525',fees:'0.06434',quality:'OBSERVED',reason:'TRAILING_RETRACEMENT',result_final:true,funding_complete:true};
+ for(const kind of ['SECONDARY_SELECTED','SECONDARY_OPEN','SECONDARY_CLOSE','SECONDARY_TRAILING','SECONDARY_PARTIAL','SECONDARY_UNFILLED']){const text=secondaryMessage({kind,payload:base});assert(text.length<750,text);assert.match(text,/PAPER/);assert.doesNotMatch(text,/Agustín|QUANT_EXPERIMENTAL|undefined/);}
+ assert.match(secondaryMessage({kind:'SECONDARY_SELECTED',payload:base}),/pendiente de ejecución/);
+ const final=secondaryMessage({kind:'SECONDARY_CLOSE',payload:base});assert.match(final,/Neto: 0\.0675 USD/);assert.doesNotMatch(final,/provisional/);
+ assert.match(secondaryMessage({kind:'SECONDARY_CLOSE',payload:{...base,result_final:false}}),/Neto provisional/);
+ const partial=secondaryMessage({kind:'SECONDARY_PARTIAL',payload:{...base,qty:'.2',cumulative_qty:'.2',remaining_qty:'.8',entry_revalidation:{expected_loss_stop:'.12',expected_net_target:'.24'}}});assert.match(partial,/Fragmento 20\.00 USD/);assert.match(partial,/neto al TP est\. 0\.24/);
+});
+
+test('quant notifier rejects legacy traffic and expires stale signals without sending or replaying',async()=>{
+ const {SecondaryNotifier}=await import('../lib/trading/secondary-futures-runtime.js');
+ for(const item of [{id:'legacy',kind:'SIGNAL',payload:{plan:{}}},{id:'old-quant',kind:'SECONDARY_SELECTED',payload:{plan:{id:'p',quant_contract:{version:QUANT_VERSION},decision_at:Date.now()-60000,expires_at:Date.now()+60000}}}]){
+  item.status='QUEUED';let calls=0;const store={queued:async()=>item.status==='QUEUED'?[item]:[],tx:async args=>{if(args.phase==='CLAIM'){item.status='DISPATCHING';item.claim_id=args.claim_id;}else Object.assign(item,args);return {...item};}};
+  const notifier=new SecondaryNotifier({store,env:{},quantOnly:()=>true,secondaryPending:()=>false,transport:{call:async()=>{calls++;throw Error('MUST_NOT_SEND');}},feed:{state:{}}});
+  await notifier.drain();assert.equal(item.status,item.id==='legacy'?'REJECTED':'EXPIRED');assert.equal(calls,0);assert.equal((await store.queued()).length,0);
+ }
+});

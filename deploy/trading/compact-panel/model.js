@@ -84,6 +84,7 @@ export function viewModel(payload, now=Date.now()) {
     && !p.funding_uncertain && !p.funding_pending?.length && !p.funding_gaps?.length && !p.closed_funding_pending?.length && numeric(exit.net);
    return {
     id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
+    origin:plan.quant_contract?'Motor cuantitativo':'Contrato anterior',fibonacci:plan.quant_contract?.fibonacci??null,
     pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
     net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
     stop:pick(p.quant_management?.stop,plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
@@ -111,7 +112,8 @@ export function viewModel(payload, now=Date.now()) {
    shadow:key==='5'?f.scalping_shadow??null:null};
  });
  const ops=Array.isArray(d.operations)?d.operations:[];
- const recent=ops.filter(x=>x?.ledger==='FREQUENT_PAPER' && ['CLOSED','NOT_FILLED','OPEN','PENDING'].includes(x.status))
+ const legacyCount=ops.filter(x=>x?.ledger==='FREQUENT_PAPER'&&!x.plan?.quant_contract).length;
+ const recent=ops.filter(x=>(!d.secondary_quant?.active||x.plan?.quant_contract)&&x?.ledger==='FREQUENT_PAPER' && ['CLOSED','NOT_FILLED','OPEN','PENDING'].includes(x.status))
   .sort((a,b)=>eventTime(pick(b.exit?.at,b.entry?.at,b.at,0))-eventTime(pick(a.exit?.at,a.entry?.at,a.at,0)))
   .slice(0,18).map(o=>({
    id:String(o.id??''),status:o.status,tf:tfName(o.plan?.timeframe),
@@ -141,7 +143,8 @@ export function viewModel(payload, now=Date.now()) {
    uncertainHistory:fin.realized_net_includes_uncertain_history===true},
   openCount:Math.max(resultPositions.length,number(activity.orders?.open_positions)??0),
   pendingCount:Math.max(pending.length,number(activity.orders?.pending)??0),
-  positions:resultPositions,frames,recent,
+  positions:resultPositions,frames,recent,legacyCount,
+  pendingPlans:pending.filter(x=>!d.secondary_quant?.active||x.plan?.quant_contract).map(x=>({id:x.plan.id,side:x.plan.direction,tf:tfName(x.plan.timeframe),pattern:x.plan.recipe_title??x.plan.pattern,entry:x.plan.entry,stop:x.plan.stop,target:x.plan.target})),
   shadow:frames.find(f=>f.key==='5')?.shadow??null,quant:d.secondary_quant??null,
   shadowResearchOnly:true,
   pendingDetails:pending.length,

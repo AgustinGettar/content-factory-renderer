@@ -46,9 +46,9 @@ test('standalone Sites panel renders all three tabs after successful PAPER fetch
  const nav={addEventListener(type,handler){if(type==='click')clicked=handler;},
   querySelectorAll:()=>buttons};
  const document={hidden:false,
-  querySelector:query=>({'#content':root,'#status':status,'#nav':nav})[query],
+  querySelector:query=>({'#content':root,'#status':status,'#nav':nav,'#full-view':{}})[query],
   addEventListener(){}};
- const context={document,window:{addEventListener(){}},setInterval(){},
+ const context={document,window:{location:{hash:''},history:{replaceState(){}},addEventListener(){}},setInterval(){},
   fetch:async(url,opts)=>{
    assert.equal(url,'/api/monitor/live');assert.equal(opts.credentials,'same-origin');
    return {ok:true,status:200,json:async()=>data};
@@ -59,7 +59,7 @@ test('standalone Sites panel renders all three tabs after successful PAPER fetch
  assert.match(status.textContent,/Motor y mercado actualizados/);
  const click=view=>clicked({target:{closest:()=>buttons.find(b=>b.dataset.view===view)}});
  click('operaciones');
- assert.match(root.innerHTML,/Órdenes pendientes/);
+ assert.match(root.innerHTML,/Señales del motor nuevo/);
  click('actividad');
  assert.match(root.innerHTML,/Actividad reciente/);
  click('resumen');
@@ -76,8 +76,8 @@ test('failed refresh and tab navigation cannot turn old data green; 401 clears i
  const nav={addEventListener(t,fn){click=fn;},querySelectorAll:()=>buttons};
  const intervals=[];
  vm.runInNewContext(script,{Date:class extends Date{static now(){return clock;}},Intl,AbortSignal,
-  document:{hidden:false,querySelector:s=>({'#content':root,'#status':status,'#nav':nav})[s],addEventListener(){}},
-  window:{addEventListener(){}},setInterval(fn,ms){intervals.push({fn,ms});},
+  document:{hidden:false,querySelector:s=>({'#content':root,'#status':status,'#nav':nav,'#full-view':{}})[s],addEventListener(){}},
+  window:{location:{hash:''},history:{replaceState(){}},addEventListener(){}},setInterval(fn,ms){intervals.push({fn,ms});},
   fetch:async()=>{if(mode==='network')throw Error('offline');return {ok:mode==='ok',status:mode==='auth'?401:200,json:async()=>data};}});
  await new Promise(resolve=>setImmediate(resolve));assert.match(status.textContent,/actualizados/);
  clock+=16000;intervals.find(i=>i.ms===1000).fn();assert.match(status.textContent,/no recientes/);

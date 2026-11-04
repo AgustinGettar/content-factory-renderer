@@ -8,6 +8,7 @@ import {join,basename} from 'node:path';
 import {createCipheriv,createDecipheriv,randomBytes,createHash} from 'node:crypto';
 import {createGzip,createGunzip} from 'node:zlib';
 import {pipeline} from 'node:stream/promises';
+import {Transform,Writable} from 'node:stream';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 
@@ -20,6 +21,7 @@ const AAD=Buffer.from('lumi-trading-backup-v1');
 const MAGIC=Buffer.from('LUMIPAPERBACKUP1');
 const HEADER_BYTES=MAGIC.length+12;
 const MiB=1024*1024;
+const MAX_ENCRYPTED_BYTES=256*MiB;
 const safeInt=v=>Number.isSafeInteger(v)&&v>=0;
 export function chooseLocalSnapshot(files,now=Date.now()){
  const valid=files.filter(x=>/^daily-[012]\.sqlite$/.test(x.name)&&
@@ -49,17 +51,21 @@ export async function encryptSnapshot(source,destination,key){
  const iv=randomBytes(12);
  await writeFile(destination,Buffer.concat([MAGIC,iv]),{flag:'wx',mode:0o600});
  const cipher=createCipheriv('aes-256-gcm',key,iv);cipher.setAAD(AAD);
- await pipeline(createReadStream(source),createGzip({level:6}),cipher,
+ let wrote=0;
+ const bound=new Transform({transform(chunk,encoding,done){wrote+=chunk.length;
+  done(wrote>MAX_ENCRYPTED_BYTES-HEADER_BYTES-16?Error('COMPRESSED_BACKUP_SIZE_LIMIT'):null,
+   wrote>MAX_ENCRYPTED_BYTES-HEADER_BYTES-16?undefined:chunk);}});
+ await pipeline(createReadStream(source),createGzip({level:6}),cipher,bound,
   createWriteStream(destination,{flags:'a',mode:0o600}));
  await appendFile(destination,cipher.getAuthTag());
  const size=(await stat(destination)).size;
- if(size<=HEADER_BYTES+16||size>512*MiB)throw Error('SEALED_BACKUP_INVALID_SIZE');
+ if(size<=HEADER_BYTES+16||size>MAX_ENCRYPTED_BYTES)throw Error('SEALED_BACKUP_INVALID_SIZE');
  return {size,sha256:await sha256File(destination)};
 }
 export async function decryptSnapshot(encrypted,destination,key){
  if(!Buffer.isBuffer(key)||key.length!==32)throw Error('BACKUP_KEY_INVALID');
  const info=await stat(encrypted);
- if(info.size<=HEADER_BYTES+16||info.size>512*MiB)throw Error('SEALED_BACKUP_INVALID_SIZE');
+ if(info.size<=HEADER_BYTES+16||info.size>MAX_ENCRYPTED_BYTES)throw Error('SEALED_BACKUP_INVALID_SIZE');
  const handle=await open(encrypted,'r');
  const header=Buffer.alloc(HEADER_BYTES),tag=Buffer.alloc(16);
  try{
@@ -72,6 +78,26 @@ export async function decryptSnapshot(encrypted,destination,key){
  decipher.setAAD(AAD);decipher.setAuthTag(tag);
  await pipeline(createReadStream(encrypted,{start:HEADER_BYTES,end:info.size-17}),
   decipher,createGunzip(),createWriteStream(destination,{flags:'wx',mode:0o600}));
+}
+// Cryptographically proves the remote decrypted stream equals the already
+// PRAGMA-integrity-checked source without materializing another ~500 MB SQLite.
+export async function decryptedPlaintextDigest(encrypted,key){
+ if(!Buffer.isBuffer(key)||key.length!==32)throw Error('BACKUP_KEY_INVALID');
+ const info=await stat(encrypted);
+ if(info.size<=HEADER_BYTES+16||info.size>MAX_ENCRYPTED_BYTES)throw Error('SEALED_BACKUP_INVALID_SIZE');
+ const fd=await open(encrypted,'r'),header=Buffer.alloc(HEADER_BYTES),tag=Buffer.alloc(16);
+ try{
+  const a=await fd.read(header,0,HEADER_BYTES,0),b=await fd.read(tag,0,16,info.size-16);
+  if(a.bytesRead!==HEADER_BYTES||b.bytesRead!==16||!header.subarray(0,MAGIC.length).equals(MAGIC))
+   throw Error('BACKUP_HEADER_INVALID');
+ }finally{await fd.close();}
+ const cipher=createDecipheriv('aes-256-gcm',key,header.subarray(MAGIC.length));
+ cipher.setAAD(AAD);cipher.setAuthTag(tag);
+ const digest=createHash('sha256');let bytes=0;
+ const sink=new Writable({write(chunk,encoding,cb){bytes+=chunk.length;digest.update(chunk);cb();}});
+ await pipeline(createReadStream(encrypted,{start:HEADER_BYTES,end:info.size-17}),
+  cipher,createGunzip(),sink);
+ return {size:bytes,sha256:digest.digest('hex')};
 }
 function keyFromPrivateEnv(content){
  const lines=content.split(/\r?\n/);
@@ -122,7 +148,8 @@ async function main(){
  recoveryPhase='STORAGE_SPACE_PREFLIGHT';
  const disk=await statfs(PAPER_RECOVERY_DIR);
  const free=Number(disk.bavail)*Number(disk.bsize);
- if(free<source.size*1.6+128*MiB)throw Error('BACKUP_STORAGE_SPACE_LOW');
+ // Two bounded cipher files, no second full-size plaintext on scheduled runs.
+ if(free<2*MAX_ENCRYPTED_BYTES+128*MiB)throw Error('BACKUP_STORAGE_SPACE_LOW');
  recoveryPhase='PRIVATE_KEY_LOAD';
  const envContent=await readFile(PAPER_RECOVERY_ENV,'utf8'),key=keyFromPrivateEnv(envContent);
  const tmp=await mkdtemp(join(PAPER_RECOVERY_DIR,'.remote-verify-'));
@@ -151,12 +178,19 @@ async function main(){
   recoveryPhase='REMOTE_SHA256';
   const downloadedDigest=await sha256File(downloaded);
   if(downloadedDigest!==expectedSha)throw Error('REMOTE_DOWNLOAD_SHA256_MISMATCH');
-  recoveryPhase='DECRYPT_AES_GCM';
-  await decryptSnapshot(downloaded,restored,key);
-  recoveryPhase='RESTORED_SQLITE_INTEGRITY';
-  const restoredState=verifySqliteSnapshot(restored);
-  if(restoredState.revision!==checkpoint.revision)throw Error('RESTORED_REVISION_MISMATCH');
-  console.log(JSON.stringify({status:'RESTORE_VERIFIED',version:PAPER_RECOVERY_VERSION,
+  recoveryPhase='STREAM_AES_GCM_PLAINTEXT_CHECK';
+  const plain=await decryptedPlaintextDigest(downloaded,key);
+  const sourceSha=await sha256File(src);
+  if(plain.sha256!==sourceSha||plain.size!==source.size)
+   throw Error('RESTORED_PLAINTEXT_MISMATCH');
+  if(process.argv.includes('--full-restore')){
+   recoveryPhase='DECRYPT_AES_GCM';
+   await decryptSnapshot(downloaded,restored,key);
+   recoveryPhase='RESTORED_SQLITE_INTEGRITY';
+   const restoredState=verifySqliteSnapshot(restored);
+   if(restoredState.revision!==checkpoint.revision)throw Error('RESTORED_REVISION_MISMATCH');
+  }
+  console.log(JSON.stringify({status:process.argv.includes('--full-restore')?'RESTORE_VERIFIED':'RESTORE_STREAM_VERIFIED',version:PAPER_RECOVERY_VERSION,
    revision:checkpoint.revision,remote_key:item,encrypted_bytes:expectedSize,
    source_bytes:source.size,source:source.name,sha256:expectedSha,
    verified_again:true,worker_restarted:false,positions_modified:false}));
@@ -167,5 +201,6 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)
  ['NO_RECENT_SQLITE_BACKUP','BACKUP_STORAGE_SPACE_LOW','SNAPSHOT_INTEGRITY_FAILED',
  'PAPER_LEDGER_MISSING','BACKUP_KEY_INVALID','PRIVATE_BACKUP_KEY_UNAVAILABLE',
  'REMOTE_HEAD_VERIFICATION_FAILED','REMOTE_DOWNLOAD_SHA256_MISMATCH','RESTORED_REVISION_MISMATCH',
+ 'RESTORED_PLAINTEXT_MISMATCH','COMPRESSED_BACKUP_SIZE_LIMIT',
  'ROOT_ONLY_NO_EXPORTED_KEY'].includes(e.message)?e.message:'RECOVERY_UPLOAD_OR_VERIFY_ERROR')}));
   process.exitCode=1;});

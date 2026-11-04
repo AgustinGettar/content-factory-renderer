@@ -33,6 +33,24 @@ const number = x => numeric(x) ? Number(x) : null;
 const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
 const tfName = x => ({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
 const REASONS = {
+ REGIME_NOT_ELIGIBLE:'Esta estrategia no corresponde al régimen actual',
+ STRATEGY_TIMEFRAME_NOT_ENABLED:'Esta estrategia no se utiliza en este plazo',
+ QUANT_PATTERN_NOT_CONFIRMED:'Todavía no hay confirmación del patrón',
+ PATTERN_NOT_CONFIRMED:'Todavía no hay confirmación del patrón',
+ VOLUME_NOT_CONFIRMED:'El volumen todavía no confirma la entrada',
+ LIQUIDITY_NOT_CONFIRMED:'La liquidez o el spread no permiten esta entrada',
+ REVERSAL_AGAINST_STRONG_TREND:'La tendencia es demasiado fuerte para buscar una reversión',
+ QUANT_STRUCTURAL_BARRIERS_INVALID:'El stop o el objetivo no dejan un recorrido técnico válido',
+ QUANT_COST_OR_NET_RR:'El recorrido no compensa los costes y el riesgo',
+ QUANT_MARGIN_SCHEDULE_UNVERIFIED:'La tabla de margen necesita verificarse',
+ QUANT_MARK_PRICE_UNAVAILABLE:'Falta un precio de referencia verificable',
+ QUANT_DAILY_LOSS_LIMIT:'Nuevas entradas pausadas por el límite diario; las salidas siguen activas',
+ QUANT_DRAWDOWN_REVIEW_REQUIRED:'El drawdown requiere revisión; las salidas siguen activas',
+ QUANT_EVALUATION_ERROR:'Error al evaluar: requiere revisión técnica',
+ HEDGE_MODE_NOT_VALIDATED:'Ya existe exposición contraria y no está habilitado el modo de cobertura',
+ QUANT_TECHNICAL_TRAILING:'Retroceso al stop técnico protegido',
+ QUANT_MOMENTUM_EXHAUSTION:'Agotamiento confirmado del impulso',
+
  NO_CONFIRMED_5M_TREND:'No hay tendencia confirmada en 5m',
  MISSING_CONTEXT_REGIME:'Aún falta el contexto de 15m',
  NO_NET_ECONOMIC_ADVANTAGE:'La oportunidad no cubre los costes',
@@ -53,10 +71,10 @@ const REGIMES = {
  UPTREND:'Tendencia alcista', DOWNTREND:'Tendencia bajista',
  RANGE:'Mercado lateral', HIGH_VOLATILITY:'Volatilidad alta',
  VOLATILITY_COMPRESSION:'Volatilidad baja', BREAKOUT_EXPANSION:'Ruptura / expansión',
- ILLIQUID:'Liquidez insuficiente', UNDETERMINED:'Indeterminado', UNKNOWN:'No disponible'
+ ERRATIC:'Mercado errático', COMPRESSION:'Volatilidad comprimida', ILLIQUID:'Liquidez insuficiente', UNDETERMINED:'Indeterminado', UNKNOWN:'No disponible'
 };
 const reasonText = (code, readable = null) => {
- if(typeof readable === 'string' && readable.trim()) return readable.trim();
+ if(typeof readable === 'string' && readable.trim() && readable.trim()!==code) return readable.trim();
  if(!code) return 'Sin evaluación registrada';
  return REASONS[code] ?? String(code).replaceAll('_',' ').toLowerCase();
 };
@@ -106,7 +124,9 @@ function viewModel(payload, now=Date.now()) {
  const times=activity.frames?.['1']?['1','5','15','60','240']:['5','15','60','240'];
  const frames=times.map(key=>{
   const f=activity.frames?.[key]??{};
-  const evaluation=f.last_evaluation??null;
+  const original=f.last_evaluation??null;
+  const relevant=original?.pattern_decisions?.find(x=>x.reason==='ENTRY_PENDING')??original?.pattern_decisions?.find(x=>!['REGIME_NOT_ELIGIBLE','STRATEGY_TIMEFRAME_NOT_ENABLED'].includes(x.reason));
+  const evaluation=relevant?{...relevant,reason_text:relevant.reason_text??null}:original;
   return {key,tf:tfName(key),lastAt:pick(f.last_evaluation_at,evaluation?.at,f.last_completed_at),
    status:f.evaluation_status??null,stale:f.stale!==false,
    reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),

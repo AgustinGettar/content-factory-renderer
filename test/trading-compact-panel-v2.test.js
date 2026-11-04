@@ -128,3 +128,9 @@ test('latest blocked evaluation is not hidden behind an earlier completed candle
  const d=sample();d.secondary_activity.frames[5].last_evaluation_at=T;
  assert.equal(viewModel(d,T+1000).frames[0].lastAt,T);
 });
+
+test('quant frame uses an applicable check and never borrows a different raw rejection as readable text',()=>{
+ const d=sample();d.secondary_activity={frames:{'1':{last_evaluation_at:T,stale:false,reason_text:'REGIME_NOT_ELIGIBLE',last_evaluation:{reason:'REGIME_NOT_ELIGIBLE',reason_text:'REGIME_NOT_ELIGIBLE',pattern_decisions:[{pattern:'SCALP_CONTINUATION',reason:'REGIME_NOT_ELIGIBLE'},{pattern:'SCALP_REVERSION',reason:'PATTERN_NOT_CONFIRMED'}]}}}};
+ const m=viewModel(d,T);assert.equal(m.frames.find(f=>f.key==='1').reason,'Todavía no hay confirmación del patrón');
+ assert.equal(reasonText('REGIME_NOT_ELIGIBLE','REGIME_NOT_ELIGIBLE'),'Esta estrategia no corresponde al régimen actual');
+});

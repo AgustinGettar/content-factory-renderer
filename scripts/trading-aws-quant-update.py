@@ -24,6 +24,7 @@ ALLOWED={
  'scripts/trading-worker.mjs','scripts/trading-aws-quant-update.py',
  'scripts/trading-quant-download.py','scripts/trading-quant-research.mjs',
  'test/secondary-quant.test.js','test/trading_aws_quant_update_test.py',
+ 'test/trading-compact-panel-v2.test.js',
 }
 PREFIXES=('lib/trading/quant-','docs/trading/QUANT-','deploy/trading/compact-panel/')
 def allowed_path(path):

@@ -130,7 +130,7 @@ function viewModel(payload, now=Date.now()) {
   return {key,tf:tfName(key),lastAt:pick(f.last_evaluation_at,evaluation?.at,f.last_completed_at),
    status:f.evaluation_status??null,stale:f.stale!==false,
    reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),
-    pick(evaluation?.reason_text,f.reason_text)),
+    pick(evaluation?.reason_text,relevant?null:f.reason_text)),
    regime:regimeText(f.market_regime?.regime),
    regimeCode:f.market_regime?.regime??null,
    nextCandleAt:f.next_candle_close_at??null,

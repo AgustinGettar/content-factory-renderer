@@ -27,7 +27,7 @@ test('PAPER projection gate, separate realized/open and compact cards remain pre
 
 
 test('standalone Sites panel renders all three tabs after successful PAPER fetch', async()=>{
- const script=html.match(/<script type="module">([\\s\\S]*?)<\\/script>/)?.[1];
+ const script=html.split('<script type="module">')[1]?.split('</script>')[0];
  const now=Date.now();
  const data={revision:42,feed:{sampled_at:now},
   secondary_finances:{mode:'PAPER',ledger:'FREQUENT_PAPER',equity:'1011',cash:'900',realized_net:'11',

@@ -1,28 +1,23 @@
-# Lumi Trading — Vista simple, SHADOW y despliegue seguro
+# Lumi Trading — Panel compacto v2: integración controlada
 
-## Alcance concreto
+## Alcance
+Se conserva el worker AWS y el único monitor del propietario: `https://lumi-trading-monitor.aguzz-gettar.chatgpt.site`. No hay un segundo monitor ni se cambia la Mini App audiovisual.
 
-La vista compacta (`deploy/trading/compact-panel/`) es **un módulo real de interfaz de lectura**, no una imagen ni un boceto. Reutiliza el endpoint privado **same-origin** `GET /api/monitor/live` del panel actual, mantiene cookies de sesión solo para el mismo origen y nunca agrega endpoints de escritura. **Se debe publicar en el origen existente** `lumi-trading-monitor.aguzz-gettar.chatgpt.site` bajo `/simple/`, sin construir otra aplicación y sin modificar el panel completo.
+El código listo para el sitio vive en `deploy/trading/compact-panel/`:
+- `index.html`, `style.css`, `app.js`, `model.js`.
+- `test/trading-compact-panel.test.js` (regresión histórica) y `test/trading-compact-panel-v2.test.js`.
+- `docs/trading/COMPACT-PANEL-V2-DEPLOY.md` (instrucciones detalladas).
 
-El repositorio GitHub de Lumi Trading/AWS **no contiene el código fuente ni las credenciales de despliegue del sitio privado `chatgpt.site`**. Por ello los tres archivos listos para integración *todavía no están publicados en ese origen*. No se debe afirmar que la pantalla nueva ya es visible en Telegram ni reemplazar el panel de otra manera que rompa su autenticación.
+Presentación: Resumen · Operaciones · Actividad; saldo PAPER y resultados realizados/abiertos; posiciones con SL/TP y protección; estado por 5m/15m/1h/4h; hipótesis de scalping observadas **sin ejecución**. Las métricas nulas o no finalizadas no se convierten en cero y el historial excluye operaciones de la cartera principal.
 
-- `index.html`: vista móvil y compacta, accesible.
-- `model.js`: adapter PAPER de saldo/equity, resultado neto realizado y abierto, alertas de antigüedad, posiciones, niveles, protección, evaluaciones 5m/15m/1h/4h y actividad.
-- `app.js`: consulta privada cada 2 s mientras la pestaña está visible, rechazo de respuestas antiguas, backoff, acceso vencido, detalles expandibles. Botón **Vista completa** preserva controles manuales, gráfico, filtros y evidencias.
-- `test/trading-compact-panel.test.js`: prueba aislamiento de principal, clasificación de neto incompleto, seguridad básica de HTML y navegación a vista completa.
+## Dependencia de origen y privacidad
 
-La vista simple nunca ofrece `POST`, `PUT`, `PATCH` o `DELETE`; no puede tomar ganancia ni cerrar una posición. **La vista completa existente sigue disponible** para esas operaciones.
+**La publicación de GitHub o AWS NO despliega una interfaz en `chatgpt.site`.** La ruta deberá ser `/simple/` **bajo el origen privado existente**, con exactamente la misma sesión/autorización del monitor original. No exponer el endpoint públicamente ni inyectar claves en JavaScript. El botón «Vista completa» conserva las acciones originales. Antes de cambiar el enlace de Telegram, probar autenticación, 401/403, expiración de sesión, navegación, actualización cada 2 segundos y uso desde iPhone. No aplicar migraciones ni alteraciones de la base de datos del sitio.
 
-## Despliegue del observador
+Al integrar mediante la herramienta de edición del Site, importar estos cuatro recursos y comprobar que su `GET /api/monitor/live` devuelve `secondary_finances.mode='PAPER'`, `secondary_finances.ledger='FREQUENT_PAPER'` y `secondary_activity.frames`. Si el sitio usa un enrutador, montar un route `/simple/` autenticado con archivos internos, manteniendo la ruta `/` completa. Si la ruta no es accesible con la sesión del propietario o el esquema no coincide, **no publicar ni cambiar el enlace de Telegram**.
 
-Las mejoras de mercado/regímenes están en los PR #5 y #7. Esta rama agrega aislamiento ante excepción de clasificación y suprime eventos repetidos `WAIT` para reducir crecimiento de SQLite, sin saltarse evaluaciones ni modificar `broker.choose`, posiciones, salidas o red neuronal. No hay entrada de futuros 1m nueva.
+## Estado operativo separado (2026-11-04)
 
-El usuario autorizó una progresión de mejoras pero **el despliegue queda bloqueado por recuperación de datos**: en la lectura del 4/11/2026, SQLite ocupa aproximadamente 471 MB, disco 88% usado, `dashboard.backup_error=BACKUP_SIZE_LIMIT`, `backup_at=0`. El comprimido rápido de la DB fue ~95 MB, mucho mayor que el límite de copia cifrada de 16 MiB. El análisis `dbstat` y de payloads confirma que **424 MB** pertenecen a **2.900 eventos históricos `GAP_POSITION_RECONCILED`** que embeben matrices completas `bars` (origen: `lib/trading/simulator.js`). Estos eventos anteriores no se deben truncar, sobrescribir o borrar antes de un respaldo íntegro verificado. El módulo nuevo evita registrar cada espera repetitiva de scalping para no añadir crecimiento evitable. No subir simplemente la constante: confirmar primero el límite de carga del sitio, cifrado, recepción, retención y recuperación de R2; proteger el historial y probar un backup consistente de SQLite incluyendo WAL.
+El respaldo cifrado independiente S3 `lumi-trading-s3-recovery.timer` se instaló y la recuperación de una copia remota fue comprobada; el viejo publicador de copia del Site/R2 puede seguir notificando `BACKUP_SIZE_LIMIT` sin contradecir esa copia S3. El worker PAPER fue actualizado al observer `1fd16d2` con reinicio controlado y revocación si fallaba. Los cambios de v2 aquí son **solo frontend y pruebas**; no reinician el worker ni alteran posiciones, capital, leverage, órdenes, notificaciones Telegram o la cartera principal.
 
-Antes del primer restart del worker:
-1. Tener una copia remota cifrada **completa, verificable y restaurable**, y una copia SQLite local con `PRAGMA integrity_check`.
-2. Confirmar espacio libre para snapshot temporal, release y rollback, sin eliminar historiales antiguos por conveniencia.
-3. Ejecutar toda la suite Node+Python; la suite de entrenamiento debe correr **fuera del worker protegido**. No desactivar `TRAINING_FORBIDDEN_ON_ACTIVE_WORKER` solo para aprobar pruebas.
-4. Desplegar commit exacto en release aislado con pausa del writer; preservar env, SQLite, outbox, hashes, planos de riesgo y posibilidad de rollback, y hacer verificación posterior de evaluaciones, Telegram y monitor.
-
-Hasta cumplir esos requisitos, solo se permiten auditorías y pruebas **sin reiniciar** el motor existente.
+El código fuente completo del sitio `chatgpt.site`, su herramienta de edición y su autenticación de propietario no forman parte del repositorio AWS ni de los conectores de GitHub/AWS disponibles en esta conversación. Por tanto **no afirmar que la UI v2 está en producción** hasta que su despliegue se efectúe desde la instancia del proyecto Site y se verifique `/simple/` como usuario autenticado. No usar un sitio alternativo público como sustitución.

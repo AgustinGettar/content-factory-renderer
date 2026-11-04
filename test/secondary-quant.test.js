@@ -1,3 +1,4 @@
+import {ACTIVE_POLICY,ACTIVE_VERSION,installActivePaper,getActiveProfile,activeContract,validateActiveContract,minimumQuantRR,nextScaleOut,validateScaleOutState} from '../lib/trading/quant-active-paper.js';
 import {CONTEXT_VERSION,CONTEXT_PATTERN,CONTEXT_POLICY,CONTEXT_SPEC,installContextPullback,getContextProfile,detectContextPullback} from '../lib/trading/quant-context-pullback.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ import {OperationalSecondary} from '../lib/trading/secondary-futures.js';
 import {EXPLORATION_POLICY,EXPLORATION_VERSION,installExploration,getExplorationPolicy,explorationContract} from '../lib/trading/secondary-exploration.js';
 import {EARLY_PROFIT_POLICY,EARLY_PROFIT_POLICY_VERSION,installProfitPolicy,getProfitPolicy,makeProfitContracts,validateProfitContracts} from '../lib/trading/secondary-profit-policy.js';
 import {CAPITAL_ALLOCATION_VERSION,installCapitalAllocation} from '../lib/trading/secondary-capital-allocation.js';
-import {RISK_BUDGET_VERSION,QUANT_RISK_VERSION,installRiskBudget,prepareRiskCandidates,validateRiskContract} from '../lib/trading/secondary-risk-budget.js';
+import {RISK_BUDGET_VERSION,QUANT_RISK_VERSION,ACTIVE_RISK_VERSION,ACTIVE_RISK_POLICY,installRiskBudget,prepareRiskCandidates,validateRiskContract} from '../lib/trading/secondary-risk-budget.js';
 import {SECONDARY_TIMEFRAMES_VERSION,QUANT_TIMEFRAMES_VERSION,QUANT_TIMEFRAMES_PROTOCOL,installSecondaryTimeframes,getSecondaryTimeframes} from '../lib/trading/secondary-timeframes.js';
 import {QUANT_VERSION,QUANT_POLICY,QUANT_STRATEGIES,installQuant,quantPortfolioGuard,quantCandidates,detectQuantPattern,validateQuantContract} from '../lib/trading/quant-strategies.js';
 import {featureSnapshot,causalBars,atr,timeCycles,classifyQuantRegime} from '../lib/trading/quant-features.js';
@@ -408,4 +409,88 @@ test('enabled contextual decisions traverse independent clocks and expose a trut
  assert.equal(profile.frames[1].decisions.CONTEXT_PULLBACK.reason,'ENTRY_PENDING');assert.equal(profile.frames[1].entry_funnel.selected_orders,1);assert.equal(profile.frames[1].entry_funnel.detected_patterns,2);assert.equal(profile.frames[60].decisions.CONTEXT_PULLBACK.reason,'STRATEGY_TIMEFRAME_NOT_ENABLED');assert(profile.frames[60].entry_funnel.enabled_patterns<10);
  assert.equal(getContextProfile(h.root).counts.evaluations,3);assert.equal(getContextProfile(h.root).counts.selected,1);const counts=structuredClone(getContextProfile(h.root).counts);h.runtime.tick();assert.deepEqual(getContextProfile(h.root).counts,counts);assert.equal(h.root.secondaryExecution.quant.counts.errors,0);
  const view=projectSecondaryActivity({revision:1,updated_at:new Date(T).toISOString(),lease_until:new Date(T+45000).toISOString()},h.root,T),first=view.secondary_activity.frames[1].last_evaluation.pattern_decisions[0];assert.equal(first.pattern,CONTEXT_PATTERN);assert.equal(first.reason_text,'Entrada preparada; todavía no se ejecutó.');
+});
+
+function activeFixture(){
+ const h=fixture({version:ACTIVE_RISK_VERSION}),env={...ENV,LUMI_TRADING_SECONDARY_RISK_BUDGET:ACTIVE_RISK_VERSION,LUMI_TRADING_SECONDARY_OPPORTUNITIES:OPPORTUNITY_VERSION,LUMI_TRADING_SECONDARY_ACTIVE:ACTIVE_VERSION};
+ installOpportunities(h.root,env,T);installActivePaper(h.root,env,T);return {...h,env};
+}
+function activePlan(h){const data=contextFixture(),d=quantCandidates({1:data.b,5:data.c},data.q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{...data.options,active:true}).find(d=>d.pattern===CONTEXT_PATTERN);
+ const prepared=prepareRiskCandidates(h.root,[d],{quote:data.q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(prepared.capital_allocation_rejection,undefined);assert.equal(h.b.choose(prepared.plan,data.q,META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100,101.30),null,{[C]:0},T+1100);const p=h.b.a.positions[prepared.plan.id];assert(p);return p;}
+test('active PAPER requires explicit flag and v3 risk without changing old policies or account',()=>{
+ const h=activeFixture(),snapshot=structuredClone(h.root.frequency),policyHash=hash(QUANT_POLICY);assert(!installActivePaper(h.root,h.env,T));assert.equal(getActiveProfile(h.root).version,ACTIVE_VERSION);assert.equal(ACTIVE_RISK_POLICY.leg_risk_fraction,'0.01');assert.equal(ACTIVE_RISK_POLICY.movement_risk_fraction,'0.02');
+ assert.throws(()=>installActivePaper(h.root,{...h.env,LUMI_TRADING_MODE:'REAL'},T),/PAPER_ONLY/);assert.throws(()=>installActivePaper(h.root,ENV,T),/FLAG_REQUIRED/);assert.deepEqual(h.root.frequency,snapshot);assert.equal(hash(QUANT_POLICY),policyHash);
+ assert(installActivePaper(h.root,{...h.env,LUMI_TRADING_SECONDARY_ACTIVE:'OFF'},T));assert.equal(getActiveProfile(h.root),null);
+});
+test('active relaxed range volume still requires rejection pattern and cannot bypass a strong trend',()=>{
+ const b=bars(5),f={...featureSnapshot(b,{timeframe:5,cutoff:C,now:T,quote:quote()}),relative_volume:.3,rsi14:40},c={...f,adx:10};Object.assign(b.at(-1),{open:99.6,close:100.1,high:100.2,low:99.2});
+ assert.equal(detectQuantPattern('RANGE_TRADING',b,f,c,{regime:'RANGE'},{opportunities:true}).reason,'VOLUME_NOT_CONFIRMED');assert.equal(detectQuantPattern('RANGE_TRADING',b,f,c,{regime:'RANGE'},{opportunities:true,active:true}).direction,'LONG');
+ assert.equal(detectQuantPattern('RANGE_TRADING',b,f,{...c,adx:40},{regime:'RANGE'},{opportunities:true,active:true}).reason,'REVERSAL_AGAINST_STRONG_TREND');assert.equal(detectQuantPattern('RANGE_TRADING',b,f,c,{regime:'UPTREND'},{opportunities:true,active:true}).reason,'REGIME_NOT_ELIGIBLE');
+});
+test('RR below one is only accepted on an versioned new active plan and remains positive after costs',()=>{
+ const h=activeFixture(),p=activePlan(h);assert(validateActiveContract(p.plan));assert.equal(minimumQuantRR(p.plan),.8);assert.equal(p.plan.execution_contract.risk_budget.receipt.timeframe_allocation.reserved_frames,5);assert(validateRiskContract(p.plan));assert(quantMarkMargin(p,quote(T+1200,101.3),T+1200));
+ const plan=structuredClone(p.plan);plan.target=String(Number(plan.entry)+.39);const q=quote(T+1200,101.30),e=evaluateEntryEconomics(plan,{quote:q,qty:plan.sizing.qty,now:T+1200});assert(Number(e.net_rr)>=.8&&Number(e.net_rr)<1);assert(e.accepted);delete plan.quant_contract.active_experiment;assert.equal(evaluateEntryEconomics(plan,{quote:q,qty:plan.sizing.qty,now:T+1200}).accepted,false);
+ assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+1200}));
+});
+test('operational scale-out executes 30/30 with latency, survives restart, never repeats and retains remainder',()=>{
+ const h=activeFixture(),p=activePlan(h),original=D(p.qty),beforeCash=h.b.a.cash;h.time(T+2100);h.b.market(quote(T+2100,101.8),null,{[C]:0},T+2100);assert.equal(p.scale_out.stages[0].status,'PENDING');assert.equal(p.qty,original.toString());assert.equal(h.b.a.cash,beforeCash);
+ h.b=new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+3200,event:e=>h.events.push(e)});const restored=h.b.a.positions[p.plan.id];h.b.market(quote(T+3200,101.8),null,{[C]:0},T+3200);assert.equal(restored.scale_out.stages[0].status,'FILLED');assert.equal(restored.qty,original.minus(original.mul('.3').div(META.qty_step).floor().mul(META.qty_step)).toString());assert(!restored.exit_intent);assert.equal(h.b.a.closed,0);assert(D(restored.realized.net).gt(0));validateScaleOutState(restored);
+ h.b.market(quote(T+3300,102.1),null,{[C]:0},T+3300);assert.equal(restored.scale_out.stages.length,2);h.b.market(quote(T+4400,102.1),null,{[C]:0},T+4400);assert.equal(restored.scale_out.stages[1].status,'FILLED');assert(!restored.exit_intent);const left=restored.qty;
+ h.b.market(quote(T+5500,102.2),null,{[C]:0},T+5500);assert.equal(restored.scale_out.stages.length,2);assert.equal(restored.qty,left);assert.equal(h.b.a.closed,0);assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.b.root)),now:()=>T+5600}));
+});
+test('partial profit deteriorating during latency is cancelled while a mandatory stop closes the whole remainder',()=>{
+ const h=activeFixture(),p=activePlan(h),original=p.qty;h.b.market(quote(T+2100,101.8),null,{[C]:0},T+2100);assert.equal(p.scale_out.stages[0].status,'PENDING');
+ h.b.market(quote(T+3200,101.3),null,{[C]:0},T+3200);assert.equal(p.scale_out.stages[0].status,'CANCELLED');assert.equal(p.qty,original);
+ h.b.market(quote(T+4300,100.9),null,{[C]:0},T+4300);h.b.market(quote(T+5400,100.9),null,{[C]:0},T+5400);assert(!h.b.a.positions[p.plan.id]);assert.equal(h.b.a.closed,1);
+});
+test('partial quantity below a lot or fragment net below threshold never starts an order',()=>{
+ const h=activeFixture(),p=activePlan(h);assert.equal(nextScaleOut(p,{net:'.01',funding_complete:true},T+2000),null);
+ const small=structuredClone(p);small.qty='.0001';delete small.scale_out;assert.equal(nextScaleOut(small,{net:'10',funding_complete:true},T+2000),null);
+ assert.equal(nextScaleOut(p,{net:'10',funding_complete:false},T+2000),null);
+});
+
+test('pending partial yields to a positive protected floor and closes all remaining quantity',()=>{
+ const h=activeFixture(),p=activePlan(h);h.b.market(quote(T+2100,101.8),null,{[C]:0},T+2100);assert.equal(p.scale_out.stages[0].status,'PENDING');assert(p.profit_protection.protected_net);
+ const floor=Number(p.profit_protection.protected_net),target=secondaryEstimate({...p,management:{net_goal:String(floor*.8)}},quote(T+3200,101.8),T+3200).target_quote;
+ const q=quote(T+3200,Number(target)),v=secondaryEstimate(p,q,T+3200);assert(Number(v.net)>0&&Number(v.net)<floor);
+ h.b.market(q,null,{[C]:0},T+3200);assert.equal(p.scale_out.stages[0].status,'CANCELLED');assert.equal(p.exit_intent.reason,'TRAILING_RETRACEMENT');
+ h.b.market(quote(T+4300,Number(target)),null,{[C]:0},T+4300);assert.equal(h.b.a.closed,1);assert(!h.b.a.positions[p.plan.id]);
+});
+test('partial uses one bounded IOC fill and does not consume future quotes for its unfilled remainder',()=>{
+ const h=activeFixture(),p=activePlan(h),original=D(p.qty),goal=Math.max(.4,Number(p.remaining_risk)*.25)*1.25,price=Number(secondaryEstimate({...p,management:{net_goal:String(goal)}},quote(T+2100,101.8),T+2100).target_quote);h.b.market(quote(T+2100,price),null,{[C]:0},T+2100);
+ const size=original.mul('.15').div(p.plan.execution_contract.participation).toNumber();h.b.market(quote(T+3200,price,size),null,{[C]:0},T+3200);
+ assert.equal(p.scale_out.stages[0].status,'PARTIAL_IOC_REMAINDER_CANCELLED');assert(D(p.closed_qty).lt(original.mul('.3')));assert(!p.exit_intent);const qty=p.qty;
+ h.b.market(quote(T+3300,price),null,{[C]:0},T+3300);assert.equal(p.qty,qty);assert.equal(p.scale_out.stages.length,1);assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+3400}));
+});
+test('unfilled partial expires without repeat attempts and scale-out recovery rejects corrupted quantity',()=>{
+ const h=activeFixture(),p=activePlan(h);h.b.market(quote(T+2100,101.8),null,{[C]:0},T+2100);
+ const root=structuredClone(h.root);root.frequency.account.positions[p.plan.id].scale_out.stages[0].quantity='1';assert.throws(()=>new SecondaryBroker({root,now:()=>T+2200}),/SCALE_OUT_STATE_INTEGRITY/);
+ h.b.market(quote(T+7200,101.8,0),null,{[C]:0},T+7200);assert.equal(p.scale_out.stages[0].status,'CANCELLED');assert(!p.exit_intent);
+ h.b.market(quote(T+7300,101.8),null,{[C]:0},T+7300);assert.equal(p.scale_out.stages.length,1);assert.doesNotThrow(()=>new SecondaryBroker({root:structuredClone(h.root),now:()=>T+7400}));
+});
+test('partial IOC cancels on the first executable quote with zero book capacity',()=>{
+ const h=activeFixture(),p=activePlan(h);h.b.market(quote(T+2100,101.8),null,{[C]:0},T+2100);const qty=p.qty;
+ h.b.market(quote(T+3200,101.8,0),null,{[C]:0},T+3200);assert.equal(p.scale_out.stages[0].status,'CANCELLED');assert(!p.exit_intent);assert.equal(p.qty,qty);
+ h.b.market(quote(T+3300,102.1),null,{[C]:0},T+3300);assert.equal(p.scale_out.stages.length,1);assert.equal(p.qty,qty);
+});
+test('two partials plus final exit reconcile account cash, operation net and quantity exactly once',()=>{
+ const h=activeFixture(),p=activePlan(h),qty=p.qty;
+ for(const [offset,price] of [[2100,101.8],[3200,101.8],[3300,102.1],[4400,102.1]])h.b.market(quote(T+offset,price),null,{[C]:0},T+offset);
+ assert.equal(p.scale_out.stages.filter(r=>r.status==='FILLED').length,2);assert(D(p.qty).plus(p.closed_qty).eq(qty));
+ h.b.close(p,quote(T+5500,102.1),T+5500,'MANUAL_CLOSE');h.b.close(p,quote(T+6600,102.1),T+6600,'MANUAL_CLOSE');
+ const exits=h.events.filter(e=>['PARTIAL_CLOSE','CLOSED'].includes(e.type)),sum=exits.reduce((s,e)=>s.plus(e.fill_pnl),D(0));assert.equal(exits.length,3);assert(exits.every(e=>e.funding_complete&&e.result_final));assert.equal(exits.at(-1).qty,qty);assert.equal(h.b.a.closed,1);assert(D(h.b.a.net).minus(sum).abs().lt('1e-12'));assert(D(h.b.a.cash).minus(1000).minus(sum).abs().lt('1e-12'));
+ const cash=h.b.a.cash;h.b.close(p,quote(T+7700,102.1),T+7700,'MANUAL_CLOSE');assert.equal(h.b.a.cash,cash);assert.deepEqual(h.root.primary,{untouched:true});
+});
+test('active risk preserves all five independent frames, doubles their cap and retains shared direction ceiling',()=>{
+ const h=activeFixture(),plans=[1,5,15,60,240].map(tf=>{const p=signal(h,{id:'active-reserve-'+tf,timeframe:tf,stop:98,target:105});p.pattern=tf<=5?'SCALP_CONTINUATION':'TREND_FOLLOWING';const q={version:QUANT_VERSION,policy_hash:hash(QUANT_POLICY),strategy:p.pattern,regime:'UPTREND',features:featureSnapshot(bars(tf),{timeframe:tf,cutoff:C,now:T,quote:quote()}),statistically_validated:false,probability:null,opportunities:opportunityContract({execution_mode:'TAKER_IOC',flow_authority:OPPORTUNITY_POLICY.flow_authority}),active_experiment:activeContract()};q.hash=hash(q);p.quant_contract=q;return p;});
+ const batch=prepare(h,plans);assert.equal(batch.eligible_count,5,JSON.stringify(batch.receipts));const total=batch.receipts.filter(x=>x.accepted).reduce((s,r)=>s+Number(r.risk),0);assert(total>10&&total<=20);assert(batch.receipts.every(r=>Number(r.risk)<=4));
+ for(const d of batch.ordered)assert.equal(h.b.choose(d.plan,quote(),META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);assert.equal(Object.keys(h.b.a.positions).length,5);assert.doesNotThrow(()=>new SecondaryBroker({root:structuredClone(h.root),now:()=>T+1200}));
+ const p=h.b.a.positions['active-reserve-1'];h.b.close(p,quote(T+2200),T+2200,'MANUAL_CLOSE');h.b.close(p,quote(T+3300),T+3300,'MANUAL_CLOSE');assert.equal(Object.keys(h.b.a.positions).length,4);
+});
+
+test('active profile evaluates each independent clock once and exposes its own bounded admission counters',()=>{
+ const h=activeFixture(),sample=contextFixture();installContextPullback(h.root,{...h.env,LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK:CONTEXT_VERSION},T);
+ h.runtime.series={...Object.fromEntries(QUANT_TIMEFRAMES_PROTOCOL.data_frames.map(tf=>[tf,bars(tf,{end:Math.floor(C/(tf*60000))*tf*60000})])),1:sample.b,5:sample.c};h.runtime.meta=META;h.runtime.quote=sample.q;h.runtime.rates={[C]:0};h.time(T);h.runtime.tick();
+ const active=getActiveProfile(h.root);assert.equal(active.counts.evaluations,5);assert.equal(Object.keys(active.frames).length,5);assert(active.counts.detected>0);assert.equal(active.counts.selected,1);const counts=structuredClone(active.counts);h.runtime.tick();assert.deepEqual(active.counts,counts);assert.equal(h.root.secondaryExecution.quant.counts.errors,0);
+ const p=Object.values(h.b.a.pendingOrders)[0].plan;assert(validateActiveContract(p));assert.equal(p.execution_contract.risk_budget.policy.version,ACTIVE_RISK_VERSION);
 });

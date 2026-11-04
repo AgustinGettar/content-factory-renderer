@@ -35,6 +35,17 @@ const number = x => numeric(x) ? Number(x) : null;
 const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
 const tfName = x => ({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
 const REASONS = {
+ WAIT_SCALP_CONTINUATION:'Esperando retroceso y recuperación del impulso',
+ WAIT_SCALP_REVERSION:'Esperando rechazo confirmado en el extremo del rango',
+ WAIT_BREAKOUT_RETEST:'Esperando ruptura confirmada y retesteo posterior',
+ WAIT_MOMENTUM:'Esperando aceleración con volumen y continuidad',
+ WAIT_TREND_FOLLOWING:'Esperando continuación de tendencia confirmada',
+ WAIT_MEAN_REVERSION:'Esperando rechazo y retorno hacia VWAP',
+ WAIT_RANGE_TRADING:'Esperando rechazo cerca del soporte o la resistencia',
+ WAIT_VOLATILITY_EXPANSION:'Esperando compresión y ruptura con expansión',
+ WAIT_LIQUIDITY_SWEEP:'Esperando barrido y recuperación del nivel',
+ ENTRY_PENDING:'Señal seleccionada; pendiente de ejecución simulada',
+
  REGIME_NOT_ELIGIBLE:'Esta estrategia no corresponde al régimen actual',
  STRATEGY_TIMEFRAME_NOT_ENABLED:'Esta estrategia no se utiliza en este plazo',
  QUANT_PATTERN_NOT_CONFIRMED:'Todavía no hay confirmación del patrón',

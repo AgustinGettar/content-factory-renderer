@@ -134,3 +134,15 @@ test('quant frame uses an applicable check and never borrows a different raw rej
  const m=viewModel(d,T);assert.equal(m.frames.find(f=>f.key==='1').reason,'Todavía no hay confirmación del patrón');
  assert.equal(reasonText('REGIME_NOT_ELIGIBLE','REGIME_NOT_ELIGIBLE'),'Esta estrategia no corresponde al régimen actual');
 });
+
+test('empty projected quant contracts never label legacy trades as new-engine activity',()=>{
+ const d=sample();d.secondary_quant={active:true};
+ for(const o of d.operations)o.plan.quant_contract={};
+ d.frequency.account.positions[0].plan.quant_contract={};
+ d.frequency.account.pending_orders[0].plan.quant_contract={};
+ d.operations.push({id:'quant1',ledger:'FREQUENT_PAPER',status:'CLOSED',at:T,exit:{pnl:'.4'},plan:{quant_contract:{version:'secondary-quant-1.0.0'}}});
+ const before=structuredClone(d),m=viewModel(d,T);
+ assert.deepEqual(m.recent.map(o=>o.id),['quant1']);
+ assert.equal(m.legacyCount,2);assert.equal(m.pendingPlans.length,0);
+ assert.equal(m.positions[0].origin,'Contrato anterior');assert.deepEqual(d,before);
+});

@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {randomBytes} from 'node:crypto';
 import {DatabaseSync} from 'node:sqlite';
-import {chooseLocalSnapshot,verifySqliteSnapshot,sha256File,encryptSnapshot,decryptSnapshot} from '../scripts/trading-paper-s3-recovery.mjs';
+import {chooseLocalSnapshot,verifySqliteSnapshot,sha256File,encryptSnapshot,decryptSnapshot,decryptedPlaintextDigest} from '../scripts/trading-paper-s3-recovery.mjs';
 const tmp=()=>mkdtemp(join(tmpdir(),'lumi-recovery-unit-'));
 function createDb(path){
  const db=new DatabaseSync(path);
@@ -32,6 +32,7 @@ test('seal and unseal SQLITE PAPER with authenticated encryption and same digest
   assert.equal(info.sha256,await sha256File(enc));assert(info.size>100);
   await decryptSnapshot(enc,out,secret);
   assert.deepEqual(verifySqliteSnapshot(out),expected);
+  assert.deepEqual(await decryptedPlaintextDigest(enc,secret),{size:(await (await import('node:fs/promises')).stat(src)).size,sha256:await sha256File(src)});
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 test('tampered ciphertext and wrong key cannot restore data',async()=>{
@@ -41,6 +42,7 @@ test('tampered ciphertext and wrong key cannot restore data',async()=>{
   const bytes=await readFile(enc);bytes[40]^=0x3;
   await writeFile(corrupt,bytes);
   await assert.rejects(()=>decryptSnapshot(corrupt,join(dir,'fail.sqlite'),key));
+  await assert.rejects(()=>decryptedPlaintextDigest(corrupt,key));
   await assert.rejects(()=>decryptSnapshot(enc,join(dir,'wrong.sqlite'),randomBytes(32)));
  }finally{await rm(dir,{recursive:true,force:true});}
 });

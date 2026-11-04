@@ -6,7 +6,7 @@ Protocolo aditivo `secondary-quant-opportunities-1.0.0`. Se instala sobre el mot
 
 AWS: worker activo, cero reinicios y cero errores cuantitativos; 992 evaluaciones, una candidata cuantitativa. Equity secundaria 988,982090683479 USD; ninguna posición ni orden pendiente. Ningún bloqueo diario/drawdown. Los contadores de plazos incluyen actividad anterior a la activación cuantitativa y no son el resultado del nuevo motor.
 
-Una tendencia alcista confirmada en 15m/ADX 45,9 fue clasificada HIGH_VOLATILITY y dejó deshabilitado TREND_FOLLOWING. El volumen relativo de 0,599 tampoco alcanzaba el umbral universal 0,8. Los relojes se recuperaban de esperas de datos: no eran un worker detenido. Las múltiples temporalidades ya tenían admisión separada, pero las primeras entradas podían consumir el presupuesto direccional compartido de 1%.
+Una tendencia alcista confirmada en 15m/ADX 45,9 fue clasificada HIGH_VOLATILITY y dejó deshabilitado TREND_FOLLOWING. El volumen relativo de 0,599 tampoco alcanzaba el umbral universal 0,8. El mínimo heredado de ganancia neta era 0,20% también para 1m/5m; se separa del umbral de intradía. Los relojes se recuperaban de esperas de datos: no eran un worker detenido. Las múltiples temporalidades ya tenían admisión separada, pero las primeras entradas podían consumir el presupuesto direccional compartido de 1%.
 
 ## Implementación y autoridad
 
@@ -14,6 +14,7 @@ Una tendencia alcista confirmada en 15m/ADX 45,9 fue clasificada HIGH_VOLATILITY
 |---|---|---|
 | Régimen | Tendencia y volatilidad coexistentes; una tendencia confirmada puede continuar bajo alta volatilidad/compresión | Nuevas entradas PAPER; stop/volatilidad/coste siguen limitando |
 | Volumen | Umbral 0,35 sólo en retroceso/continuación/retest de tendencia confirmada; 0,8 resto; momentum/ruptura conservan sus requisitos adicionales | Hipótesis fija experimental; sin promesa de ventaja |
+| Umbral neto | 1m/5m: 0,05% del nominal después de costes, con RR neto ≥ 1; otros plazos conservan 0,20% | Override firmado sólo para contratos nuevos; protección existente intacta |
 | Ejecución | Compara entrada inmediata con límite pasiva sólo cuando la inmediata falla RR neto; máximo 0,5 ATR de distancia y dos velas/hasta cinco minutos de vigencia | Broker existente: post-only, latencia, volumen posterior que atraviesa el límite, parciales y vencimiento |
 | Riesgo | Reserva una quinta parte del presupuesto direccional para cada plazo; admite nuevas señales independientes | Límites originales: diez plazas, riesgo direccional 1%, agregado 3%, margen 50%, exposición 3×; ningún aumento |
 | Datos | Diez endpoints públicos normalizados; caché acotada, timeouts y fallos aislados | Observación; nunca sustituye funding liquidado o profundidad ejecutable por estimaciones |

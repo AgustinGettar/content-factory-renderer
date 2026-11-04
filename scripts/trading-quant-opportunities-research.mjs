@@ -5,6 +5,7 @@ import {quantCandidates} from '../lib/trading/quant-strategies.js';
 import {EXPLORATION_POLICY} from '../lib/trading/secondary-exploration.js';
 import {EARLY_PROFIT_POLICY} from '../lib/trading/secondary-profit-policy.js';
 import {OPPORTUNITY_POLICY} from '../lib/trading/quant-opportunities.js';
+import {evaluateEntryEconomics} from '../lib/trading/secondary-entry-economics.js';
 import {requireExternalResearch} from '../lib/trading/quant-experiments.js';
 import {hash} from '../lib/trading/core.js';
 requireExternalResearch();
@@ -24,7 +25,7 @@ for(const tf of [1,5,15,60,240]){
    const r=result[version];r.evaluations++;
    for(const d of quantCandidates(s,q,meta,cutoff,now,px*.00003,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{timeframe:tf,contextTimeframe:contexts[tf],timeframeVersion:'secondary-timeframes-2.0.0',opportunities})){
     r.reasons[d.reason]=(r.reasons[d.reason]??0)+1;if(d.facts?.pattern_detected)r.detected++;
-    if(d.plan){r.economic_candidates++;r.patterns[d.pattern]=(r.patterns[d.pattern]??0)+1;if(d.plan.execution_contract.mode==='MAKER_LIMIT')r.passive_candidates++;seen[version].add(d.plan.signal_key);}
+    if(d.plan){const economics=evaluateEntryEconomics(d.plan,{quote:q,qty:'1',now});if(!economics.accepted){r.reasons[economics.reason]=(r.reasons[economics.reason]??0)+1;continue;}r.economic_candidates++;r.patterns[d.pattern]=(r.patterns[d.pattern]??0)+1;if(d.plan.execution_contract.mode==='MAKER_LIMIT')r.passive_candidates++;seen[version].add(d.plan.signal_key);}
    }
   }
  }

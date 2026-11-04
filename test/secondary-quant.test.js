@@ -20,7 +20,7 @@ import {QuantResearchBroker,partitionQuantity,planScaleIn,checkScaleInLeg} from 
 import {projectSecondaryActivity} from '../lib/trading/secondary-monitor-activity.js';
 import {operationExitView,liveBody} from '../lib/trading/dashboard-publisher.js';
 import {evaluateQuantMeta,META_FEATURES,quantMetaDataset} from '../lib/trading/quant-meta-label.js';
-import {OPPORTUNITY_VERSION,OPPORTUNITY_POLICY,installOpportunities,getOpportunityProfile,opportunityContract,flowComparison} from '../lib/trading/quant-opportunities.js';
+import {OPPORTUNITY_VERSION,OPPORTUNITY_POLICY,installOpportunities,getOpportunityProfile,opportunityContract,flowComparison,applyOpportunityEconomics} from '../lib/trading/quant-opportunities.js';
 import {normalizeAnalytics,analyticsSnapshot,PublicAnalyticsFeed} from '../lib/trading/quant-public-analytics.js';
 import {evaluateEntryEconomics} from '../lib/trading/secondary-entry-economics.js';
 const C=Date.parse('2026-11-04T12:00:00Z'),T=C+2000;
@@ -90,6 +90,14 @@ test('opportunity RR is revalidated after latency even when net profit exceeds t
  const h=fixture(),p=signal(h,{stop:99,target:101.5});p.quant_contract={opportunities:{version:OPPORTUNITY_VERSION}};
  const receipt=evaluateEntryEconomics(p,{quote:quote(T+1100,100.5),qty:'1',entryPrice:'100.52',fundingRate:0,now:T+1100,stage:'PRE_EXECUTION'});
  assert(Number(receipt.expected_net_target)>Number(receipt.minimum_expected_net_target));assert.equal(receipt.accepted,false);assert.equal(receipt.reason,'QUANT_NET_RR_DETERIORATED');
+});
+test('scalping economic override is signed, confined to new 1m/5m contracts and preserves the original exit policy',()=>{
+ for(const timeframe of [1,5,15,60,240]){
+  const contracts=makeProfitContracts(EARLY_PROFIT_POLICY,{timeframe}),before=structuredClone(contracts);applyOpportunityEconomics(contracts,timeframe);
+  assert.deepEqual(contracts.exit_policy,before.exit_policy);assert.equal(contracts.economic_policy.policy_hash,before.economic_policy.policy_hash);
+  assert.equal(contracts.economic_policy.min_expected_net_target_fraction,timeframe<=5?'0.0005':'0.002');assert.equal(contracts.economic_policy.hash,hash({...contracts.economic_policy,hash:undefined}));
+ }
+ assert.equal(EARLY_PROFIT_POLICY.min_expected_net_target_fraction,'0.002');
 });
 test('cost-constrained range entry uses a short-lived passive order, never fills on a quote or a touch',()=>{
  const h=fixture(),b=bars(),context=bars(5);for(const xs of [b,context])xs.forEach((x,i)=>{x.open=100;x.close=i%2?100.1:99.9;});

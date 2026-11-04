@@ -164,7 +164,7 @@ async function main(){
  }finally{key.fill(0);await rm(tmp,{recursive:true,force:true});}
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href)
- main().catch(e=>{console.error(JSON.stringify({status:'FAIL',phase:recoveryPhase,error:(
+ main().catch(e=>{console.error(JSON.stringify({status:'FAIL',phase:recoveryPhase,error_code:typeof e?.code==='string'?e.code:null,error_name:typeof e?.name==='string'?e.name:null,error:(
  ['NO_RECENT_SQLITE_BACKUP','BACKUP_STORAGE_SPACE_LOW','SNAPSHOT_INTEGRITY_FAILED',
  'PAPER_LEDGER_MISSING','BACKUP_KEY_INVALID','PRIVATE_BACKUP_KEY_UNAVAILABLE',
  'REMOTE_HEAD_VERIFICATION_FAILED','REMOTE_DOWNLOAD_SHA256_MISMATCH','RESTORED_REVISION_MISMATCH',

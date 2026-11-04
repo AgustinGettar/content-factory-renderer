@@ -30,6 +30,7 @@ export function fmtDate(v){
 export function viewModel(snapshot,now=Date.now()){
  const raw=snapshot?.snapshot??snapshot?.data??snapshot;
  if(!raw||typeof raw!=='object')throw Error('MONITOR_SNAPSHOT_REQUIRED');
+ if(!raw.secondary_finances&&!raw.frequency?.financial_summary)throw Error('SECONDARY_PAPER_PROJECTION_REQUIRED');
  const finance=raw.secondary_finances??raw.frequency?.financial_summary??{},
   account=raw.frequency?.account??{},activity=raw.secondary_activity??{},
   market=raw.frequency?.market??{},accountPositions=account.positions??[],

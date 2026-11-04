@@ -20,6 +20,9 @@ import {QuantResearchBroker,partitionQuantity,planScaleIn,checkScaleInLeg} from 
 import {projectSecondaryActivity} from '../lib/trading/secondary-monitor-activity.js';
 import {operationExitView,liveBody} from '../lib/trading/dashboard-publisher.js';
 import {evaluateQuantMeta,META_FEATURES,quantMetaDataset} from '../lib/trading/quant-meta-label.js';
+import {OPPORTUNITY_VERSION,OPPORTUNITY_POLICY,installOpportunities,getOpportunityProfile,opportunityContract,flowComparison} from '../lib/trading/quant-opportunities.js';
+import {normalizeAnalytics,analyticsSnapshot,PublicAnalyticsFeed} from '../lib/trading/quant-public-analytics.js';
+import {evaluateEntryEconomics} from '../lib/trading/secondary-entry-economics.js';
 const C=Date.parse('2026-11-04T12:00:00Z'),T=C+2000;
 const ENV={LUMI_RUNTIME_ENV:'staging',LUMI_TRADING_MODE:'PAPER',LUMI_TRADING_STORAGE:'SQLITE',LUMI_TRADING_SECONDARY_PROFILE:EXPLORATION_VERSION,LUMI_TRADING_SECONDARY_PROFIT_POLICY:EARLY_PROFIT_POLICY_VERSION,LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION:CAPITAL_ALLOCATION_VERSION,LUMI_TRADING_SECONDARY_RISK_BUDGET:QUANT_RISK_VERSION,LUMI_TRADING_SECONDARY_TIMEFRAMES:QUANT_TIMEFRAMES_VERSION,LUMI_TRADING_SECONDARY_QUANT:QUANT_VERSION};
 const META={symbol:'PF_XBTUSD',qty_step:.0001,tick_size:.01,checked_at:T,margin_schedule:[{numNonContractUnits:0,initialMargin:.1,maintenanceMargin:.05},{numNonContractUnits:30000000,initialMargin:.2,maintenanceMargin:.1}]};
@@ -37,6 +40,70 @@ function signal(h,{id='one',timeframe=1,at=T,stop=99.6,target=103,direction='LON
  return {id,signal_key:id,version:SECONDARY_VERSION,execution_model:SECONDARY_MODEL,entry_revision:getProfitPolicy(h.root).entryRevision,instrument:'PAPER:KRAKEN_FUTURES:PF_XBTUSD',pattern:'BREAKOUT',direction,timeframe,entry:entry.toString(),stop:String(stop),target:String(target),limit:'100',confirmed_at:C,decision_at:at,expires_at:c.expires_at,holding_ms:pc.exit_policy.base_holding_ms,execution_contract:c,...pc,order:'FUTURES_TAKER_IOC',fill_model:c.liquidity_model,economics:secondaryEconomics(entry,stop,target,direction,0,c,pc.economic_policy.funding_estimation_ms),entry_context:{structure_key:id,confirmation_key:id,confirmation_event_at:C,price_tick:'.01',remaining_distance:'3'}};
 }
 const prepare=(h,plans)=>prepareRiskCandidates(h.root,plans.map(plan=>({plan,pattern:plan.pattern})),{quote:quote(),meta:META,now:T,preflight:h.b.preflight.bind(h.b)});
+
+test('opportunity activation preserves ledger and requires explicit PAPER flag; repeat is idempotent',()=>{
+ const h=fixture(),before=structuredClone(h.root.frequency),env={...ENV,LUMI_TRADING_SECONDARY_OPPORTUNITIES:OPPORTUNITY_VERSION};
+ assert(installOpportunities(h.root,env,T));assert(!installOpportunities(h.root,env,T+1));assert.deepEqual(h.root.frequency,before);assert(getOpportunityProfile(h.root));
+ assert.throws(()=>installOpportunities(h.root,{...env,LUMI_TRADING_MODE:'REAL'},T),/PAPER_ONLY/);assert.throws(()=>installOpportunities(h.root,ENV,T),/FLAG_REQUIRED/);
+ installOpportunities(h.root,{...env,LUMI_TRADING_SECONDARY_OPPORTUNITIES:'OFF'},T+2);assert.equal(getOpportunityProfile(h.root),null);
+});
+test('volatility cannot erase a confirmed trend; pullback volume is strategy-specific',()=>{
+ const b=bars(),f={...featureSnapshot(b,{timeframe:1,cutoff:C,now:T,quote:quote()}),ema9:100,ema21:99.8,plus_di:30,minus_di:10,relative_volume:.5};
+ const context={...f,normalized_slope:.1,adx:28},regime={regime:'HIGH_VOLATILITY',trend:'UPTREND',accelerated:false};
+ Object.assign(b.at(-1),{open:100,close:100.8,high:100.9,low:99.9});
+ assert.equal(detectQuantPattern('SCALP_CONTINUATION',b,f,context,regime).reason,'REGIME_NOT_ELIGIBLE');
+ assert.equal(detectQuantPattern('SCALP_CONTINUATION',b,f,context,regime,{opportunities:true}).direction,'LONG');
+ assert.equal(detectQuantPattern('SCALP_CONTINUATION',b,{...f,relative_volume:.1},context,regime,{opportunities:true}).reason,'VOLUME_NOT_CONFIRMED');
+ assert.equal(detectQuantPattern('SCALP_REVERSION',b,f,context,regime,{opportunities:true}).reason,'REGIME_NOT_ELIGIBLE');
+ assert.equal(detectQuantPattern('MOMENTUM',b,f,context,regime,{opportunities:true}).reason,'VOLUME_NOT_CONFIRMED');
+ assert.equal(detectQuantPattern('SCALP_CONTINUATION',b,f,context,{...regime,regime:'ILLIQUID'},{opportunities:true}).reason,'REGIME_NOT_ELIGIBLE');
+});
+test('five independent timeframe positions share the same original risk cap and survive restart/individual close',()=>{
+ const h=fixture(),plans=[1,5,15,60,240].map(tf=>{
+  const p=signal(h,{id:'reserve-'+tf,timeframe:tf,stop:98,target:105}),pattern=tf<=5?'SCALP_CONTINUATION':'TREND_FOLLOWING';p.pattern=pattern;
+  const q={version:QUANT_VERSION,policy_hash:hash(QUANT_POLICY),strategy:pattern,regime:'UPTREND',features:featureSnapshot(bars(tf),{timeframe:tf,cutoff:C,now:T,quote:quote()}),statistically_validated:false,probability:null,opportunities:opportunityContract({execution_mode:'TAKER_IOC',flow_authority:OPPORTUNITY_POLICY.flow_authority})};q.hash=hash(q);p.quant_contract=q;return p;
+ });
+ const batch=prepare(h,plans);assert.equal(batch.eligible_count,5,JSON.stringify(batch.receipts));
+ const risk=batch.receipts.filter(x=>x.accepted).reduce((s,r)=>s+Number(r.risk),0);assert(risk<=10);assert(batch.receipts.every(r=>Number(r.risk)<=2));
+ for(const d of batch.ordered)assert.equal(h.b.choose(d.plan,quote(),META,T),'ENTRY_PENDING');
+ h.time(T+1100);h.b.market(quote(T+1100),null,{[C]:0},T+1100);assert.equal(Object.keys(h.b.a.positions).length,5);
+ const root=JSON.parse(JSON.stringify(h.root));assert.doesNotThrow(()=>new SecondaryBroker({root,now:()=>T+1200}));
+ const p=h.b.a.positions['reserve-1'];h.b.close(p,quote(T+2200),T+2200,'MANUAL_CLOSE');h.b.close(p,quote(T+3300),T+3300,'MANUAL_CLOSE');assert.equal(Object.keys(h.b.a.positions).length,4);
+ assert.deepEqual(h.root.primary,{untouched:true});
+});
+test('analytics normalize seconds/milliseconds, positive buy delta, completed buckets and causal availability',()=>{
+ const stamps=[C/1000-180,C/1000-120,C/1000-60,C/1000],receivedAt=T;
+ const cvd=normalizeAnalytics('cvd',{result:{timestamp:stamps,data:{buy_volume:[3,4,5,999],sell_volume:[1,2,1,0],cvd:[2,4,8,999]}},errors:[]},{receivedAt});
+ assert.equal(cvd.rows.length,3);assert.equal(cvd.rows[0].delta,2);assert.equal(cvd.rows[0].end,C-120000);
+ const oi=normalizeAnalytics('open-interest',{result:{timestamp:[C/1000-240,...stamps.slice(0,3)],data:[[10,10,10,10],[11,11,11,11],[12,12,12,12],[13,13,13,13]]}},{receivedAt});
+ const snapshot=analyticsSnapshot({cvd,'open-interest':oi},C,T);assert.equal(snapshot.status,'READY');assert.equal(snapshot.flow_imbalance,.5);assert(Math.abs(snapshot.open_interest_change-.3)<1e-10);assert.equal(flowComparison(snapshot,'LONG').status,'CONFIRMS');assert.equal(flowComparison(snapshot,'SHORT').status,'OPPOSES');
+ assert.equal(analyticsSnapshot({cvd},C,T-1).status,'UNAVAILABLE');assert.equal(analyticsSnapshot({cvd},C,T+180001).status,'UNAVAILABLE');
+ const funding=normalizeAnalytics('funding',{result:{timestamp:[C-60000],data:{rate:[[1,2,0,1]],relativeRate:[[.1,.2,0,.1]]}}},{receivedAt});assert.equal(funding.rows[0].end,C);
+ assert.throws(()=>normalizeAnalytics('funding',{result:{timestamp:[C/1000-60],data:{rate:[[1,2,0,1]],relativeRate:[[.1,.2,0,.1]]}}},{receivedAt}),/TIMESTAMP/);
+ assert.throws(()=>normalizeAnalytics('cvd',{result:{timestamp:[C/1000-60],data:{buy_volume:[null],sell_volume:[1]}}},{receivedAt}),/VALUE/);
+ const slip=normalizeAnalytics('slippage',{result:{timestamp:[C/1000-60],data:{bid:{slippage_1k:[80000]},ask:{slippage_1k:[80001]}}}},{receivedAt});assert.equal(slip.units,'EXECUTION_PRICE_NOT_PERCENT');assert.equal(slip.rows[0].ask.slippage_1k,80001);
+});
+test('analytics failures are isolated, bounded and cannot manufacture confirmations',async()=>{
+ let calls=0;const feed=new PublicAnalyticsFeed({now:()=>T,fetchImpl:async()=>{calls++;throw Error('offline');}});await feed.refresh();assert.equal(calls,10);assert.equal(Object.keys(feed.errors).length,10);assert.equal(feed.view().snapshot.status,'UNAVAILABLE');await feed.refresh();assert.equal(calls,10);assert.equal(flowComparison(feed.view().snapshot,'LONG').authority,'NONE');
+});
+test('opportunity RR is revalidated after latency even when net profit exceeds the minimum',()=>{
+ const h=fixture(),p=signal(h,{stop:99,target:101.5});p.quant_contract={opportunities:{version:OPPORTUNITY_VERSION}};
+ const receipt=evaluateEntryEconomics(p,{quote:quote(T+1100,100.5),qty:'1',entryPrice:'100.52',fundingRate:0,now:T+1100,stage:'PRE_EXECUTION'});
+ assert(Number(receipt.expected_net_target)>Number(receipt.minimum_expected_net_target));assert.equal(receipt.accepted,false);assert.equal(receipt.reason,'QUANT_NET_RR_DETERIORATED');
+});
+test('cost-constrained range entry uses a short-lived passive order, never fills on a quote or a touch',()=>{
+ const h=fixture(),b=bars(),context=bars(5);for(const xs of [b,context])xs.forEach((x,i)=>{x.open=100;x.close=i%2?100.1:99.9;});
+ Object.assign(b.at(-2),{open:99.8,close:99.55,high:100,low:99.4});Object.assign(b.at(-1),{open:99.5,close:99.7,high:99.8,low:99.45});
+ const q=quote(T,99.7),options={timeframe:1,contextTimeframe:5,timeframeVersion:QUANT_TIMEFRAMES_VERSION},args=[{1:b,5:context},q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY];
+ assert.equal(quantCandidates(...args,options).find(x=>x.pattern==='RANGE_TRADING').reason,'QUANT_COST_OR_NET_RR');
+ const candidate=quantCandidates(...args,{...options,opportunities:true}).find(x=>x.pattern==='RANGE_TRADING');assert(candidate.plan);assert.equal(candidate.plan.execution_contract.mode,'MAKER_LIMIT');assert.equal(candidate.plan.expires_at,T+120000);assert(candidate.plan.economics.netRR>=1);assert(validateQuantContract(candidate.plan));
+ const d=prepareRiskCandidates(h.root,[candidate],{quote:q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(d.capital_allocation_rejection,undefined);assert.equal(h.b.choose(d.plan,q,META,T),'ENTRY_PENDING');
+ h.time(T+1100);h.b.market(quote(T+1100,99.7),null,{[C]:0},T+1100);assert.equal(Object.keys(h.b.a.positions).length,0);
+ const trade=(at,price)=>({source:'KRAKEN_FUTURES_WS_TRADE',symbol:'PF_XBTUSD',id:'maker-'+at,event_at:at,received_at:at,price,qty:100,side:'sell',type:'fill'});
+ h.b.market(quote(T+2100,99.4),trade(T+2100,99.4),{[C]:0},T+2100);assert.equal(Object.keys(h.b.a.positions).length,0);
+ h.b.market(quote(T+3100,99.38),trade(T+3100,99.39),{[C]:0},T+3100);assert.equal(Object.keys(h.b.a.positions).length,1);
+ assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+3200}));
+});
 
 test('features are causal, contain Wilder ATR and preserve missing data as unavailable',()=>{
  const b=bars(),f=featureSnapshot(b,{timeframe:1,cutoff:C,now:T,quote:quote()});assert.equal(f.status,'READY');assert.equal(f.atr14,1);assert(Math.abs(f.ema200-100.02)<1e-10);assert.equal(f.rsi14,50);assert.equal(f.open_interest,null);assert.equal(f.microstructure.full_depth_available,false);assert.equal(f.volume_profile.status,'UNAVAILABLE');

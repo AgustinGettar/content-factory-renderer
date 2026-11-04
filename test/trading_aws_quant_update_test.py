@@ -6,7 +6,7 @@ class QuantDeploymentTest(unittest.TestCase):
         for p in ['package.json','server.js','.env','lib/trading/../secret','public/lumi-studio/app.js']:self.assertFalse(module.allowed_path(p))
         for p in ['lib/trading/quant-features.js','docs/trading/QUANT-MASTER-IMPLEMENTATION.md','test/secondary-quant.test.js']:self.assertTrue(module.allowed_path(p))
     def test_flags_only_authorize_secondary_paper_modules(self):
-        self.assertEqual(len(module.FLAGS),4)
+        self.assertEqual(len(module.FLAGS),5)
         self.assertTrue(all(k.startswith('LUMI_TRADING_SECONDARY_') for k in module.FLAGS))
     def test_no_worker_test_backtest_training_or_install_commands(self):
         code=pathlib.Path(module.__file__).read_text()

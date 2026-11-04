@@ -14,6 +14,7 @@ FLAGS={
  'LUMI_TRADING_SECONDARY_RISK_BUDGET':'secondary-risk-budget-2.0.0',
  'LUMI_TRADING_SECONDARY_TIMEFRAMES':'secondary-timeframes-2.0.0',
  'LUMI_TRADING_SECONDARY_QUANT':'secondary-quant-1.0.0',
+ 'LUMI_TRADING_SECONDARY_OPPORTUNITIES':'secondary-quant-opportunities-1.0.0',
 }
 ALLOWED={
  'lib/trading/dashboard-publisher.js','lib/trading/multi-pattern-paper.js','lib/trading/monitor-projection.js',
@@ -24,6 +25,7 @@ ALLOWED={
  'scripts/trading-worker.mjs','scripts/trading-aws-quant-update.py',
  'scripts/trading-quant-download.py','scripts/trading-quant-research.mjs',
  'scripts/trading-quant-meta.mjs',
+ 'scripts/trading-quant-analytics.mjs','scripts/trading-quant-opportunities-research.mjs',
  'test/secondary-quant.test.js','test/trading_aws_quant_update_test.py',
  'test/trading-compact-panel-v2.test.js','test/trading-compact-onefile.test.js',
 }
@@ -36,7 +38,7 @@ def candidate_env(original,quant=True):
         raise RuntimeError('EXISTING_PAPER_EXPLORATION_REQUIRED')
     if current.get('LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION')!=base.CAPITAL_ALLOCATION:
         raise RuntimeError('FINITE_CAPITAL_REQUIRED')
-    updates={**FLAGS,'LUMI_TRADING_SECONDARY_QUANT':FLAGS['LUMI_TRADING_SECONDARY_QUANT'] if quant else 'OFF'}
+    updates={**FLAGS,'LUMI_TRADING_SECONDARY_QUANT':FLAGS['LUMI_TRADING_SECONDARY_QUANT'] if quant else 'OFF','LUMI_TRADING_SECONDARY_OPPORTUNITIES':FLAGS['LUMI_TRADING_SECONDARY_OPPORTUNITIES'] if quant else 'OFF'}
     lines=[line for line in original.splitlines() if line.split('=',1)[0].strip() not in updates]
     result='\n'.join(lines+[f'{k}={v}' for k,v in updates.items()])+'\n'
     after=base.read_env(result)
@@ -59,6 +61,8 @@ def verify_live(previous_revision,timeout=180):
                  and x.get('profit_policy',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_PROFIT_POLICY']
                  and x.get('risk_budget',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_RISK_BUDGET']
                  and x.get('timeframe_execution',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_TIMEFRAMES']
+                 and quant.get('opportunities',{}).get('active') is True
+                 and quant.get('opportunities',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_OPPORTUNITIES']
                  and frames.get('1',{}).get('counts',{}).get('completed',0)>0
                  and complete_frames(data)
                  and not any(x.get('market',{}).get('frame_errors',{}).values()))

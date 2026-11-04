@@ -11,7 +11,7 @@ The module has **no order or plan return path**, always reports `authority:'NONE
 - Previous bar touches the 5m EMA9 region; last CLOSED bar recovers EMA9 in trend direction. Last-bar relative volume must be at least 0.8.
 - Refuse wide spread (>8 bps), quote displaced >0.75 ATR from last close, or structural stop distance outside 0.35–2.5 ATR.
 - Hypothetical entry at ask (LONG) or bid (SHORT) plus adverse slippage. Stop beyond two-bar structure plus 0.2 ATR; target 1.8x structural stop distance, capped at 2.5 ATR.
-- Experimental **fixed nominal of 300 USD for comparison only**; no funds are actually allocated. Use the existing secondary protocol's fee and slippage assumptions as taker/taker, count observed BBO spread and conservative absolute funding allowance. Minimum hypothetical net gain = 0.2% of nominal (0.60 USD); minimum net R:R = 1.2. A result passing this screen remains *hypothetical*, not statistically profitable and not guaranteed executable.
+- Experimental **fixed nominal of 300 USD for comparison only**; no funds are actually allocated. Use the existing secondary protocol's fee and slippage assumptions as taker/taker, count observed BBO spread and conservative absolute funding allowance. Minimum hypothetical net gain = max(1.00 USD, 0.2% of nominal); for the fixed 300 USD study that is 1.00 USD. Minimum net R:R = 1.2. This is a research filter, not a change in the signed admission rules. A result passing this screen remains *hypothetical*, not statistically profitable and not guaranteed executable.
 - If any prerequisite fails, emit bounded `WAIT` with explicit reason, never an invented signal.
 
 ## Wiring

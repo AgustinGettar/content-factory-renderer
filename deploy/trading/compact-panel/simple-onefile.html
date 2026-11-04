@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light"><meta name="referrer" content="same-origin"><meta name="theme-color" content="#f5f7fc">
+<title>Lumi Trading · Vista simple</title><style>
+:root {font:15px/1.45 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,'Segoe UI',sans-serif;color:#1b2b41;background:#f5f7fc;--muted:#62728b;--line:#e3e9f2;--blue:#2762ad;--white:#fff}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh}button,a{touch-action:manipulation}button,summary{cursor:pointer}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #3979da;outline-offset:3px}
+.shell{max-width:770px;padding:calc(15px + env(safe-area-inset-top)) 15px calc(94px + env(safe-area-inset-bottom));margin:auto}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}.eyebrow{font-size:10px;color:#6a7b93;letter-spacing:1px;font-weight:750;margin:0 0 7px}
+h1{font-size:22px;letter-spacing:-.7px;line-height:1.1;margin:0}.paper{display:inline-block;vertical-align:middle;font-size:10px;letter-spacing:.4px;background:#e6edf9;border-radius:7px;padding:4px 6px;color:#365a8d}.subtitle{color:var(--muted);font-size:12px;margin:7px 0 0}
+.full{text-decoration:none;color:#3566a9;border:1px solid var(--line);background:#fff;padding:10px 12px;font-weight:700;font-size:12px;white-space:nowrap;border-radius:12px}
+.status{display:inline-flex;max-width:100%;align-items:center;border-radius:9px;padding:8px 11px;margin-bottom:16px;font-size:12px;font-weight:650;overflow-wrap:anywhere}.status.ok{background:#e5f4ec;color:#196d51}.status.warn{background:#fff1d9;color:#9a681d}.status.error{background:#fce8e8;color:#a03838}.status.pending{background:#edf1f7;color:#596c82}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card,.panel,.position,.frame,.history{border:1px solid var(--line);background:var(--white);border-radius:15px;padding:14px;min-width:0}.card{min-height:98px;display:flex;flex-direction:column;gap:4px}.card.hero{grid-column:1/-1;background:linear-gradient(130deg,#edf4ff,#fff);min-height:126px}.card label{color:#61738c;font-size:12px}.card strong{font-size:clamp(19px,5vw,28px);letter-spacing:-.6px;line-height:1.22;overflow-wrap:anywhere}.hero strong{font-size:clamp(30px,8vw,38px)}.card small,.small{font-size:11px;color:#76859a}.good{color:#087652!important}.bad{color:#bc3649!important}.neutral{color:#53657c!important}.warning{color:#a26522!important}
+h2{font-size:16px;line-height:1.3;letter-spacing:-.2px;margin:0 0 12px}.section{margin-top:24px}.section>p{font-size:12px;color:var(--muted);margin:-4px 0 12px}.panel{font-size:13px;color:#52637b}.position,.frame,.history{margin:0 0 9px}.flex{display:flex;align-items:center;justify-content:space-between;gap:12px}.poshead{display:flex;align-items:center;gap:9px;justify-content:space-between;margin-bottom:10px}.name{color:#53627a;font-size:12px;font-weight:750}.side{padding:4px 8px;font-size:12px;border-radius:9px;font-weight:750}.side.long{color:#087052;background:#e5f6ef}.side.short{color:#a94257;background:#feeff2}.bigresult{font-size:22px;letter-spacing:-.3px}.small-label{font-size:11px;color:var(--muted)}.pattern{font-size:12px;color:var(--muted);margin:8px 0 0}
+details{margin-top:13px;border-top:1px solid #edf0f6;padding-top:10px}details summary{font-size:12px;color:var(--blue);font-weight:700;list-style:none}details summary::after{content:'⌄';float:right}details[open] summary::after{content:'⌃'}.details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.details-grid label{display:block;color:var(--muted);font-size:11px}.details-grid strong{display:block;font-size:13px;overflow-wrap:anywhere;margin-top:2px}details p{color:var(--muted);font-size:11px;line-height:1.5}.hint{font-size:11px;color:var(--muted);margin-top:6px}
+.frame-head{display:flex;align-items:center;gap:12px}.tf{background:#edf2f9;padding:11px 9px;border-radius:10px;min-width:44px;text-align:center;font-weight:750}.frame-text{min-width:0;flex:1}.frame-text strong{font-size:13px;display:block}.frame-text small{font-size:11px;color:var(--muted);display:block;margin-top:3px}.frame-note{font-size:12px;color:#4d627d;margin:9px 0 0;padding-left:57px}.stale-flag{background:#fff2df;color:#98661e;border-radius:8px;font-size:10px;padding:4px 6px;margin-left:6px;white-space:nowrap}.history .flex strong{font-size:16px}.history small{color:#77869a;font-size:11px}.note{border-radius:11px;padding:10px 12px;background:#f0f4fb;color:#536a88;font-size:12px;margin-top:12px}.note.warn{background:#fff0e5;color:#945c25}
+.nav{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}.nav button{border:0;border-radius:11px;background:transparent;padding:10px 13px;color:#65778f;font-size:12px;font-weight:750;min-width:100px}.nav button.active{background:#e9f2ff;color:#1555a7}footer{color:#8b97a7;font-size:11px;text-align:center;margin:26px 0 10px}
+@media(max-width:365px){.shell{padding-left:11px;padding-right:11px}.card{padding:12px}.nav button{min-width:0;flex:1}.full{padding:8px 10px}}
+@media(min-width:680px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.card.hero{grid-column:span 2}}
+</style></head>
+<body>
+<div class="shell">
+<header class="top"><div><p class="eyebrow">SECUNDARIA · SIMULACIÓN</p><h1>Lumi Trading <span class="paper">PAPER</span></h1><p class="subtitle">Todo lo importante, sin ruido.</p></div><a href="/" class="full" id="full-view">Vista completa</a></header>
+<div id="status" class="status pending" role="status" aria-live="polite">Consultando datos privados…</div>
+<main id="content" aria-live="off"><section class="panel"><p>Si tu sesión venció, abrí este panel desde Telegram.</p></section></main>
+<footer>Solo simulación. Este panel no envía órdenes ni modifica el saldo.</footer>
+</div>
+<nav id="nav" class="nav" aria-label="Secciones"><button type="button" data-view="resumen" aria-current="page" class="active">Resumen</button><button type="button" data-view="operaciones">Operaciones</button><button type="button" data-view="actividad">Actividad</button></nav>
+<script type="module">
+// Lumi Trading secondary PAPER - compact owner-private read-only projection.
+// Data source: existing same-origin GET /api/monitor/live; no trading actions.
+const numeric = x => (typeof x === 'number' && Number.isFinite(x)) ||
+  (typeof x === 'string' && x.trim() !== '' && Number.isFinite(Number(x)));
+const pick = (...xs) => xs.find(x => x !== null && x !== undefined) ?? null;
+const number = x => numeric(x) ? Number(x) : null;
+const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
+const tfName = x => ({5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
+const REASONS = {
+ NO_CONFIRMED_5M_TREND:'No hay tendencia confirmada en 5m',
+ MISSING_CONTEXT_REGIME:'Aún falta el contexto de 15m',
+ NO_NET_ECONOMIC_ADVANTAGE:'La oportunidad no cubre los costes',
+ SPREAD_TOO_WIDE:'El spread es demasiado alto',
+ WAIT_PULLBACK:'Esperando un retroceso', WAIT_PULLBACK_CONFIRMATION:'Esperando confirmación del retroceso',
+ WAIT_BREAKOUT:'Esperando una ruptura', WAIT_RANGE_REENTRY:'Esperando reentrada al rango',
+ CONTEXT_NOT_SYNCHRONIZED:'Las velas de contexto aún no están sincronizadas',
+ FUTURES_DATA_NOT_FRESH:'La cotización no está actualizada',
+ FUNDING_NOT_AVAILABLE:'Falta información de financiación',
+ TIMEOUT:'Tiempo máximo', STOP:'Stop loss', STRUCTURAL_TARGET:'Objetivo estructural',
+ NET_TARGET:'Objetivo neto', TRAILING_RETRACEMENT:'Retroceso de la ganancia',
+ MANUAL_PROFIT:'Cierre manual con ganancia', MANUAL_CLOSE:'Cierre manual',
+ PULLBACK_NOT_CONFIRMED:'El retroceso no está confirmado',
+ RESEARCH_OBSERVER_ERROR:'Observador experimental no disponible',
+ DATA_GAP:'Faltan cotizaciones suficientes'
+};
+const REGIMES = {
+ UPTREND:'Tendencia alcista', DOWNTREND:'Tendencia bajista',
+ RANGE:'Mercado lateral', HIGH_VOLATILITY:'Volatilidad alta',
+ VOLATILITY_COMPRESSION:'Volatilidad baja', BREAKOUT_EXPANSION:'Ruptura / expansión',
+ ILLIQUID:'Liquidez insuficiente', UNDETERMINED:'Indeterminado', UNKNOWN:'No disponible'
+};
+const reasonText = (code, readable = null) => {
+ if(typeof readable === 'string' && readable.trim()) return readable.trim();
+ if(!code) return 'Sin evaluación registrada';
+ return REASONS[code] ?? String(code).replaceAll('_',' ').toLowerCase();
+};
+const regimeText = x => REGIMES[x] ?? 'Sin clasificación';
+const fmtUSD = (v,{signed=false}={}) => {
+ const n=number(v); if(n===null) return '—';
+ const digits=n===0||Math.abs(n)>=0.01?2:Math.abs(n)>=0.0001?4:6;
+ const abs=new Intl.NumberFormat('es-AR',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Math.abs(n));
+ return (n<0?'−':signed&&n>0?'+':'')+'US$ '+abs;
+};
+const fmtDate = v => {
+ const n=typeof v==='string'?Date.parse(v):v;
+ if(!Number.isFinite(n)||n<=0)return 'Sin registro';
+ return new Intl.DateTimeFormat('es-AR',{timeZone:'Europe/Rome',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(n);
+};
+const escapeHTML = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const quoteAge = (stamp,now) => numeric(stamp) ? now-Number(stamp):null;
+function viewModel(payload, now=Date.now()) {
+ const d=payload?.snapshot??payload?.data??payload;
+ if(!d||typeof d!=='object')throw Error('MONITOR_RESPONSE_REQUIRED');
+ const fin=d.secondary_finances??d.frequency?.financial_summary;
+ if(!fin||fin.mode!=='PAPER'||fin.ledger!=='FREQUENT_PAPER')throw Error('SECONDARY_PAPER_SNAPSHOT_REQUIRED');
+ const account=d.frequency?.account??{},activity=d.secondary_activity??{},feed=d.feed??{};
+ const positions=Array.isArray(account.positions)?account.positions:Object.values(account.positions??{});
+ const pending=Array.isArray(account.pending_orders)?account.pending_orders:
+  Array.isArray(account.pendingOrders)?account.pendingOrders:Object.values(account.pendingOrders??{});
+ const resultPositions=positions.filter(p=>p?.plan&&String(p.plan.instrument??'')==='PF_XBTUSD')
+  .map(p=>{
+   const plan=p.plan,exit=p.live_exit??{},protection=p.profit_protection??{};
+   const complete=exit.funding_complete!==false && exit.result_final!==false && numeric(exit.net);
+   return {
+    id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
+    pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
+    net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
+    stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
+    leverage:pick(p.leverage,plan.execution_contract?.leverage),
+    maxFavourable:pick(p.max_favourable,p.excursions?.max_favourable_net),
+    protectedFloor:pick(protection.protected_net,protection.floor_net),
+    quoteAt:pick(exit.quote_at,fin.quote_at),
+    exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
+   };
+  });
+ const times=['5','15','60','240'];
+ const frames=times.map(key=>{
+  const f=activity.frames?.[key]??{};
+  const evaluation=f.last_evaluation??null;
+  return {key,tf:tfName(key),lastAt:pick(f.last_completed_at,f.last_evaluation_at,evaluation?.at),
+   status:f.evaluation_status??null,stale:f.stale!==false,
+   reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),
+    pick(evaluation?.reason_text,f.reason_text)),
+   regime:regimeText(f.market_regime?.regime),
+   regimeCode:f.market_regime?.regime??null,
+   nextCandleAt:f.next_candle_close_at??null,
+   shadow:key==='5'?f.scalping_shadow??null:null};
+ });
+ const ops=Array.isArray(d.operations)?d.operations:[];
+ const recent=ops.filter(x=>x?.ledger==='FREQUENT_PAPER' && ['CLOSED','NOT_FILLED','OPEN','PENDING'].includes(x.status))
+  .sort((a,b)=>eventTime(pick(b.exit?.at,b.entry?.at,b.at,0))-eventTime(pick(a.exit?.at,a.entry?.at,a.at,0)))
+  .slice(0,18).map(o=>({
+   id:String(o.id??''),status:o.status,tf:tfName(o.plan?.timeframe),
+   side:['SHORT','LONG'].includes(o.plan?.direction)?o.plan.direction:'UNKNOWN',
+   // Never display unrealized PnL as a realized close.
+   recordedCloseNet:o.status==='CLOSED'&&numeric(o.exit?.pnl)?String(o.exit.pnl):null,
+   closeIsFinal:o.status==='CLOSED' && o.exit?.result_final===true,
+   reason:reasonText(o.exit?.reason),at:pick(o.exit?.at,o.entry?.at,o.at)
+  }));
+ const asOf=pick(d.generated_at,d.secondary_activity?.snapshot_at,d.feed?.sampled_at,d.at);
+ const age=quoteAge(asOf,now);
+ const process=activity.process??{};
+ const market=activity.market??{};
+ const snapshotFresh=age!==null&&age>=-1000&&age<15000;
+ const workerVerified=process.status==='RECENT_COMMIT_AND_LEASE';
+ const marketVerified=market.usable===true&&market.issue==null;
+ const status=!snapshotFresh?'STALE_SNAPSHOT':!workerVerified?'WORKER_UNVERIFIED':!marketVerified?'MARKET_ISSUE':'LIVE_PAPER';
+ const realized=fin.realized_net??null,unrealized=fin.unrealized_net??null;
+ return {
+  version:'lumi-trading-compact-v2',mode:'PAPER',readOnly:true,revision:d.revision??null,
+  asOf,ageMs:age,status,marketIssue:market.issue??null,
+  metrics:{equity:pick(fin.equity,account.equity),cash:pick(fin.available_cash,account.availableCash,account.cash),
+   realized:realized,realizedFinal:fin.realized_result_final===true,
+   unrealized:unrealized,unrealizedFinal:fin.valuation_quality==='CURRENT_ESTIMATE',
+   total:fin.net_result_final===true?fin.total_net:null,
+   costs:fin.costs_recorded??null,
+   uncertainHistory:fin.realized_net_includes_uncertain_history===true},
+  openCount:Math.max(resultPositions.length,number(activity.orders?.open_positions)??0),
+  pendingCount:Math.max(pending.length,number(activity.orders?.pending)??0),
+  positions:resultPositions,frames,recent,
+  shadow:frames[0]?.shadow??null,
+  shadowResearchOnly:true,
+  pendingDetails:pending.length,
+  processStatus:process.status??null
+ };
+}
+const h=escapeHTML;
+// The private site MUST serve the UI and the API under the same origin.
+const API='/api/monitor/live',root=document.querySelector('#content'),status=document.querySelector('#status'),nav=document.querySelector('#nav');
+let tab='resumen',model=null,updating=false,backoff=2000,nextRetry=0;
+const signed=x=>fmtUSD(x,{signed:true});
+const tone=x=>x==null?'neutral':Number(x)>0?'good':Number(x)<0?'bad':'neutral';
+const present=x=>x===null||x===undefined||x===''?'—':String(x);
+const section=(title,body,description='')=>`<section class="section"><h2>${h(title)}</h2>${description?`<p>${h(description)}</p>`:''}${body}</section>`;
+const box=(name,value,desc='',css='')=>`<div class="card ${css}"><label>${h(name)}</label><strong class="${tone(value)}">${h(value)}</strong>${desc?`<small>${h(desc)}</small>`:''}</div>`;
+const hUSD=x=>h(fmtUSD(x)),hSigned=x=>h(signed(x));
+function position(p){
+ return `<article class="position"><div class="poshead"><strong class="name">BTC/USD · ${h(p.timeframe)}</strong><span class="side ${p.side==='SHORT'?'short':'long'}">${p.side==='SHORT'?'↓ Venta':p.side==='LONG'?'↑ Compra':'Dirección no disponible'}</span></div>
+ <div class="small-label">Resultado abierto neto estimado</div><strong class="bigresult ${tone(p.net)}">${hSigned(p.net)}</strong>
+ <p class="pattern">${h(p.pattern)}</p>${p.net==null?'<div class="hint">No hay valoración neta final verificable para esta posición.</div>':''}
+ <details data-detail="pos-${h(p.id)}"><summary>Ver entrada, objetivo y protección</summary><div class="details-grid">
+ <div><label>Entrada</label><strong>${h(present(p.entry))}</strong></div><div><label>Stop loss</label><strong>${h(present(p.stop))}</strong></div>
+ <div><label>Objetivo</label><strong>${h(present(p.target))}</strong></div><div><label>Apalancamiento simulado</label><strong>${h(present(p.leverage))}×</strong></div>
+ <div><label>Máxima excursión neta</label><strong>${hSigned(p.maxFavourable)}</strong></div><div><label>Piso de protección</label><strong>${hSigned(p.protectedFloor)}</strong></div>
+ </div><p>Los precios pueden ejecutarse con deslizamiento. No se garantiza cerrar exactamente en el piso indicado.</p>
+ ${p.exitReason?`<p>Estado de ejecución: ${h(reasonText(p.exitReason))}</p>`:''}</details></article>`;
+}
+function timeframes(m){return `<div>${m.frames.map(f=>`<article class="frame"><div class="frame-head"><div class="tf">${f.tf}</div><div class="frame-text"><strong>${h(f.regime)} ${f.stale?'<span class="stale-flag">Por actualizar</span>':''}</strong><small>Última evaluación: ${h(fmtDate(f.lastAt))}</small></div></div><div class="frame-note">${h(f.reason)}</div></article>`).join('')}</div>`;}
+function research(m){const s=m.shadow;
+ const explanation=s?`${s.status==='CANDIDATE'?'Hipótesis detectada, sin orden simulada automática.':'Sin entrada experimental aprobada.'} ${reasonText(s.reason)}`:'El nuevo observador aún no publicó una lectura de 5m.';
+ return `<div class="panel"><strong>Scalping experimental · solo observación</strong><p>${h(explanation)}</p><p>No modifica posiciones, stop loss, capital ni apalancamiento. Las hipótesis no equivalen a operaciones rentables.</p></div>`;}
+function summary(m){const f=m.metrics;
+ const cards=`<div class="grid"><div class="card hero"><label>Patrimonio ficticio</label><strong>${hUSD(f.equity)}</strong><small>Valor de la cartera secundaria PAPER; no representa una ganancia.</small></div>
+ <div class="card"><label>Resultado registrado de cierres</label><strong class="${tone(f.realized)}">${hSigned(f.realized)}</strong><small>${f.realizedFinal?'Resultado realizado':'Resultado sujeto a conciliación'}</small></div>
+ <div class="card"><label>Resultado abierto estimado</label><strong class="${tone(f.unrealized)}">${hSigned(f.unrealized)}</strong><small>${f.unrealized===null?'Valoración incompleta':'No cobrado · puede cambiar'}</small></div>
+ <div class="card"><label>Posiciones abiertas</label><strong>${m.openCount}</strong><small>${m.pendingCount} órdenes pendientes</small></div></div>`;
+ return cards+ (f.uncertainHistory?'<div class="note warn">El resultado realizado incluye operaciones históricas con calidad incierta. No interpretarlo como beneficio consolidado.</div>':'')+
+ section('Posiciones ahora',m.positions.length?m.positions.map(position).join(''):'<div class="panel">No hay posiciones abiertas. Lumi continúa evaluando el mercado.</div>')+
+ section('Evaluaciones por plazo',timeframes(m),'Verificamos cada temporalidad por separado; una evaluación no significa que se haya abierto una operación.')+
+ section('Investigación',research(m))+
+ section('Más información',`<div class="panel"><details data-detail="fin"><summary>Detalles económicos</summary><div class="details-grid">
+ <div><label>Capital libre estimado</label><strong>${hUSD(f.cash)}</strong></div><div><label>Costes registrados</label><strong>${hUSD(f.costs)}</strong></div>
+ <div><label>Neto total</label><strong>${f.total===null?'No verificable':hSigned(f.total)}</strong></div>
+ <div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
+}
+function operations(m){return section('Posiciones abiertas',m.positions.length?m.positions.map(position).join(''):'<div class="panel">Sin posiciones abiertas.</div>','Cada operación se presenta individualmente.')+
+ section('Órdenes pendientes',`<div class="panel">${m.pendingCount} pendientes. Los controles de ejecución permanecen en la vista completa.</div>`)+
+ section('Estado del mercado',timeframes(m));}
+function activity(m){const history=m.recent.map(o=>`<article class="history"><div class="flex"><span class="name">${h(o.tf)} · ${o.side==='SHORT'?'↓ Venta':o.side==='LONG'?'↑ Compra':'Dirección no disponible'} · ${o.status==='CLOSED'?'Cerrada':o.status==='OPEN'?'Abierta':o.status==='PENDING'?'Pendiente':'No ejecutada'}</span>
+ <strong class="${tone(o.recordedCloseNet)}">${o.status==='CLOSED'?hSigned(o.recordedCloseNet):'—'}</strong></div>
+ <small>${h(fmtDate(o.at))}${o.status==='CLOSED'?' · Motivo: '+h(o.reason):''}</small>${o.status==='CLOSED'&&!o.closeIsFinal?'<div class="hint">Resultado registrado; liquidación final no comprobada.</div>':''}</article>`).join('');
+ return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
+ section('Observador de scalping',research(m));}
+function draw(){if(!model)return;
+ const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
+ root.innerHTML=({resumen:summary,operaciones,actividad})[tab](model);
+ root.querySelectorAll('details[data-detail]').forEach(el=>{el.open=open.has(el.dataset.detail);});
+ nav.querySelectorAll('button[data-view]').forEach(b=>{const active=b.dataset.view===tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false');});
+ const labels={LIVE_PAPER:['ok','Motor y mercado actualizados'],STALE_SNAPSHOT:['warn','Datos no recientes'],WORKER_UNVERIFIED:['warn','Motor sin latido confirmado'],MARKET_ISSUE:['error','Datos de mercado no fiables']};
+ const [state,label]=labels[model.status]??['pending','Sin estado'];
+ status.className='status '+state;status.textContent=label+' · '+fmtDate(model.asOf);
+}
+nav.addEventListener('click',e=>{const target=e.target.closest('button[data-view]');if(!target)return;tab=target.dataset.view;draw();});
+async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;updating=true;
+ try{const res=await fetch(API,{credentials:'same-origin',redirect:'error',cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(9000)});
+  if(res.status===401||res.status===403){status.className='status error';status.textContent='Acceso privado vencido. Abrí el monitor desde Telegram.';nextRetry=Date.now()+20000;return;}
+  if(!res.ok)throw new Error('MONITOR_HTTP_'+res.status);
+  const value=viewModel(await res.json());
+  // Reject stale replays, but accept the latest source with equal revision.
+  if(!model||value.revision==null||model.revision==null||value.revision>=model.revision&&Number(value.asOf??0)>=Number(model.asOf??0)){model=value;draw();}
+  backoff=2000;nextRetry=0;
+ }catch{nextRetry=Date.now()+backoff;backoff=Math.min(backoff*2,30000);status.className='status warn';status.textContent='No se pudo actualizar. Se conserva la última lectura.';}
+ finally{updating=false;}}
+setInterval(poll,2000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
+window.addEventListener('online',()=>{nextRetry=0;void poll();});void poll();
+</script>
+</body></html>

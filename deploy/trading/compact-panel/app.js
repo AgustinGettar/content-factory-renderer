@@ -15,12 +15,14 @@ function position(p){
  <details data-detail="pos-${h(p.id)}"><summary>Ver entrada, objetivo y protección</summary><div class="details-grid">
  <div><label>Entrada</label><strong>${h(present(p.entry))}</strong></div><div><label>Stop loss</label><strong>${h(present(p.stop))}</strong></div>
  <div><label>Objetivo</label><strong>${h(present(p.target))}</strong></div><div><label>Apalancamiento simulado</label><strong>${h(present(p.leverage))}×</strong></div>
+ <div><label>Riesgo estimado</label><strong>${hUSD(p.risk)}</strong></div><div><label>Ganancia neta prevista</label><strong>${hUSD(p.expectedNet)}</strong></div>
+ <div><label>Margen reservado</label><strong>${hUSD(p.margin)}</strong></div>
  <div><label>Máxima excursión neta</label><strong>${hSigned(p.maxFavourable)}</strong></div><div><label>Piso de protección</label><strong>${hSigned(p.protectedFloor)}</strong></div>
  </div><p>Los precios pueden ejecutarse con deslizamiento. No se garantiza cerrar exactamente en el piso indicado.</p>
  ${p.exitReason?`<p>Estado de ejecución: ${h(reasonText(p.exitReason))}</p>`:''}</details></article>`;
 }
 function timeframes(m){return `<div>${m.frames.map(f=>`<article class="frame"><div class="frame-head"><div class="tf">${f.tf}</div><div class="frame-text"><strong>${h(f.regime)} ${f.stale?'<span class="stale-flag">Por actualizar</span>':''}</strong><small>Última evaluación: ${h(fmtDate(f.lastAt))}</small></div></div><div class="frame-note">${h(f.reason)}</div></article>`).join('')}</div>`;}
-function research(m){const s=m.shadow;
+function research(m){if(m.quant?.active){const q=m.quant,g=q.guard??{},blocked=g.review_required?'Pausadas las nuevas entradas por drawdown; las salidas siguen supervisadas.':g.daily_blocked?'Límite de pérdida diaria alcanzado; las salidas siguen supervisadas.':'Evaluación de patrones activa según régimen, costes y riesgo.';return `<div class="panel"><strong>Patrones y scalping PAPER</strong><p>${h(blocked)}</p><p>${Object.keys(q.strategies??{}).length} estrategias registradas · entradas de 1m, 5m, 15m, 1h y 4h.</p><details data-detail="quant"><summary>Ver estrategias</summary><p>${Object.values(q.strategies??{}).map(s=>h(s.title)).join(' · ')}</p><p>Reglas experimentales. La rentabilidad y las probabilidades todavía no están validadas. Las técnicas avanzadas sin datos suficientes permanecen en investigación.</p></details></div>`;}const s=m.shadow;
  const explanation=s?`${s.status==='CANDIDATE'?'Hipótesis detectada, sin orden simulada automática.':'Sin entrada experimental aprobada.'} ${reasonText(s.reason)}`:'El nuevo observador aún no publicó una lectura de 5m.';
  return `<div class="panel"><strong>Scalping experimental · solo observación</strong><p>${h(explanation)}</p><p>No modifica posiciones, stop loss, capital ni apalancamiento. Las hipótesis no equivalen a operaciones rentables.</p></div>`;}
 function summary(m){const f=m.metrics;
@@ -35,7 +37,7 @@ function summary(m){const f=m.metrics;
  section('Más información',`<div class="panel"><details data-detail="fin"><summary>Detalles económicos</summary><div class="details-grid">
  <div><label>Capital libre estimado</label><strong>${hUSD(f.cash)}</strong></div><div><label>Costes registrados</label><strong>${hUSD(f.costs)}</strong></div>
  <div><label>Neto total</label><strong>${f.total===null?'No verificable':hSigned(f.total)}</strong></div>
- <div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
+ <div><label>Exposición bruta</label><strong>${hUSD(f.exposure)}</strong></div><div><label>Margen reservado</label><strong>${hUSD(f.margin)}</strong></div><div><label>Riesgo agregado estimado</label><strong>${hUSD(f.openRisk)}</strong></div><div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
 }
 function operations(m){return section('Posiciones abiertas',m.positions.length?m.positions.map(position).join(''):'<div class="panel">Sin posiciones abiertas.</div>','Cada operación se presenta individualmente.')+
  section('Órdenes pendientes',`<div class="panel">${m.pendingCount} pendientes. Los controles de ejecución permanecen en la vista completa.</div>`)+
@@ -44,7 +46,7 @@ function activity(m){const history=m.recent.map(o=>`<article class="history"><di
  <strong class="${tone(o.recordedCloseNet)}">${o.status==='CLOSED'?hSigned(o.recordedCloseNet):'—'}</strong></div>
  <small>${h(fmtDate(o.at))}${o.status==='CLOSED'?' · Motivo: '+h(o.reason):''}</small>${o.status==='CLOSED'&&!o.closeIsFinal?'<div class="hint">Resultado registrado; liquidación final no comprobada.</div>':''}</article>`).join('');
  return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
- section('Observador de scalping',research(m));}
+ section('Patrones y scalping',research(m));}
 function draw(){if(!model)return;
  if(source)model=viewModel(source);
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));

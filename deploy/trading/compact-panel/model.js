@@ -5,7 +5,7 @@ const numeric = x => (typeof x === 'number' && Number.isFinite(x)) ||
 const pick = (...xs) => xs.find(x => x !== null && x !== undefined) ?? null;
 const number = x => numeric(x) ? Number(x) : null;
 const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
-const tfName = x => ({5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
+const tfName = x => ({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
 const REASONS = {
  NO_CONFIRMED_5M_TREND:'No hay tendencia confirmada en 5m',
  MISSING_CONTEXT_REGIME:'Aún falta el contexto de 15m',
@@ -68,15 +68,16 @@ export function viewModel(payload, now=Date.now()) {
     id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
     pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
     net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
-    stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
+    stop:pick(p.quant_management?.stop,plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
     leverage:pick(plan.sizing?.leverage,plan.execution_contract?.leverage,p.leverage),
     maxFavourable:pick(p.excursions?.max_favourable_net,p.max_favourable),
     protectedFloor:pick(protection.protected_net,protection.floor_net),
+    risk:pick(p.remaining_risk,plan.sizing?.risk),expectedNet:pick(plan.entry_economics?.expected_net_target,plan.sizing?.target_net),margin:pick(p.initial_margin,plan.sizing?.initial_margin),regime:plan.quant_contract?.regime??null,
     quoteAt,
     exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
    };
   });
- const times=['5','15','60','240'];
+ const times=activity.frames?.['1']?['1','5','15','60','240']:['5','15','60','240'];
  const frames=times.map(key=>{
   const f=activity.frames?.[key]??{};
   const evaluation=f.last_evaluation??null;
@@ -116,12 +117,12 @@ export function viewModel(payload, now=Date.now()) {
    realized:realized,realizedFinal:fin.realized_result_final===true,
    unrealized:unrealized,unrealizedFinal:fin.valuation_quality==='CURRENT_ESTIMATE',
    total:fin.net_result_final===true?fin.total_net:null,
-   costs:fin.costs_recorded??null,
+   costs:fin.costs_recorded??null,exposure:d.secondary_risk_budget?.portfolio?.gross_exposure??null,margin:d.secondary_risk_budget?.portfolio?.margin??null,openRisk:d.secondary_risk_budget?.portfolio?.open_risk??null,
    uncertainHistory:fin.realized_net_includes_uncertain_history===true},
   openCount:Math.max(resultPositions.length,number(activity.orders?.open_positions)??0),
   pendingCount:Math.max(pending.length,number(activity.orders?.pending)??0),
   positions:resultPositions,frames,recent,
-  shadow:frames[0]?.shadow??null,
+  shadow:frames.find(f=>f.key==='5')?.shadow??null,quant:d.secondary_quant??null,
   shadowResearchOnly:true,
   pendingDetails:pending.length,
   processStatus:process.status??null

@@ -14,8 +14,7 @@ details{margin-top:13px;border-top:1px solid #edf0f6;padding-top:10px}details su
 .frame-head{display:flex;align-items:center;gap:12px}.tf{background:#edf2f9;padding:11px 9px;border-radius:10px;min-width:44px;text-align:center;font-weight:750}.frame-text{min-width:0;flex:1}.frame-text strong{font-size:13px;display:block}.frame-text small{font-size:11px;color:var(--muted);display:block;margin-top:3px}.frame-note{font-size:12px;color:#4d627d;margin:9px 0 0;padding-left:57px}.stale-flag{background:#fff2df;color:#98661e;border-radius:8px;font-size:10px;padding:4px 6px;margin-left:6px;white-space:nowrap}.history .flex strong{font-size:16px}.history small{color:#77869a;font-size:11px}.note{border-radius:11px;padding:10px 12px;background:#f0f4fb;color:#536a88;font-size:12px;margin-top:12px}.note.warn{background:#fff0e5;color:#945c25}
 .nav{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}.nav button{border:0;border-radius:11px;background:transparent;padding:10px 13px;color:#65778f;font-size:12px;font-weight:750;min-width:100px}.nav button.active{background:#e9f2ff;color:#1555a7}footer{color:#8b97a7;font-size:11px;text-align:center;margin:26px 0 10px}
 @media(max-width:365px){.shell{padding-left:11px;padding-right:11px}.card{padding:12px}.nav button{min-width:0;flex:1}.full{padding:8px 10px}}
-@media(min-width:680px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.card.hero{grid-column:span 2}}
-</style></head>
+@media(min-width:680px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}.card.hero{grid-column:span 2}}</style></head>
 <body>
 <div class="shell">
 <header class="top"><div><p class="eyebrow">SECUNDARIA · SIMULACIÓN</p><h1>Lumi Trading <span class="paper">PAPER</span></h1><p class="subtitle">Todo lo importante, sin ruido.</p></div><a href="/" class="full" id="full-view">Vista completa</a></header>
@@ -32,7 +31,7 @@ const numeric = x => (typeof x === 'number' && Number.isFinite(x)) ||
 const pick = (...xs) => xs.find(x => x !== null && x !== undefined) ?? null;
 const number = x => numeric(x) ? Number(x) : null;
 const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
-const tfName = x => ({5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
+const tfName = x => ({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
 const REASONS = {
  NO_CONFIRMED_5M_TREND:'No hay tendencia confirmada en 5m',
  MISSING_CONTEXT_REGIME:'Aún falta el contexto de 15m',
@@ -95,15 +94,16 @@ function viewModel(payload, now=Date.now()) {
     id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
     pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
     net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
-    stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
+    stop:pick(p.quant_management?.stop,plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
     leverage:pick(plan.sizing?.leverage,plan.execution_contract?.leverage,p.leverage),
     maxFavourable:pick(p.excursions?.max_favourable_net,p.max_favourable),
     protectedFloor:pick(protection.protected_net,protection.floor_net),
+    risk:pick(p.remaining_risk,plan.sizing?.risk),expectedNet:pick(plan.entry_economics?.expected_net_target,plan.sizing?.target_net),margin:pick(p.initial_margin,plan.sizing?.initial_margin),regime:plan.quant_contract?.regime??null,
     quoteAt,
     exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
    };
   });
- const times=['5','15','60','240'];
+ const times=activity.frames?.['1']?['1','5','15','60','240']:['5','15','60','240'];
  const frames=times.map(key=>{
   const f=activity.frames?.[key]??{};
   const evaluation=f.last_evaluation??null;
@@ -143,12 +143,12 @@ function viewModel(payload, now=Date.now()) {
    realized:realized,realizedFinal:fin.realized_result_final===true,
    unrealized:unrealized,unrealizedFinal:fin.valuation_quality==='CURRENT_ESTIMATE',
    total:fin.net_result_final===true?fin.total_net:null,
-   costs:fin.costs_recorded??null,
+   costs:fin.costs_recorded??null,exposure:d.secondary_risk_budget?.portfolio?.gross_exposure??null,margin:d.secondary_risk_budget?.portfolio?.margin??null,openRisk:d.secondary_risk_budget?.portfolio?.open_risk??null,
    uncertainHistory:fin.realized_net_includes_uncertain_history===true},
   openCount:Math.max(resultPositions.length,number(activity.orders?.open_positions)??0),
   pendingCount:Math.max(pending.length,number(activity.orders?.pending)??0),
   positions:resultPositions,frames,recent,
-  shadow:frames[0]?.shadow??null,
+  shadow:frames.find(f=>f.key==='5')?.shadow??null,quant:d.secondary_quant??null,
   shadowResearchOnly:true,
   pendingDetails:pending.length,
   processStatus:process.status??null
@@ -172,12 +172,14 @@ function position(p){
  <details data-detail="pos-${h(p.id)}"><summary>Ver entrada, objetivo y protección</summary><div class="details-grid">
  <div><label>Entrada</label><strong>${h(present(p.entry))}</strong></div><div><label>Stop loss</label><strong>${h(present(p.stop))}</strong></div>
  <div><label>Objetivo</label><strong>${h(present(p.target))}</strong></div><div><label>Apalancamiento simulado</label><strong>${h(present(p.leverage))}×</strong></div>
+ <div><label>Riesgo estimado</label><strong>${hUSD(p.risk)}</strong></div><div><label>Ganancia neta prevista</label><strong>${hUSD(p.expectedNet)}</strong></div>
+ <div><label>Margen reservado</label><strong>${hUSD(p.margin)}</strong></div>
  <div><label>Máxima excursión neta</label><strong>${hSigned(p.maxFavourable)}</strong></div><div><label>Piso de protección</label><strong>${hSigned(p.protectedFloor)}</strong></div>
  </div><p>Los precios pueden ejecutarse con deslizamiento. No se garantiza cerrar exactamente en el piso indicado.</p>
  ${p.exitReason?`<p>Estado de ejecución: ${h(reasonText(p.exitReason))}</p>`:''}</details></article>`;
 }
 function timeframes(m){return `<div>${m.frames.map(f=>`<article class="frame"><div class="frame-head"><div class="tf">${f.tf}</div><div class="frame-text"><strong>${h(f.regime)} ${f.stale?'<span class="stale-flag">Por actualizar</span>':''}</strong><small>Última evaluación: ${h(fmtDate(f.lastAt))}</small></div></div><div class="frame-note">${h(f.reason)}</div></article>`).join('')}</div>`;}
-function research(m){const s=m.shadow;
+function research(m){if(m.quant?.active){const q=m.quant,g=q.guard??{},blocked=g.review_required?'Pausadas las nuevas entradas por drawdown; las salidas siguen supervisadas.':g.daily_blocked?'Límite de pérdida diaria alcanzado; las salidas siguen supervisadas.':'Evaluación de patrones activa según régimen, costes y riesgo.';return `<div class="panel"><strong>Patrones y scalping PAPER</strong><p>${h(blocked)}</p><p>${Object.keys(q.strategies??{}).length} estrategias registradas · entradas de 1m, 5m, 15m, 1h y 4h.</p><details data-detail="quant"><summary>Ver estrategias</summary><p>${Object.values(q.strategies??{}).map(s=>h(s.title)).join(' · ')}</p><p>Reglas experimentales. La rentabilidad y las probabilidades todavía no están validadas. Las técnicas avanzadas sin datos suficientes permanecen en investigación.</p></details></div>`;}const s=m.shadow;
  const explanation=s?`${s.status==='CANDIDATE'?'Hipótesis detectada, sin orden simulada automática.':'Sin entrada experimental aprobada.'} ${reasonText(s.reason)}`:'El nuevo observador aún no publicó una lectura de 5m.';
  return `<div class="panel"><strong>Scalping experimental · solo observación</strong><p>${h(explanation)}</p><p>No modifica posiciones, stop loss, capital ni apalancamiento. Las hipótesis no equivalen a operaciones rentables.</p></div>`;}
 function summary(m){const f=m.metrics;
@@ -192,7 +194,7 @@ function summary(m){const f=m.metrics;
  section('Más información',`<div class="panel"><details data-detail="fin"><summary>Detalles económicos</summary><div class="details-grid">
  <div><label>Capital libre estimado</label><strong>${hUSD(f.cash)}</strong></div><div><label>Costes registrados</label><strong>${hUSD(f.costs)}</strong></div>
  <div><label>Neto total</label><strong>${f.total===null?'No verificable':hSigned(f.total)}</strong></div>
- <div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
+ <div><label>Exposición bruta</label><strong>${hUSD(f.exposure)}</strong></div><div><label>Margen reservado</label><strong>${hUSD(f.margin)}</strong></div><div><label>Riesgo agregado estimado</label><strong>${hUSD(f.openRisk)}</strong></div><div><label>Origen</label><strong>Futuros PAPER</strong></div></div><p>Los aportes y las recargas ficticias no cuentan como ganancia.</p></details></div>`);
 }
 function operations(m){return section('Posiciones abiertas',m.positions.length?m.positions.map(position).join(''):'<div class="panel">Sin posiciones abiertas.</div>','Cada operación se presenta individualmente.')+
  section('Órdenes pendientes',`<div class="panel">${m.pendingCount} pendientes. Los controles de ejecución permanecen en la vista completa.</div>`)+
@@ -201,7 +203,7 @@ function activity(m){const history=m.recent.map(o=>`<article class="history"><di
  <strong class="${tone(o.recordedCloseNet)}">${o.status==='CLOSED'?hSigned(o.recordedCloseNet):'—'}</strong></div>
  <small>${h(fmtDate(o.at))}${o.status==='CLOSED'?' · Motivo: '+h(o.reason):''}</small>${o.status==='CLOSED'&&!o.closeIsFinal?'<div class="hint">Resultado registrado; liquidación final no comprobada.</div>':''}</article>`).join('');
  return section('Actividad reciente',history||'<div class="panel">No hay operaciones recientes en esta muestra.</div>','Las posiciones abiertas nunca se contabilizan como cierres.')+
- section('Observador de scalping',research(m));}
+ section('Patrones y scalping',research(m));}
 function draw(){if(!model)return;
  if(source)model=viewModel(source);
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
@@ -232,6 +234,5 @@ async function poll(){if(updating||document.hidden||Date.now()<nextRetry)return;
  finally{updating=false;}}
 setInterval(poll,2000);setInterval(updateStatus,1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){nextRetry=0;void poll();}});
 window.addEventListener('online',()=>{nextRetry=0;void poll();});void poll();
-
 </script>
 </body></html>

@@ -25,8 +25,9 @@ test('unfinalized funding is not presented as realized and confidence is bounded
  assert.equal(r.autonomous.count,1);assert.equal(r.autonomous.win_rate,0);
  assert(r.autonomous.win_rate_wilson95[1]>0);
 });
-test('reject non-PAPER results, duplicate operation IDs and invalid accounting',()=>{
- assert.throws(()=>review([{...close('a','.2'),realTrading:true}]),/SCOPE_VIOLATION/);
+test('exclude legacy or non-PAPER events; reject duplicates and invalid secondary accounting',()=>{
+ const mixed=review([{...close('legacy','-100'),realTrading:undefined}, {...close('real','5'),realTrading:true}, close('paper','-.5')]);
+ assert.equal(mixed.excluded_non_secondary_closes,2);assert.equal(mixed.autonomous.net_usd,-.5);
  assert.throws(()=>review([close('a','.2'),close('a','.2')]),/DUPLICATE/);
  assert.throws(()=>review([close('a','NaN')]),/INVALID_ACCOUNTING/);
  assert.throws(()=>review([close('a','.2',{fees:'-.2'})]),/INVALID_ACCOUNTING/);

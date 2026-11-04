@@ -47,7 +47,7 @@ function activity(m){const history=m.recent.map(o=>`<article class="history"><di
  section('Observador de scalping',research(m));}
 function draw(){if(!model)return;
  const open=new Set([...root.querySelectorAll('details[open]')].map(el=>el.dataset.detail));
- root.innerHTML=({resumen:summary,operaciones,actividad})[tab](model);
+ root.innerHTML=({resumen:summary,operaciones:operations,actividad:activity})[tab](model);
  root.querySelectorAll('details[data-detail]').forEach(el=>{el.open=open.has(el.dataset.detail);});
  nav.querySelectorAll('button[data-view]').forEach(b=>{const active=b.dataset.view===tab;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false');});
  const labels={LIVE_PAPER:['ok','Motor y mercado actualizados'],STALE_SNAPSHOT:['warn','Datos no recientes'],WORKER_UNVERIFIED:['warn','Motor sin latido confirmado'],MARKET_ISSUE:['error','Datos de mercado no fiables']};

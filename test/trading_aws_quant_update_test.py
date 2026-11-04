@@ -15,3 +15,10 @@ class QuantDeploymentTest(unittest.TestCase):
     def test_no_database_restore_or_old_binary_rollback(self):
         code=pathlib.Path(module.__file__).read_text();self.assertNotIn('copyfile(',code);self.assertNotIn('link.symlink_to(old',code)
         self.assertIn('quant=False',code)
+
+    def test_live_verification_requires_nonempty_auxiliary_frames(self):
+        data={str(tf):1793793600000 for tf in [1,5,15,30,60,240,1440]}
+        self.assertTrue(module.complete_frames(data))
+        for invalid in [None,False,0,'1793793600000']:
+            self.assertFalse(module.complete_frames({**data,'30':invalid}))
+        data.pop('30');self.assertFalse(module.complete_frames(data))

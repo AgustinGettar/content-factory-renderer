@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {closedBars} from '../lib/trading/multi-pattern-paper.js';
 import {D,hash} from '../lib/trading/core.js';
 import {newAccount} from '../lib/trading/simulator.js';
 import {enablePortfolio} from '../lib/trading/portfolio.js';
@@ -131,4 +132,13 @@ test('quant notices describe active clocks, leverage, limits and experimental ev
  assert.match(secondaryMessage({kind:'SECONDARY_TIMEFRAMES',payload:{version:QUANT_TIMEFRAMES_VERSION}}),/1 min, 5 min, 15 min/);
  assert.match(secondaryMessage({kind:'SECONDARY_RISK_POLICY',payload:{version:QUANT_RISK_VERSION}}),/1×, 2×, 3×, 5× o 10×/);
  assert.match(secondaryMessage({kind:'SECONDARY_QUANT',payload:{}}),/no demuestra rentabilidad/);
+});
+
+test('all operational and auxiliary intervals, including 30m, pass candle normalization',()=>{
+ for(const tf of [1,5,15,30,60,240,1440]){
+  const end=Math.floor(C/(tf*60000))*tf*60000;
+  const rows=bars(tf,{end}).map(x=>({...x,time:x.start}));
+  assert.equal(closedBars({candles:rows},tf,C).length,256);
+ }
+ assert.throws(()=>closedBars({candles:[]},2,C),/RESEARCH_CANDLES_INVALID/);
 });

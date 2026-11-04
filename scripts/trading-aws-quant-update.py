@@ -41,6 +41,8 @@ def candidate_env(original,quant=True):
     if any(after.get(k)!=v for k,v in current.items() if k not in FLAGS):
         raise RuntimeError('UNRELATED_CONFIGURATION_CHANGED')
     return result
+def complete_frames(data):
+    return all(type(data.get(str(tf))) is int and data[str(tf)]>0 for tf in [1,5,15,30,60,240,1440])
 def verify_live(previous_revision,timeout=180):
     deadline=time.monotonic()+timeout;last=None
     while time.monotonic()<deadline:
@@ -56,7 +58,8 @@ def verify_live(previous_revision,timeout=180):
                  and x.get('risk_budget',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_RISK_BUDGET']
                  and x.get('timeframe_execution',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_TIMEFRAMES']
                  and frames.get('1',{}).get('counts',{}).get('completed',0)>0
-                 and all(str(tf) in data for tf in [1,5,15,30,60,240,1440]))
+                 and complete_frames(data)
+                 and not any(x.get('market',{}).get('frame_errors',{}).values()))
         if healthy:return last
         time.sleep(3)
     raise RuntimeError('QUANT_LIVE_VERIFICATION_TIMEOUT')

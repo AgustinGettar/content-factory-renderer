@@ -1,3 +1,4 @@
+import {CONTEXT_VERSION,CONTEXT_PATTERN,CONTEXT_POLICY,CONTEXT_SPEC,installContextPullback,getContextProfile,detectContextPullback} from '../lib/trading/quant-context-pullback.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {closedBars} from '../lib/trading/multi-pattern-paper.js';
@@ -349,4 +350,62 @@ test('quant notifier rejects legacy traffic and expires stale signals without se
   const notifier=new SecondaryNotifier({store,env:{},quantOnly:()=>true,secondaryPending:()=>false,transport:{call:async()=>{calls++;throw Error('MUST_NOT_SEND');}},feed:{state:{}}});
   await notifier.drain();assert.equal(item.status,item.id==='legacy'?'REJECTED':'EXPIRED');assert.equal(calls,0);assert.equal((await store.queued()).length,0);
  }
+});
+
+function contextFixture(){
+ const bs=(tf,v,step)=>Array.from({length:256},(_,i)=>({start:C-(256-i)*tf*60000,end:C-(255-i)*tf*60000,open:v+i*step-.01,close:v+i*step,high:v+i*step+.03,low:v+i*step-.03,volume:10}));
+ const b=bs(1,100,.005),c=bs(5,100,.01);Object.assign(b.at(-2),{open:101.25,close:101.21,high:101.28,low:101.18});Object.assign(b.at(-1),{open:101.22,close:101.30,high:101.31,low:101.21});
+ const q=quote(T,101.30),options={timeframe:1,contextTimeframe:5,timeframeVersion:QUANT_TIMEFRAMES_VERSION,opportunities:true,contextual:true};
+ const candidates=(series={1:b,5:c},current=q)=>quantCandidates(series,current,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,options);
+ return {b,c,q,options,candidates,d:candidates().find(x=>x.pattern===CONTEXT_PATTERN)};
+}
+test('context pullback is explicitly PAPER enabled, additive, idempotent and independently disabled',()=>{
+ const h=fixture(),old=hash(QUANT_POLICY),before=structuredClone(h.root.frequency),env={...ENV,LUMI_TRADING_SECONDARY_OPPORTUNITIES:OPPORTUNITY_VERSION,LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK:CONTEXT_VERSION};
+ assert.throws(()=>installContextPullback(h.root,env,T),/OPPORTUNITIES_REQUIRED/);installOpportunities(h.root,env,T);
+ assert(installContextPullback(h.root,env,T));assert(!installContextPullback(h.root,env,T+1));assert.equal(Object.keys(QUANT_POLICY.strategies).length,9);assert.equal(hash(QUANT_POLICY),old);assert.deepEqual(h.root.frequency,before);
+ assert.throws(()=>installContextPullback(h.root,{...env,LUMI_TRADING_MODE:'REAL'},T),/PAPER_ONLY/);assert.throws(()=>installContextPullback(h.root,ENV,T),/FLAG_REQUIRED/);
+ h.root.secondaryExecution.quant.context_pullback.policy.min_relative_volume=0;assert.throws(()=>getContextProfile(h.root),/INTEGRITY/);h.root.secondaryExecution.quant.context_pullback.policy.min_relative_volume=CONTEXT_POLICY.min_relative_volume;
+ assert(installContextPullback(h.root,{...env,LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK:'OFF'},T));assert.equal(getContextProfile(h.root),null);
+});
+test('context pullback uses confirmed higher-frame target; legacy candidates remain unchanged',()=>{
+ const h=contextFixture(),all=h.candidates(),plan=h.d.plan;assert(plan);assert(validateQuantContract(plan));assert.equal(plan.context.targetTf,5);assert.equal(plan.quant_contract.context_pullback.target_source.price,plan.quant_contract.fibonacci.original_target);assert.equal(plan.execution_contract.mode,'TAKER_IOC');
+ const baseline=quantCandidates({1:h.b,5:h.c},h.q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{...h.options,contextual:false});assert.deepEqual(all.filter(x=>x.pattern!==CONTEXT_PATTERN),baseline);
+ assert.equal(plan.study.prediction.status,'UNAVAILABLE');assert.equal(plan.quant_contract.statistically_validated,false);
+});
+test('context pullback is symmetric, waits for actual reclaim, rejects opposing strong trend and missing volume',()=>{
+ const h=contextFixture(),features=series=>featureSnapshot(series,{timeframe:series===h.b?1:5,cutoff:C,now:T,quote:h.q}),f=features(h.b),c=features(h.c);
+ assert.equal(detectContextPullback(h.b,f,c).direction,'LONG');
+ const mirror=a=>a.map(x=>({...x,open:205-x.open,close:205-x.close,high:205-x.low,low:205-x.high})),b=mirror(h.b),cb=mirror(h.c),q=quote(T,205-101.31);
+ assert.equal(detectContextPullback(b,featureSnapshot(b,{timeframe:1,cutoff:C,now:T,quote:q}),featureSnapshot(cb,{timeframe:5,cutoff:C,now:T,quote:q})).direction,'SHORT');
+ assert.equal(detectContextPullback(h.b,{...f,relative_volume:.1},c).reason,'VOLUME_NOT_CONFIRMED');assert.equal(detectContextPullback(h.b,f,{...c,adx:10}).reason,'CONTEXT_TREND_NOT_CONFIRMED');
+ assert.equal(detectContextPullback(h.b,{...f,ema9:103,ema21:104,ema50:105,normalized_slope:-1,plus_di:5,minus_di:30,adx:40},c).reason,'CONTEXT_PULLBACK_OPPOSING_TREND');
+ const noReclaim=structuredClone(h.b);noReclaim.at(-1).close=noReclaim.at(-2).high;assert.equal(detectContextPullback(noReclaim,f,c).reason,'WAIT_CONTEXT_PULLBACK');
+ assert.equal(detectContextPullback(h.b,{...f,microstructure:{spread_bps:10}},c).reason,'LIQUIDITY_NOT_CONFIRMED');
+});
+test('a closer structural obstacle cannot be skipped to manufacture a viable target',()=>{
+ const h=contextFixture(),f=featureSnapshot(h.b,{timeframe:1,cutoff:C,now:T,quote:h.q}),c=featureSnapshot(h.c,{timeframe:5,cutoff:C,now:T,quote:h.q});
+ f.donchian.high=101.32;const d=detectContextPullback(h.b,f,c);assert.equal(d.target,101.32);assert.equal(d.target_source.timeframe,1);
+ const shortRoom=h.candidates({1:h.b,5:h.c},quote(T,102.56)).find(x=>x.pattern===CONTEXT_PATTERN);assert.equal(shortRoom.reason,'STRUCTURAL_TARGET_ALREADY_PASSED');assert.equal(shortRoom.facts.execution_comparison.reason,'IMMEDIATE_ECONOMICS_REJECTED');assert.equal(shortRoom.plan,undefined);
+ const wide=h.candidates({1:h.b,5:h.c},quote(T,101.60)).find(x=>x.pattern===CONTEXT_PATTERN);assert.equal(wide.reason,'QUANT_STOP_TOO_WIDE');assert.equal(wide.plan,undefined);
+});
+test('future context candles and unavailable closes cannot alter causal plans',()=>{
+ const h=contextFixture(),future={...h.c.at(-1),start:C,end:C+300000,high:900,close:800},all=h.candidates({1:h.b,5:[...h.c,future]});assert.deepEqual(all,h.candidates());
+ const unavailable=structuredClone(h.c);unavailable.at(-1).available_at=T+1;assert(h.candidates({1:h.b,5:unavailable}).every(x=>x.reason==='CONTEXT_NOT_SYNCHRONIZED'));
+});
+test('context contracts survive broker restart and reject forged future context or target even after rehash',()=>{
+ const h=fixture(),data=contextFixture(),d=data.d;assert(d.plan);const prepared=prepareRiskCandidates(h.root,[d],{quote:data.q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(h.b.choose(prepared.plan,data.q,META,T),'ENTRY_PENDING');
+ assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+1}));
+ h.time(T+1100);h.b.market(quote(T+1100,101.30),null,{[C]:0},T+1100);assert(h.b.a.positions[prepared.plan.id]);assert.doesNotThrow(()=>new SecondaryBroker({root:JSON.parse(JSON.stringify(h.root)),now:()=>T+1200}));
+ const original=prepared.plan,mutate=fn=>{const p=structuredClone(original);fn(p.quant_contract.context_pullback);p.quant_contract.context_pullback.hash=hash({...p.quant_contract.context_pullback,hash:undefined});p.quant_contract.context_features_hash=hash(p.quant_contract.context_pullback.context);p.quant_contract.hash=hash({...p.quant_contract,hash:undefined});return p;};
+ assert.throws(()=>validateQuantContract(mutate(c=>c.context.cutoff+=300000)),/CONTEXT_CONTRACT/);assert.throws(()=>validateQuantContract(mutate(c=>c.target_source.price+=100)),/CONTEXT_TARGET/);
+ const missing=structuredClone(original);delete missing.quant_contract.context_pullback;missing.quant_contract.hash=hash({...missing.quant_contract,hash:undefined});assert.throws(()=>validateQuantContract(missing),/QUANT_CONTRACT/);
+});
+
+test('enabled contextual decisions traverse independent clocks and expose a truthful selection funnel',()=>{
+ const h=fixture(),sample=contextFixture(),env={...ENV,LUMI_TRADING_SECONDARY_OPPORTUNITIES:OPPORTUNITY_VERSION,LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK:CONTEXT_VERSION};installOpportunities(h.root,env,T);installContextPullback(h.root,env,T);
+ h.runtime.series={...Object.fromEntries(QUANT_TIMEFRAMES_PROTOCOL.data_frames.map(tf=>[tf,bars(tf,{end:Math.floor(C/(tf*60000))*tf*60000})])),1:sample.b,5:sample.c};h.runtime.meta=META;h.runtime.quote=sample.q;h.runtime.rates={[C]:0};h.time(T);h.runtime.tick();
+ const profile=getSecondaryTimeframes(h.root);for(const tf of [1,5,15,60,240])assert.equal(profile.frames[tf].counts.completed,1);
+ assert.equal(profile.frames[1].decisions.CONTEXT_PULLBACK.reason,'ENTRY_PENDING');assert.equal(profile.frames[1].entry_funnel.selected_orders,1);assert.equal(profile.frames[1].entry_funnel.detected_patterns,2);assert.equal(profile.frames[60].decisions.CONTEXT_PULLBACK.reason,'STRATEGY_TIMEFRAME_NOT_ENABLED');assert(profile.frames[60].entry_funnel.enabled_patterns<10);
+ assert.equal(getContextProfile(h.root).counts.evaluations,3);assert.equal(getContextProfile(h.root).counts.selected,1);const counts=structuredClone(getContextProfile(h.root).counts);h.runtime.tick();assert.deepEqual(getContextProfile(h.root).counts,counts);assert.equal(h.root.secondaryExecution.quant.counts.errors,0);
+ const view=projectSecondaryActivity({revision:1,updated_at:new Date(T).toISOString(),lease_until:new Date(T+45000).toISOString()},h.root,T);assert(view.secondary_activity.frames[1].last_evaluation.pattern_decisions.some(d=>d.pattern===CONTEXT_PATTERN));
 });

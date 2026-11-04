@@ -1,84 +1,126 @@
-// Compact, read-only view model for the EXISTING private trading monitor.
-// No API writes, no trading controls, no inferred probability or PnL.
-const finite=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
-const num=v=>finite(v)?Number(v):null;
-const pick=(...vs)=>vs.find(v=>v!==undefined&&v!==null)??null;
-const tf=t=>({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h',1440:'1d'})[t]??(t?String(t)+'m':'—');
-const reasonNames={TIMEOUT:'Tiempo máximo',TIMEOUT_EXTENDED:'Tiempo extendido',
- STOP:'Stop loss',STRUCTURAL_TARGET:'Objetivo de precio',NET_TARGET:'Objetivo neto',
- TRAILING_RETRACEMENT:'Retroceso desde la ganancia máxima',
- TRAILING_STAGNATION:'Ganancia sin avance',MANUAL_PROFIT:'Ganancia tomada manualmente',
- MANUAL_CLOSE:'Cierre manual',CONTEXT_NOT_SYNCHRONIZED:'Esperando velas sincronizadas',
- FUTURES_DATA_NOT_FRESH:'Cotización no reciente',FUNDING_NOT_AVAILABLE:'Financiación no disponible',
- WAIT_BREAKOUT:'Esperando ruptura',WAIT_PULLBACK:'Esperando retroceso',
- WAIT_RANGE_REENTRY:'Esperando reentrada al rango',
- NO_CONFIRMED_5M_TREND:'Sin tendencia confirmada para scalping',
- WAIT_PULLBACK_CONFIRMATION:'Esperando confirmación del retroceso',
- NO_NET_ECONOMIC_ADVANTAGE:'Costes mayores que el margen útil',
- SPREAD_TOO_WIDE:'Spread demasiado amplio'};
-export const reasonText=v=>reasonNames[v]??(typeof v==='string'?v.replaceAll('_',' ').toLowerCase():'Sin evaluación');
-export function fmtUSD(v,{digits=2,signed=false}={}){
- if(!finite(v))return '—';
- const n=num(v),text=new Intl.NumberFormat('es-AR',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Math.abs(n));
- return (n<0?'−':signed&&n>0?'+':'')+'US$ '+text;
-}
-export function fmtDate(v){
- const t=typeof v==='number'?v:Date.parse(v??'');
- if(!Number.isFinite(t)||t<=0)return 'Sin registro';
- return new Intl.DateTimeFormat('es-AR',{timeZone:'Europe/Rome',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(t);
-}
-export function viewModel(snapshot,now=Date.now()){
- const raw=snapshot?.snapshot??snapshot?.data??snapshot;
- if(!raw||typeof raw!=='object')throw Error('MONITOR_SNAPSHOT_REQUIRED');
- if(!raw.secondary_finances&&!raw.frequency?.financial_summary)throw Error('SECONDARY_PAPER_PROJECTION_REQUIRED');
- const finance=raw.secondary_finances??raw.frequency?.financial_summary??{},
-  account=raw.frequency?.account??{},activity=raw.secondary_activity??{},
-  market=raw.frequency?.market??{},accountPositions=account.positions??[],
-  positions=Array.isArray(accountPositions)?accountPositions:Object.values(accountPositions);
- const positionViews=positions.filter(p=>p&&p.plan&&p.plan.instrument?.includes('PF_XBTUSD'))
+// Lumi Trading secondary PAPER - compact owner-private read-only projection.
+// Data source: existing same-origin GET /api/monitor/live; no trading actions.
+const numeric = x => (typeof x === 'number' && Number.isFinite(x)) ||
+  (typeof x === 'string' && x.trim() !== '' && Number.isFinite(Number(x)));
+const pick = (...xs) => xs.find(x => x !== null && x !== undefined) ?? null;
+const number = x => numeric(x) ? Number(x) : null;
+const eventTime = x => typeof x === 'string' && !numeric(x) ? Date.parse(x) || 0 : number(x) ?? 0;
+const tfName = x => ({5:'5m',15:'15m',60:'1h',240:'4h'})[Number(x)] ?? '—';
+const REASONS = {
+ NO_CONFIRMED_5M_TREND:'No hay tendencia confirmada en 5m',
+ MISSING_CONTEXT_REGIME:'Aún falta el contexto de 15m',
+ NO_NET_ECONOMIC_ADVANTAGE:'La oportunidad no cubre los costes',
+ SPREAD_TOO_WIDE:'El spread es demasiado alto',
+ WAIT_PULLBACK:'Esperando un retroceso', WAIT_PULLBACK_CONFIRMATION:'Esperando confirmación del retroceso',
+ WAIT_BREAKOUT:'Esperando una ruptura', WAIT_RANGE_REENTRY:'Esperando reentrada al rango',
+ CONTEXT_NOT_SYNCHRONIZED:'Las velas de contexto aún no están sincronizadas',
+ FUTURES_DATA_NOT_FRESH:'La cotización no está actualizada',
+ FUNDING_NOT_AVAILABLE:'Falta información de financiación',
+ TIMEOUT:'Tiempo máximo', STOP:'Stop loss', STRUCTURAL_TARGET:'Objetivo estructural',
+ NET_TARGET:'Objetivo neto', TRAILING_RETRACEMENT:'Retroceso de la ganancia',
+ MANUAL_PROFIT:'Cierre manual con ganancia', MANUAL_CLOSE:'Cierre manual',
+ PULLBACK_NOT_CONFIRMED:'El retroceso no está confirmado',
+ RESEARCH_OBSERVER_ERROR:'Observador experimental no disponible',
+ DATA_GAP:'Faltan cotizaciones suficientes'
+};
+const REGIMES = {
+ UPTREND:'Tendencia alcista', DOWNTREND:'Tendencia bajista',
+ RANGE:'Mercado lateral', HIGH_VOLATILITY:'Volatilidad alta',
+ VOLATILITY_COMPRESSION:'Volatilidad baja', BREAKOUT_EXPANSION:'Ruptura / expansión',
+ ILLIQUID:'Liquidez insuficiente', UNDETERMINED:'Indeterminado', UNKNOWN:'No disponible'
+};
+export const reasonText = (code, readable = null) => {
+ if(typeof readable === 'string' && readable.trim()) return readable.trim();
+ if(!code) return 'Sin evaluación registrada';
+ return REASONS[code] ?? String(code).replaceAll('_',' ').toLowerCase();
+};
+export const regimeText = x => REGIMES[x] ?? 'Sin clasificación';
+export const fmtUSD = (v,{signed=false}={}) => {
+ const n=number(v); if(n===null) return '—';
+ const digits=n===0||Math.abs(n)>=0.01?2:Math.abs(n)>=0.0001?4:6;
+ const abs=new Intl.NumberFormat('es-AR',{minimumFractionDigits:digits,maximumFractionDigits:digits}).format(Math.abs(n));
+ return (n<0?'−':signed&&n>0?'+':'')+'US$ '+abs;
+};
+export const fmtDate = v => {
+ const n=typeof v==='string'?Date.parse(v):v;
+ if(!Number.isFinite(n)||n<=0)return 'Sin registro';
+ return new Intl.DateTimeFormat('es-AR',{timeZone:'Europe/Rome',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(n);
+};
+export const escapeHTML = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export const quoteAge = (stamp,now) => numeric(stamp) ? now-Number(stamp):null;
+export function viewModel(payload, now=Date.now()) {
+ const d=payload?.snapshot??payload?.data??payload;
+ if(!d||typeof d!=='object')throw Error('MONITOR_RESPONSE_REQUIRED');
+ const fin=d.secondary_finances??d.frequency?.financial_summary;
+ if(!fin||fin.mode!=='PAPER'||fin.ledger!=='FREQUENT_PAPER')throw Error('SECONDARY_PAPER_SNAPSHOT_REQUIRED');
+ const account=d.frequency?.account??{},activity=d.secondary_activity??{},feed=d.feed??{};
+ const positions=Array.isArray(account.positions)?account.positions:Object.values(account.positions??{});
+ const pending=Array.isArray(account.pending_orders)?account.pending_orders:
+  Array.isArray(account.pendingOrders)?account.pendingOrders:Object.values(account.pendingOrders??{});
+ const resultPositions=positions.filter(p=>p?.plan&&String(p.plan.instrument??'')==='PF_XBTUSD')
   .map(p=>{
-   const exit=p.live_exit??{},prot=p.profit_protection??{},plan=p.plan??{};
-   const net=exit.funding_complete!==false&&exit.result_final!==false?pick(exit.net,p.realized_plus_remaining_net):null;
-   return {id:String(plan.id??''),timeframe:tf(plan.timeframe),side:plan.direction==='SHORT'?'SHORT':'LONG',
-    pattern:String(plan.recipe_title??plan.pattern??'Patrón no disponible').slice(0,110),
-    entry:pick(p.entry,plan.entry),qty:pick(p.open_qty,p.qty),
-    net:finite(net)?String(net):null,
-    stop:plan.stop??null,target:plan.target??null,
+   const plan=p.plan,exit=p.live_exit??{},protection=p.profit_protection??{};
+   const complete=exit.funding_complete!==false && exit.result_final!==false && numeric(exit.net);
+   return {
+    id:String(plan.id??''),side:['SHORT','LONG'].includes(plan.direction)?plan.direction:'UNKNOWN',timeframe:tfName(plan.timeframe),
+    pattern:String(p.plan.recipe_title??p.plan.pattern??'Patrón no registrado').slice(0,85),
+    net:complete?String(exit.net):null,entry:pick(p.entry,plan.entry),
+    stop:pick(plan.stop,plan.exit_policy?.stop),target:pick(plan.target,plan.exit_policy?.target),
     leverage:pick(p.leverage,plan.execution_contract?.leverage),
-    peak:pick(prot.peak_net,p.max_favourable),
-    floor:prot.trailing_activated_at!=null?prot.protected_net:null,
-    remainingRisk:pick(p.risk,p.remaining_risk),
-    liveQuoteAt:exit.quote_at??null,complete:exit.funding_complete!==false&&exit.result_final!==false,
-    blocker:p.execution_blocker??null,exitIntent:p.exit_intent?.reason??null
+    maxFavourable:pick(p.max_favourable,p.excursions?.max_favourable_net),
+    protectedFloor:pick(protection.protected_net,protection.floor_net),
+    quoteAt:pick(exit.quote_at,fin.quote_at),
+    exitReason:pick(p.exit_intent?.reason,p.execution_blocker)
    };
   });
- const frames=Object.entries(activity.frames??{}).filter(([key])=>['5','15','60','240'].includes(key))
-  .map(([key,v])=>({timeframe:tf(Number(key)),lastAt:pick(v.last_completed_at,v.last_evaluation?.at,v.last_evaluation_at),
-    status:v.last_status??null,reason:pick(v.last_result,v.blocker,v.last_evaluation?.reason),
-    shadow:key==='5'?v.scalping_shadow:null}));
- const list=Array.isArray(raw.operations)?raw.operations:[];
- const recent=list.filter(x=>x?.ledger==='FREQUENT_PAPER').slice(0,20).map(x=>({
-  id:String(x.id??''),status:x.status??'?',timeframe:tf(x.plan?.timeframe),
-  side:x.plan?.direction==='SHORT'?'SHORT':'LONG',
-  net:pick(x.exit?.pnl,x.live_position?.live_exit?.net),reason:x.exit?.reason??null,
-  at:pick(x.exit?.at,x.entry?.at,x.at)
- }));
- const asOf=pick(raw.generated_at,raw.sampled_at,raw.at,raw.feed?.sampled_at);
- const age=Number.isFinite(asOf)?now-asOf:null;
- const fresh=age!==null&&age>=0&&age<15000;
- const total=finance.net_result_final===true?finance.total_net:null;
- return {version:'lumi-trading-compact-view-1.0.0',readOnly:true,mode:'PAPER',
-  asOf,ageMs:age,fresh,revision:raw.revision??null,
-  metrics:{equity:pick(account.equity,finance.equity),realized:finance.realized_net??account.net,
-    unrealized:finance.unrealized_net??null,total,
-    totalFinal:finance.net_result_final===true,
-    costs:pick(finance.costs_recorded,account.fees),cash:pick(finance.available_cash,account.availableCash,account.cash)},
-  openCount:positionViews.length,pendingCount:Array.isArray(account.pending_orders)?account.pending_orders.length:
-    Array.isArray(account.pendingOrders)?account.pendingOrders.length:0,
-  positions:positionViews,frames,recent,
-  shadow:frames.find(f=>f.timeframe==='5m')?.shadow??null,
-  marketIssue:market.error??null,
-  status:!fresh?'DATA_STALE':market.error?'MARKET_ISSUE':'ACTIVE_PAPER'};
+ const times=['5','15','60','240'];
+ const frames=times.map(key=>{
+  const f=activity.frames?.[key]??{};
+  const evaluation=f.last_evaluation??null;
+  return {key,tf:tfName(key),lastAt:pick(f.last_completed_at,f.last_evaluation_at,evaluation?.at),
+   status:f.evaluation_status??null,stale:f.stale!==false,
+   reason:reasonText(pick(evaluation?.reason,f.reason,f.blocker),
+    pick(evaluation?.reason_text,f.reason_text)),
+   regime:regimeText(f.market_regime?.regime),
+   regimeCode:f.market_regime?.regime??null,
+   nextCandleAt:f.next_candle_close_at??null,
+   shadow:key==='5'?f.scalping_shadow??null:null};
+ });
+ const ops=Array.isArray(d.operations)?d.operations:[];
+ const recent=ops.filter(x=>x?.ledger==='FREQUENT_PAPER' && ['CLOSED','NOT_FILLED','OPEN','PENDING'].includes(x.status))
+  .sort((a,b)=>eventTime(pick(b.exit?.at,b.entry?.at,b.at,0))-eventTime(pick(a.exit?.at,a.entry?.at,a.at,0)))
+  .slice(0,18).map(o=>({
+   id:String(o.id??''),status:o.status,tf:tfName(o.plan?.timeframe),
+   side:['SHORT','LONG'].includes(o.plan?.direction)?o.plan.direction:'UNKNOWN',
+   // Never display unrealized PnL as a realized close.
+   recordedCloseNet:o.status==='CLOSED'&&numeric(o.exit?.pnl)?String(o.exit.pnl):null,
+   closeIsFinal:o.status==='CLOSED' && o.exit?.result_final===true,
+   reason:reasonText(o.exit?.reason),at:pick(o.exit?.at,o.entry?.at,o.at)
+  }));
+ const asOf=pick(d.generated_at,d.secondary_activity?.snapshot_at,d.feed?.sampled_at,d.at);
+ const age=quoteAge(asOf,now);
+ const process=activity.process??{};
+ const market=activity.market??{};
+ const snapshotFresh=age!==null&&age>=-1000&&age<15000;
+ const workerVerified=process.status==='RECENT_COMMIT_AND_LEASE';
+ const marketVerified=market.usable===true&&market.issue==null;
+ const status=!snapshotFresh?'STALE_SNAPSHOT':!workerVerified?'WORKER_UNVERIFIED':!marketVerified?'MARKET_ISSUE':'LIVE_PAPER';
+ const realized=fin.realized_net??null,unrealized=fin.unrealized_net??null;
+ return {
+  version:'lumi-trading-compact-v2',mode:'PAPER',readOnly:true,revision:d.revision??null,
+  asOf,ageMs:age,status,marketIssue:market.issue??null,
+  metrics:{equity:pick(fin.equity,account.equity),cash:pick(fin.available_cash,account.availableCash,account.cash),
+   realized:realized,realizedFinal:fin.realized_result_final===true,
+   unrealized:unrealized,unrealizedFinal:fin.valuation_quality==='CURRENT_ESTIMATE',
+   total:fin.net_result_final===true?fin.total_net:null,
+   costs:fin.costs_recorded??null,
+   uncertainHistory:fin.realized_net_includes_uncertain_history===true},
+  openCount:Math.max(resultPositions.length,number(activity.orders?.open_positions)??0),
+  pendingCount:Math.max(pending.length,number(activity.orders?.pending)??0),
+  positions:resultPositions,frames,recent,
+  shadow:frames[0]?.shadow??null,
+  shadowResearchOnly:true,
+  pendingDetails:pending.length,
+  processStatus:process.status??null
+ };
 }
-export const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export const timeframeLabel=tf;

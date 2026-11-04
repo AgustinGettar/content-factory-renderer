@@ -17,6 +17,8 @@ FLAGS={
  'LUMI_TRADING_SECONDARY_OPPORTUNITIES':'secondary-quant-opportunities-1.0.0',
 }
 ALLOWED={
+ 'lib/trading/sqlite-store.js','lib/trading/runtime-performance.js','lib/trading/engine.js',
+ 'test/trading-runtime-performance.test.js','test/trading-dashboard-backup.test.js',
  'lib/trading/dashboard-publisher.js','lib/trading/multi-pattern-paper.js','lib/trading/monitor-projection.js',
  'lib/trading/secondary-entry-economics.js','lib/trading/secondary-futures-engine.js',
  'lib/trading/secondary-futures-runtime.js','lib/trading/secondary-futures.js',

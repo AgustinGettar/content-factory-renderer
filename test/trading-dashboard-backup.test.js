@@ -44,6 +44,8 @@ test('remote size rejection stays precise, removes only temporary ciphertext and
  assert((await stat(h.local())).isFile());await assert.rejects(stat(h.local()+'.enc.tmp'),{code:'ENOENT'});
  h.now+=60000;await p.startBackup();assert.equal(h.copies,1);assert.equal(h.uploads.length,1);
  const restored=h.make();await restored.startBackup();assert.equal(h.uploads.length,1);
+ h.now=T+BACKUP_INTERVAL_MS;await restored.startBackup();assert.equal(h.copies,2);assert.equal(h.uploads.length,1);assert.equal(h.saved().backup_at,0);assert.equal(h.saved().backup_error,'BACKUP_SIZE_LIMIT');
+ h.now=T+24*BACKUP_INTERVAL_MS;await restored.startBackup();assert.equal(h.uploads.length,2);
 });
 
 test('a transient remote failure retries after five minutes without recopying and preserves snapshot revision',async t=>{

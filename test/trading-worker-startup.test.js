@@ -82,6 +82,7 @@ test('worker bootstrap still refuses a trading-key environment with v2',()=>{
 });
 
 for(const [key,version,code] of [
+ ['LUMI_TRADING_SECONDARY_EXECUTION_REPAIR','secondary-execution-repair-1.0.0','SECONDARY_EXECUTION_REPAIR_UNKNOWN'],
  ['LUMI_TRADING_SECONDARY_RISK_BUDGET','secondary-risk-budget-1.0.0','SECONDARY_RISK_BUDGET_UNKNOWN'],
  ['LUMI_TRADING_SECONDARY_TIMEFRAMES','secondary-timeframes-1.0.0','SECONDARY_TIMEFRAMES_UNKNOWN'],
 ]){

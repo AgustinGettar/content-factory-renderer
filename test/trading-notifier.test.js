@@ -16,3 +16,20 @@ function setup({ambiguous=false,expired=false,changed=false}={}){
 test('outbound adapter sends independent notice with receipt, Trading-only Mini App button and no menu/webhook edits, deduplicates',async()=>{const f=setup();await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'DELIVERED');assert.equal(f.notice.receipt.message_id,149);assert(f.notice.receipt.preflight_at<=f.notice.receipt.attempt_at);assert(f.notice.receipt.attempt_at<=f.notice.receipt.response_at);assert.equal(f.notice.receipt.read_confirmed,false);await new TradingNotifier(f.args).drain();const sends=f.calls.filter(x=>x.method==='sendMessage');assert.equal(sends.length,1);assert.deepEqual(sends[0].body.reply_markup,{inline_keyboard:[[{text:'Abrir Trading · gráfico y cuentas',web_app:{url:'https://lumi-trading-monitor.aguzz-gettar.chatgpt.site/'}}]]});assert.deepEqual(sends[0].body.link_preview_options,{is_disabled:true});assert(f.calls.every(x=>['getMe','sendMessage'].includes(x.method)));});
 test('ambiguous Telegram response remains UNKNOWN after a new notifier instance',async()=>{const f=setup({ambiguous:true});await new TradingNotifier(f.args).drain();await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'UNKNOWN');assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,1);});
 test('pre-send checks reject a passed trigger and an old decision',async()=>{for(const opts of [{changed:true},{expired:true}]){const f=setup(opts);await new TradingNotifier(f.args).drain();assert.equal(f.notice.status,'EXPIRED');assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,0);}});
+import {SecondaryNotifier} from '../lib/trading/secondary-futures-runtime.js';
+test('100 transient identity failures leave notices unclaimed and recover with exactly one send',async()=>{
+ for(const Class of [TradingNotifier,SecondaryNotifier]){
+  const f=setup(),transport=f.args.transport,normal=transport.call;let fail=true;
+  transport.call=async(method,body)=>{if(fail&&method==='getMe')throw Object.assign(Error('timeout'),{code:'TELEGRAM_DELIVERY_UNKNOWN'});return normal(method,body);};
+  const notifier=new Class(f.args);for(let i=0;i<100;i++)assert.deepEqual(await notifier.drain(),[]);
+  assert.equal(f.notice.status,'QUEUED');assert(notifier.identityUnavailable);assert.equal(f.calls.length,0);
+  fail=false;await notifier.drain();await notifier.drain();assert.equal(f.notice.status,'DELIVERED');assert.equal(f.calls.filter(x=>x.method==='sendMessage').length,1);assert.equal(notifier.identityUnavailable,null);
+ }
+});
+test('identity mismatch, unexpected errors and SQLite failures remain visible and cannot send',async()=>{
+ for(const Class of [TradingNotifier,SecondaryNotifier]){
+  const f=setup();f.args.transport.call=async()=>({is_bot:true,id:123,username:'wrong'});await assert.rejects(new Class(f.args).drain(),/TRADING_BOT_MISMATCH/);assert.equal(f.notice.status,'QUEUED');
+  f.args.transport.call=async()=>{throw Error('INTEGRITY_FAILURE');};await assert.rejects(new Class(f.args).drain(),/INTEGRITY_FAILURE/);
+  const g=setup();g.args.store.queued=async()=>{throw Error('SQLITE_BUSY');};await assert.rejects(new Class(g.args).drain(),/SQLITE_BUSY/);
+ }
+});

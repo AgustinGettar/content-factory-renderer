@@ -10,6 +10,7 @@ from pathlib import Path
 _spec=importlib.util.spec_from_file_location('lumi_deploy_base',Path(__file__).with_name('trading-aws-exploration-update.py'))
 base=importlib.util.module_from_spec(_spec);_spec.loader.exec_module(base)
 FLAGS={
+ 'LUMI_TRADING_SECONDARY_EXECUTION_REPAIR':'secondary-execution-repair-1.0.0',
  'LUMI_TRADING_SECONDARY_ACTIVE':'secondary-active-paper-1.0.0',
  'LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK':'secondary-context-pullback-1.0.0',
  'LUMI_TRADING_SECONDARY_PROFIT_POLICY':'secondary-profit-policy-2.0.0',
@@ -19,10 +20,11 @@ FLAGS={
  'LUMI_TRADING_SECONDARY_OPPORTUNITIES':'secondary-quant-opportunities-1.0.0',
 }
 ALLOWED={
+ 'lib/trading/notifier.js','lib/trading/telegram-transport.js','test/trading-notifier.test.js','test/trading-worker-startup.test.js',
  'lib/trading/sqlite-store.js','lib/trading/runtime-performance.js','lib/trading/engine.js',
  'test/trading-runtime-performance.test.js','test/trading-dashboard-backup.test.js',
  'lib/trading/dashboard-publisher.js','lib/trading/multi-pattern-paper.js','lib/trading/monitor-projection.js',
- 'lib/trading/secondary-entry-economics.js','lib/trading/secondary-futures-engine.js',
+ 'lib/trading/secondary-profit-protection.js','lib/trading/secondary-entry-economics.js','lib/trading/secondary-futures-engine.js',
  'lib/trading/secondary-futures-runtime.js','lib/trading/secondary-futures.js',
  'lib/trading/secondary-monitor-activity.js','lib/trading/secondary-profit-policy.js',
  'lib/trading/secondary-risk-budget.js','lib/trading/secondary-timeframes.js',
@@ -42,7 +44,7 @@ def candidate_env(original,quant=True):
         raise RuntimeError('EXISTING_PAPER_EXPLORATION_REQUIRED')
     if current.get('LUMI_TRADING_SECONDARY_CAPITAL_ALLOCATION')!=base.CAPITAL_ALLOCATION:
         raise RuntimeError('FINITE_CAPITAL_REQUIRED')
-    updates={**FLAGS,'LUMI_TRADING_SECONDARY_ACTIVE':FLAGS['LUMI_TRADING_SECONDARY_ACTIVE'] if quant else 'OFF','LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK':FLAGS['LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK'] if quant else 'OFF','LUMI_TRADING_SECONDARY_QUANT':FLAGS['LUMI_TRADING_SECONDARY_QUANT'] if quant else 'OFF','LUMI_TRADING_SECONDARY_OPPORTUNITIES':FLAGS['LUMI_TRADING_SECONDARY_OPPORTUNITIES'] if quant else 'OFF'}
+    updates={**FLAGS,'LUMI_TRADING_SECONDARY_EXECUTION_REPAIR':FLAGS['LUMI_TRADING_SECONDARY_EXECUTION_REPAIR'] if quant else 'OFF','LUMI_TRADING_SECONDARY_ACTIVE':FLAGS['LUMI_TRADING_SECONDARY_ACTIVE'] if quant else 'OFF','LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK':FLAGS['LUMI_TRADING_SECONDARY_CONTEXT_PULLBACK'] if quant else 'OFF','LUMI_TRADING_SECONDARY_QUANT':FLAGS['LUMI_TRADING_SECONDARY_QUANT'] if quant else 'OFF','LUMI_TRADING_SECONDARY_OPPORTUNITIES':FLAGS['LUMI_TRADING_SECONDARY_OPPORTUNITIES'] if quant else 'OFF'}
     lines=[line for line in original.splitlines() if line.split('=',1)[0].strip() not in updates]
     result='\n'.join(lines+[f'{k}={v}' for k,v in updates.items()])+'\n'
     after=base.read_env(result)
@@ -57,7 +59,7 @@ def verify_live(previous_revision,timeout=180):
         service=base.run(['systemctl','show',base.SERVICE,'--property=ActiveState,NRestarts,MainPID'])
         snapshot=base.snapshot();s=snapshot['state'];x=s['secondaryExecution'];q=x.get('market',{}).get('quote') or {};now=int(time.time()*1000)
         quant=x.get('quant') or {};frames=x.get('timeframe_execution',{}).get('frames',{})
-        last={'revision':snapshot['revision'],'service':service,'status':x['status'],'quote_age_ms':now-q.get('event_at',0),'quant_version':quant.get('version'),'quant_active':quant.get('active'),'quant_errors':quant.get('counts',{}).get('errors'),
+        last={'revision':snapshot['revision'],'service':service,'status':x['status'],'quote_age_ms':now-q.get('event_at',0),'quant_version':quant.get('version'),'quant_active':quant.get('active'),'quant_errors':quant.get('counts',{}).get('errors'),'execution_repair':quant.get('execution_repair',{}).get('version'),
               'equity':s['frequency']['account']['equity'],'positions':len(s['frequency']['account'].get('positions',{})),
               'timeframes':{k:{'last_cutoff':v.get('last_cutoff'),'completed':v.get('counts',{}).get('completed'),'status':v.get('last_status'),'blocker':v.get('blocker'),'quant_regime':v.get('quant_regime',{}).get('regime')} for k,v in frames.items()}}
         data=x.get('market',{}).get('closed_at',{})
@@ -67,6 +69,8 @@ def verify_live(previous_revision,timeout=180):
                  and x.get('timeframe_execution',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_TIMEFRAMES']
                  and quant.get('opportunities',{}).get('active') is True
                  and quant.get('opportunities',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_OPPORTUNITIES']
+                 and quant.get('execution_repair',{}).get('active') is True
+                 and quant.get('execution_repair',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_EXECUTION_REPAIR']
                  and quant.get('active_experiment',{}).get('active') is True
                  and quant.get('active_experiment',{}).get('version')==FLAGS['LUMI_TRADING_SECONDARY_ACTIVE']
                  and quant.get('context_pullback',{}).get('active') is True

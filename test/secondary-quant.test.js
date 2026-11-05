@@ -415,8 +415,8 @@ function activeFixture(){
  const h=fixture({version:ACTIVE_RISK_VERSION}),env={...ENV,LUMI_TRADING_SECONDARY_RISK_BUDGET:ACTIVE_RISK_VERSION,LUMI_TRADING_SECONDARY_OPPORTUNITIES:OPPORTUNITY_VERSION,LUMI_TRADING_SECONDARY_ACTIVE:ACTIVE_VERSION};
  installOpportunities(h.root,env,T);installActivePaper(h.root,env,T);return {...h,env};
 }
-function activePlan(h){const data=contextFixture(),d=quantCandidates({1:data.b,5:data.c},data.q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{...data.options,active:true}).find(d=>d.pattern===CONTEXT_PATTERN);
- const prepared=prepareRiskCandidates(h.root,[d],{quote:data.q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(prepared.capital_allocation_rejection,undefined);assert.equal(h.b.choose(prepared.plan,data.q,META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100,101.30),null,{[C]:0},T+1100);const p=h.b.a.positions[prepared.plan.id];assert(p);return p;}
+function activePlan(h,{size=1000}={}){const data=contextFixture(),d=quantCandidates({1:data.b,5:data.c},data.q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{...data.options,active:true}).find(d=>d.pattern===CONTEXT_PATTERN);
+ const prepared=prepareRiskCandidates(h.root,[d],{quote:data.q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(prepared.capital_allocation_rejection,undefined);assert.equal(h.b.choose(prepared.plan,data.q,META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100,101.30,size),null,{[C]:0},T+1100);const p=h.b.a.positions[prepared.plan.id];assert(p);return p;}
 test('active PAPER requires explicit flag and v3 risk without changing old policies or account',()=>{
  const h=activeFixture(),snapshot=structuredClone(h.root.frequency),policyHash=hash(QUANT_POLICY);assert(!installActivePaper(h.root,h.env,T));assert.equal(getActiveProfile(h.root).version,ACTIVE_VERSION);assert.equal(ACTIVE_RISK_POLICY.leg_risk_fraction,'0.01');assert.equal(ACTIVE_RISK_POLICY.movement_risk_fraction,'0.02');
  assert.throws(()=>installActivePaper(h.root,{...h.env,LUMI_TRADING_MODE:'REAL'},T),/PAPER_ONLY/);assert.throws(()=>installActivePaper(h.root,ENV,T),/FLAG_REQUIRED/);assert.deepEqual(h.root.frequency,snapshot);assert.equal(hash(QUANT_POLICY),policyHash);
@@ -493,4 +493,63 @@ test('active profile evaluates each independent clock once and exposes its own b
  h.runtime.series={...Object.fromEntries(QUANT_TIMEFRAMES_PROTOCOL.data_frames.map(tf=>[tf,bars(tf,{end:Math.floor(C/(tf*60000))*tf*60000})])),1:sample.b,5:sample.c};h.runtime.meta=META;h.runtime.quote=sample.q;h.runtime.rates={[C]:0};h.time(T);h.runtime.tick();
  const active=getActiveProfile(h.root);assert.equal(active.counts.evaluations,5);assert.equal(Object.keys(active.frames).length,5);assert(active.counts.detected>0);assert.equal(active.counts.selected,1);const counts=structuredClone(active.counts);h.runtime.tick();assert.deepEqual(active.counts,counts);assert.equal(h.root.secondaryExecution.quant.counts.errors,0);
  const p=Object.values(h.b.a.pendingOrders)[0].plan;assert(validateActiveContract(p));assert.equal(p.execution_contract.risk_budget.policy.version,ACTIVE_RISK_VERSION);
+});
+
+// Execution repair regressions: real quantities, durable amendments and causal exits.
+import {REPAIR_VERSION,installExecutionRepair,repairProfile,repaired,protectedFloor,scaleOutFeasibility,validateOrderAmendment,observeExecutionBuffer,repairExit} from '../lib/trading/quant-execution-repair.js';
+import {validateProfitProtection} from '../lib/trading/secondary-profit-protection.js';
+function repairFixture(){const h=activeFixture();installExecutionRepair(h.root,{...h.env,LUMI_TRADING_SECONDARY_EXECUTION_REPAIR:REPAIR_VERSION},T);return h;}
+function repairMaker(h){
+ const b=bars(),context=bars(5);for(const xs of [b,context])xs.forEach((x,i)=>{x.open=100;x.close=i%2?100.1:99.9;});
+ Object.assign(b.at(-2),{open:99.8,close:99.55,high:100,low:99.4});Object.assign(b.at(-1),{open:99.5,close:99.7,high:99.8,low:99.45});
+ const q=quote(T,99.7),candidate=quantCandidates({1:b,5:context},q,META,C,T,0,EXPLORATION_POLICY,EARLY_PROFIT_POLICY,{timeframe:1,contextTimeframe:5,timeframeVersion:QUANT_TIMEFRAMES_VERSION,opportunities:true,active:true}).find(x=>x.pattern==='RANGE_TRADING');
+ const d=prepareRiskCandidates(h.root,[candidate],{quote:q,meta:META,now:T,preflight:h.b.preflight.bind(h.b)}).ordered[0];assert.equal(h.b.choose(d.plan,q,META,T),'ENTRY_PENDING');h.time(T+1100);h.b.market(quote(T+1100,99.7),null,{[C]:0},T+1100);return h.b.a.pendingOrders[d.plan.id];
+}
+test('repair activation is PAPER-only, idempotent, preserves cash and OFF keeps signed positions readable',()=>{
+ const h=activeFixture(),before=structuredClone(h.root.frequency),env={...h.env,LUMI_TRADING_SECONDARY_EXECUTION_REPAIR:REPAIR_VERSION};
+ assert.throws(()=>installExecutionRepair(h.root,{...env,LUMI_TRADING_MODE:'REAL'},T),/PAPER_ONLY/);assert(installExecutionRepair(h.root,env,T));assert(!installExecutionRepair(h.root,env,T));assert.deepEqual(h.root.frequency,before);
+ const p=activePlan(h);assert(repaired(p.plan));installExecutionRepair(h.root,{...env,LUMI_TRADING_SECONDARY_EXECUTION_REPAIR:'OFF'},T+1200);assert.equal(repairProfile(h.root),null);assert(repaired(p.plan));assert.doesNotThrow(()=>new SecondaryBroker({root:structuredClone(h.root),now:()=>T+1200}));
+});
+test('maker tiny budget change trims lots, keeps affordable remainder and survives restart/tampering checks',()=>{
+ const h=repairFixture(),o=repairMaker(h),original=o.plan.sizing.qty,originalHash=o.plan.hash,at=T+2100,q=quote(at,99.38),price=D(o.plan.entry).plus('.0000001');
+ h.b.currentFundingRate=0;const qty=h.b.affordableFillQuantity(o,'.0001',price,q,at);assert(qty.eq('.0001'));assert(D(o.cancelled_qty).gt(0));assert(D(o.remaining_qty).gt(qty));assert.equal(o.cancel_unfunded_remainder,undefined);
+ assert(h.b.fillOrder(o,qty,price.toString(),q,at,{id:'repair-partial',at}));validateOrderAmendment(o);assert(D(o.filled_qty).plus(o.remaining_qty).plus(o.cancelled_qty).eq(original));assert.equal(o.plan.hash,originalHash);
+ assert(D(h.b.a.positions[o.plan.id].remaining_risk).plus(o.remaining_risk).lte(o.plan.execution_contract.risk_budget.receipt.risk_ceiling_usd));
+ const saved=structuredClone(h.root);assert.doesNotThrow(()=>new SecondaryBroker({root:saved,now:()=>at+1}));saved.frequency.account.pendingOrders[o.plan.id].cancelled_qty='0';assert.throws(()=>new SecondaryBroker({root:saved,now:()=>at+1}),/STATE_INTEGRITY|QUANTITY_INTEGRITY/);
+ h.b=new SecondaryBroker({root:structuredClone(h.root),now:()=>at+1000,event:e=>h.events.push(e)});h.b.currentFundingRate=0;const recovered=h.b.a.pendingOrders[o.plan.id],next=h.b.affordableFillQuantity(recovered,recovered.remaining_qty,price,quote(at+1000,99.38),at+1000);
+ assert(next.gt(0));assert(h.b.fillOrder(recovered,next,price.toString(),quote(at+1000,99.38),at+1000,{id:'repair-rest',at:at+1000}));assert.equal(h.b.a.pendingOrders[o.plan.id],undefined);assert(D(h.b.a.positions[o.plan.id].qty).plus(recovered.cancelled_qty).eq(original));
+ assert.equal(h.events.filter(e=>e.type==='ORDER_QUANTITY_REDUCED').length,1);assert.deepEqual(h.root.primary,{untouched:true});
+});
+test('amended maker order cancels only still-pending quantity and rejects a changed amendment seal',()=>{
+ const h=repairFixture(),o=repairMaker(h),at=T+2100;h.b.currentFundingRate=0;h.b.affordableFillQuantity(o,'.0001',D(o.plan.entry).plus('.0000001'),quote(at,99.38),at);
+ const corrupted=structuredClone(o);corrupted.amendment.cancelled_delta='999';assert.throws(()=>validateOrderAmendment(corrupted),/AMENDMENT_INTEGRITY/);
+ h.b.cancel(o.plan.id,'ORDER_EXPIRED',at+1000);const e=h.events.at(-1);assert.equal(e.cancelled_qty,o.plan.sizing.qty);assert.equal(h.b.a.positions[o.plan.id],undefined);assert.equal(h.b.a.cash,'1000');
+});
+test('single-lot fill gets a feasible full exit and size-scaled protection without changing old contracts',()=>{
+ const h=repairFixture(),p=activePlan(h),small=structuredClone(p);small.qty='.0001';small.closed_qty='0';delete small.scale_out;
+ const f=scaleOutFeasibility(small);assert.equal(f.mode,'FULL_EXIT_AT_TARGET_OR_PROTECTION');assert.equal(f.reason,'LOT_NOT_DIVISIBLE');assert(protectedFloor(small).lt('.05'));assert.equal(nextScaleOut(small,{net:'.5',funding_complete:true},T+2100),null);
+ assert.equal(repairExit(small,quote(T+2100,Number(small.plan.target)+.01),{net:'.001',funding_complete:true},T+2100),'EXECUTABLE_TARGET_FULL_EXIT');
+ assert.equal(repairExit(small,quote(T+2100,Number(small.plan.target)+.01),{net:'-.001',funding_complete:true},T+2100),null);
+ const legacy=activePlan(activeFixture());assert.equal(scaleOutFeasibility(legacy),null);assert.equal(protectedFloor(legacy).toString(),'0.05');
+});
+test('repaired full-size partial exits execute once, retain truthful accounting and restart protection',()=>{
+ const h=repairFixture(),p=activePlan(h),qty=p.qty;assert.equal(scaleOutFeasibility(p).mode,'PARTIALS_AND_TRAILING');
+ for(const [offset,price] of [[2100,101.8],[3200,101.8],[3300,102.1],[4400,102.1]])h.b.market(quote(T+offset,price),null,{[C]:0},T+offset);
+ assert.equal(p.scale_out.stages.filter(r=>r.status==='FILLED').length,2);validateProfitProtection(p);assert.doesNotThrow(()=>new SecondaryBroker({root:structuredClone(h.root),now:()=>T+4500}));
+ h.b.close(p,quote(T+5500,102.1),T+5500,'MANUAL_CLOSE');h.b.close(p,quote(T+6600,102.1),T+6600,'MANUAL_CLOSE');const exits=h.events.filter(e=>['PARTIAL_CLOSE','CLOSED'].includes(e.type));
+ assert.equal(exits.at(-1).qty,qty);assert.equal(h.b.a.closed,1);assert(D(h.b.a.cash).minus(1000).minus(h.b.a.net).abs().lt('1e-12'));
+});
+test('latency buffer is causal, bounded, direction-aware and resets after missing data',()=>{
+ for(const direction of ['LONG','SHORT']){const h=repairFixture(),p=activePlan(h);p.plan.direction=direction;const sign=direction==='LONG'?1:-1;
+  for(let i=0;i<14;i++)observeExecutionBuffer(p,quote(T+1200+i*1000,101.5-sign*i*.01),T+1200+i*1000);
+  assert(p.execution_buffer.samples>=8);assert(p.execution_buffer.adverse);assert(Number(p.execution_buffer.buffer_per_btc)>0);
+  const snapshot=structuredClone(p.execution_buffer);observeExecutionBuffer(p,quote(T+100000),T+20000);assert.deepEqual(p.execution_buffer,snapshot);
+  p.profit_protection={trailing_activated_at:T+1000,peak_net:'1',protected_net:'.75'};const q=quote(snapshot.at,101.4);assert.equal(repairExit(p,q,{net:'.750000001',funding_complete:true},snapshot.at),'EXECUTION_BUFFER_PROTECTION');assert(D(p.execution_buffer.trigger_net).lte(1));
+  assert.equal(repairExit(p,q,{net:'.75',funding_complete:false},snapshot.at),null);observeExecutionBuffer(p,quote(snapshot.at+6000),snapshot.at+6000);assert.equal(p.execution_buffer.samples,0);
+ }
+});
+test('actual one-lot taker fill reaches full target through latency and persists scaled protection',()=>{
+ const h=repairFixture(),p=activePlan(h,{size:.001}),at=T+2100;assert.equal(p.qty,'0.0001');const original=p.qty;
+ h.b.market(quote(at,Number(p.plan.target)+.01),null,{[C]:0},at);assert.equal(p.exit_intent.reason,'EXECUTABLE_TARGET_FULL_EXIT');assert.equal(h.b.a.closed,0);validateProfitProtection(p);
+ const root=structuredClone(h.root),b=new SecondaryBroker({root,now:()=>at+1100});b.market(quote(at+1100,Number(p.plan.target)+.01),null,{[C]:0},at+1100);assert.equal(b.a.closed,1);assert(D(b.a.net).gt(0));assert(!b.a.positions[p.plan.id]);assert.equal(p.qty,original);
 });

@@ -50,7 +50,7 @@ class Collector(unittest.TestCase):
  def test_no_unknown_nested_fields_exported(self):
   self.state['frequency']['account']['positions']={'x':{'plan':{'id':'x','timeframe':15},'realized':{'net':'1','secret':'do-not-export'}}};self.save();self.assertNotIn('do-not-export',json.dumps(self.read()))
  def test_deadline_preserves_unknown_instead_of_fabricating_zero(self):
-  
+
   for i in range(150):self.event('CLOSED',{'ledger':'FREQUENT_PAPER','timeframe':15,'pnl':'1'},str(i))
   out=self.read(deadline_seconds=-1);self.assertFalse(out['consistent_read_transaction']);self.assertIn('error',out)
  def test_wrong_index_definition_refuses_scan(self):

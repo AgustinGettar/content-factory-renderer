@@ -5,7 +5,7 @@
   "git_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
   "recovered_source_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
   "source_file_count": 34,
-  "listed_source_tree_sha256": "a1928ae4cd5e6ae9fc695fd55a8d653bdd44f1a764edf55c516f460256f47c4a",
+  "listed_source_tree_sha256": "db74343d0c379d5c0587d0da56d43e60aecf35d15a44c69f7d55e89cf50c387d",
   "tree_hash_definition": "SHA256 of UTF8 JSON files array with sort_keys=true and separators comma/colon",
   "files": [
     {
@@ -227,10 +227,11 @@
     },
     {
       "path": "test/lumi-stage0-collector.test.py",
-      "bytes": 12719,
-      "sha256": "15ef93a36fa0d45607870f8122ca9545426fa0ea1b2c680897f38fd41ba386db",
+      "bytes": 12717,
+      "sha256": "db81e528e110ccca7f52a03d9f2bcbe6bfc5fa508afbc55af37484ef6bcad76b",
       "component": "tests",
-      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
+      "normalization": "Trailing whitespace on empty line only, no executable change"
     },
     {
       "path": "test/secondary-notification-policy.test.js",
@@ -249,8 +250,8 @@
   ],
   "generated_document": {
     "path": "docs/trading/implementation/PUBLIC-CHECKPOINT.md",
-    "bytes": 7613,
-    "sha256": "26e86b4588b1adf581dcde087dcafff277cd77be6fe49da1062828bace8fe48b"
+    "bytes": 7829,
+    "sha256": "aaaa852f62879647cfb78fe967ae4c95556ba94dcf272cf5386e87925a2edddc"
   },
   "complete_runtime_graph": false,
   "standalone_deployment_package": false,

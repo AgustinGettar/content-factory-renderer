@@ -3,7 +3,7 @@
 Fecha: 2026-11-13. Rama de conservación: `checkpoint/lumi-plan-v1.1-2026-11-13`.
 Base Git preservada: `9f8648abe12cb3457814bae9074d8e666fd56cba`.
 Origen de los 34 archivos recuperados: `cdfd04b8a2e9eea7e8d32df1d35c2ef217518595`.
-Cada archivo recuperado coincide byte por byte con ese origen; el manifiesto adjunto contiene SHA-256 y tamaño.
+Los 34 archivos proceden de ese origen; en el test Python se retiró un espacio final de una línea vacía, sin cambiar lógica; el manifiesto adjunto contiene SHA-256 y tamaño.
 
 Este checkpoint conserva código revisable sobre la base del repositorio. **No es un paquete autónomo de despliegue ni una instrucción para reemplazar el worker con toda esta rama.** No contiene las auditorías privadas, snapshots operativos, saldos, historial de posiciones, cookies, credenciales ni archivos de configuración de producción. Las referencias históricas del colector son identificadores de destino, no evidencia de versión activa.
 
@@ -33,7 +33,7 @@ python3 -B test/lumi-stage0-collector.test.py
 
 - Tres suites Node: **40 aprobadas, 0 fallidas, 0 omitidas**, salida 0.
 - Colector Python: **24 aprobadas, 0 fallidas, 0 omitidas**, salida 0.
-- `git diff --check`: salida 0.
+- `git diff --cached --check`: el primer inventario completo detectó un espacio final en una línea vacía del test Python; se retiró. Comprobación del candidato final: salida 0.
 
 Los datos económicos son fixtures sintéticos; se usan SQLite temporal y transporte simulado. Las pruebas no contactan AWS, el Site publicado ni Telegram. La advertencia `DASHBOARD_LIVE_PAYLOAD_LIMIT` es el fallo esperado que comprueba el caso de crecimiento no compactable: no acredita un error observado en producción.
 

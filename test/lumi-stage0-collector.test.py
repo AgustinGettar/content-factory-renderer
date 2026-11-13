@@ -150,4 +150,111 @@ class Collector(unittest.TestCase):
   run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,0,'x'*131073,'')
   out=self.run_remote_with_journal(run);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(out['journal_queries'][0]['status'],'OUTPUT_SIZE_LIMIT');self.assertEqual(out['journal'],[])
 
+ def test_capacity_scalar_read_excludes_state_events_and_private_metadata(self):
+  self.db.execute('CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT)')
+  self.db.execute('INSERT INTO metadata VALUES(?,?)',('dashboard',json.dumps({'backup_at':END-4000,'local_backup_at':END-3000,'local_backup_slot':2,'next_backup_attempt_at':END+1000,'site_backup_retry_at':END+5000,'backup_error':'BACKUP_STORAGE_SPACE_LOW','private':'HIDDEN_METADATA'})));self.db.commit()
+  self.state['secret']='HIDDEN_STATE';self.save();self.event('CLOSED',{'secret':'HIDDEN_EVENT'})
+  before=self.path.read_bytes();statements=[];original=m.sqlite3.connect
+  def connect(*args,**kwargs):
+   db=original(*args,**kwargs)
+   def authorize(action,a,b,c,d):
+    if action==sqlite3.SQLITE_READ and (a=='events' or (a=='state' and b=='state')):return sqlite3.SQLITE_DENY
+    return sqlite3.SQLITE_OK
+   db.set_authorizer(authorize);db.set_trace_callback(statements.append);return db
+  with mock.patch.object(m.sqlite3,'connect',side_effect=connect):out=m.read_capacity_db(self.path)
+  self.assertEqual(out['status'],'READ');self.assertTrue(out['consistent_read_transaction']);self.assertEqual(out['checkpoint']['revision'],90);self.assertEqual(before,self.path.read_bytes())
+  self.assertEqual(out['dashboard_publisher']['fields']['local_backup_slot'],2);self.assertEqual(out['dashboard_publisher']['fields']['backup_at'],END-4000);self.assertNotIn('HIDDEN',json.dumps(out));self.assertIn('PRAGMA query_only=ON',statements);self.assertFalse(any('integrity_check' in q.lower() or 'vacuum' in q.lower() or 'checkpoint' in q.lower() for q in statements))
+ def test_capacity_invalid_backup_metadata_is_unknown_not_zero(self):
+  self.db.execute('CREATE TABLE metadata(key TEXT PRIMARY KEY,value TEXT)');self.db.execute('INSERT INTO metadata VALUES(?,?)',('dashboard',json.dumps({'backup_at':True,'local_backup_slot':3,'local_backup_at':-1})));self.db.commit()
+  d=m.read_capacity_db(self.path)['dashboard_publisher'];self.assertEqual(d['status'],'AVAILABLE_WITH_INVALID_FIELDS');self.assertIsNone(d['fields']['local_backup_slot']);self.assertIsNone(d['fields']['backup_at']);self.assertIsNone(d['fields']['local_backup_at'])
+ def test_capacity_snapshot_read_immutable_creates_no_files(self):
+  before={p.name:p.read_bytes() for p in Path(self.temp.name).iterdir()};out=m.read_capacity_db(self.path,snapshot=True)
+  self.assertEqual(out['status'],'READ');self.assertTrue(out['same_file_after_read']);self.assertEqual(out['checkpoint']['revision'],90);self.assertEqual(before,{p.name:p.read_bytes() for p in Path(self.temp.name).iterdir()});self.assertNotIn('dashboard_publisher',out)
+ def test_capacity_snapshot_with_sidecar_refuses_incomplete_copy(self):
+  Path(str(self.path)+'-wal').write_bytes(b'SYNTHETIC_WAL')
+  with mock.patch.object(m.sqlite3,'connect',side_effect=AssertionError('must not open')):out=m.read_capacity_db(self.path,snapshot=True)
+  self.assertEqual(out['status'],'SNAPSHOT_SIDECAR_PRESENT_OR_UNREADABLE');self.assertFalse(out['consistent_read_transaction']);self.assertNotIn('SYNTHETIC_WAL',json.dumps(out))
+ def test_capacity_snapshot_rotation_is_not_certified(self):
+  original=m.file_stat;calls=0
+  def changed(path):
+   nonlocal calls
+   r=original(path)
+   if Path(path)==self.path:
+    calls+=1
+    if calls>1:r={**r,'inode':r['inode']+1}
+   return r
+  with mock.patch.object(m,'file_stat',side_effect=changed):out=m.read_capacity_db(self.path,snapshot=True)
+  self.assertEqual(out['status'],'SNAPSHOT_CHANGED_DURING_READ');self.assertFalse(out['consistent_read_transaction'])
+ def test_capacity_inventory_bound_symlink_and_unknown_name(self):
+  directory=Path(self.temp.name)/'inventory';directory.mkdir()
+  for i in range(42):(directory/format(i,'040x')).mkdir()
+  out=m.bounded_inventory(directory);self.assertEqual(out['status'],'ENTRY_LIMIT');self.assertEqual(len(out['entries']),40);self.assertFalse(out['complete'])
+  secret=Path(self.temp.name)/'SYNTHETIC_SECRET';secret.write_text('PRIVATE_CONTENT')
+  alias=Path(self.temp.name)/'alias';alias.symlink_to(secret)
+  self.assertEqual(m.file_stat(alias)['kind'],'symlink');self.assertEqual(m.read_capacity_db(alias)['status'],'NOT_A_REGULAR_FILE')
+  small=m.bounded_inventory(self.temp.name);self.assertNotIn('SYNTHETIC_SECRET',json.dumps(small));self.assertNotIn('PRIVATE_CONTENT',json.dumps(small))
+ def test_capacity_sql_failure_and_missing_file_remain_explicit(self):
+  missing=m.read_capacity_db(Path(self.temp.name)/'missing.sqlite');self.assertFalse(missing['consistent_read_transaction']);self.assertEqual(missing['file_before']['status'],'ABSENT')
+  invalid=Path(self.temp.name)/'invalid.sqlite';invalid.write_bytes(b'not sqlite PRIVATE_SECRET')
+  out=m.read_capacity_db(invalid);self.assertEqual(out['status'],'READ_FAILED');self.assertFalse(out['consistent_read_transaction']);self.assertNotIn('PRIVATE_SECRET',json.dumps(out))
+ def test_capacity_recovery_journal_safe_fields_and_return_one(self):
+  def run(args,**kwargs):return m.subprocess.CompletedProcess(args,1,'','')
+  out=m.recovery_journal(run=run);self.assertEqual(out['status'],'NONZERO_EXIT');self.assertEqual(out['return_code'],1);self.assertEqual(out['records'],[])
+  row={'_SYSTEMD_UNIT':m.RECOVERY_SERVICE,'__REALTIME_TIMESTAMP':'1794566191296493','MESSAGE':json.dumps({'status':'FAIL','phase':'STORAGE_SPACE_PREFLIGHT','error':'BACKUP_STORAGE_SPACE_LOW','error_code':'SECRET_CODE','private':'PRIVATE_LOG'})}
+  out=m.recovery_journal(run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,0,json.dumps(row),''));self.assertEqual(out['status'],'READ');self.assertEqual(out['records'][0]['error'],'BACKUP_STORAGE_SPACE_LOW');self.assertNotIn('PRIVATE_LOG',json.dumps(out));self.assertNotIn('SECRET_CODE',json.dumps(out))
+ def test_capacity_recovery_journal_wrong_service_invalid_and_oversized(self):
+  row={'_SYSTEMD_UNIT':'other.service','MESSAGE':json.dumps({'status':'RESTORE_VERIFIED'})}
+  out=m.recovery_journal(run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,0,json.dumps(row)+'\nnotjson',''))
+  self.assertEqual(out['status'],'INVALID_OR_PARTIAL_ROWS');self.assertEqual(out['invalid_rows'],2);self.assertEqual(out['records'],[])
+  out=m.recovery_journal(run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,0,'x'*65537,''));self.assertEqual(out['status'],'OUTPUT_LIMIT_OR_TYPE')
+ def test_capacity_probe_timeout_is_gap_without_secret_text(self):
+  def run(args,**kwargs):raise m.subprocess.TimeoutExpired(args,4,stderr='PRIVATE_TOKEN')
+  out=m.recovery_journal(run=run);self.assertEqual(out['status'],'TIMEOUT');self.assertNotIn('PRIVATE_TOKEN',json.dumps(out))
+ def test_capacity_host_orchestration_no_full_ledger_read_or_mutations(self):
+  backups=Path(self.temp.name)/'backups';backups.mkdir();(backups/'daily-0.sqlite').write_bytes(self.path.read_bytes())
+  calls=[]
+  def run(args,**kwargs):
+   calls.append(args)
+   if args[:2]==['journalctl','--disk-usage']:return m.subprocess.CompletedProcess(args,0,'Archived and active journals take up 4.0M in the file system.','')
+   if args[0]=='systemctl':return m.subprocess.CompletedProcess(args,0,'LoadState=loaded\nActiveState=inactive\nSubState=dead\nResult=exit-code\nExecMainStatus=1','')
+   return m.subprocess.CompletedProcess(args,1,'','')
+  original=m.bounded_inventory
+  def inventory(path,**kwargs):return {'status':'READ','entries':[],'complete':True} if str(path)=='/var/log' else original(path,**kwargs)
+  with mock.patch.object(m,'read_db',side_effect=AssertionError('no full ledger')),mock.patch.object(m,'bounded_inventory',side_effect=inventory):out=m.collect_capacity_diagnostics({},42,'test',db_path=self.path,releases=self.temp.name,run=run)
+  self.assertTrue(out['capacity']['database']['consistent_read_transaction']);self.assertEqual(out['capacity']['backup_files']['daily-0.sqlite']['scalar_read']['checkpoint']['revision'],90);self.assertEqual(out['capacity']['recovery_journal']['status'],'NONZERO_EXIT');self.assertEqual(out['capacity']['journal_disk_usage']['reported_size'],'4.0M');self.assertEqual(out['capacity']['journal_disk_usage']['status'],'READ');self.assertEqual(out['diagnostic_status'],'DEGRADED');self.assertEqual(len(calls),4);self.assertTrue(all(a[0] in ('journalctl','systemctl') for a in calls));self.assertTrue(all(a[1]=='show' for a in calls if a[0]=='systemctl'));self.assertNotIn('PRIVATE',json.dumps(out))
+ def test_capacity_remote_mode_keeps_final_pid_check_and_receipt(self):
+  def identity(out):out['process']={'pid':42};return 42,'test'
+  def collect(out,pid,invocation):out.update(capacity={'database':{'consistent_read_transaction':True}},collection_warnings=[])
+  stream=io.StringIO()
+  with mock.patch.object(m,'collect_runtime_identity',side_effect=identity),mock.patch.object(m,'collect_capacity_diagnostics',side_effect=collect),mock.patch.object(m,'collect_runtime_diagnostics',side_effect=AssertionError('no historical read')),mock.patch.object(m,'command',return_value='MainPID=42\nInvocationID=test') as command,contextlib.redirect_stdout(stream):m.remote(capacity=True)
+  _,digest,blob=stream.getvalue().strip().split(' ',2);raw=zlib.decompress(base64.b64decode(blob));self.assertEqual(m.sha(raw),digest);out=json.loads(raw)
+  command.assert_called_once_with(['systemctl','show',m.SERVICE,'--property=MainPID,InvocationID']);self.assertEqual(out['mode'],'CAPACITY');self.assertTrue(out['same_process_after_read']);self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_DECLARED_LIMITS')
+ def test_capacity_heads_exact_known_objects_expected_owner_no_download_or_write(self):
+  calls=[]
+  def reader(*args):calls.append(args);return {'bytes':1000,'revision':'123','source_size':'5000','source_mtime_ms':str(END),'sha256':'a'*64,'modified_at':'2026-11-13T10:00:00+00:00','secret':'PRIVATE_HEAD'}
+  rows=m.recovery_heads(reader=reader);self.assertEqual(len(calls),3);self.assertEqual([r['fields']['revision'] for r in rows],[123]*3);self.assertNotIn('PRIVATE_HEAD',json.dumps(rows));self.assertTrue(all(a[:2]==('s3api','head-object') and '--expected-bucket-owner' in a and m.ACCOUNT in a for a in calls));self.assertEqual([a[a.index('--key')+1] for a in calls],['recovery/daily-0.lumi-gcm','recovery/daily-1.lumi-gcm','recovery/daily-2.lumi-gcm'])
+ def test_capacity_head_denial_and_untrusted_metadata_remain_unknown(self):
+  def denied(*args):raise RuntimeError('AWS_s3api_head-object: AccessDenied')
+  rows=m.recovery_heads(reader=denied);self.assertTrue(all(r['status']=='READ_FAILED' and r['error_code']=='AccessDenied' for r in rows))
+  rows=m.recovery_heads(reader=lambda *args:{'bytes':True,'revision':'PRIVATE_DATA','sha256':'PRIVATE_HASH','modified_at':'PRIVATE_DATE'});self.assertTrue(all(v is None for v in rows[0]['fields'].values()));self.assertNotIn('PRIVATE',json.dumps(rows))
+ def test_capacity_helper_digest_descriptor_no_symlink_and_size_bound(self):
+  source=Path(self.temp.name)/'synthetic.mjs';source.write_bytes(b'export const marker = 1;')
+  out=m.bounded_source_digest(source);self.assertEqual(out['status'],'READ');self.assertEqual(out['sha256'],m.sha(source.read_bytes()));self.assertEqual(out['bytes_read'],source.stat().st_size)
+  link=Path(self.temp.name)/'linked.mjs';link.symlink_to(source)
+  out=m.bounded_source_digest(link);self.assertEqual(out['status'],'READ_FAILED');self.assertEqual(out['os_code'],'ELOOP');self.assertNotIn('sha256',out)
+  self.assertEqual(m.bounded_source_digest(source,limit=2)['status'],'SOURCE_SIZE_LIMIT')
+ def test_capacity_helper_growth_is_bounded_and_not_certified(self):
+  source=Path(self.temp.name)/'synthetic.mjs';source.write_bytes(b'x');read=m.os.read;grown=False
+  def grow(fd,n):
+   nonlocal grown
+   if not grown:source.write_bytes(b'PRIVATE_CONTENT'*100);grown=True
+   return read(fd,n)
+  with mock.patch.object(m.os,'read',side_effect=grow):out=m.bounded_source_digest(source,limit=32)
+  self.assertEqual(out['status'],'SOURCE_SIZE_LIMIT');self.assertNotIn('sha256',out);self.assertNotIn('PRIVATE_CONTENT',json.dumps(out))
+ def test_capacity_missing_recovery_unit_is_a_visible_gap(self):
+  def run(args,**kwargs):
+   return m.subprocess.CompletedProcess(args,0,'LoadState=not-found\nActiveState=inactive\nSubState=dead','') if args[0]=='systemctl' else m.subprocess.CompletedProcess(args,1,'','')
+  with mock.patch.object(m,'bounded_inventory',return_value={'status':'READ','entries':[],'complete':True}),mock.patch.object(m,'bounded_source_digest',return_value={'status':'READ','sha256':'a'*64}):out=m.collect_capacity_diagnostics({},42,'test',db_path=self.path,releases=self.temp.name,run=run)
+  self.assertTrue(out['capacity']['database']['consistent_read_transaction']);self.assertEqual(out['capacity']['recovery_units'][m.RECOVERY_SERVICE]['status'],'UNIT_NOT_LOADED_OR_UNKNOWN');self.assertTrue(any(v['section']==m.RECOVERY_SERVICE and v['code']=='UNIT_NOT_LOADED_OR_UNKNOWN' for v in out['collection_warnings']))
+
 if __name__=='__main__':unittest.main(verbosity=2)

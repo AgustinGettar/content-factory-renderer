@@ -5,7 +5,7 @@
   "git_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
   "recovered_source_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
   "source_file_count": 34,
-  "listed_source_tree_sha256": "420df8da58873f6abb6e1d284226ac66665cfc39493c005ec9bc098fb66b978a",
+  "listed_source_tree_sha256": "281f76f38365b8babf843f3f8181c10c18973297b6fe4d042afea5b7636d4cbb",
   "tree_hash_definition": "SHA256 of UTF8 JSON files array with sort_keys=true and separators comma/colon",
   "files": [
     {
@@ -59,10 +59,10 @@
     },
     {
       "path": "docs/trading/implementation/stage0/lumi_etapa0.py",
-      "bytes": 34882,
-      "sha256": "45071d72f113d8267731a2c7beffc192434618ce6f3e53b5b9cd54004be94650",
+      "bytes": 52123,
+      "sha256": "83336b9d9b7019b6eee79b5537157c9107ad23cd8e119631c25fc8078aad9f23",
       "component": "readonly_tool",
-      "origin_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0"
+      "origin_commit": "e0839ead40a0a3ab94be144dc5b09abfd3774112"
     },
     {
       "path": "lib/trading/dashboard-publisher.js",
@@ -227,10 +227,10 @@
     },
     {
       "path": "test/lumi-stage0-collector.test.py",
-      "bytes": 20312,
-      "sha256": "2bc0ab61d057eee8c787f468edfaa3564d043c9f64e148d48bd56131858a2724",
+      "bytes": 33174,
+      "sha256": "97c4f1732568d3994f8f1ea4e4a55f69f5b73da5af344d301606c5db2eb0b263",
       "component": "tests",
-      "origin_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0"
+      "origin_commit": "e0839ead40a0a3ab94be144dc5b09abfd3774112"
     },
     {
       "path": "test/secondary-notification-policy.test.js",
@@ -302,5 +302,29 @@
     "source_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0",
     "remote_attempt_with_new_collector": false,
     "raw_aws_receipt_included": false
+  },
+  "collector_capacity_followup": {
+    "source_commit": "e0839ead40a0a3ab94be144dc5b09abfd3774112",
+    "version": "lumi-stage0-readonly-1.0.2",
+    "command": "python3 lumi_etapa0.py --capacity",
+    "local_tests": {
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "scope": "34 previous plus17capacity; synthetic SQL and mocked system/AWS; tested on exact copied hashes in private integration worktree"
+    },
+    "executed_on_aws": false,
+    "source_sha256": "83336b9d9b7019b6eee79b5537157c9107ad23cd8e119631c25fc8078aad9f23",
+    "scope": "Bounded metadata only, no state/history export; three known-object HEADs; no backup execution, copy, cleanup or service mutation"
+  },
+  "next_minimal_candidate": {
+    "branch": "fix/lumi-monitor-notices-identity-2026-11-13",
+    "source_commit": "d2baf52fec259bd678e28205633b0c5a082f53ee",
+    "delivery_commit": "c99aa487b02163c6832532ebb9ae11c43e86ec2e",
+    "runtime_files": 5,
+    "generated_manifests": 1,
+    "deployed": false,
+    "activation_gates": "Capacity and isolated recovery remain unverified; no economic changes"
   }
 }

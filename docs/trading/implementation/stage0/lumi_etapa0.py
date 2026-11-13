@@ -7,9 +7,9 @@ SQL uses a single read transaction, indexed bounded queries and a deadline.
 """
 import base64, collections, datetime as dt, decimal, errno, hashlib, json, os, re
 from pathlib import Path
-import shlex, shutil, sqlite3, subprocess, sys, time, zlib
+import shlex, shutil, sqlite3, stat, subprocess, sys, time, zlib
 
-VERSION = 'lumi-stage0-readonly-1.0.1'
+VERSION = 'lumi-stage0-readonly-1.0.2'
 REGION = 'eu-north-1'
 INSTANCE = 'i-0ae2ad0bb886f3d7f'
 ACCOUNT = '146766539818'
@@ -64,9 +64,10 @@ def timeframe(event):
     return int(value) if str(value) in [str(x) for x in FRAMES] else None
 
 
-def dashboard_status(db):
+def dashboard_status(db, *, capacity=False):
     """Allowlisted publisher metadata in the caller's same read transaction."""
     fields=('at','error','detail_at','detail_error','live_bytes','backup_error')
+    if capacity:fields+=('backup_at','local_backup_at','local_backup_slot','next_backup_attempt_at','site_backup_retry_at')
     out={'status':'UNAVAILABLE','fields':dict.fromkeys(fields),
         'timestamp_scope':'LAST_SUCCESSFUL_PUBLISHER_ACKS_NOT_LAST_ATTEMPT',
         'live_bytes_scope':'LAST_SUCCESSFUL_LIVE_PUBLICATION_NOT_REJECTED_BODY'}
@@ -81,7 +82,10 @@ def dashboard_status(db):
     for key in fields:
         value=stored.get(key)
         if value is None:continue
-        if key in ('at','detail_at','live_bytes'):
+        if key=='local_backup_slot':
+            if isinstance(value,int) and not isinstance(value,bool) and value in (0,1,2):out['fields'][key]=value
+            else:invalid.append(key)
+        elif key in ('at','detail_at','live_bytes','backup_at','local_backup_at','next_backup_attempt_at','site_backup_retry_at'):
             if isinstance(value,int) and not isinstance(value,bool) and 0<=value<=9007199254740991:out['fields'][key]=value
             else:invalid.append(key)
         elif isinstance(value,str) and re.fullmatch(r'[A-Z_]{1,128}',value):out['fields'][key]=value
@@ -342,8 +346,204 @@ def collect_runtime_diagnostics(out,pid,invocation,*,db_path=DB,journal_reader=j
     return out
 
 
+CAPACITY_INVENTORY_LIMIT=40
+RECOVERY_SERVICE='lumi-trading-s3-recovery.service'
+RECOVERY_BUCKET='lumi-paper-recovery-146766539818-eun1'
+
+
+def safe_read_error(error):
+    return {'status':'READ_FAILED','error_type':type(error).__name__,
+        'os_code':errno.errorcode.get(error.errno,'UNKNOWN_OS_ERROR') if isinstance(error,OSError) else None}
+
+
+def file_stat(path):
+    """Metadata only; never follow a symlink or read an unknown file."""
+    try:
+        s=Path(path).lstat()
+        return {'status':'PRESENT','kind':'file' if stat.S_ISREG(s.st_mode) else 'directory' if stat.S_ISDIR(s.st_mode) else 'symlink' if stat.S_ISLNK(s.st_mode) else 'other',
+            'bytes':s.st_size,'allocated_bytes':getattr(s,'st_blocks',0)*512,
+            'mtime_ns':s.st_mtime_ns,'device':s.st_dev,'inode':s.st_ino,'links':s.st_nlink}
+    except FileNotFoundError:return {'status':'ABSENT','bytes':None}
+    except OSError as error:return safe_read_error(error)
+
+
+def bounded_source_digest(path, *, limit=262144):
+    """Hash only the opened regular source descriptor, without following links."""
+    result={'status':'UNAVAILABLE','limit_bytes':limit};fd=None
+    if not hasattr(os,'O_NOFOLLOW'):result['status']='NO_NOFOLLOW_CAPABILITY';return result
+    try:
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW);before=os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode):result['status']='NOT_A_REGULAR_FILE';return result
+        if before.st_size>limit:result['status']='SOURCE_SIZE_LIMIT';return result
+        digest=hashlib.sha256();total=0
+        while total<=limit:
+            chunk=os.read(fd,min(65536,limit+1-total))
+            if not chunk:break
+            total+=len(chunk);digest.update(chunk)
+        if total>limit:result['status']='SOURCE_SIZE_LIMIT';return result
+        after=os.fstat(fd);named=Path(path).lstat()
+        stable=(before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns)==(named.st_dev,named.st_ino,named.st_size,named.st_mtime_ns)
+        result.update(status='READ' if stable and total==after.st_size else 'SOURCE_CHANGED_DURING_READ',bytes_read=total,stable_after_read=stable)
+        if result['status']=='READ':result['sha256']=digest.hexdigest()
+    except OSError as error:result.update(safe_read_error(error))
+    finally:
+        if fd is not None:os.close(fd)
+    return result
+
+
+def bounded_inventory(path, *, limit=CAPACITY_INVENTORY_LIMIT):
+    """At most limit+1 direct entries; directory st_size is NOT subtree size."""
+    out={'status':'UNAVAILABLE','entries':[],'limit':limit,'complete':False,
+        'scope':'DIRECT_ENTRIES_ONLY_NO_RECURSION_DIRECTORY_BYTES_ARE_NOT_TREE_USAGE'}
+    try:
+        if file_stat(path).get('kind')!='directory':out['status']='NOT_A_REAL_DIRECTORY';return out
+        with os.scandir(path) as entries:
+            for index,entry in enumerate(entries):
+                if index==limit:out['status']='ENTRY_LIMIT';return out
+                # Do not export arbitrary names that could embed personal data.
+                allowed=re.fullmatch(r'[a-f0-9]{40}|daily-[012]\.sqlite(?:\.enc)?(?:\.tmp)?|[a-zA-Z0-9._-]{1,100}\.(?:tar|tar\.gz|tgz|zip|log)(?:\.\d+)?',entry.name)
+                name=entry.name if allowed else 'name-sha256:'+sha(entry.name.encode())
+                out['entries'].append({'name':name,'remote_verify_directory':entry.name.startswith('.remote-verify-'),**file_stat(entry.path)})
+        out['status']='READ';out['complete']=True
+    except OSError as error:out.update(safe_read_error(error))
+    return out
+
+
+def read_capacity_db(path=DB, *, snapshot=False, deadline_seconds=2):
+    """Read scalar metadata only. No events, state JSON, backup or full integrity scan."""
+    path=Path(path);before=file_stat(path)
+    result={'consistent_read_transaction':False,'scope':'SCALAR_CHECKPOINT_AND_PAGE_METADATA_NOT_RESTORE_VERIFICATION','file_before':before}
+    if before.get('kind')!='file':result['status']='NOT_A_REGULAR_FILE';return result
+    suffixes=('-wal','-shm','-journal')
+    sidecars=lambda:{suffix:file_stat(str(path)+suffix) for suffix in suffixes}
+    result['sidecars_before']=sidecars()
+    if snapshot and any(v['status']!='ABSENT' for v in result['sidecars_before'].values()):
+        result['status']='SNAPSHOT_SIDECAR_PRESENT_OR_UNREADABLE';return result
+    db=None;deadline=time.monotonic()+deadline_seconds
+    try:
+        # SQLite's immutable flag prevents creating sidecars for a completed
+        # rotated snapshot. A live DB must retain WAL visibility instead.
+        db=sqlite3.connect(path.resolve().as_uri()+'?mode=ro'+('&immutable=1' if snapshot else ''),uri=True,timeout=1)
+        db.execute('PRAGMA query_only=ON');db.execute('PRAGMA busy_timeout=1000');db.execute('PRAGMA cache_size=-256')
+        db.set_progress_handler(lambda:int(time.monotonic()>deadline),100)
+        db.execute('BEGIN')
+        result['pages']={key:db.execute('PRAGMA '+key).fetchone()[0] for key in ('page_count','page_size','freelist_count')}
+        schema=db.execute('PRAGMA table_info(state)').fetchmany(32)
+        if not any(v[1]=='id' and v[5]==1 for v in schema):raise RuntimeError('STATE_PRIMARY_KEY_NOT_CONFIRMED_NO_SCAN')
+        row=db.execute('SELECT revision,fence,updated_at FROM state WHERE id=?',(STATE_ID,)).fetchone()
+        result['checkpoint']=dict(zip(('revision','fence','updated_at'),row)) if row else None
+        if not snapshot:result['dashboard_publisher']=dashboard_status(db,capacity=True)
+        result['consistent_read_transaction']=True;result['status']='READ' if row else 'PAPER_CHECKPOINT_MISSING'
+    except Exception as error:result.update(safe_read_error(error))
+    finally:
+        if db is not None:
+            if db.in_transaction:db.execute('ROLLBACK')
+            db.close()
+        result['file_after']=file_stat(path);result['sidecars_after']=sidecars()
+        result['same_file_after_read']=all(before.get(k)==result['file_after'].get(k) for k in ('device','inode','bytes','mtime_ns'))
+        if snapshot and (not result['same_file_after_read'] or any(v['status']!='ABSENT' for v in result['sidecars_after'].values())):
+            result['status']='SNAPSHOT_CHANGED_DURING_READ';result['consistent_read_transaction']=False
+    return result
+
+
+def safe_probe(args, *, run=subprocess.run, timeout=4, output_limit=65536):
+    """Internal bounded command result; raw streams are never put in receipts."""
+    result={'status':'UNAVAILABLE','return_code':None,'timeout_seconds':timeout}
+    try:
+        completed=run(args,capture_output=True,text=True,timeout=timeout)
+        result.update(return_code=completed.returncode,diagnostic=journal_diagnostic(completed.stderr))
+        if completed.returncode:result['status']='NONZERO_EXIT';return result,None
+        if not isinstance(completed.stdout,str) or len(completed.stdout.encode())>output_limit:
+            result['status']='OUTPUT_LIMIT_OR_TYPE';return result,None
+        result['status']='READ';return result,completed.stdout
+    except subprocess.TimeoutExpired as error:
+        result.update(status='TIMEOUT',diagnostic=journal_diagnostic(error.stderr))
+    except OSError as error:result.update(safe_read_error(error))
+    return result,None
+
+
+def recovery_journal(*, run=subprocess.run):
+    args=['journalctl','--no-pager','-o','json','-u',RECOVERY_SERVICE,'--grep=REMOTE_ALREADY_MATCHES|RESTORE_VERIFIED|RESTORE_STREAM_VERIFIED|"status":"FAIL"','-n','3']
+    result,text=safe_probe(args,run=run);result.update(records=[],invalid_rows=0,tail=3)
+    if text is None:return result
+    statuses={'REMOTE_ALREADY_MATCHES','RESTORE_VERIFIED','RESTORE_STREAM_VERIFIED','FAIL'}
+    phases={'PREPARE','SOURCE_SQLITE_INTEGRITY','REMOTE_EXISTING_HEAD','STORAGE_SPACE_PREFLIGHT','PRIVATE_KEY_LOAD','ENCRYPT','S3_UPLOAD','REMOTE_HEAD_CONFIRM','REMOTE_DOWNLOAD','REMOTE_SHA256','STREAM_AES_GCM_PLAINTEXT_CHECK','DECRYPT_AES_GCM','RESTORED_SQLITE_INTEGRITY'}
+    errors={'NO_RECENT_SQLITE_BACKUP','BACKUP_STORAGE_SPACE_LOW','SNAPSHOT_INTEGRITY_FAILED','PAPER_LEDGER_MISSING','BACKUP_KEY_INVALID','PRIVATE_BACKUP_KEY_UNAVAILABLE','REMOTE_HEAD_VERIFICATION_FAILED','REMOTE_DOWNLOAD_SHA256_MISMATCH','RESTORED_REVISION_MISMATCH','RESTORED_PLAINTEXT_MISMATCH','COMPRESSED_BACKUP_SIZE_LIMIT','ROOT_ONLY_NO_EXPORTED_KEY','RECOVERY_UPLOAD_OR_VERIFY_ERROR'}
+    for line in text.splitlines()[:3]:
+        try:
+            row=json.loads(line);data=json.loads(row.get('MESSAGE',''))
+            if row.get('_SYSTEMD_UNIT')!=RECOVERY_SERVICE or not isinstance(data,dict) or data.get('status') not in statuses:raise ValueError('UNEXPECTED_RECOVERY_ROW')
+            item={'status':data['status'],'phase':data.get('phase') if data.get('phase') in phases else None,
+                'error':data.get('error') if data.get('error') in errors else None,
+                'realtime_us':row.get('__REALTIME_TIMESTAMP') if re.fullmatch(r'\d{1,20}',str(row.get('__REALTIME_TIMESTAMP',''))) else None}
+            for key in ('revision','source_bytes','encrypted_bytes','size'):
+                value=data.get(key);item[key]=value if isinstance(value,int) and not isinstance(value,bool) and value>=0 else None
+            item['sha256']=data.get('sha256') if re.fullmatch('[a-f0-9]{64}',str(data.get('sha256',''))) else None
+            item['verified_again']=data.get('verified_again') if isinstance(data.get('verified_again'),bool) else None
+            result['records'].append(item)
+        except (ValueError,TypeError,AttributeError):result['invalid_rows']+=1
+    if len(text.splitlines())>3:result['status']='ROW_LIMIT'
+    elif result['invalid_rows']:result['status']='INVALID_OR_PARTIAL_ROWS'
+    elif not result['records']:result['status']='NO_MATCHING_RECORDS'
+    return result
+
+
+def collect_capacity_diagnostics(out,pid,invocation,*,db_path=DB,releases='/opt/lumi-trading/releases',run=subprocess.run):
+    started=time.monotonic();path=Path(db_path);backups=path.parent/'backups'
+    out['collection_warnings']=[];capacity={'mode':'CAPACITY_ONLY_NO_HISTORY_QUERY_NO_FULL_STATE','observed_at_utc':stamp(utc())}
+    out['capacity']=capacity
+    try:
+        fs=os.statvfs(path.parent)
+        capacity['filesystem']={'total_bytes':fs.f_blocks*fs.f_frsize,'free_bytes':fs.f_bfree*fs.f_frsize,'available_bytes':fs.f_bavail*fs.f_frsize,'inodes_total':fs.f_files,'inodes_free':fs.f_ffree,'inodes_available':fs.f_favail}
+    except OSError as error:capacity['filesystem']=safe_read_error(error)
+    capacity['database']=read_capacity_db(path)
+    capacity['backup_files']={}
+    for slot in range(3):
+        for suffix in ('.sqlite','.sqlite.tmp','.sqlite.enc.tmp'):
+            name='daily-'+str(slot)+suffix;entry=file_stat(backups/name)
+            if suffix=='.sqlite' and entry.get('kind')=='file':entry['scalar_read']=read_capacity_db(backups/name,snapshot=True)
+            capacity['backup_files'][name]=entry
+    capacity['backup_directory']=bounded_inventory(backups)
+    capacity['releases_directory']=bounded_inventory(releases)
+    capacity['var_log_direct_entries']=bounded_inventory('/var/log')
+    capacity['journal_disk_usage'],usage=safe_probe(['journalctl','--disk-usage','--no-pager'],run=run)
+    if usage is not None:
+        match=re.fullmatch(r'Archived and active journals take up ([0-9.]+(?:[KMGT]B?|B)) in the file system\.\s*',usage)
+        capacity['journal_disk_usage']['reported_size']=match.group(1) if match else None
+        if not match:capacity['journal_disk_usage']['status']='UNRECOGNIZED_FORMAT'
+    capacity['recovery_units']={}
+    props=('LoadState','ActiveState','SubState','MainPID','Result','ExecMainStatus','ExecMainStartTimestamp','LastTriggerUSec','NextElapseUSecRealtime')
+    for unit in (RECOVERY_SERVICE,'lumi-trading-s3-recovery.timer'):
+        result,text=safe_probe(['systemctl','show',unit,'--property='+','.join(props)],run=run)
+        if text is not None:
+            parsed=dict(line.split('=',1) for line in text.splitlines() if '=' in line)
+            result['properties']={key:value for key,value in parsed.items() if key in props and re.fullmatch(r'[A-Za-z0-9 :+._-]{0,100}',value)}
+            if result['properties'].get('LoadState')!='loaded':result['status']='UNIT_NOT_LOADED_OR_UNKNOWN'
+        capacity['recovery_units'][unit]=result
+    capacity['recovery_helper']=bounded_source_digest('/opt/lumi-trading/recovery/s3-backup.mjs')
+    capacity['recovery_journal']=recovery_journal(run=run)
+    for key in ('backup_directory','releases_directory','var_log_direct_entries','journal_disk_usage','recovery_journal'):
+        if capacity[key].get('status')!='READ':out['collection_warnings'].append({'section':key,'code':capacity[key].get('status')})
+    for name,entry in capacity['backup_files'].items():
+        if entry.get('status') not in ('ABSENT','PRESENT') or ('scalar_read' in entry and entry['scalar_read'].get('status')!='READ'):
+            out['collection_warnings'].append({'section':'backup_file','name':name,'code':obj(entry.get('scalar_read')).get('status',entry.get('status'))})
+    for name,result in capacity['recovery_units'].items():
+        if result['status']!='READ':out['collection_warnings'].append({'section':name,'code':result['status']})
+    if capacity['recovery_helper']['status']!='READ':out['collection_warnings'].append({'section':'recovery_helper','code':capacity['recovery_helper']['status']})
+    if not capacity['database'].get('consistent_read_transaction'):out['collection_warnings'].append({'section':'database','code':'CONSISTENT_SCALAR_READ_NOT_COMPLETED'})
+    if capacity['filesystem'].get('status')=='READ_FAILED':out['collection_warnings'].append({'section':'filesystem','code':'READ_FAILED'})
+    capacity['elapsed_seconds']=round(time.monotonic()-started,3)
+    capacity['limitations']=['No backup creation, copy, deletion, WAL checkpoint, vacuum, integrity scan or recovery helper execution.',
+        'Scalar snapshot reads do not prove restore integrity, newest economic activity coverage or reusable disk space.',
+        'Journal statuses describe their recorded time, not an independently repeated restore.',
+        'Directory inventories are bounded and nonrecursive; absent or unreadable evidence is never a cleanup authorization.']
+    out['diagnostic_status']='DEGRADED' if out['collection_warnings'] else 'COLLECTED_WITH_DECLARED_LIMITS'
+    return out
+
+
 def receipt_status(remote):
-    valid=not remote.get('error') and obj(remote.get('paper')).get('consistent_read_transaction') is True and remote.get('same_process_after_read') is True
+    sql=obj(obj(remote.get('capacity')).get('database')) if remote.get('mode')=='CAPACITY' else obj(remote.get('paper'))
+    valid=not remote.get('error') and sql.get('consistent_read_transaction') is True and remote.get('same_process_after_read') is True
     if not valid:return 'REMOTE_READ_INCOMPLETE'
     return 'COLLECTED_WITH_READ_GAPS' if remote.get('collection_warnings') else 'COLLECTED_WITH_DECLARED_LIMITS'
 
@@ -370,11 +570,14 @@ def collect_runtime_identity(out):
     return pid,service['InvocationID']
 
 
-def remote():
+def remote(*,capacity=False):
     out={'version':VERSION,'started_at_utc':stamp(utc()),'actions':'READ_ONLY_NO_WORKER_IMPORT_NO_BACKUP_NO_ENV_FILES','loaded_runtime_commit':'NOT_VERIFIED'}
+    if capacity:out['mode']='CAPACITY'
     try:
         pid,invocation=collect_runtime_identity(out)
-        try:collect_runtime_diagnostics(out,pid,invocation)
+        try:
+            if capacity:collect_capacity_diagnostics(out,pid,invocation)
+            else:collect_runtime_diagnostics(out,pid,invocation)
         finally:
             try:
                 final=dict(line.split('=',1) for line in command(['systemctl','show',SERVICE,'--property=MainPID,InvocationID']).splitlines() if '=' in line)
@@ -402,9 +605,33 @@ def aws(*args):
     return json.loads(run.stdout)
 
 
-def cloudshell():
+def recovery_heads(*,reader=None):
+    """Exactly three HEADs, no download/list/put and no arbitrary metadata export."""
+    reader=reader or aws;out=[]
+    for slot in range(3):
+        key='recovery/daily-'+str(slot)+'.lumi-gcm'
+        result={'key':key,'queried_at_utc':stamp(utc()),'status':'UNAVAILABLE','scope':'HEAD_METADATA_NOT_CONTENT_OR_RESTORE_VERIFICATION'}
+        try:
+            response=reader('s3api','head-object','--bucket',RECOVERY_BUCKET,'--key',key,'--expected-bucket-owner',ACCOUNT,
+                '--query','{bytes:ContentLength,modified_at:LastModified,revision:Metadata.revision,source_size:Metadata.source_size,source_mtime_ms:Metadata.source_mtime_ms,sha256:Metadata.sha256}')
+            result['status']='READ';result['fields']={}
+            for name in ('bytes','revision','source_size','source_mtime_ms'):
+                value=response.get(name)
+                result['fields'][name]=int(value) if not isinstance(value,bool) and re.fullmatch(r'\d{1,20}',str(value)) else None
+            digest=response.get('sha256');result['fields']['sha256']=digest if re.fullmatch(r'[a-f0-9]{64}',str(digest)) else None
+            date=response.get('modified_at');result['fields']['modified_at']=date if isinstance(date,str) and re.fullmatch(r'[0-9T:.+Z -]{10,40}',date) else None
+        except RuntimeError as error:
+            result['status']='READ_FAILED';match=re.fullmatch(r'AWS_s3api_head-object: ([A-Za-z0-9_]{1,80})',str(error))
+            result['error_code']=match.group(1) if match else 'UNCLASSIFIED_HEAD_ERROR'
+        except Exception as error:result.update(status='READ_FAILED',error_type=type(error).__name__)
+        out.append(result)
+    return out
+
+
+def cloudshell(*,capacity=False):
     os.umask(0o077);now=utc();out={'version':VERSION,'client_utc':stamp(now),'collector_sha256':sha(Path(__file__).read_bytes())}
-    destination=Path.cwd()/('lumi-etapa0-'+now.strftime('%Y%m%dT%H%M%SZ')+'.json')
+    destination=Path.cwd()/(('lumi-capacidad-' if capacity else 'lumi-etapa0-')+now.strftime('%Y%m%dT%H%M%SZ')+'.json')
+    if capacity:out['mode']='CAPACITY'
     try:
         if not shutil.which('aws'):raise RuntimeError('RUN_INSIDE_AUTHORIZED_AWS_CLOUDSHELL')
         identity=aws('sts','get-caller-identity');out['account']=identity.get('Account')
@@ -415,7 +642,7 @@ def cloudshell():
         info=aws('ssm','describe-instance-information','--filters','Key=InstanceIds,Values='+INSTANCE,'--query','InstanceInformationList[].{id:InstanceId,ping:PingStatus}')
         if len(info)!=1 or info[0].get('ping')!='Online':raise RuntimeError('SSM_NOT_CONFIRMED_ONLINE')
         code="import base64,zlib;exec(compile(zlib.decompress(base64.b64decode('"+base64.b64encode(zlib.compress(Path(__file__).read_bytes(),9)).decode()+"')),'<lumi-stage0>','exec'))"
-        cmd='python3 -I -B -c '+shlex.quote(code)+' --remote'
+        cmd='python3 -I -B -c '+shlex.quote(code)+' --remote'+(' --capacity' if capacity else '')
         result=aws('ssm','send-command','--instance-ids',INSTANCE,'--document-name','AWS-RunShellScript','--comment','Lumi stage0 bounded read-only diagnosis','--timeout-seconds','90','--parameters',json.dumps({'commands':[cmd],'executionTimeout':['60']}))
         cid=result['Command']['CommandId'];out['command_id']=cid;print('CommandId:',cid,flush=True)
         until=time.monotonic()+100;result={}
@@ -434,6 +661,9 @@ def cloudshell():
         if sha(raw)!=digest:raise RuntimeError('REMOTE_RECEIPT_CHECKSUM_MISMATCH')
         out['remote']=json.loads(raw);out['remote_sha256']=digest
         out['status']=receipt_status(out['remote'])
+        if capacity:
+            out['recovery_s3_heads']=recovery_heads()
+            if any(v['status']!='READ' for v in out['recovery_s3_heads']) and out['status']=='COLLECTED_WITH_DECLARED_LIMITS':out['status']='COLLECTED_WITH_READ_GAPS'
     except Exception as error:out['status']='ACCESS_OR_READ_INCOMPLETE';out['error']={'type':type(error).__name__,'code':str(error) if isinstance(error,RuntimeError) else 'CLIENT_READ_FAILED'}
     with destination.open('x') as file:json.dump(out,file,ensure_ascii=False,indent=2)
     print('Estado:',out['status']);print('Archivo privado para devolver:',destination.name);print('SHA256:',sha(destination.read_bytes()))
@@ -443,5 +673,7 @@ def cloudshell():
 
 if __name__=='__main__':
     if sys.argv[1:]==['--remote']:remote()
+    elif sys.argv[1:]==['--remote','--capacity']:remote(capacity=True)
+    elif sys.argv[1:]==['--capacity']:raise SystemExit(cloudshell(capacity=True))
     elif not sys.argv[1:]:raise SystemExit(cloudshell())
-    else:raise SystemExit('CloudShell: python3 lumi_etapa0.py (no arguments)')
+    else:raise SystemExit('CloudShell: python3 lumi_etapa0.py [--capacity]')

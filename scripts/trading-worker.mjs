@@ -14,8 +14,13 @@ import {POLICY,hash} from '../lib/trading/core.js';
 import {assertTradingRuntime} from '../lib/trading/runtime-guard.js';
 import {failureDetails} from '../lib/trading/failure.js';
 import {RuntimePerformance} from '../lib/trading/runtime-performance.js';
+import {fileURLToPath} from 'node:url';
+import {inspectWorkerRelease,bindWorkerIdentity,workerIdentityHeartbeat} from '../lib/trading/worker-release-identity.js';
 const env=process.env;
 const runtime=await assertTradingRuntime(env);
+// Bounded disk provenance before acquiring the lease. ESM imports have already
+// run; this receipt never attests loaded JS bytes or unlisted dependencies.
+const releaseIdentity=await inspectWorkerRelease({releaseDirectory:fileURLToPath(new URL('../',import.meta.url))});
 const seed=JSON.parse(await readFile(new URL('../data/trading/bootstrap.json',import.meta.url),'utf8'));
 if(seed.kind!=='HISTORICAL_ONLY'||seed.exchange!=='KRAKEN'||seed.instrument!=='BTC/USD_SPOT')throw Error('HISTORICAL_MARKET_MISMATCH');
 const local=env.LUMI_TRADING_STORAGE==='SQLITE';
@@ -39,6 +44,8 @@ const store=local?new SQLiteStore(env.LUMI_TRADING_DB_PATH):new TradingStore(db)
 const controls=local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0'?new PaperControlClient({env,store}):null;engine.controls=controls;
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
 await engine.initialize();
+const workerIdentity=bindWorkerIdentity({release:releaseIdentity,store,platform:runtime.platform});
+engine.event({type:'WORKER_RELEASE_IDENTITY',at:workerIdentity.captured_at,identity:workerIdentity});
 engine.backgroundNotifications=local;
 const performanceMonitor=new RuntimePerformance();
 const flush=engine.flush.bind(engine);engine.flush=()=>performanceMonitor.measure('checkpoint',flush);
@@ -61,7 +68,7 @@ let tickTask=null;
 const timer=setInterval(()=>{if(!engine.busy)tickTask=performanceMonitor.measure('tick',()=>engine.tick()).catch(fail);},1000);
 let oldCPU=process.cpuUsage(),oldTime=Date.now();
 const resourceTimer=setInterval(()=>{const usage=process.cpuUsage(oldCPU),now=Date.now(),cpu=(usage.user+usage.system)/(now-oldTime)/1000;oldCPU=process.cpuUsage();oldTime=now;const rss=process.memoryUsage().rss;
-  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null,performance:performanceMonitor.report(),memory:process.memoryUsage(),queues:{events:engine.events.length,notices:engine.notices.length,market:operational?.queue?.length??0,telegram_busy:Boolean(engine.notificationTask),telegram_identity_unavailable:engine.notifier?.identityUnavailable??null,detail_busy:Boolean(publisher?.detailBusy)},dashboard_cache:publisher?.readCache.status()}));
+  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,worker_identity:workerIdentityHeartbeat(workerIdentity,store),mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null,performance:performanceMonitor.report(),memory:process.memoryUsage(),queues:{events:engine.events.length,notices:engine.notices.length,market:operational?.queue?.length??0,telegram_busy:Boolean(engine.notificationTask),telegram_identity_unavailable:engine.notifier?.identityUnavailable??null,detail_busy:Boolean(publisher?.detailBusy)},dashboard_cache:publisher?.readCache.status()}));
   if(rss>320*1024*1024||cpu>.5){engine.event({type:'DATA_INCIDENT',reason:'RESOURCE_LIMIT',at:now});void stop('RESOURCE_LIMIT',1);}
 },60000);
 async function stop(reason='ORDER_CANCELLED_ON_SHUTDOWN',exitCode=0){
@@ -75,4 +82,4 @@ async function stop(reason='ORDER_CANCELLED_ON_SHUTDOWN',exitCode=0){
  }catch(error){console.error(JSON.stringify({event:'lumi_trading_worker_attention_required',...failureDetails(error)}));process.exit(1);}
 }
 process.on('SIGTERM',stop);process.on('SIGINT',stop);process.on('unhandledRejection',fail);process.on('uncaughtException',fail);
-console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null}));
+console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null,worker_identity:workerIdentity}));

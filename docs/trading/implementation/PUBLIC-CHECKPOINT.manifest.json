@@ -1,0 +1,300 @@
+{
+  "schema": "lumi-public-code-checkpoint-1",
+  "created_at_utc": "2026-11-13T10:09:33.525901+00:00",
+  "branch": "checkpoint/lumi-plan-v1.1-2026-11-13",
+  "git_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
+  "recovered_source_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
+  "source_file_count": 34,
+  "listed_source_tree_sha256": "a1928ae4cd5e6ae9fc695fd55a8d653bdd44f1a764edf55c516f460256f47c4a",
+  "tree_hash_definition": "SHA256 of UTF8 JSON files array with sort_keys=true and separators comma/colon",
+  "files": [
+    {
+      "path": "deploy/trading/site/lib/aws-monitor.mjs",
+      "bytes": 16072,
+      "sha256": "ec4c92a0316ead92ba3efdb0cbc5af169a82f0b3f257167808cb823811d623ee",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "deploy/trading/site/lib/compact-panel/model.js",
+      "bytes": 18380,
+      "sha256": "9eea27d612e167a55e36343396eced1b087cc7fd57133feed4a06b4c65c0ff9f",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "deploy/trading/site/lib/monitor-integrity.mjs",
+      "bytes": 4868,
+      "sha256": "6a818776d7541b85e1d58435cb0ed9979b5cfc1b68c250e5d6df56143ea66d80",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "deploy/trading/site/lib/monitor-refresh.mjs",
+      "bytes": 1385,
+      "sha256": "970827ef7890f38db915b3f9b6668696e81f71621eeca0d2fe4b511c1bee2c37",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "deploy/trading/site/lib/profit-protection.mjs",
+      "bytes": 6593,
+      "sha256": "050c160fe31d6ca3dc9ca848e07a9a0f61fd1ef296f57fda634b290b12032ffa",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "deploy/trading/site/lib/secondary-operational.mjs",
+      "bytes": 13695,
+      "sha256": "0fcef8b0ec439c92cb9d4aed52b2c3e8aea63f2e08c512959f5d0687ea411a85",
+      "component": "site_contract_test_dependency",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "docs/trading/audit-stage1-2026-11-05/no-network.mjs",
+      "bytes": 619,
+      "sha256": "52c2120065b16ea6225c7f7971122f92402eb0c14cc03974ec1a743e38fbfee0",
+      "component": "tests",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "docs/trading/implementation/stage0/lumi_etapa0.py",
+      "bytes": 30052,
+      "sha256": "194526d39c82bb7cba460253cebf0b1273d98819ffc1cd016cb46a8742222e9b",
+      "component": "readonly_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/dashboard-publisher.js",
+      "bytes": 25356,
+      "sha256": "dd777ac2752034c5c3c8342da792736de9e2b4cb974b6a07a1752061eb4cbb8b",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/kraken-flow-forecast.js",
+      "bytes": 4140,
+      "sha256": "f64c4f3189a326e505b9c8a924d94ce035ee1d96d11452413dc5c78aa4bef8db",
+      "component": "offline_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/kraken-public-flow.js",
+      "bytes": 18344,
+      "sha256": "4788320f5513fa8c6474315152ead81d4a53336b7335fcf19f88aaf7f06c154d",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/l100-feasibility.js",
+      "bytes": 10060,
+      "sha256": "f378379768eb102ef481448cab30bfa10c7ffc9f4c97ec6fe296cd7c50ba92f6",
+      "component": "offline_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/quant-execution-repair.js",
+      "bytes": 7101,
+      "sha256": "3d962afe84c2fdf86e9bdf4380216e4f0db2d01aa27bf1bc21fd9e8b3b6e3d5e",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-evaluation-metrics.js",
+      "bytes": 3119,
+      "sha256": "94b8257a854c704667c79d2eca88be1aa9f88c572d50d401870656edda1b7b03",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-exit-evidence.js",
+      "bytes": 5003,
+      "sha256": "52d917d83efb50dca76267031881bd8400218fcba1789d1dfa2d3e46825c2907",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-futures-engine.js",
+      "bytes": 84924,
+      "sha256": "823cc36d7f42cd67c0c90c2560783b5acee4c6e0859d8c5ebea4b2afb0f91da7",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-futures-runtime.js",
+      "bytes": 45818,
+      "sha256": "7fb0d05b666c29025daf997f0908fc89a936461eadddae8ebe9f7ad5f66c4b19",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-futures.js",
+      "bytes": 21530,
+      "sha256": "62bc37de7ff1d13f5e8c810416fe8fcfb3a29de25b912d78aa564cc757d93d3f",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-horizon-shadow.js",
+      "bytes": 17789,
+      "sha256": "bc642229a79ee7e8eaeb7781da52477477ac9bbf798bd986b193a17671248dd7",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-notification-policy.js",
+      "bytes": 5054,
+      "sha256": "6c77e5d385d2ef3adf481e631248adf22557543b944f643dbf28ccff10acd0b9",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-performance-review.js",
+      "bytes": 11399,
+      "sha256": "0c91a7200c9363e7cda29a772d7665156c84bd652da7b9b81fe5e3e3e0fbeb4b",
+      "component": "offline_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/secondary-shadow-runtime.js",
+      "bytes": 10067,
+      "sha256": "5f461bc8b2c2dfdc7bf6cd7be98a4fc1e507cee37493a2bd4b4c2bedb107b631",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/shadow-observation-client.js",
+      "bytes": 13148,
+      "sha256": "d79cf1b4add7e0372df7f0a5f1c021c55eede12eb9e7a44211f7eecdbbdd9c8e",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/shadow-observation-processor.js",
+      "bytes": 13043,
+      "sha256": "91960fcf9cd53852ee60b5d0350d0d9f4bfc9acd549ebfd76314e087de315cc2",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/shadow-observation-store.js",
+      "bytes": 22366,
+      "sha256": "0f829309441e9e9f9ae2ed87c181f41cbd6bb5d72c2658f7463dcd661bf0afaa",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/shadow-observation-worker.mjs",
+      "bytes": 5413,
+      "sha256": "18e0649bd8d526560ae259804f53729bd78d0a24ed4604e55a10963a2a101332",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/shadow-resource-guard.js",
+      "bytes": 6219,
+      "sha256": "afbd02c6f67f00b8970808841244784929a38175f0a4bb88f2c54ed901e1efb3",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "lib/trading/worker-release-identity.js",
+      "bytes": 8801,
+      "sha256": "a2f6a2af45712118edf4087e448f39802b974f083ea489efcf879a828ff86870",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "scripts/trading-worker-release-manifest.mjs",
+      "bytes": 5018,
+      "sha256": "a820e545a3bb1f8a650cbd13f2d6053723d529cb7df38200be32d86281bf66a3",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "scripts/trading-worker.mjs",
+      "bytes": 10922,
+      "sha256": "725a4ba67b1c6ba5ae8a51c99aae45fa11eb3f26c20af5a5e080406c0ae88919",
+      "component": "worker_source_or_release_tool",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "test/l100-feasibility.test.js",
+      "bytes": 9386,
+      "sha256": "9a6cf5e98517a9b96ad6e70b309d41872c737400f8b28f1e1a63bcc61f786a7a",
+      "component": "tests",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "test/lumi-stage0-collector.test.py",
+      "bytes": 12719,
+      "sha256": "15ef93a36fa0d45607870f8122ca9545426fa0ea1b2c680897f38fd41ba386db",
+      "component": "tests",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "test/secondary-notification-policy.test.js",
+      "bytes": 14602,
+      "sha256": "c99332e3f8d9ed764ce4efb8f284ca32169ba7f2d288c1e40e4bfa7272ab8448",
+      "component": "tests",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    },
+    {
+      "path": "test/trading-live-payload-budget.test.js",
+      "bytes": 11091,
+      "sha256": "6a2564568e4e869a815cdf1dff0d14ad382abdd57bfb795a403ab7440f23e9a5",
+      "component": "tests",
+      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    }
+  ],
+  "generated_document": {
+    "path": "docs/trading/implementation/PUBLIC-CHECKPOINT.md",
+    "bytes": 7613,
+    "sha256": "26e86b4588b1adf581dcde087dcafff277cd77be6fe49da1062828bace8fe48b"
+  },
+  "complete_runtime_graph": false,
+  "standalone_deployment_package": false,
+  "current_aws_runtime_verified": false,
+  "deployment_executed": false,
+  "activation_executed": false,
+  "site_published": false,
+  "dependencies_or_lockfiles_changed": false,
+  "tests": {
+    "node_version": "v24.19.0",
+    "python_version": "Python 3.12.14",
+    "node": {
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "node --import ./docs/trading/audit-stage1-2026-11-05/no-network.mjs --test --test-isolation=none --test-reporter=tap test/l100-feasibility.test.js test/secondary-notification-policy.test.js test/trading-live-payload-budget.test.js"
+    },
+    "python": {
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "command": "python3 -B test/lumi-stage0-collector.test.py"
+    },
+    "data": "SYNTHETIC_ONLY",
+    "clean_dependency_install_performed": false
+  },
+  "privacy": {
+    "operational_snapshots_included": false,
+    "private_audit_reports_included": false,
+    "private_logs_included": false,
+    "credentials_included": false,
+    "limited_secret_signature_hits": 0,
+    "limitation": "Signature checks are not a complete secret audit; historical infrastructure identifiers remain visible in source."
+  },
+  "checkpoint_commit": "TO_BE_CREATED_BY_INTEGRATOR; record exact final SHA in delivery, do not invent it",
+  "external_site_increment": {
+    "version": 41,
+    "source_commit": "373fa56d0ae45dfab1c41f33de7dd6d1da7342d1",
+    "repository": "private native Sites repository, separate from this checkpoint",
+    "artifact_sha256": "bddd25a2149dcd6507e4457340b9ff85af900e2851c08bbbe4a3a4a2f8404226",
+    "owner_private_preserved": true,
+    "published_readonly_checks": "passed",
+    "physical_iphone_verified": false
+  }
+}

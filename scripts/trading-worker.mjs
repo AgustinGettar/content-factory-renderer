@@ -14,8 +14,14 @@ import {POLICY,hash} from '../lib/trading/core.js';
 import {assertTradingRuntime} from '../lib/trading/runtime-guard.js';
 import {failureDetails} from '../lib/trading/failure.js';
 import {RuntimePerformance} from '../lib/trading/runtime-performance.js';
+import {ShadowResourceGuard} from '../lib/trading/shadow-resource-guard.js';
+import {fileURLToPath} from 'node:url';
+import {inspectWorkerRelease,bindWorkerIdentity,workerIdentityHeartbeat} from '../lib/trading/worker-release-identity.js';
 const env=process.env;
 const runtime=await assertTradingRuntime(env);
+// Bounded, allowlisted disk provenance before acquiring the lease. ESM modules
+// have already loaded; the receipt explicitly does not attest loaded JS bytes.
+const releaseIdentity=await inspectWorkerRelease({releaseDirectory:fileURLToPath(new URL('../',import.meta.url))});
 const seed=JSON.parse(await readFile(new URL('../data/trading/bootstrap.json',import.meta.url),'utf8'));
 if(seed.kind!=='HISTORICAL_ONLY'||seed.exchange!=='KRAKEN'||seed.instrument!=='BTC/USD_SPOT')throw Error('HISTORICAL_MARKET_MISMATCH');
 const local=env.LUMI_TRADING_STORAGE==='SQLITE';
@@ -39,6 +45,8 @@ const store=local?new SQLiteStore(env.LUMI_TRADING_DB_PATH):new TradingStore(db)
 const controls=local&&env.LUMI_TRADING_NET_EXITS==='net-exit-1.0.0'?new PaperControlClient({env,store}):null;engine.controls=controls;
 if(env.LUMI_TRADING_ALERTS==='true')engine.notifier=new TradingNotifier({store,db,env,feed,pending:id=>engine.pending(id)});
 await engine.initialize();
+const workerIdentity=bindWorkerIdentity({release:releaseIdentity,store,platform:runtime.platform});
+engine.event({type:'WORKER_RELEASE_IDENTITY',at:workerIdentity.captured_at,identity:workerIdentity});
 engine.backgroundNotifications=local;
 const performanceMonitor=new RuntimePerformance();
 const flush=engine.flush.bind(engine);engine.flush=()=>performanceMonitor.measure('checkpoint',flush);
@@ -59,11 +67,12 @@ let shutting=false;
 const fail=(error)=>{if(shutting)return;shutting=true;multiResearch?.stop();feed.stop();console.error(JSON.stringify({event:'lumi_trading_worker_attention_required',...failureDetails(error)}));process.exitCode=1;setTimeout(()=>process.exit(1),100).unref();};
 let tickTask=null;
 const timer=setInterval(()=>{if(!engine.busy)tickTask=performanceMonitor.measure('tick',()=>engine.tick()).catch(fail);},1000);
-let oldCPU=process.cpuUsage(),oldTime=Date.now();
-const resourceTimer=setInterval(()=>{const usage=process.cpuUsage(oldCPU),now=Date.now(),cpu=(usage.user+usage.system)/(now-oldTime)/1000;oldCPU=process.cpuUsage();oldTime=now;const rss=process.memoryUsage().rss;
-  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,revision:store.revision,mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null,performance:performanceMonitor.report(),memory:process.memoryUsage(),queues:{events:engine.events.length,notices:engine.notices.length,market:operational?.queue?.length??0,telegram_busy:Boolean(engine.notificationTask),telegram_identity_unavailable:engine.notifier?.identityUnavailable??null,detail_busy:Boolean(publisher?.detailBusy)},dashboard_cache:publisher?.readCache.status()}));
-  if(rss>320*1024*1024||cpu>.5){engine.event({type:'DATA_INCIDENT',reason:'RESOURCE_LIMIT',at:now});void stop('RESOURCE_LIMIT',1);}
-},60000);
+const resourceGuard=new ShadowResourceGuard();let resourceBusy=false;
+const resourceTimer=setInterval(()=>{if(resourceBusy||shutting)return;resourceBusy=true;void (async()=>{
+  const resources=await resourceGuard.check({observer:operational?.shadowClient}),now=Date.now(),cpu=resources.aggregate_cpu_fraction,rss=resources.rss_bytes;
+  console.log(JSON.stringify({event:'lumi_trading_health',connected:feed.state.connected,reconciled:feed.state.reconciled,quotes:feed.counters.quotes,trades:feed.counters.trades,quote_age_ms:feed.state.quote?now-feed.state.quote.event_at:null,cpu_fraction:cpu,rss_bytes:rss,resources,shadow:operational?.shadowClient?.status??null,revision:store.revision,worker_identity:workerIdentityHeartbeat(workerIdentity,store),mode:'PAPER',secondary_execution:operational?.state.version??null,multi_pattern:operational?null:multiResearch?.state.version??null,performance:performanceMonitor.report(),memory:process.memoryUsage(),queues:{events:engine.events.length,notices:engine.notices.length,market:operational?.queue?.length??0,telegram_busy:Boolean(engine.notificationTask),telegram_identity_unavailable:engine.notifier?.identityUnavailable??null,detail_busy:Boolean(publisher?.detailBusy)},dashboard_cache:publisher?.readCache.status()}));
+  if(resources.resource_limit){engine.event({type:'DATA_INCIDENT',reason:resources.reason,at:now});void stop('RESOURCE_LIMIT',1);}
+ })().catch(fail).finally(()=>{resourceBusy=false;});},60000);
 async function stop(reason='ORDER_CANCELLED_ON_SHUTDOWN',exitCode=0){
  if(shutting)return;shutting=true;clearInterval(timer);clearInterval(resourceTimer);clearInterval(publishTimer);clearInterval(controlTimer);clearInterval(neuralTimer);multiResearch?.stop();feed.stop();
  let timeout;
@@ -71,8 +80,12 @@ async function stop(reason='ORDER_CANCELLED_ON_SHUTDOWN',exitCode=0){
   await Promise.race([(async()=>{await tickTask;await engine.notificationTask;})(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('TRADING_SHUTDOWN_TIMEOUT')),15000);})]);
   clearTimeout(timeout);
   if(engine.notificationResult){const r=engine.notificationResult;await engine.applyNotificationOutcomes(r.outcomes,r.since);engine.notificationResult=null;}
-  engine.cancelPending(reason);await engine.flush();await store.tx({phase:'RELEASE'});performanceMonitor.close();process.exit(exitCode);
+  engine.cancelPending(reason);await engine.flush();await store.tx({phase:'RELEASE'});
+  // The economic checkpoint/release never awaits observer storage. Shutdown may
+  // briefly drain its own independent queue AFTER the economic work is safe.
+  if(operational?.shadowClient){const result=await operational.shadowClient.close({drain:true,timeout:1000});console.log(JSON.stringify({event:'lumi_shadow_stopped',...result}));}
+  performanceMonitor.close();process.exit(exitCode);
  }catch(error){console.error(JSON.stringify({event:'lumi_trading_worker_attention_required',...failureDetails(error)}));process.exit(1);}
 }
 process.on('SIGTERM',stop);process.on('SIGINT',stop);process.on('unhandledRejection',fail);process.on('uncaughtException',fail);
-console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null}));
+console.log(JSON.stringify({event:'lumi_trading_started',mode:'PAPER',platform:runtime.platform,policy_hash:hash(POLICY),notifications:!!engine.notifier,secondary_execution:operational?.state.version??null,worker_identity:workerIdentity}));

@@ -1,0 +1,13 @@
+{
+  "purpose": "Isolated contract tests only; never included in worker release",
+  "source_repository_commit": "5ed213e",
+  "source_file_sha256": {
+    "deploy/trading/compact-panel/model.js": "9eea27d612e167a55e36343396eced1b087cc7fd57133feed4a06b4c65c0ff9f",
+    "deploy/trading/site/lib/secondary-operational.mjs": "0fcef8b0ec439c92cb9d4aed52b2c3e8aea63f2e08c512959f5d0687ea411a85",
+    "deploy/trading/site/lib/profit-protection.mjs": "050c160fe31d6ca3dc9ca848e07a9a0f61fd1ef296f57fda634b290b12032ffa",
+    "deploy/trading/site/lib/monitor-integrity.mjs": "6a818776d7541b85e1d58435cb0ed9979b5cfc1b68c250e5d6df56143ea66d80",
+    "deploy/trading/site/lib/monitor-refresh.mjs": "970827ef7890f38db915b3f9b6668696e81f71621eeca0d2fe4b511c1bee2c37",
+    "deploy/trading/site/lib/compact-panel/model.js": "a20632cbbc9c3c10bca538a6adf4b375bb74d492bc41e3575a06d7e05dd896ab",
+    "deploy/trading/site/lib/aws-monitor.mjs": "ec4c92a0316ead92ba3efdb0cbc5af169a82f0b3f257167808cb823811d623ee"
+  }
+}

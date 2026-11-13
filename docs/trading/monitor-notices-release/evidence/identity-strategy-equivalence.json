@@ -1,0 +1,219 @@
+{
+  "comparison_base_commit": "9f8648abe12cb3457814bae9074d8e666fd56cba",
+  "base_audit_commit": null,
+  "base_runtime_commit": "9f8648abe12cb3457814bae9074d8e666fd56cba",
+  "current_aws_runtime_verified": false,
+  "harness_sha256": "fd554b3d91c2e1ce289e19c24253f482e6051538acbbd6f9adc0821fbabaadba",
+  "kind": "SYNTHETIC_DETERMINISTIC_LOCAL_COMPARISON",
+  "generated_at": "2026-11-13T10:44:31.778Z",
+  "checks": [
+    {
+      "name": "quant-five-timeframe-retry-restart",
+      "passed": true,
+      "steps": 7,
+      "pattern_decisions": 90,
+      "economic_events": 0,
+      "event_types": {},
+      "trace_sha256": "5c5865d901cdd84b0602ea83de12bad4e1c4da2437cc2c573ce983e2e5ee95e2",
+      "final": {
+        "cash": "1000",
+        "equity": "1000",
+        "net": "0",
+        "fees": "0",
+        "closed": 0,
+        "wins": 0,
+        "losses": 0
+      }
+    },
+    {
+      "name": "quant-maker-selection-after-context-retry",
+      "passed": true,
+      "steps": 9,
+      "pattern_decisions": 90,
+      "economic_events": 3,
+      "event_types": {
+        "SELECTED": 1,
+        "FILLED": 1,
+        "CLOSED": 1
+      },
+      "trace_sha256": "b8a4821cca9ad8a70e0344b56efe382b277e58af96ce44858d19e893feb30723",
+      "final": {
+        "cash": "998.245587992176",
+        "equity": "998.245587992176",
+        "net": "-1.754412007824",
+        "fees": "0.111299655824",
+        "closed": 1,
+        "wins": 0,
+        "losses": 1
+      }
+    },
+    {
+      "name": "long-two-partials-final-restart-funding-0.25",
+      "passed": true,
+      "steps": 11,
+      "pattern_decisions": 0,
+      "economic_events": 5,
+      "event_types": {
+        "SELECTED": 1,
+        "FILLED": 1,
+        "PARTIAL_CLOSE": 2,
+        "CLOSED": 1
+      },
+      "trace_sha256": "63dec2e7f0bfc5ce171c270258517a4de4b743df2bb7d40bdc36b546a62528d8",
+      "final": {
+        "cash": "1002.2472683735005222",
+        "equity": "1002.2472683735005222",
+        "net": "2.2472683735005222222",
+        "fees": "0.10154477109947777777",
+        "closed": 1,
+        "wins": 1,
+        "losses": 0
+      }
+    },
+    {
+      "name": "long-two-partials-final-restart-funding--0.25",
+      "passed": true,
+      "steps": 11,
+      "pattern_decisions": 0,
+      "economic_events": 5,
+      "event_types": {
+        "SELECTED": 1,
+        "FILLED": 1,
+        "PARTIAL_CLOSE": 2,
+        "CLOSED": 1
+      },
+      "trace_sha256": "3462e339838e5f0852ef58b026135e88d25775e35732434e2c1efc919feffdc2",
+      "final": {
+        "cash": "1002.2480091165560778",
+        "equity": "1002.2480091165560778",
+        "net": "2.2480091165560777778",
+        "fees": "0.10080402804392222223",
+        "closed": 1,
+        "wins": 1,
+        "losses": 0
+      }
+    },
+    {
+      "name": "short-two-partials-final-restart-funding-0.25",
+      "passed": true,
+      "steps": 11,
+      "pattern_decisions": 0,
+      "economic_events": 5,
+      "event_types": {
+        "SELECTED": 1,
+        "FILLED": 1,
+        "PARTIAL_CLOSE": 2,
+        "CLOSED": 1
+      },
+      "trace_sha256": "637fe0a1d940cfab1cbf24edfde2a92a9f2a4b8c5d3136a24398e6934829071f",
+      "final": {
+        "cash": "1002.2524941361478",
+        "equity": "1002.2524941361478",
+        "net": "2.2524941361478",
+        "fees": "0.098453959452200000006",
+        "closed": 1,
+        "wins": 1,
+        "losses": 0
+      }
+    },
+    {
+      "name": "maker-partial-entry-expiry-and-stop",
+      "passed": true,
+      "steps": 8,
+      "pattern_decisions": 0,
+      "economic_events": 4,
+      "event_types": {
+        "SELECTED": 1,
+        "FILLED": 1,
+        "ORDER_REMAINDER_CANCELLED": 1,
+        "CLOSED": 1
+      },
+      "trace_sha256": "a5916a8676c9b3bf35a819b78078bcb97386b58b3514c2ecf00da69e55e8ce0a",
+      "final": {
+        "cash": "999.871084988",
+        "equity": "999.871084988",
+        "net": "-0.128915012",
+        "fees": "0.006939012",
+        "closed": 1,
+        "wins": 0,
+        "losses": 1
+      }
+    }
+  ],
+  "passed": 6,
+  "failed": 0,
+  "version_transitions": [
+    {
+      "direction": "base-to-candidate",
+      "kind": "open-position-partial-remainder",
+      "passed": true,
+      "steps": 11,
+      "pattern_decisions": 0,
+      "trace_sha256": "3462e339838e5f0852ef58b026135e88d25775e35732434e2c1efc919feffdc2"
+    },
+    {
+      "direction": "base-to-candidate",
+      "kind": "evaluation-cursors",
+      "passed": true,
+      "steps": 7,
+      "pattern_decisions": 90,
+      "trace_sha256": "5c5865d901cdd84b0602ea83de12bad4e1c4da2437cc2c573ce983e2e5ee95e2"
+    },
+    {
+      "direction": "candidate-to-base",
+      "kind": "open-position-partial-remainder",
+      "passed": true,
+      "steps": 11,
+      "pattern_decisions": 0,
+      "trace_sha256": "3462e339838e5f0852ef58b026135e88d25775e35732434e2c1efc919feffdc2"
+    },
+    {
+      "direction": "candidate-to-base",
+      "kind": "evaluation-cursors",
+      "passed": true,
+      "steps": 7,
+      "pattern_decisions": 90,
+      "trace_sha256": "5c5865d901cdd84b0602ea83de12bad4e1c4da2437cc2c573ce983e2e5ee95e2"
+    }
+  ],
+  "compared": "Exact deep equality of economic snapshots after every action, projected signed plans, economic events, and pattern decisions; decimal monetary strings compared exactly.",
+  "excluded": "Observation counters and ancillary evidence such as mutable excursions/data gaps. Explicit projections in this harness include opening/closing quantities, prices, monetary totals/components, signed plan contracts, stops, targets and decisions; this is not full-state equality.",
+  "limitations": [
+    "Not a market backtest or profitability study",
+    "No worker, production restore, broker network or operational database started",
+    "Deterministic fixtures are not real historical operations",
+    "Does not exhaust every possible strategy input"
+  ],
+  "source_hashes": [
+    {
+      "path": "lib/trading/secondary-futures.js",
+      "base_sha256": "e58684070b7e2a1de041284a50bc82b7da9e9fabf589e7d3e43eb3057ca74812",
+      "repaired_sha256": "e58684070b7e2a1de041284a50bc82b7da9e9fabf589e7d3e43eb3057ca74812"
+    },
+    {
+      "path": "lib/trading/secondary-futures-engine.js",
+      "base_sha256": "8959fb193a38807b0168993141026ffc6225e72e33165cf0131ec913f91bb18b",
+      "repaired_sha256": "8959fb193a38807b0168993141026ffc6225e72e33165cf0131ec913f91bb18b"
+    },
+    {
+      "path": "lib/trading/secondary-performance-review.js",
+      "base_sha256": "c19b6d77f6824a2a060809bf9016183d5092841a2cb511edf473b751f0c5cf71",
+      "repaired_sha256": "c19b6d77f6824a2a060809bf9016183d5092841a2cb511edf473b751f0c5cf71"
+    },
+    {
+      "path": "lib/trading/secondary-futures-runtime.js",
+      "base_sha256": "f19e2b59b19053247413da227ecc16e572e1e0e8a4e8645e17d554c106e5feec",
+      "repaired_sha256": "45c9518fcab880f661116fc9430ebec4a7a5f9a033af2d15a5d754541f8040aa"
+    },
+    {
+      "path": "lib/trading/dashboard-publisher.js",
+      "base_sha256": "629c6be49ca6928b3e187b46e19252f22e4eeef83cbc5f574d65de7fe6544658",
+      "repaired_sha256": "dd777ac2752034c5c3c8342da792736de9e2b4cb974b6a07a1752061eb4cbb8b"
+    },
+    {
+      "path": "lib/trading/secondary-notification-policy.js",
+      "base_sha256": null,
+      "repaired_sha256": "6c77e5d385d2ef3adf481e631248adf22557543b944f643dbf28ccff10acd0b9"
+    }
+  ]
+}

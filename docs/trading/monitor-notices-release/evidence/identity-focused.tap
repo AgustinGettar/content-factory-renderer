@@ -1,0 +1,210 @@
+TAP version 13
+# Subtest: policy is explicit, versioned and PAPER-only; no flag preserves existing delivery
+ok 1 - policy is explicit, versioned and PAPER-only; no flag preserves existing delivery
+  ---
+  duration_ms: 2.126521
+  type: 'test'
+  ...
+# Subtest: first partial entry is an opening; subsequent fills and pending signals are silent
+ok 2 - first partial entry is an opening; subsequent fills and pending signals are silent
+  ---
+  duration_ms: 1.749048
+  type: 'test'
+  ...
+# Subtest: final close reports the whole cycle, not the losing last fragment or fees subtracted again
+ok 3 - final close reports the whole cycle, not the losing last fragment or fees subtracted again
+  ---
+  duration_ms: 0.751832
+  type: 'test'
+  ...
+# Subtest: unknown funding or market quality never claims a final gain and never fabricates zero
+ok 4 - unknown funding or market quality never claims a final gain and never fabricates zero
+  ---
+  duration_ms: 0.474358
+  type: 'test'
+  ...
+# Subtest: wrong ledger, incomplete close and unexecuted payload cannot masquerade as lifecycle receipts
+ok 5 - wrong ledger, incomplete close and unexecuted payload cannot masquerade as lifecycle receipts
+  ---
+  duration_ms: 0.176323
+  type: 'test'
+  ...
+# Subtest: real SQLite outbox suppresses noise, sends two lifecycle notices once across repeat/restart, and leaves primary queued
+ok 6 - real SQLite outbox suppresses noise, sends two lifecycle notices once across repeat/restart, and leaves primary queued
+  ---
+  duration_ms: 16.921113
+  type: 'test'
+  ...
+# Subtest: ambiguous Telegram delivery remains UNKNOWN and is never retried after process recovery
+ok 7 - ambiguous Telegram delivery remains UNKNOWN and is never retried after process recovery
+  ---
+  duration_ms: 4.198121
+  type: 'test'
+  ...
+# Subtest: crash after durable claim cannot resend an uncertain lifecycle notification
+ok 8 - crash after durable claim cannot resend an uncertain lifecycle notification
+  ---
+  duration_ms: 2.902148
+  type: 'test'
+  ...
+# Subtest: suppression persistence failure is visible, cannot call transport, and can recover without lost receipt
+ok 9 - suppression persistence failure is visible, cannot call transport, and can recover without lost receipt
+  ---
+  duration_ms: 3.007415
+  type: 'test'
+  ...
+# Subtest: same implementation without explicit policy still delivers legacy secondary notifications
+ok 10 - same implementation without explicit policy still delivers legacy secondary notifications
+  ---
+  duration_ms: 3.353942
+  type: 'test'
+  ...
+# Subtest: backlog suppression is bounded and a deferred identity check retains lifecycle notification and outcomes
+ok 11 - backlog suppression is bounded and a deferred identity check retains lifecycle notification and outcomes
+  ---
+  duration_ms: 13.830865
+  type: 'test'
+  ...
+# Subtest: private owner mismatch remains a hard failure before any lifecycle send
+ok 12 - private owner mismatch remains a hard failure before any lifecycle send
+  ---
+  duration_ms: 2.371166
+  type: 'test'
+  ...
+{"event":"trading_dashboard_attention","code":"DASHBOARD_LIVE_PAYLOAD_LIMIT"}
+# Subtest: normal broker partial and recovered final close produce only open/result notices with ledger cumulative net
+ok 13 - normal broker partial and recovered final close produce only open/result notices with ledger cumulative net
+  ---
+  duration_ms: 19.11774
+  type: 'test'
+  ...
+# Subtest: normal publisher keeps live refreshing at documented outcome retention limit; complete history remains in detail
+ok 14 - normal publisher keeps live refreshing at documented outcome retention limit; complete history remains in detail
+  ---
+  duration_ms: 130.541025
+  type: 'test'
+  ...
+# {"synthetic_outcomes":2000,"comparison_domains":135,"live_bytes":119506,"detail_bytes":1243057,"site_live_limit":1048576}
+# Subtest: different internal and public comparison values are not silently dropped as duplicate aliases
+ok 15 - different internal and public comparison values are not silently dropped as duplicate aliases
+  ---
+  duration_ms: 14.295068
+  type: 'test'
+  ...
+# Subtest: unknown quant version, incomplete or mismatched summary is retained rather than projected under a guessed contract
+ok 16 - unknown quant version, incomplete or mismatched summary is retained rather than projected under a guessed contract
+  ---
+  duration_ms: 88.701104
+  type: 'test'
+  ...
+# Subtest: Site rejects oversized live bodies and preserves its previously accepted snapshot
+ok 17 - Site rejects oversized live bodies and preserves its previously accepted snapshot
+  ---
+  duration_ms: 18.666296
+  type: 'test'
+  ...
+# Subtest: unexpected uncompactable growth exposes its byte limit without sending or masking the last good receipt
+ok 18 - unexpected uncompactable growth exposes its byte limit without sending or masking the last good receipt
+  ---
+  duration_ms: 45.969301
+  type: 'test'
+  ...
+# Subtest: manifest agrees with bounded source files but never claims loaded JavaScript attestation
+ok 19 - manifest agrees with bounded source files but never claims loaded JavaScript attestation
+  ---
+  duration_ms: 21.321434
+  type: 'test'
+  ...
+# Subtest: missing and malformed manifests remain explicit diagnostics, with no startup exception
+ok 20 - missing and malformed manifests remain explicit diagnostics, with no startup exception
+  ---
+  duration_ms: 5.132114
+  type: 'test'
+  ...
+# Subtest: changed source and false tree digest are rejected without claiming a different commit
+ok 21 - changed source and false tree digest are rejected without claiming a different commit
+  ---
+  duration_ms: 4.473121
+  type: 'test'
+  ...
+# Subtest: traversal, credentials paths, duplicate entries, and omitted mandatory sources are rejected
+ok 22 - traversal, credentials paths, duplicate entries, and omitted mandatory sources are rejected
+  ---
+  duration_ms: 6.328477
+  type: 'test'
+  ...
+# Subtest: manifest and source symlinks cannot redirect verification outside the release
+ok 23 - manifest and source symlinks cannot redirect verification outside the release
+  ---
+  duration_ms: 4.716784
+  type: 'test'
+  ...
+# Subtest: oversized manifests and source files are rejected within declared limits
+ok 24 - oversized manifests and source files are rejected within declared limits
+  ---
+  duration_ms: 9.690541
+  type: 'test'
+  ...
+# Subtest: receipt binds PID, writer owner hash and fencing after acquisition without disclosing UUID
+ok 25 - receipt binds PID, writer owner hash and fencing after acquisition without disclosing UUID
+  ---
+  duration_ms: 5.484139
+  type: 'test'
+  ...
+# Subtest: health reads current revision/owner/fence and does not claim the DB lease is still valid
+ok 26 - health reads current revision/owner/fence and does not claim the DB lease is still valid
+  ---
+  duration_ms: 5.355146
+  type: 'test'
+  ...
+# Subtest: identity event uses the acquired SQLite writer and normal atomic checkpoint without another writer
+ok 27 - identity event uses the acquired SQLite writer and normal atomic checkpoint without another writer
+  ---
+  duration_ms: 6.406243
+  type: 'test'
+  ...
+# Subtest: offline generator checks committed bytes and parses only static worker roots without evaluating them
+ok 28 - offline generator checks committed bytes and parses only static worker roots without evaluating them
+  ---
+  duration_ms: 187.597409
+  type: 'test'
+  ...
+# Subtest: offline generator refuses uncommitted source edits instead of labeling them with a clean commit
+ok 29 - offline generator refuses uncommitted source edits instead of labeling them with a clean commit
+  ---
+  duration_ms: 72.864623
+  type: 'test'
+  ...
+# Subtest: legacy import boundary is explicit and never traversed or certified as complete runtime
+ok 30 - legacy import boundary is explicit and never traversed or certified as complete runtime
+  ---
+  duration_ms: 128.854085
+  type: 'test'
+  ...
+# Subtest: a manifest cannot relabel a scoped disk inspection as a complete loaded runtime
+ok 31 - a manifest cannot relabel a scoped disk inspection as a complete loaded runtime
+  ---
+  duration_ms: 4.043039
+  type: 'test'
+  ...
+# Subtest: worker wiring records provenance after acquire and before health, without changing stop handlers
+ok 32 - worker wiring records provenance after acquire and before health, without changing stop handlers
+  ---
+  duration_ms: 0.579224
+  type: 'test'
+  ...
+# Subtest: worker delta is only additive identity and preserves every existing operational line from the disk base
+ok 33 - worker delta is only additive identity and preserves every existing operational line from the disk base
+  ---
+  duration_ms: 4.077491
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1460.518405

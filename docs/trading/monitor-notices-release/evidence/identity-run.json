@@ -1,0 +1,33 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "./docs/trading/audit-stage1-2026-11-05/no-network.mjs",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "test/worker-release-identity.test.js",
+    "test/secondary-notification-policy.test.js",
+    "test/trading-live-payload-budget.test.js"
+  ],
+  "cwd": "/workspace/lumi-monitor-notices-identity",
+  "start_utc": "2026-11-13T10:43:29.005325+00:00",
+  "end_utc": "2026-11-13T10:43:30.548738+00:00",
+  "exit_code": 0,
+  "node": "v24.19.0",
+  "sha256": {
+    "scripts/trading-worker.mjs": "77d830d73791868d1117377708f9a1dc839fdd3342ab925dd7d4c1fdfb208542",
+    "scripts/trading-worker-release-manifest.mjs": "836ee4c9e8df2d6a06588bbdd0da05254413afaa54608e96c644ffd90fdfb0ba",
+    "lib/trading/worker-release-identity.js": "bbac992f82424b248a8b26aad58204534c41fd6d25d85c88ea77817f51b372a9",
+    "test/worker-release-identity.test.js": "3e419f5d61fd2a3254318886bbdb50ef80eb977e9df91e737a076dde2e0dd0f8"
+  },
+  "summary": [
+    "# {\"synthetic_outcomes\":2000,\"comparison_domains\":135,\"live_bytes\":119506,\"detail_bytes\":1243057,\"site_live_limit\":1048576}",
+    "# tests 33",
+    "# pass 33",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# duration_ms 1460.518405"
+  ]
+}

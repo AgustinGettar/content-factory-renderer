@@ -1,0 +1,28 @@
+{
+  "version": "lumi-worker-release-identity-1.0.0",
+  "checked_at": 1794566842429,
+  "checked_at_utc": "2026-11-13T10:47:22.429Z",
+  "status": "MANIFEST_FILES_MATCH_DISK",
+  "release_directory": "/workspace/lumi-monitor-notices-artifacts/d2baf52-source-verification",
+  "manifest_path": "deploy/trading/worker-release-manifest.json",
+  "manifest_sha256": "8bb405d4914ad42dfefe7c2a34009604edea13ed1af8e1f01946fd20c4448f8e",
+  "declared_source_commit": "d2baf52fec259bd678e28205633b0c5a082f53ee",
+  "source_tree_sha256": "f76b00359ac2bc7f831f9799b0ff5dbac9276d108a8f4fef28b04ce30acca00e",
+  "listed_files": 68,
+  "matched_files": 68,
+  "verification_scope": "LISTED_FILES_ON_DISK_AT_STARTUP_AFTER_STATIC_IMPORTS",
+  "source_commit_verification": "MANIFEST_DECLARATION_ONLY",
+  "loaded_source_attested": false,
+  "dependencies_verification": "LOCKFILE_ONLY_NOT_INSTALLED_PACKAGE_BYTES",
+  "runtime_models_verified": false,
+  "complete_runtime_graph": false,
+  "excluded_static_import_boundaries": [
+    {
+      "importer": "lib/trading/telegram-transport.js",
+      "specifier": "../telegram-review-v1/runtime.js",
+      "resolved": "lib/telegram-review-v1/runtime.js",
+      "reason": "OUTSIDE_TRADING_SOURCE_SCOPE_NOT_READ"
+    }
+  ],
+  "coverage": "TRADING_STATIC_IMPORTS_WITH_DECLARED_BOUNDARIES"
+}

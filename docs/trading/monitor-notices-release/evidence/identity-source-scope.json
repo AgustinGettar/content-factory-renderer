@@ -1,0 +1,293 @@
+{
+  "kind": "UNCOMMITTED_SCOPE_INSPECTION_NOT_RELEASE_MANIFEST",
+  "generated_at": "2026-11-13T10:43:48.423Z",
+  "source_commit": null,
+  "source_tree_sha256": "f76b00359ac2bc7f831f9799b0ff5dbac9276d108a8f4fef28b04ce30acca00e",
+  "file_bytes": 869155,
+  "files": [
+    {
+      "path": "scripts/trading-worker.mjs",
+      "sha256": "77d830d73791868d1117377708f9a1dc839fdd3342ab925dd7d4c1fdfb208542"
+    },
+    {
+      "path": "package.json",
+      "sha256": "4769efc50385a82b35652de0aedc1295a4cb78a34a7e73877f9da21c3387fa37"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "14d3c0fb857e1489cc0263fb569cfdfa30c595eb2dc049b6b39e2975eed53500"
+    },
+    {
+      "path": "lib/trading/secondary-futures-runtime.js",
+      "sha256": "45c9518fcab880f661116fc9430ebec4a7a5f9a033af2d15a5d754541f8040aa"
+    },
+    {
+      "path": "lib/trading/multi-pattern-paper.js",
+      "sha256": "12c61304d02a08d7333376f890dce909abb5924ffd79350f69cf3a1a1d62e5b1"
+    },
+    {
+      "path": "lib/trading/paper-controls.js",
+      "sha256": "3c3326f92b390cccb18be6485d92438a228772f5b1fa661e6025f81cc5e95cef"
+    },
+    {
+      "path": "lib/trading/feed.js",
+      "sha256": "7f56922077f54151e9ba222da9976850ff349b59b134bdbfbe4a93c53bb4d97d"
+    },
+    {
+      "path": "lib/trading/sqlite-store.js",
+      "sha256": "8deb30c30f74ad4a228303549d7373d04504d233f4958a5b754ae91f1141a007"
+    },
+    {
+      "path": "lib/trading/dashboard-publisher.js",
+      "sha256": "dd777ac2752034c5c3c8342da792736de9e2b4cb974b6a07a1752061eb4cbb8b"
+    },
+    {
+      "path": "lib/trading/store.js",
+      "sha256": "ef80a2f6d87c90e08ca4fd473e066c3b96935bdf8632641419ee725723363644"
+    },
+    {
+      "path": "lib/trading/engine.js",
+      "sha256": "2f8fb04fc42a150d60c65f55ad8ee79a2ecc8cbd64bfe488751942590c6a3666"
+    },
+    {
+      "path": "lib/trading/notifier.js",
+      "sha256": "aa933f7447603295999e77afe463e70f89f1ddfe124caee8739c9106e6144612"
+    },
+    {
+      "path": "lib/trading/core.js",
+      "sha256": "0d5615b146136494ac30a297d90d1b066fd01739247c3ac92035b9df4a675d4b"
+    },
+    {
+      "path": "lib/trading/runtime-guard.js",
+      "sha256": "5a5e7f35456d8b42124fdd75889fae4e9f87469986f9f5e255066777c490bc2c"
+    },
+    {
+      "path": "lib/trading/failure.js",
+      "sha256": "6e6633a6233eccc1332814c4c194f079d2462a8ecc7b06cfd724c66592ad297c"
+    },
+    {
+      "path": "lib/trading/runtime-performance.js",
+      "sha256": "82d749bc4d419e5468ae3ec15dcbaa4f2408282be290b80c03cadee4c8bc371f"
+    },
+    {
+      "path": "lib/trading/worker-release-identity.js",
+      "sha256": "bbac992f82424b248a8b26aad58204534c41fd6d25d85c88ea77817f51b372a9"
+    },
+    {
+      "path": "lib/trading/secondary-notification-policy.js",
+      "sha256": "6c77e5d385d2ef3adf481e631248adf22557543b944f643dbf28ccff10acd0b9"
+    },
+    {
+      "path": "lib/trading/quant-execution-repair.js",
+      "sha256": "4c00f85dab4eb957074337fe2d9fc074059685cbf82af84613c73b68eea7d66c"
+    },
+    {
+      "path": "lib/trading/quant-active-paper.js",
+      "sha256": "07e14075cfa937bd142480ae3c049221c6de359270cf24b66edb70d89c23f489"
+    },
+    {
+      "path": "lib/trading/quant-context-pullback.js",
+      "sha256": "523196afb5945596ddaf507676525372a8606df899c3b98af3c85125983a7286"
+    },
+    {
+      "path": "lib/trading/quant-notices.js",
+      "sha256": "4811347ee1d9afa29065e1d3868fb922540c8e76d65c5480767ab4a4c745693e"
+    },
+    {
+      "path": "lib/trading/quant-strategies.js",
+      "sha256": "e535c367fb97e6ebbcf45bd611cef5e8922ec308b8beb69f35cc467b21e438d3"
+    },
+    {
+      "path": "lib/trading/quant-opportunities.js",
+      "sha256": "38d71e936c4793401564e348597e2520558667d2171a6f4ff976920e723c3611"
+    },
+    {
+      "path": "lib/trading/secondary-futures.js",
+      "sha256": "e58684070b7e2a1de041284a50bc82b7da9e9fabf589e7d3e43eb3057ca74812"
+    },
+    {
+      "path": "lib/trading/secondary-monitor-activity.js",
+      "sha256": "2de3baa80928543a63ab11485dd13c72948ae9b94b82dd0c03ff3b1527770dbc"
+    },
+    {
+      "path": "lib/trading/secondary-exploration.js",
+      "sha256": "c672b93475198ee1758ea2529d8f4b6ae787387ba13b90b0abb222d07841e7da"
+    },
+    {
+      "path": "lib/trading/secondary-profit-policy.js",
+      "sha256": "7b54a0626f400bc9f191a496909ac9262606b116fe98bf51cf49c58ce3437781"
+    },
+    {
+      "path": "lib/trading/secondary-neural.js",
+      "sha256": "08ff506775befbf85f1ee2dcf989950076d5936fd664b3ee078353424c35d8ff"
+    },
+    {
+      "path": "lib/trading/secondary-capital-allocation.js",
+      "sha256": "cd29f5730b83fd86769f961a87f3fe4db8250e2d16e10ff7aa4bfe6cb5a90a2a"
+    },
+    {
+      "path": "lib/trading/secondary-risk-budget.js",
+      "sha256": "934abb64e7463b178678001a9f030159055877005982684414b9bd4bc121c7b7"
+    },
+    {
+      "path": "lib/trading/secondary-timeframes.js",
+      "sha256": "43c7c66847a9a5442d2a8d9f87ab9ffe97bbba402ca86f5ca66e5e9b87bcaac1"
+    },
+    {
+      "path": "lib/trading/portfolio.js",
+      "sha256": "33ded6a4295d505ff70dc6da3e34762dc8659d018221095c486a13d3a56edaa4"
+    },
+    {
+      "path": "lib/trading/paper-exits.js",
+      "sha256": "ccc548cf9cade64bb0ea97852e2d7d404a26431ae2f28d9715a23414d9f63420"
+    },
+    {
+      "path": "lib/trading/secondary-futures-math.js",
+      "sha256": "3cac438d45885ec583f26b5a31a9ef9bf9470cb66ca978cfa48354155934b7c7"
+    },
+    {
+      "path": "lib/trading/monitor-projection.js",
+      "sha256": "ab4ebb9f186d04fd8010722223ee4182663efda9ce13eede198d112d313cbe62"
+    },
+    {
+      "path": "lib/trading/secondary-history-publisher.js",
+      "sha256": "64839074a0873cec1ff36d230d69adbab5e78a81e03ba54d6e42c50f5d2cdefe"
+    },
+    {
+      "path": "lib/trading/secondary-capacity.js",
+      "sha256": "c93c72a0c2b766c6235b91b76ff47d6699108f0e040d75f5d0aa53e524ec816f"
+    },
+    {
+      "path": "lib/trading/secondary-boost.js",
+      "sha256": "52ebd2f225b3dd45fd55fa49721d8853e640526f098d2fd4ef30b03c4f7fb1ba"
+    },
+    {
+      "path": "lib/trading/maker-sizing.js",
+      "sha256": "b13241a3f0509ccb453143defedb734184b0f3ce9f7b0d3abc4a1f719ae32add"
+    },
+    {
+      "path": "lib/trading/context-profile.js",
+      "sha256": "891b3588fb6de1f4fadf0e45af9121915cca372379f9862b82eca67336f52404"
+    },
+    {
+      "path": "lib/trading/entry-profile.js",
+      "sha256": "f3a8db0de41a121f9cee9ed9f038c3e5e8bc7d00b048792026c057e6abccb773"
+    },
+    {
+      "path": "lib/trading/margin.js",
+      "sha256": "0d4bbab6f775a8140076bda987776971b60f959034c8eb0b5e5e9343571cf82c"
+    },
+    {
+      "path": "lib/trading/secondary-risk.js",
+      "sha256": "7a35790995edb7e25547674a8b288db6a96889bc806cc77aa5c41a5072936c99"
+    },
+    {
+      "path": "lib/trading/timeframes.js",
+      "sha256": "ba4f9e33cf8e93a6060ec0243be5762a3fe594333ef48f703144a0cf738c5d78"
+    },
+    {
+      "path": "lib/trading/strategies.js",
+      "sha256": "4689a130b85f0ee9aeeeca708c41d54cab540da2d8771f47389372aaf7ab2baa"
+    },
+    {
+      "path": "lib/trading/simulator.js",
+      "sha256": "0197a5ac5c41c5e49c77039697e0c065c817a026a54722427c5bd38303f64708"
+    },
+    {
+      "path": "lib/trading/research.js",
+      "sha256": "705b3b891ed82f47d7cf83f0fc3b30adb703dcc4ca148d591c66d56fead0796c"
+    },
+    {
+      "path": "lib/trading/capital.js",
+      "sha256": "757f6e1a907ccf55bd88130eca1ef3dba65be9577445f388d2334f4acd786398"
+    },
+    {
+      "path": "lib/trading/frequency.js",
+      "sha256": "d13c14c3d3173a623dada5538fde5e2cd979128805d01d8f36b4be8b79f29613"
+    },
+    {
+      "path": "lib/trading/learning.js",
+      "sha256": "283329f16220f831093bb9b11b2eb6549770d83a2ad75bdb87f7920f391de12e"
+    },
+    {
+      "path": "lib/trading/laboratory.js",
+      "sha256": "f67eca149ad3be0213dd383b77960e290c812338e35ac88477fd34482c594ba8"
+    },
+    {
+      "path": "lib/trading/telegram-transport.js",
+      "sha256": "31045bce703fa726732ada3ab565463a16a28fa8fd06c65afb7418712aabc867"
+    },
+    {
+      "path": "lib/trading/quant-features.js",
+      "sha256": "d317d8bdbae16bf0632355bbef1be38f35e8332d9a68feae8c5dfe22a149aa62"
+    },
+    {
+      "path": "lib/trading/quant-fibonacci.js",
+      "sha256": "1df4695e47f2d301f73cd69417a23d7aff914438e99b3301bbb46306ffbf9bd1"
+    },
+    {
+      "path": "lib/trading/secondary-futures-engine.js",
+      "sha256": "8959fb193a38807b0168993141026ffc6225e72e33165cf0131ec913f91bb18b"
+    },
+    {
+      "path": "lib/trading/quant-management.js",
+      "sha256": "011cb5d2bf64ba236a9bc71af93f40e6066b392e88a14afcaaea9ee8d4f994a4"
+    },
+    {
+      "path": "lib/trading/quant-public-analytics.js",
+      "sha256": "02f0c2d89224bf111160b3cd69460a0e366f5aacdabd2f936912edba9f0eb0b3"
+    },
+    {
+      "path": "lib/trading/secondary-entry-context.js",
+      "sha256": "94106f63398ea785ea771c2eb93f55edcc768e4258751ed76b19d9dde0a1d71b"
+    },
+    {
+      "path": "lib/trading/secondary-market-regime.js",
+      "sha256": "dadaafaa57dc18bafaee1aa49129c8774ac6a2f2067d84e0093f90ec0585aa40"
+    },
+    {
+      "path": "lib/trading/secondary-scalping-shadow.js",
+      "sha256": "bc0868f598e0b308624be39bfd965a09619b3763e21836cc7f0aaf949321cee2"
+    },
+    {
+      "path": "lib/trading/secondary-neural-data.js",
+      "sha256": "e4c4697b7041ce7dd552a186bacd48cb0fb51b6e783ced5c97650b56b218184e"
+    },
+    {
+      "path": "lib/trading/secondary-neural-runtime.js",
+      "sha256": "71ef9e2b54c79f5efa8d948cc8c57ac607cab2cd30461a82edfce00c8897976f"
+    },
+    {
+      "path": "lib/trading/secondary-entry-economics.js",
+      "sha256": "eb32e61d9f6760ebc33f5abb874cd60826ed3331a8e8f18e5e7f9b76937e73d3"
+    },
+    {
+      "path": "lib/trading/chart-evidence.js",
+      "sha256": "be9a11245a8b497923cc4ef6d309a2bcb7734121da49f40449a82aafe6eb4613"
+    },
+    {
+      "path": "lib/trading/quant-evaluation.js",
+      "sha256": "8a50b9e46d40199a1ef5c971027890848e0cb2d756fff711cf2966e2557022ad"
+    },
+    {
+      "path": "lib/trading/secondary-profit-protection.js",
+      "sha256": "09ebd0e46b20566c25fd67aa8979b0e3ad14d774a4532aebefe76d4927ea591a"
+    },
+    {
+      "path": "lib/trading/secondary-exit-advisory.js",
+      "sha256": "23c3e41a3696c85281dadbcd8ab33bcbab8cda8786c7eeb9977b047860f3ed43"
+    }
+  ],
+  "excludedStaticImports": [
+    {
+      "importer": "lib/trading/telegram-transport.js",
+      "specifier": "../telegram-review-v1/runtime.js",
+      "resolved": "lib/telegram-review-v1/runtime.js"
+    }
+  ],
+  "roots": [
+    "scripts/trading-worker.mjs"
+  ],
+  "complete_runtime_graph": false,
+  "loaded_source_attested": false
+}

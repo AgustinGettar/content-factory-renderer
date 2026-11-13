@@ -1,14 +1,14 @@
 {
   "kind": "SOURCE_REPLACEMENTS_ON_VERIFIED_DISK_BASE_NOT_STANDALONE_RELEASE",
-  "status": "LOCAL_TESTED_RUNTIME_IDENTITY_AND_RECOVERY_GATES_PENDING",
-  "branch": "fix/lumi-monitor-notices-release-2026-11-13",
+  "status": "LOCAL_SOURCE_AND_PACKAGED_IDENTITY_VERIFIED_CAPACITY_AND_RECOVERY_BLOCKED",
+  "branch": "fix/lumi-monitor-notices-identity-2026-11-13",
   "base_commit": "9f8648abe12cb3457814bae9074d8e666fd56cba",
-  "candidate_commit": "0d163ccd85d9528251e894caf968b0284dc0d709",
   "created_at": "2026-11-13T10:30:00.385209+00:00",
   "node_tested": "v24.19.0",
   "source_origins": [
     "4fe2a8ee9789fec6003a49f53456f744e6f40125",
-    "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+    "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
+    "c2442db49a648b84037c175fc6a52d56a5bb285f (identity only; observer roots removed)"
   ],
   "runtime_files": [
     {
@@ -28,6 +28,18 @@
       "action": "ADD",
       "base_sha256": null,
       "candidate_sha256": "6c77e5d385d2ef3adf481e631248adf22557543b944f643dbf28ccff10acd0b9"
+    },
+    {
+      "path": "scripts/trading-worker.mjs",
+      "action": "REPLACE",
+      "base_sha256": "d1563a6342e92cec2ec3413bc193163896529317b1383de4f0c2581797fc6b13",
+      "candidate_sha256": "77d830d73791868d1117377708f9a1dc839fdd3342ab925dd7d4c1fdfb208542"
+    },
+    {
+      "path": "lib/trading/worker-release-identity.js",
+      "action": "ADD",
+      "base_sha256": null,
+      "candidate_sha256": "bbac992f82424b248a8b26aad58204534c41fd6d25d85c88ea77817f51b372a9"
     }
   ],
   "excluded": [
@@ -50,17 +62,49 @@
     "LUMI_TRADING_MODE": "PAPER",
     "LUMI_TRADING_STORAGE": "SQLITE"
   },
-  "runtime_identity_scope": "Base9f source files match reported AWS disk evidence; loaded process commit not attested. This package does not improve that attestation by itself.",
-  "source_tree_sha256": "5551c8c8b755b212715844a1215b5598f03ac3a45b5faba8183b356f0b04c868",
+  "runtime_identity_scope": "Next startup records measured listed disk hashes after ESM imports, manifest digest, declared commit, PID, owner hash and fence acquired by same process. loaded_source_attested:false; lockfile only for dependencies; Telegram legacy boundary and runtime models not verified.",
+  "source_tree_sha256": "aa16ce6d7432b8803f3e2cc08ef6c5fc8fb9aa623cdf9ba114b6f37c7a76afeb",
   "minimum_diff_assertions": {
-    "tracked_runtime_changes": [
+    "modified_runtime_from_disk_base": [
       "lib/trading/dashboard-publisher.js",
-      "lib/trading/secondary-futures-runtime.js"
+      "lib/trading/secondary-futures-runtime.js",
+      "scripts/trading-worker.mjs"
     ],
-    "untracked_runtime_additions": [
-      "lib/trading/secondary-notification-policy.js"
+    "added_runtime_from_disk_base": [
+      "lib/trading/secondary-notification-policy.js",
+      "lib/trading/worker-release-identity.js"
     ],
     "notifier_outside_class_and_added_import_byte_identical_to_base": true,
+    "worker_without_additive_identity_byte_identical_to_disk_base": true,
     "economic_engine_and_configuration_unchanged": true
-  }
+  },
+  "previous_candidate_commit": "0d163ccd85d9528251e894caf968b0284dc0d709",
+  "candidate_commit": "d2baf52fec259bd678e28205633b0c5a082f53ee",
+  "identity_extension_base_commit": "3ad11dd67cacec2c872623dfa06b15a2d854c7fa",
+  "updated_at": "2026-11-13T10:47:40.501725+00:00",
+  "offline_packaging_tools": [
+    {
+      "path": "scripts/trading-worker-release-manifest.mjs",
+      "sha256": "836ee4c9e8df2d6a06588bbdd0da05254413afaa54608e96c644ffd90fdfb0ba",
+      "run_in_aws": false
+    }
+  ],
+  "required_generated_artifact": {
+    "path": "deploy/trading/worker-release-manifest.json",
+    "sha256": "8bb405d4914ad42dfefe7c2a34009604edea13ed1af8e1f01946fd20c4448f8e",
+    "status": "GENERATED_AND_VERIFIED_68_FILES",
+    "generation_requires_exact_committed_bytes": true,
+    "delivered_at": "docs/trading/monitor-notices-release/worker-release-manifest.json"
+  },
+  "source_tree_hash_scope": "FIVE_RUNTIME_REPLACEMENTS_ONLY_NOT_FULL_STATIC_SCOPE",
+  "full_static_scope_tree_sha256": "f76b00359ac2bc7f831f9799b0ff5dbac9276d108a8f4fef28b04ce30acca00e",
+  "full_static_scope_count": 68,
+  "runtime_deployment_files": [
+    "lib/trading/dashboard-publisher.js",
+    "lib/trading/secondary-futures-runtime.js",
+    "lib/trading/secondary-notification-policy.js",
+    "scripts/trading-worker.mjs",
+    "lib/trading/worker-release-identity.js",
+    "deploy/trading/worker-release-manifest.json"
+  ]
 }

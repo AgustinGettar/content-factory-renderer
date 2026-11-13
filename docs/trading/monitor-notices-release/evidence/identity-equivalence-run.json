@@ -1,0 +1,11 @@
+{
+  "command": [
+    "node",
+    "test/stage2-strategy-equivalence.mjs",
+    "docs/trading/monitor-notices-release/evidence/identity-strategy-equivalence.json"
+  ],
+  "comparison_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
+  "start_utc": "2026-11-13T10:44:31.073648+00:00",
+  "end_utc": "2026-11-13T10:44:31.795162+00:00",
+  "exit_code": 0
+}

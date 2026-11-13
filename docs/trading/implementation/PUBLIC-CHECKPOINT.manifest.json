@@ -5,7 +5,7 @@
   "git_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
   "recovered_source_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
   "source_file_count": 34,
-  "listed_source_tree_sha256": "a0b0122f6fb186a9aadd178faa80636d874ef55983df1b646e05150470f17d2f",
+  "listed_source_tree_sha256": "b8265ca25f69d09c9d2843f6c50efd0d1003583f56b85ae3958fecd680e692c4",
   "tree_hash_definition": "SHA256 of UTF8 JSON files array with sort_keys=true and separators comma/colon",
   "files": [
     {
@@ -59,10 +59,10 @@
     },
     {
       "path": "docs/trading/implementation/stage0/lumi_etapa0.py",
-      "bytes": 52123,
-      "sha256": "83336b9d9b7019b6eee79b5537157c9107ad23cd8e119631c25fc8078aad9f23",
+      "bytes": 75943,
+      "sha256": "099969209569fe8fcee9a820dc20297bcf5e38ad347fd55c893db398a8b76653",
       "component": "readonly_tool",
-      "origin_commit": "e0839ead40a0a3ab94be144dc5b09abfd3774112"
+      "origin_commit": "9e7c0c2ac410fa276ca1039e4c69d73b24bb68c6"
     },
     {
       "path": "lib/trading/dashboard-publisher.js",
@@ -227,10 +227,10 @@
     },
     {
       "path": "test/lumi-stage0-collector.test.py",
-      "bytes": 33174,
-      "sha256": "97c4f1732568d3994f8f1ea4e4a55f69f5b73da5af344d301606c5db2eb0b263",
+      "bytes": 44643,
+      "sha256": "a3dc78d73c8243f4fb4da6a8cbe96146617b7e7415f94a56908ac5c555922b71",
       "component": "tests",
-      "origin_commit": "e0839ead40a0a3ab94be144dc5b09abfd3774112"
+      "origin_commit": "9e7c0c2ac410fa276ca1039e4c69d73b24bb68c6"
     },
     {
       "path": "test/secondary-notification-policy.test.js",
@@ -326,5 +326,20 @@
     "generated_manifests": 1,
     "deployed": false,
     "activation_gates": "Capacity and isolated recovery remain unverified; no economic changes"
+  },
+  "collector_storage_followup": {
+    "source_commit": "9e7c0c2ac410fa276ca1039e4c69d73b24bb68c6",
+    "version": "lumi-stage0-readonly-1.0.3",
+    "command": "python3 lumi_etapa0.py --storage-plan",
+    "local_tests": {
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "scope": "51 previous plus13storage; synthetic SQL/trees and mocked system/AWS; tested on exact copied hashes in private integration worktree"
+    },
+    "executed_on_aws": false,
+    "source_sha256": "099969209569fe8fcee9a820dc20297bcf5e38ad347fd55c893db398a8b76653",
+    "scope": "Bounded filesystem metadata; shared Git and node_modules references; sanitized status of5measured inactive releases; root volume Describe metadata. No DB, S3, backup, deletion, restart or resize."
   }
 }

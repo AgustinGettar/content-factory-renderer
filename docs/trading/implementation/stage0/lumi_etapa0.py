@@ -8,8 +8,10 @@ SQL uses a single read transaction, indexed bounded queries and a deadline.
 import base64, collections, datetime as dt, decimal, errno, hashlib, json, os, re
 from pathlib import Path
 import shlex, shutil, sqlite3, stat, subprocess, sys, time, zlib
+try:import resource
+except ImportError:resource=None
 
-VERSION = 'lumi-stage0-readonly-1.0.2'
+VERSION = 'lumi-stage0-readonly-1.0.3'
 REGION = 'eu-north-1'
 INSTANCE = 'i-0ae2ad0bb886f3d7f'
 ACCOUNT = '146766539818'
@@ -349,6 +351,7 @@ def collect_runtime_diagnostics(out,pid,invocation,*,db_path=DB,journal_reader=j
 CAPACITY_INVENTORY_LIMIT=40
 RECOVERY_SERVICE='lumi-trading-s3-recovery.service'
 RECOVERY_BUCKET='lumi-paper-recovery-146766539818-eun1'
+MAX_REMOTE_COMMAND_BYTES=32768
 
 
 def safe_read_error(error):
@@ -541,7 +544,239 @@ def collect_capacity_diagnostics(out,pid,invocation,*,db_path=DB,releases='/opt/
     return out
 
 
+def storage_reference(path,root):
+    """Return release ownership and bounded path evidence, not arbitrary names."""
+    text=os.path.normpath(str(path));base=os.path.normpath(str(root))
+    try:parts=Path(text).relative_to(base).parts
+    except ValueError:parts=()
+    release=parts[0] if parts and re.fullmatch('[a-f0-9]{40}',parts[0]) else None
+    suffix='/'.join(parts[1:])
+    safe=release and (not suffix or suffix in ('.git','node_modules','.git/objects') or re.fullmatch(r'\.git/worktrees/[a-f0-9]{40}(?:/objects)?',suffix))
+    return {'release':release,'path':text if safe else None,'path_sha256':sha(text.encode()),'inside_release_root':bool(release)}
+
+
+def metadata_text(path,limit=8192):
+    """Internal metadata only: regular file, no link following, bounded and stable."""
+    fd=None
+    try:
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW);before=os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode) or before.st_size>limit:raise RuntimeError('METADATA_SIZE_OR_TYPE')
+        data=os.read(fd,limit+1);after=os.fstat(fd)
+        if len(data)>limit or len(data)!=before.st_size or (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns):raise RuntimeError('METADATA_CHANGED_OR_LIMIT')
+        return data.decode('utf-8')
+    finally:
+        if fd is not None:os.close(fd)
+
+
+def storage_processes(root,*,proc_root='/proc',limit=128,deadline=None):
+    out={'status':'READ','complete':True,'pid_limit':limit,'examined':0,'unreadable':0,'references':[]}
+    try:
+        with os.scandir(proc_root) as entries:
+            for entry in entries:
+                if not entry.name.isdigit():continue
+                if out['examined']>=limit or (deadline is not None and time.monotonic()>=deadline):out.update(status='PROCESS_LIMIT',complete=False);break
+                out['examined']+=1
+                try:
+                    target=os.readlink(Path(entry.path)/'cwd');reference=storage_reference(target,root)
+                    if reference['inside_release_root']:out['references'].append({'pid':int(entry.name),**reference})
+                except OSError:out['unreadable']+=1;out['complete']=False
+    except OSError as error:out.update(safe_read_error(error));out['complete']=False
+    if out['unreadable'] and out['status']=='READ':out['status']='PROCESS_READ_GAPS'
+    return out
+
+
+def storage_walk(paths,*,root,seconds=12,max_entries=150000,max_inodes=100000,max_depth=24,max_pending=4096):
+    """Aggregate lstat only. Never follow links or read any file contents."""
+    began=time.monotonic();deadline=began+seconds;seen={};examined=0;stop=None;results={};edges=[];edge_limit=256;edge_overflow=False
+    for owner,path in paths:
+        row={'status':'NOT_VISITED','complete':False,'entries':0,'regular_files':0,'reported_allocated_bytes':0,'buckets':{},'errors':0};results[owner]=row
+        if stop:continue
+        try:device=Path(path).lstat().st_dev
+        except OSError:row['status']='ROOT_UNREADABLE';row['errors']+=1;continue
+        stack=[(Path(path),0)];row['status']='READ';row['complete']=True
+        while stack:
+            if time.monotonic()>=deadline:stop='WALK_TIME_LIMIT';break
+            if examined>=max_entries:stop='WALK_ENTRY_LIMIT';break
+            if examined%1024==0 and resource is not None and sys.platform=='linux' and resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024>=64*1024**2:stop='COLLECTOR_RSS_LIMIT';break
+            current,depth=stack.pop()
+            try:s=current.lstat()
+            except OSError:row['errors']+=1;row['complete']=False;continue
+            examined+=1;row['entries']+=1
+            if s.st_dev!=device:row['errors']+=1;row['complete']=False;continue
+            if depth>max_depth:row['errors']+=1;row['complete']=False;continue
+            relative=current.relative_to(path).parts;top=relative[0] if relative else ''
+            bucket=top if top in ('.git','node_modules','data','backups','artifacts') else 'source_or_other'
+            allocated=getattr(s,'st_blocks',0)*512;row['reported_allocated_bytes']+=allocated;row['buckets'][bucket]=row['buckets'].get(bucket,0)+allocated
+            if stat.S_ISREG(s.st_mode):row['regular_files']+=1
+            inode=(s.st_dev,s.st_ino)
+            if inode in seen:
+                item=seen[inode];item[2]+=1
+                if item[3]!=owner:item[4]=True
+            else:
+                if len(seen)>=max_inodes:stop='WALK_INODE_LIMIT';break
+                seen[inode]=[allocated,s.st_nlink,1,owner,False,stat.S_ISREG(s.st_mode)]
+            if stat.S_ISLNK(s.st_mode):
+                if len(edges)>=edge_limit:edge_overflow=True;row['complete']=False;continue
+                try:
+                    target=os.readlink(current);target=Path(target) if os.path.isabs(target) else current.parent/target
+                    edges.append({'owner':owner,'source_category':bucket,'source_relative_sha256':sha('/'.join(relative).encode()),'target':storage_reference(target,root)})
+                except OSError:row['errors']+=1;row['complete']=False
+            elif stat.S_ISDIR(s.st_mode):
+                try:
+                    with os.scandir(current) as children:
+                        for child in children:
+                            if len(stack)>=max_pending:stop='WALK_PENDING_PATH_LIMIT';break
+                            if len(stack)+examined>=max_entries:stop='WALK_ENTRY_LIMIT';break
+                            if time.monotonic()>=deadline:stop='WALK_TIME_LIMIT';break
+                            stack.append((Path(child.path),depth+1))
+                except OSError:row['errors']+=1;row['complete']=False
+            if stop:break
+        if stop:row['status']=stop;row['complete']=False
+        elif not row['complete']:row['status']='WALK_READ_GAPS'
+    unique=0;shared=0;unaccounted_links=0
+    for allocated,nlinks,occurrences,owner,multiple,regular in seen.values():
+        unique+=allocated
+        if multiple:shared+=allocated
+        else:results[owner]['unique_within_observed_trees_allocated_bytes']=results[owner].get('unique_within_observed_trees_allocated_bytes',0)+allocated
+        if regular and nlinks>occurrences:unaccounted_links+=1
+    return {'status':stop or ('READ' if all(x['complete'] for x in results.values()) and not edge_overflow else 'WALK_READ_GAPS'),'complete':not stop and all(x['complete'] for x in results.values()) and not edge_overflow,'elapsed_seconds':round(time.monotonic()-began,3),'limits':{'seconds':seconds,'entries':max_entries,'inodes':max_inodes,'depth':max_depth,'pending_paths':max_pending,'exported_symlinks':edge_limit,'rss_soft_limit_bytes':64*1024**2,'rss_sample_every_entries':1024},'collector_peak_rss_bytes':resource.getrusage(resource.RUSAGE_SELF).ru_maxrss*1024 if resource is not None and sys.platform=='linux' else None,'entries_examined':examined,'unique_inodes':len(seen),'reported_unique_inode_allocated_bytes':unique,'shared_across_trees_allocated_bytes':shared,'regular_inodes_with_unobserved_links':unaccounted_links,'trees':results,'symlink_edges':edges,'symlink_edge_limit_reached':edge_overflow,'safe_reclaimable_bytes':None,'scope':'st_blocks attribution, not exclusive physical extents or proof that removal is safe; no file-content reads.'}
+
+
+def storage_git_graph(paths,*,root,run=subprocess.run,deadline=None):
+    graph={};deadline=deadline or time.monotonic()+12
+    for name,path in paths:
+        item={'status':'NOT_VISITED','head':None,'git_links':[],'node_modules':None,'alternates':[]};graph[name]=item
+        if time.monotonic()>=deadline:item['status']='GRAPH_TIME_LIMIT';continue
+        args=['git','--no-optional-locks','-C',str(path),'rev-parse','--path-format=absolute','--git-dir','--git-common-dir','HEAD']
+        result,text=safe_probe(args,run=run,timeout=max(0.05,min(1,deadline-time.monotonic())),output_limit=8192);item.update(result)
+        if text is not None:
+            lines=text.strip().splitlines()
+            if len(lines)!=3 or not re.fullmatch('[a-f0-9]{40}',lines[2]):item['status']='INVALID_GIT_METADATA'
+            else:
+                item['head']=lines[2];item['head_matches_directory']=name==lines[2]
+                item['git_links']=[{'kind':kind,**storage_reference(value,root)} for kind,value in zip(('git_dir','git_common_dir'),lines[:2])]
+                common=Path(lines[1])
+                if storage_reference(common,root)['inside_release_root']:
+                    alternates=common/'objects/info/alternates'
+                    try:
+                        text=metadata_text(alternates);values=text.splitlines()
+                        if len(values)>16:item['alternates_status']='ALTERNATE_LIMIT'
+                        else:
+                            item['alternates']=[storage_reference(value if os.path.isabs(value) else common/'objects'/value,root) for value in values if value]
+                            item['alternates_status']='READ'
+                    except FileNotFoundError:item['alternates_status']='ABSENT'
+                    except Exception:item['alternates_status']='ALTERNATE_UNREADABLE'
+                else:item['alternates_status']='EXTERNAL_COMMON_DIR_NOT_READ'
+        cursor=Path(path)/'node_modules';chain=[]
+        try:
+            for depth in range(16):
+                info=cursor.lstat()
+                if not stat.S_ISLNK(info.st_mode):item['node_modules']={'status':'READ','kind':'directory' if stat.S_ISDIR(info.st_mode) else 'other','chain':chain,'final':storage_reference(cursor,root)};break
+                target=os.readlink(cursor);cursor=Path(os.path.normpath(target if os.path.isabs(target) else cursor.parent/target));chain.append(storage_reference(cursor,root))
+            else:item['node_modules']={'status':'SYMLINK_DEPTH_LIMIT','chain':chain}
+        except FileNotFoundError:item['node_modules']={'status':'DANGLING' if chain else 'ABSENT','chain':chain}
+        except OSError:item['node_modules']={'status':'SYMLINK_READ_FAILED','chain':chain}
+    return graph
+
+
+def storage_git_status(path,*,run=subprocess.run,timeout=2):
+    args=['git','--no-optional-locks','-c','core.fsmonitor=false','-c','core.untrackedCache=false','-C',str(path),'status','--porcelain=v1','--untracked-files=normal','--ignored=matching']
+    result,text=safe_probe(args,run=run,timeout=timeout,output_limit=131072)
+    result.update(clean_tracked=None,untracked_count=None,ignored_count=None,deletion_actions_available=False)
+    if text is None:return result
+    rows=text.splitlines();counts=collections.Counter();ignored_modules=0
+    for line in rows:
+        if len(line)<3 or line[2]!=' ' or not re.fullmatch(r'[ MADRCU?!]{2}',line[:2]):result['status']='INVALID_PORCELAIN';return result
+        counts[line[:2]]+=1
+        if line[:2]=='!!' and line[3:].rstrip('/')=='node_modules':ignored_modules+=1
+    result.update(porcelain_sha256=sha(text.encode()),porcelain_rows=len(rows),clean_tracked=not any(k not in ('??','!!') for k in counts),untracked_count=counts['??'],ignored_count=counts['!!'],ignored_node_modules_count=ignored_modules,ignored_other_count=counts['!!']-ignored_modules,code_counts=dict(counts),scope='Counts are porcelain entries, not recursive file counts. No paths exported. Clean tracked files do not prove ignored/untracked data disposable or a safe rollback set.')
+    return result
+
+
+def collect_storage_plan(out,pid,invocation,*,root='/opt/lumi-trading/releases',backups='/var/lib/lumi-trading/backups',proc_root='/proc',run=subprocess.run,seconds=36,walk_seconds=12,lower_priority=True):
+    started=time.monotonic();deadline=started+seconds;root=Path(root);out['collection_warnings']=[]
+    plan={'mode':'METADATA_STORAGE_PLAN_NO_DB_NO_BACKUP_NO_CLEANUP','deletion_actions_available':False,'safe_reclaimable_bytes':None,'limits':{'overall_seconds':seconds,'walk_seconds':walk_seconds,'graph_and_status_additional_seconds':12,'process_count':128,'backup_entries':512,'git_status_candidates':5},'priority':'NOT_REQUESTED'};out['storage_plan']=plan
+    if lower_priority:
+        try:plan['priority']={'collector_nice':os.nice(15),'scope':'COLLECTOR_AND_ITS_CHILDREN_ONLY'}
+        except OSError as error:plan['priority']=safe_read_error(error)
+    plan['filesystem']={}
+    for name,path in (('root',Path('/')),('ledger_parent',Path(backups).parent)):
+        try:
+            s=path.stat();fs=os.statvfs(path);plan['filesystem'][name]={'device':s.st_dev,'major':os.major(s.st_dev),'minor':os.minor(s.st_dev),'total_bytes':fs.f_blocks*fs.f_frsize,'available_bytes':fs.f_bavail*fs.f_frsize,'inodes_available':fs.f_favail}
+        except OSError as error:plan['filesystem'][name]=safe_read_error(error)
+    plan['filesystem']['same_device']=plan['filesystem']['root'].get('device')==plan['filesystem']['ledger_parent'].get('device') if 'device' in plan['filesystem']['root'] and 'device' in plan['filesystem']['ledger_parent'] else None
+    plan['memory']={'MemTotal_bytes':None,'MemAvailable_bytes':None}
+    try:
+        with (Path(proc_root)/'meminfo').open('rb') as file:memory=file.read(4097)
+        if len(memory)>4096:plan['memory']['status']='SIZE_LIMIT'
+        else:
+            for key in ('MemTotal','MemAvailable'):
+                match=re.search(rb'^'+key.encode()+rb':\s+(\d+) kB$',memory,re.M)
+                if match:plan['memory'][key+'_bytes']=int(match.group(1))*1024
+            plan['memory']['status']='READ' if all(plan['memory'][k+'_bytes'] is not None for k in ('MemTotal','MemAvailable')) else 'INCOMPLETE'
+    except OSError as error:plan['memory'].update(safe_read_error(error))
+    inventory=bounded_inventory(root,limit=64);plan['release_inventory']=inventory
+    paths=[(e['name'],root/e['name']) for e in inventory.get('entries',[]) if e.get('kind')=='directory' and re.fullmatch('[a-f0-9]{40}',e['name'])]
+    plan['processes']=storage_processes(root,proc_root=proc_root,deadline=deadline)
+    plan['backup_inventory']=bounded_inventory(backups,limit=512)
+    verify_paths=[]
+    try:
+        with os.scandir(backups) as entries:
+            for index,entry in enumerate(entries):
+                if index>=512 or time.monotonic()>=deadline:break
+                if re.fullmatch(r'\.remote-verify-[A-Za-z0-9_-]{1,64}',entry.name) and entry.is_dir(follow_symlinks=False):verify_paths.append(('backup-temp-'+sha(entry.name.encode())[:16],Path(entry.path)))
+    except OSError:pass
+    plan['release_trees']=storage_walk(paths,root=root,seconds=min(walk_seconds,max(0,deadline-time.monotonic())))
+    # Temporary verification dirs contain only named snapshot/cipher artifacts;
+    # metadata recursion is independently shallow and cannot consume another12s.
+    remaining_walk=max(0,walk_seconds-plan['release_trees']['elapsed_seconds'])
+    plan['backup_temporary_trees']=storage_walk(verify_paths,root=root,seconds=min(remaining_walk,max(0,deadline-time.monotonic())),max_entries=max(0,150000-plan['release_trees']['entries_examined']),max_depth=2)
+    graph_deadline=min(deadline,time.monotonic()+12)
+    graph=storage_git_graph(paths,root=root,run=run,deadline=graph_deadline);plan['release_graph']=graph
+    current=storage_reference(out.get('current',''),root);active=storage_reference(obj(out.get('process')).get('cwd',''),root)
+    protected=collections.defaultdict(set)
+    if current['release']:protected[current['release']].add('CURRENT_SYMLINK_TARGET')
+    if active['release']:protected[active['release']].add('ACTIVE_WORKER_CWD')
+    for p in plan['processes']['references']:protected[p['release']].add('PROCESS_CWD_REFERENCE')
+    edges=[]
+    for name,g in graph.items():
+        for ref in g['git_links']+g['alternates']+obj(g.get('node_modules')).get('chain',[])+([obj(g.get('node_modules')).get('final')] if obj(g.get('node_modules')).get('final') else []):
+            if ref.get('release') and ref['release']!=name:edges.append((name,ref['release'],'SHARED_GIT_OR_DEPENDENCY'))
+    for edge in plan['release_trees']['symlink_edges']:
+        if edge['target']['release'] and edge['owner']!=edge['target']['release']:edges.append((edge['owner'],edge['target']['release'],'TREE_SYMLINK_DEPENDENCY'))
+    changed=True
+    while changed:
+        changed=False
+        for src,dst,reason in edges:
+            if src in protected and reason not in protected[dst]:protected[dst].add(reason);changed=True
+    incoming=collections.defaultdict(set)
+    for src,dst,reason in edges:incoming[dst].add(src)
+    plan['protected_releases']={name:sorted(reasons) for name,reasons in protected.items()}
+    plan['incoming_dependencies']={name:sorted(refs) for name,refs in incoming.items()}
+    plan['git_status']={}
+    measured=plan['release_trees']['trees']
+    candidates=sorted((name for name,path in paths if name not in protected and measured.get(name,{}).get('complete')),key=lambda name:measured[name]['reported_allocated_bytes'],reverse=True)[:5]
+    for name in candidates:
+        remaining=graph_deadline-time.monotonic()
+        if remaining<=0:plan['git_status'][name]={'status':'STATUS_BUDGET_EXHAUSTED','clean_tracked':None};continue
+        plan['git_status'][name]=storage_git_status(root/name,run=run,timeout=min(2,remaining))
+    plan['blockers']=['ROLLBACK_RETENTION_UNVERIFIED','NO_VERIFIED_CLEANUP_SET']
+    if any(g.get('status')!='READ' or g.get('alternates_status') not in ('READ','ABSENT') or obj(g.get('node_modules')).get('status') not in ('READ','ABSENT') for g in graph.values()):plan['blockers'].append('DEPENDENCY_GRAPH_INCOMPLETE')
+    if not plan['processes']['complete']:plan['blockers'].append('PROCESS_REFERENCES_UNVERIFIED')
+    if not inventory.get('complete') or not plan['release_trees']['complete']:plan['blockers'].append('RELEASE_MEASUREMENT_INCOMPLETE')
+    if not plan['backup_inventory'].get('complete') or not plan['backup_temporary_trees']['complete']:plan['blockers'].append('BACKUP_INVENTORY_INCOMPLETE')
+    if any(name not in plan['git_status'] or plan['git_status'][name].get('status')!='READ' for name in measured if name not in protected):plan['blockers'].append('MISSING_CLEAN_TREE_CHECK_FOR_OTHER_RELEASES')
+    plan['elapsed_seconds']=round(time.monotonic()-started,3)
+    plan['status']='READ_WITH_EXPLICIT_GATES';plan['identity_not_backup']=True
+    out['collection_warnings']=[{'section':'storage_plan','code':code} for code in plan['blockers']]
+    out['diagnostic_status']='DEGRADED'
+    return out
+
+
 def receipt_status(remote):
+    if remote.get('mode')=='STORAGE_PLAN':
+        valid=not remote.get('error') and obj(remote.get('storage_plan')).get('status')=='READ_WITH_EXPLICIT_GATES' and remote.get('same_process_after_read') is True
+        return 'COLLECTED_WITH_READ_GAPS' if valid else 'REMOTE_READ_INCOMPLETE'
     sql=obj(obj(remote.get('capacity')).get('database')) if remote.get('mode')=='CAPACITY' else obj(remote.get('paper'))
     valid=not remote.get('error') and sql.get('consistent_read_transaction') is True and remote.get('same_process_after_read') is True
     if not valid:return 'REMOTE_READ_INCOMPLETE'
@@ -570,13 +805,15 @@ def collect_runtime_identity(out):
     return pid,service['InvocationID']
 
 
-def remote(*,capacity=False):
+def remote(*,capacity=False,storage=False):
     out={'version':VERSION,'started_at_utc':stamp(utc()),'actions':'READ_ONLY_NO_WORKER_IMPORT_NO_BACKUP_NO_ENV_FILES','loaded_runtime_commit':'NOT_VERIFIED'}
     if capacity:out['mode']='CAPACITY'
+    if storage:out['mode']='STORAGE_PLAN'
     try:
         pid,invocation=collect_runtime_identity(out)
         try:
-            if capacity:collect_capacity_diagnostics(out,pid,invocation)
+            if storage:collect_storage_plan(out,pid,invocation)
+            elif capacity:collect_capacity_diagnostics(out,pid,invocation)
             else:collect_runtime_diagnostics(out,pid,invocation)
         finally:
             try:
@@ -588,10 +825,27 @@ def remote(*,capacity=False):
                 out.setdefault('collection_warnings',[]).append({'section':'process','code':'PROCESS_STABILITY_NOT_CONFIRMED'});out['diagnostic_status']='DEGRADED'
     except Exception as error:out['error']={'type':type(error).__name__,'code':str(error) if isinstance(error,RuntimeError) else 'HOST_READ_FAILED'}
     out['finished_at_utc']=stamp(utc())
+    emit_remote(out)
+
+
+def emit_remote(out):
     raw=json.dumps(out,separators=(',',':')).encode();blob=base64.b64encode(zlib.compress(raw,9)).decode()
     if len(blob)>22000:
         # Preserve the summary but explicitly report omitted detail; never truncate JSON.
         out.get('paper',{}).pop('closures_15m_1h',None);out['transport_detail_omission']='SSM_OUTPUT_BUDGET';raw=json.dumps(out,separators=(',',':')).encode();blob=base64.b64encode(zlib.compress(raw,9)).decode()
+    if len(blob)>22000 and out.get('mode')=='STORAGE_PLAN':
+        plan=out['storage_plan'];omissions=[]
+        for key in ('release_inventory','backup_inventory'):
+            data=plan.get(key,{})
+            if len(data.get('entries',[]))>40:
+                entries=data['entries'];data['entries']=sorted(entries,key=lambda e:e.get('allocated_bytes',0),reverse=True)[:40]
+                omissions.append({'section':key,'omitted_entries':len(entries)-40});data['transport_details_complete']=False
+        trees=plan.get('release_trees',{})
+        if len(trees.get('symlink_edges',[]))>40:
+            omissions.append({'section':'symlink_edges','omitted_edges':len(trees['symlink_edges'])-40});trees['symlink_edges']=trees['symlink_edges'][:40];trees['transport_details_complete']=False
+        plan['transport_omissions']=omissions;plan.setdefault('blockers',[]).append('TRANSPORT_DETAILS_INCOMPLETE')
+        out.setdefault('collection_warnings',[]).append({'section':'transport','code':'TRANSPORT_DETAILS_INCOMPLETE'})
+        raw=json.dumps(out,separators=(',',':')).encode();blob=base64.b64encode(zlib.compress(raw,9)).decode()
     if len(blob)>22000:raise RuntimeError('SSM_OUTPUT_BUDGET_EXCEEDED')
     print(PREFIX+' '+sha(raw)+' '+blob)
 
@@ -628,10 +882,45 @@ def recovery_heads(*,reader=None):
     return out
 
 
-def cloudshell(*,capacity=False):
+def storage_volume_metadata(*,reader=None):
+    reader=reader or aws;out={'queried_at_utc':stamp(utc()),'status':'UNAVAILABLE','scope':'READ_ONLY_CURRENT_ROOT_BLOCK_MAPPING_AND_VOLUME_PROPERTIES; NO_MODIFICATION_OR_PRICE_APPROVAL'}
+    try:
+        rows=reader('ec2','describe-instances','--instance-ids',INSTANCE,'--query','Reservations[].Instances[].{id:InstanceId,root_device:RootDeviceName,root_type:RootDeviceType,mapping:BlockDeviceMappings[].{device:DeviceName,volume:Ebs.VolumeId,status:Ebs.Status}}')
+        if not isinstance(rows,list) or len(rows)!=1 or rows[0].get('id')!=INSTANCE:raise RuntimeError('INSTANCE_MAPPING_NOT_CONFIRMED')
+        source=rows[0];root=source.get('root_device');kind=source.get('root_type')
+        if not isinstance(root,str) or not re.fullmatch(r'/dev/[A-Za-z0-9/_-]{1,64}',root):raise RuntimeError('ROOT_DEVICE_INVALID')
+        out['root_device']=root;out['root_type']=kind if kind in ('ebs','instance-store') else None
+        mapping=source.get('mapping')
+        if not isinstance(mapping,list) or len(mapping)>8:raise RuntimeError('BLOCK_MAPPING_LIMIT_OR_TYPE')
+        selected=[m for m in mapping if m.get('device')==root and re.fullmatch(r'vol-[a-f0-9]{8,17}',str(m.get('volume','')))]
+        if len(selected)!=1:raise RuntimeError('ROOT_VOLUME_NOT_IDENTIFIED')
+        volume=selected[0]['volume'];out['root_volume_id']=volume
+        values=reader('ec2','describe-volumes','--volume-ids',volume,'--query','Volumes[].{id:VolumeId,size_gib:Size,type:VolumeType,state:State,encrypted:Encrypted,attachments:Attachments[].{instance:InstanceId,device:Device,state:State}}')
+        if not isinstance(values,list) or len(values)!=1 or values[0].get('id')!=volume:raise RuntimeError('VOLUME_NOT_CONFIRMED')
+        v=values[0];matches=[a for a in v.get('attachments',[]) if a.get('instance')==INSTANCE and a.get('device')==root and a.get('state')=='attached']
+        if len(matches)!=1:raise RuntimeError('ROOT_VOLUME_ATTACHMENT_NOT_CONFIRMED')
+        out['volume']={'id':volume,'size_gib':v.get('size_gib') if isinstance(v.get('size_gib'),int) and not isinstance(v.get('size_gib'),bool) and v['size_gib']>0 else None,'type':v.get('type') if v.get('type') in ('standard','io1','io2','gp2','gp3','sc1','st1') else None,'state':v.get('state') if v.get('state') in ('creating','available','in-use','deleting','deleted','error') else None,'encrypted':v.get('encrypted') if isinstance(v.get('encrypted'),bool) else None,'expected_instance_attachment':'attached'}
+        out['status']='READ'
+    except RuntimeError as error:
+        out['status']='READ_FAILED';text=str(error);match=re.fullmatch(r'AWS_ec2_(describe-instances|describe-volumes): ([A-Za-z0-9_]{1,80})',text)
+        known={'INSTANCE_MAPPING_NOT_CONFIRMED','ROOT_DEVICE_INVALID','BLOCK_MAPPING_LIMIT_OR_TYPE','ROOT_VOLUME_NOT_IDENTIFIED','VOLUME_NOT_CONFIRMED','ROOT_VOLUME_ATTACHMENT_NOT_CONFIRMED'}
+        out['error_code']=match.group(2) if match else text if text in known else 'UNCLASSIFIED_VOLUME_READ_ERROR'
+    except Exception as error:out.update(status='READ_FAILED',error_type=type(error).__name__)
+    return out
+
+
+def remote_command(*,capacity=False,storage=False):
+    code="import base64,zlib;exec(compile(zlib.decompress(base64.b64decode('"+base64.b64encode(zlib.compress(Path(__file__).read_bytes(),9)).decode()+"')),'<lumi-stage0>','exec'))"
+    cmd='python3 -I -B -c '+shlex.quote(code)+' --remote'+(' --storage-plan' if storage else ' --capacity' if capacity else '')
+    if len(cmd.encode())>MAX_REMOTE_COMMAND_BYTES:raise RuntimeError('REMOTE_COMMAND_SIZE_LIMIT_NO_COMMAND_SENT')
+    return cmd
+
+
+def cloudshell(*,capacity=False,storage=False):
     os.umask(0o077);now=utc();out={'version':VERSION,'client_utc':stamp(now),'collector_sha256':sha(Path(__file__).read_bytes())}
-    destination=Path.cwd()/(('lumi-capacidad-' if capacity else 'lumi-etapa0-')+now.strftime('%Y%m%dT%H%M%SZ')+'.json')
+    destination=Path.cwd()/(('lumi-espacio-' if storage else 'lumi-capacidad-' if capacity else 'lumi-etapa0-')+now.strftime('%Y%m%dT%H%M%SZ')+'.json')
     if capacity:out['mode']='CAPACITY'
+    if storage:out['mode']='STORAGE_PLAN'
     try:
         if not shutil.which('aws'):raise RuntimeError('RUN_INSIDE_AUTHORIZED_AWS_CLOUDSHELL')
         identity=aws('sts','get-caller-identity');out['account']=identity.get('Account')
@@ -641,8 +930,7 @@ def cloudshell(*,capacity=False):
         if len(target)!=1 or target[0].get('id')!=INSTANCE or target[0].get('state')!='running':raise RuntimeError('TARGET_NOT_CONFIRMED_RUNNING')
         info=aws('ssm','describe-instance-information','--filters','Key=InstanceIds,Values='+INSTANCE,'--query','InstanceInformationList[].{id:InstanceId,ping:PingStatus}')
         if len(info)!=1 or info[0].get('ping')!='Online':raise RuntimeError('SSM_NOT_CONFIRMED_ONLINE')
-        code="import base64,zlib;exec(compile(zlib.decompress(base64.b64decode('"+base64.b64encode(zlib.compress(Path(__file__).read_bytes(),9)).decode()+"')),'<lumi-stage0>','exec'))"
-        cmd='python3 -I -B -c '+shlex.quote(code)+' --remote'+(' --capacity' if capacity else '')
+        cmd=remote_command(capacity=capacity,storage=storage);out['remote_command_bytes']=len(cmd.encode())
         result=aws('ssm','send-command','--instance-ids',INSTANCE,'--document-name','AWS-RunShellScript','--comment','Lumi stage0 bounded read-only diagnosis','--timeout-seconds','90','--parameters',json.dumps({'commands':[cmd],'executionTimeout':['60']}))
         cid=result['Command']['CommandId'];out['command_id']=cid;print('CommandId:',cid,flush=True)
         until=time.monotonic()+100;result={}
@@ -664,6 +952,7 @@ def cloudshell(*,capacity=False):
         if capacity:
             out['recovery_s3_heads']=recovery_heads()
             if any(v['status']!='READ' for v in out['recovery_s3_heads']) and out['status']=='COLLECTED_WITH_DECLARED_LIMITS':out['status']='COLLECTED_WITH_READ_GAPS'
+        if storage:out['root_volume']=storage_volume_metadata()
     except Exception as error:out['status']='ACCESS_OR_READ_INCOMPLETE';out['error']={'type':type(error).__name__,'code':str(error) if isinstance(error,RuntimeError) else 'CLIENT_READ_FAILED'}
     with destination.open('x') as file:json.dump(out,file,ensure_ascii=False,indent=2)
     print('Estado:',out['status']);print('Archivo privado para devolver:',destination.name);print('SHA256:',sha(destination.read_bytes()))
@@ -674,6 +963,8 @@ def cloudshell(*,capacity=False):
 if __name__=='__main__':
     if sys.argv[1:]==['--remote']:remote()
     elif sys.argv[1:]==['--remote','--capacity']:remote(capacity=True)
+    elif sys.argv[1:]==['--remote','--storage-plan']:remote(storage=True)
     elif sys.argv[1:]==['--capacity']:raise SystemExit(cloudshell(capacity=True))
+    elif sys.argv[1:]==['--storage-plan']:raise SystemExit(cloudshell(storage=True))
     elif not sys.argv[1:]:raise SystemExit(cloudshell())
-    else:raise SystemExit('CloudShell: python3 lumi_etapa0.py [--capacity]')
+    else:raise SystemExit('CloudShell: python3 lumi_etapa0.py [--capacity|--storage-plan]')

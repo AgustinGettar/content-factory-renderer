@@ -256,5 +256,84 @@ class Collector(unittest.TestCase):
    return m.subprocess.CompletedProcess(args,0,'LoadState=not-found\nActiveState=inactive\nSubState=dead','') if args[0]=='systemctl' else m.subprocess.CompletedProcess(args,1,'','')
   with mock.patch.object(m,'bounded_inventory',return_value={'status':'READ','entries':[],'complete':True}),mock.patch.object(m,'bounded_source_digest',return_value={'status':'READ','sha256':'a'*64}):out=m.collect_capacity_diagnostics({},42,'test',db_path=self.path,releases=self.temp.name,run=run)
   self.assertTrue(out['capacity']['database']['consistent_read_transaction']);self.assertEqual(out['capacity']['recovery_units'][m.RECOVERY_SERVICE]['status'],'UNIT_NOT_LOADED_OR_UNKNOWN');self.assertTrue(any(v['section']==m.RECOVERY_SERVICE and v['code']=='UNIT_NOT_LOADED_OR_UNKNOWN' for v in out['collection_warnings']))
+ def storage_fixture(self):
+  root=Path(self.temp.name)/'releases';root.mkdir();names=['a'*40,'b'*40,'c'*40];paths=[]
+  for name in names:
+   p=root/name;p.mkdir();(p/'source.js').write_bytes(('SYNTHETIC_'+name).encode());paths.append((name,p))
+  return root,paths
+ def test_storage_walk_deduplicates_hardlinks_and_never_follows_symlinks(self):
+  root,paths=self.storage_fixture();original=paths[0][1]/'source.js';m.os.link(original,paths[1][1]/'shared.js')
+  outside=Path(self.temp.name)/'outside';outside.mkdir();(outside/'DO_NOT_FOLLOW').write_bytes(b'x'*1024**2);(paths[2][1]/'external').symlink_to(outside,target_is_directory=True)
+  out=m.storage_walk(paths,root=root);self.assertTrue(out['complete']);self.assertGreater(out['shared_across_trees_allocated_bytes'],0);self.assertLess(out['reported_unique_inode_allocated_bytes'],1024**2);self.assertEqual(sum(v['regular_files'] for v in out['trees'].values()),4);self.assertIsNone(out['safe_reclaimable_bytes']);self.assertEqual(len(out['symlink_edges']),1);self.assertNotIn('DO_NOT_FOLLOW',json.dumps(out));self.assertIsNone(out['symlink_edges'][0]['target']['path'])
+ def test_storage_walk_entry_time_depth_and_inode_limits_are_not_complete(self):
+  root,paths=self.storage_fixture()
+  for kwargs,expected in [({'max_entries':1},'WALK_ENTRY_LIMIT'),({'seconds':-1},'WALK_TIME_LIMIT'),({'max_inodes':1},'WALK_INODE_LIMIT')]:
+   out=m.storage_walk(paths,root=root,**kwargs);self.assertFalse(out['complete']);self.assertEqual(out['status'],expected);self.assertIsNone(out['safe_reclaimable_bytes'])
+  out=m.storage_walk(paths,root=root,max_depth=0);self.assertFalse(out['complete']);self.assertEqual(out['status'],'WALK_READ_GAPS')
+ def test_storage_walk_pending_paths_and_rss_limit_are_explicit(self):
+  root,paths=self.storage_fixture()
+  for i in range(5):(paths[0][1]/str(i)).write_bytes(b'x')
+  out=m.storage_walk(paths,root=root,max_pending=1);self.assertEqual(out['status'],'WALK_PENDING_PATH_LIMIT');self.assertFalse(out['complete'])
+  with mock.patch.object(m.resource,'getrusage',return_value=mock.Mock(ru_maxrss=65536)):out=m.storage_walk(paths,root=root)
+  self.assertEqual(out['status'],'COLLECTOR_RSS_LIMIT');self.assertFalse(out['complete'])
+ def test_storage_git_graph_links_current_to_old_shared_dependencies(self):
+  root,paths=self.storage_fixture();base=paths[0][1];active=paths[2][1];(base/'.git/objects/info').mkdir(parents=True);(base/'node_modules').mkdir();(active/'node_modules').symlink_to(base/'node_modules',target_is_directory=True)
+  alt=paths[1][1]/'.git/objects';alt.mkdir(parents=True);(base/'.git/objects/info/alternates').write_text(str(alt)+'\n')
+  def run(args,**kwargs):
+   path=Path(args[args.index('-C')+1]);return m.subprocess.CompletedProcess(args,0,str(base/'.git/worktrees'/path.name)+'\n'+str(base/'.git')+'\n'+path.name+'\n','')
+  graph=m.storage_git_graph(paths,root=root,run=run);g=graph[active.name];self.assertEqual(g['status'],'READ');self.assertEqual(g['head'],active.name);self.assertEqual(g['git_links'][1]['release'],base.name);self.assertEqual(g['node_modules']['final']['release'],base.name);self.assertEqual(g['alternates'][0]['release'],paths[1][0])
+ def test_storage_git_denial_and_timeout_never_override_security(self):
+  root,paths=self.storage_fixture();calls=[]
+  def deny(args,**kwargs):calls.append(args);return m.subprocess.CompletedProcess(args,128,'','fatal: dubious ownership PRIVATE_PATH')
+  graph=m.storage_git_graph(paths,root=root,run=deny);self.assertTrue(all(g['status']=='NONZERO_EXIT' for g in graph.values()));self.assertNotIn('PRIVATE_PATH',json.dumps(graph));self.assertTrue(all('safe.directory' not in ' '.join(a) for a in calls))
+  def timeout(args,**kwargs):raise m.subprocess.TimeoutExpired(args,1,stderr='PRIVATE_TRACE')
+  self.assertEqual(m.storage_git_status(paths[0][1],run=timeout)['status'],'TIMEOUT')
+ def test_storage_git_status_counts_ignored_untracked_without_paths(self):
+  calls=[]
+  def run(args,**kwargs):calls.append(args);return m.subprocess.CompletedProcess(args,0,' M source.js\n?? PRIVATE_UNTRACKED/\n!! node_modules/\n!! .env_PRIVATE\n','')
+  out=m.storage_git_status(self.temp.name,run=run);self.assertFalse(out['clean_tracked']);self.assertEqual(out['untracked_count'],1);self.assertEqual(out['ignored_count'],2);self.assertEqual(out['ignored_node_modules_count'],1);self.assertEqual(out['ignored_other_count'],1);self.assertEqual(out['porcelain_rows'],4);self.assertNotIn('PRIVATE_',json.dumps(out));self.assertFalse(out['deletion_actions_available']);self.assertIn('--no-optional-locks',calls[0]);self.assertIn('core.fsmonitor=false',calls[0]);self.assertIn('core.untrackedCache=false',calls[0]);self.assertIn('--ignored=matching',calls[0])
+ def test_storage_process_cwd_only_reference_and_limit(self):
+  root,paths=self.storage_fixture();proc=Path(self.temp.name)/'proc';proc.mkdir()
+  for i,path in enumerate([paths[2][1],Path('/private-other-app')],1):
+   p=proc/str(i);p.mkdir();(p/'cwd').symlink_to(path,target_is_directory=True);(p/'environ').write_bytes(b'DO_NOT_READ')
+  out=m.storage_processes(root,proc_root=proc);self.assertTrue(out['complete']);self.assertEqual(out['examined'],2);self.assertEqual(len(out['references']),1);self.assertEqual(out['references'][0]['release'],paths[2][0]);self.assertNotIn('private-other-app',json.dumps(out));self.assertNotIn('DO_NOT_READ',json.dumps(out));self.assertFalse(m.storage_processes(root,proc_root=proc,limit=1)['complete'])
+ def test_storage_orchestration_protects_transitive_dependencies_no_sql_or_s3(self):
+  root,paths=self.storage_fixture();base=paths[0][1];active=paths[2][1];(base/'.git/objects/info').mkdir(parents=True);(base/'node_modules').mkdir();(active/'node_modules').symlink_to(base/'node_modules',target_is_directory=True)
+  backups=Path(self.temp.name)/'backups';backups.mkdir();(backups/'daily-0.sqlite').write_bytes(b'NOT_SQLITE_NEVER_OPEN');proc=Path(self.temp.name)/'proc';proc.mkdir();(proc/'meminfo').write_text('MemTotal: 100000 kB\nMemAvailable: 80000 kB\nPRIVATE: dont-export\n');p=proc/'42';p.mkdir();(p/'cwd').symlink_to(active,target_is_directory=True)
+  def run(args,**kwargs):
+   path=Path(args[args.index('-C')+1])
+   if 'rev-parse' in args:return m.subprocess.CompletedProcess(args,0,str(base/'.git/worktrees'/path.name)+'\n'+str(base/'.git')+'\n'+path.name+'\n','')
+   return m.subprocess.CompletedProcess(args,0,'!! node_modules/\n','')
+  out={'current':str(active),'process':{'cwd':str(active)}}
+  with mock.patch.object(m,'read_db',side_effect=AssertionError('no db')),mock.patch.object(m,'read_capacity_db',side_effect=AssertionError('no scalar db')),mock.patch.object(m,'recovery_heads',side_effect=AssertionError('no s3')):
+   m.collect_storage_plan(out,42,'test',root=root,backups=backups,proc_root=proc,run=run,lower_priority=False)
+  plan=out['storage_plan'];self.assertIn(base.name,plan['protected_releases']);self.assertIn(active.name,plan['protected_releases']);self.assertEqual(plan['memory']['MemTotal_bytes'],102400000);self.assertNotIn('PRIVATE',json.dumps(plan));self.assertFalse(plan['deletion_actions_available']);self.assertIsNone(plan['safe_reclaimable_bytes']);self.assertIn('NO_VERIFIED_CLEANUP_SET',plan['blockers']);self.assertIn(paths[1][0],plan['git_status'])
+ def test_storage_priority_failure_is_recorded_without_touching_worker(self):
+  root,paths=self.storage_fixture();backups=Path(self.temp.name)/'backups';backups.mkdir();proc=Path(self.temp.name)/'proc';proc.mkdir()
+  with mock.patch.object(m.os,'nice',side_effect=PermissionError(1,'PRIVATE_NICE')) as nice:
+   out=m.collect_storage_plan({'current':str(paths[0][1]),'process':{'cwd':str(paths[0][1])}},42,'test',root=root,backups=backups,proc_root=proc,seconds=0,walk_seconds=0)
+  nice.assert_called_once_with(15);self.assertEqual(out['storage_plan']['priority']['status'],'READ_FAILED');self.assertNotIn('PRIVATE_NICE',json.dumps(out));self.assertIn('RELEASE_MEASUREMENT_INCOMPLETE',out['storage_plan']['blockers'])
+ def test_storage_volume_metadata_only_expected_mapping_no_kms_or_mutation(self):
+  calls=[];volume='vol-0123456789abcdef0'
+  def reader(*args):
+   calls.append(args)
+   if args[1]=='describe-instances':return [{'id':m.INSTANCE,'root_device':'/dev/xvda','root_type':'ebs','mapping':[{'device':'/dev/xvda','volume':volume,'status':'attached'}]}]
+   return [{'id':volume,'size_gib':8,'type':'gp3','state':'in-use','encrypted':True,'KmsKeyId':'PRIVATE_KMS','attachments':[{'instance':m.INSTANCE,'device':'/dev/xvda','state':'attached'}]}]
+  out=m.storage_volume_metadata(reader=reader);self.assertEqual(out['status'],'READ');self.assertEqual(out['volume']['size_gib'],8);self.assertNotIn('PRIVATE_KMS',json.dumps(out));self.assertEqual([a[1] for a in calls],['describe-instances','describe-volumes']);self.assertTrue(all('KmsKeyId' not in ' '.join(a) for a in calls))
+ def test_storage_volume_mismatch_and_access_denied_remain_unknown(self):
+  out=m.storage_volume_metadata(reader=lambda *args:[{'id':'wrong'}]);self.assertEqual(out['error_code'],'INSTANCE_MAPPING_NOT_CONFIRMED')
+  def deny(*args):raise RuntimeError('AWS_ec2_describe-volumes: UnauthorizedOperation')
+  out=m.storage_volume_metadata(reader=deny);self.assertEqual(out['error_code'],'UnauthorizedOperation');self.assertEqual(out['status'],'READ_FAILED')
+ def test_storage_remote_mode_keeps_pid_check_and_avoids_other_modes(self):
+  def identity(out):out.update(process={'pid':42});return 42,'test'
+  def collect(out,pid,invocation):out.update(storage_plan={'status':'READ_WITH_EXPLICIT_GATES'},collection_warnings=[])
+  stream=io.StringIO()
+  with mock.patch.object(m,'collect_runtime_identity',side_effect=identity),mock.patch.object(m,'collect_storage_plan',side_effect=collect),mock.patch.object(m,'collect_capacity_diagnostics',side_effect=AssertionError('no capacity')),mock.patch.object(m,'collect_runtime_diagnostics',side_effect=AssertionError('no history')),mock.patch.object(m,'command',return_value='MainPID=42\nInvocationID=test'),contextlib.redirect_stdout(stream):m.remote(storage=True)
+  _,digest,blob=stream.getvalue().strip().split(' ',2);raw=zlib.decompress(base64.b64decode(blob));self.assertEqual(m.sha(raw),digest);out=json.loads(raw);self.assertTrue(out['same_process_after_read']);self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_READ_GAPS')
+ def test_storage_transport_budget_and_command_bound(self):
+  entries=[{'name':'name-sha256:'+m.sha(str(i).encode()),'allocated_bytes':i,'mtime_ns':i*123456789,'device':1,'inode':i,'other_digest':m.sha(('other'+str(i)).encode())} for i in range(512)]
+  out={'mode':'STORAGE_PLAN','storage_plan':{'status':'READ_WITH_EXPLICIT_GATES','backup_inventory':{'entries':entries,'complete':True},'release_inventory':{'entries':[]},'release_trees':{'symlink_edges':[]}}};stream=io.StringIO()
+  with contextlib.redirect_stdout(stream):m.emit_remote(out)
+  prefix,digest,blob=stream.getvalue().strip().split(' ',2);self.assertLessEqual(len(blob),22000);raw=zlib.decompress(base64.b64decode(blob));self.assertEqual(m.sha(raw),digest);decoded=json.loads(raw);self.assertIn('TRANSPORT_DETAILS_INCOMPLETE',decoded['storage_plan']['blockers']);self.assertFalse(decoded['storage_plan']['backup_inventory']['transport_details_complete']);self.assertLessEqual(len(m.remote_command(storage=True).encode()),m.MAX_REMOTE_COMMAND_BYTES);self.assertTrue(m.remote_command(storage=True).endswith('--remote --storage-plan'));self.assertTrue(m.remote_command(capacity=True).endswith('--remote --capacity'))
 
 if __name__=='__main__':unittest.main(verbosity=2)

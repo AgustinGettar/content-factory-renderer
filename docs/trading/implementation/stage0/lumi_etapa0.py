@@ -5,11 +5,11 @@ Only Python stdlib plus the existing AWS CLI. No worker import, config changes,
 backup, environment-file read, Telegram, scheduler or economic write. The remote
 SQL uses a single read transaction, indexed bounded queries and a deadline.
 """
-import base64, collections, datetime as dt, decimal, hashlib, json, os, re
+import base64, collections, datetime as dt, decimal, errno, hashlib, json, os, re
 from pathlib import Path
 import shlex, shutil, sqlite3, subprocess, sys, time, zlib
 
-VERSION = 'lumi-stage0-readonly-1.0.0'
+VERSION = 'lumi-stage0-readonly-1.0.1'
 REGION = 'eu-north-1'
 INSTANCE = 'i-0ae2ad0bb886f3d7f'
 ACCOUNT = '146766539818'
@@ -263,46 +263,126 @@ def command(args,timeout=8):
     return run.stdout.strip()
 
 
+def journal_diagnostic(stderr):
+    """Keep only bounded diagnostic categories/digest, never raw log/error text."""
+    raw=stderr if isinstance(stderr,bytes) else str(stderr or '').encode(errors='replace')
+    sample=raw[:4096].decode(errors='replace').lower()
+    known=(('NO_JOURNAL_FILES','no journal files'),('NO_ENTRIES','no entries'),
+      ('PERMISSION_DENIED','permission denied'),('INVALID_ARGUMENT','invalid argument'),
+      ('UNRECOGNIZED_OPTION','unrecognized option'),('TIMESTAMP_PARSE_FAILED','failed to parse timestamp'),
+      ('ACCESS_DENIED','access denied'))
+    codes=[code for code,text in known if text in sample]
+    return {'stderr_bytes':len(raw),'stderr_prefix_sha256':sha(raw[:4096]) if raw else None,
+      'stderr_prefix_bytes':min(len(raw),4096),'codes':codes or (['UNCLASSIFIED_STDERR'] if raw else []),
+      'raw_text_exported':False}
+
+
+def journal_query(pid,invocation,kind,*,run=subprocess.run):
+    args=['journalctl','--no-pager','-o','json','-u',SERVICE,'_PID='+str(pid),
+      '_SYSTEMD_INVOCATION_ID='+invocation,'--grep='+kind,'-n','2']
+    result={'kind':kind,'status':'UNAVAILABLE','return_code':None,'timeout_seconds':8,
+      'matching_records':0,'invalid_rows':0,'filters':{'service':SERVICE,'pid':pid,'invocation':invocation,'grep':kind,'tail':2},'records':[]}
+    try:
+        completed=run(args,capture_output=True,text=True,timeout=8,env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'})
+        result['return_code']=completed.returncode
+        result['diagnostic']=journal_diagnostic(completed.stderr)
+        if completed.returncode!=0:
+            result['status']='NONZERO_EXIT';return result
+        stdout=completed.stdout
+        if not isinstance(stdout,str):result['status']='INVALID_OUTPUT_TYPE';return result
+        if len(stdout.encode())>131072:result['status']='OUTPUT_SIZE_LIMIT';return result
+        for line in stdout.splitlines():
+            if not line.strip():continue
+            try:
+                row=json.loads(line)
+                if not isinstance(row,dict):raise ValueError('JOURNAL_ROW_SHAPE')
+                data=json.loads(row.get('MESSAGE',''))
+                if not isinstance(data,dict):raise ValueError('JOURNAL_MESSAGE_SHAPE')
+                if data.get('event')!=kind:continue
+                # The result must be associated with this exact execution even
+                # when mocked, malformed or returned by an unexpected journal.
+                if row.get('_PID')!=str(pid) or row.get('_SYSTEMD_INVOCATION_ID')!=invocation:raise ValueError('JOURNAL_PROCESS_MISMATCH')
+                allowed=pick(data,('event','mode','platform','policy_hash','revision','cpu_fraction','rss_bytes','quote_age_ms','secondary_execution','connected','reconciled','quotes','trades'))
+                identity=obj(data.get('worker_identity'));allowed['worker_identity']=pick(identity,('pid','captured_at','process_started_at_utc_estimate','identity_sha256','lease_owner_sha256','fence','revision','declared_source_commit','manifest_sha256','source_tree_sha256','loaded_source_attested')) if identity else None
+                if identity:allowed['worker_identity']['release']=pick(identity.get('release'),('status','declared_source_commit','manifest_sha256','source_tree_sha256','verification_scope','loaded_source_attested'))
+                perf=obj(data.get('performance'));allowed['performance']={'event_loop':pick(perf.get('event_loop'),('utilization','p95_ms','max_ms')),'stages':{name:pick(obj(perf.get('stages')).get(name),('count','mean_ms','max_ms','p95_ms')) for name in ('tick','checkpoint','publish')}}
+                allowed['queues']=pick(data.get('queues'),('events','notices','market','telegram_busy','telegram_identity_unavailable','detail_busy'))
+                allowed.update(journal_pid=row.get('_PID'),invocation=row.get('_SYSTEMD_INVOCATION_ID'),realtime_us=row.get('__REALTIME_TIMESTAMP'))
+                result['records'].append(allowed)
+            except (ValueError,TypeError,KeyError):result['invalid_rows']+=1
+        result['matching_records']=len(result['records'])
+        result['status']='INVALID_OR_PARTIAL_ROWS' if result['invalid_rows'] else 'READ' if result['records'] else 'NO_MATCHING_RECORDS'
+    except subprocess.TimeoutExpired as error:
+        result['status']='TIMEOUT';result['diagnostic']=journal_diagnostic(error.stderr)
+    except OSError as error:
+        result['status']='OS_ERROR';result['os_errno']=error.errno;result['os_code']=errno.errorcode.get(error.errno,'UNKNOWN_OS_ERROR')
+    except Exception as error:
+        result['status']='READ_FAILED';result['error_type']=type(error).__name__
+    return result
+
+
+def collect_runtime_diagnostics(out,pid,invocation,*,db_path=DB,journal_reader=journal_query):
+    """Optional journal failure cannot abort independent disk/ledger reads."""
+    out['journal']=[];out['journal_queries']=[];out['collection_warnings']=[]
+    for kind in ('lumi_trading_started','lumi_trading_health'):
+        query=journal_reader(pid,invocation,kind)
+        out['journal'].extend(query.pop('records',[]));out['journal_queries'].append(query)
+        if query['status']!='READ':out['collection_warnings'].append({'section':'journal','kind':kind,'code':query['status']})
+    try:
+        path=Path(db_path);fs=os.statvfs(path.parent)
+        out['storage']={'available_bytes':fs.f_bavail*fs.f_frsize,'db_bytes':path.stat().st_size,'wal_bytes':Path(str(path)+'-wal').stat().st_size if Path(str(path)+'-wal').exists() else 0}
+    except OSError as error:
+        out['storage']={'status':'READ_FAILED','os_errno':error.errno,'os_code':errno.errorcode.get(error.errno,'UNKNOWN_OS_ERROR')}
+        out['collection_warnings'].append({'section':'storage','code':'READ_FAILED'})
+    try:out['paper']=read_db(db_path)
+    except Exception as error:out['paper']={'consistent_read_transaction':False,'error':{'type':type(error).__name__,'code':'DATABASE_READ_FAILED'}}
+    if not out['paper'].get('consistent_read_transaction'):
+        out['collection_warnings'].append({'section':'paper','code':'CONSISTENT_READ_NOT_COMPLETED'})
+    out['diagnostic_status']='DEGRADED' if out['collection_warnings'] else 'COLLECTED_WITH_DECLARED_LIMITS'
+    return out
+
+
+def receipt_status(remote):
+    valid=not remote.get('error') and obj(remote.get('paper')).get('consistent_read_transaction') is True and remote.get('same_process_after_read') is True
+    if not valid:return 'REMOTE_READ_INCOMPLETE'
+    return 'COLLECTED_WITH_READ_GAPS' if remote.get('collection_warnings') else 'COLLECTED_WITH_DECLARED_LIMITS'
+
+
+def collect_runtime_identity(out):
+    props=['LoadState','ActiveState','SubState','MainPID','ExecMainStartTimestamp','InvocationID','NRestarts','MemoryCurrent','MemoryMax','TasksCurrent','TasksMax']
+    service=dict(line.split('=',1) for line in command(['systemctl','show',SERVICE,'--property='+','.join(props)]).splitlines() if '=' in line)
+    out['service']=service;pid=int(service['MainPID']);proc=Path('/proc')/str(pid)
+    args=(proc/'cmdline').read_bytes()[:16384].split(b'\0')
+    if service['ActiveState']!='active' or not any(a==b'scripts/trading-worker.mjs' or a.endswith(b'/scripts/trading-worker.mjs') for a in args):raise RuntimeError('SERVICE_IDENTITY_NOT_CONFIRMED')
+    release=Path(os.readlink(proc/'cwd')).resolve()
+    if not release.is_relative_to('/opt/lumi-trading/releases'):raise RuntimeError('RELEASE_PATH_UNEXPECTED')
+    out['process']={'pid':pid,'cwd':str(release),'exe':os.readlink(proc/'exe'),'start_ticks':int((proc/'stat').read_text().rsplit(')',1)[1].split()[19])}
+    out['current']=str(Path('/opt/lumi-trading/current').resolve())
+    out['disk_commit']=command(['git','-C',str(release),'rev-parse','HEAD'])
+    files=['scripts/trading-worker.mjs','package.json','package-lock.json','lib/trading/sqlite-store.js','lib/trading/secondary-futures.js','lib/trading/secondary-futures-engine.js','lib/trading/secondary-futures-runtime.js','lib/trading/secondary-evaluation-metrics.js','lib/trading/secondary-shadow-runtime.js','lib/trading/secondary-profit-protection.js','lib/trading/dashboard-publisher.js','deploy/trading/worker-release-manifest.json']
+    out['disk_files']={}
+    for name in files:
+        file=release/name
+        if not file.exists():out['disk_files'][name]={'present':False};continue
+        if not file.resolve().is_relative_to(release) or file.stat().st_size>4194304:raise RuntimeError('SOURCE_FILE_BOUNDARY')
+        before=file.stat();digest=sha(file.read_bytes());after=file.stat()
+        out['disk_files'][name]={'sha256':digest,'bytes':after.st_size,'mtime_ns':after.st_mtime_ns,'stable':(before.st_size,before.st_mtime_ns)==(after.st_size,after.st_mtime_ns)}
+    return pid,service['InvocationID']
+
+
 def remote():
     out={'version':VERSION,'started_at_utc':stamp(utc()),'actions':'READ_ONLY_NO_WORKER_IMPORT_NO_BACKUP_NO_ENV_FILES','loaded_runtime_commit':'NOT_VERIFIED'}
     try:
-        props=['LoadState','ActiveState','SubState','MainPID','ExecMainStartTimestamp','InvocationID','NRestarts','MemoryCurrent','MemoryMax','TasksCurrent','TasksMax']
-        service=dict(line.split('=',1) for line in command(['systemctl','show',SERVICE,'--property='+','.join(props)]).splitlines() if '=' in line)
-        out['service']=service;pid=int(service['MainPID']);proc=Path('/proc')/str(pid)
-        args=(proc/'cmdline').read_bytes()[:16384].split(b'\0')
-        if service['ActiveState']!='active' or not any(a==b'scripts/trading-worker.mjs' or a.endswith(b'/scripts/trading-worker.mjs') for a in args):raise RuntimeError('SERVICE_IDENTITY_NOT_CONFIRMED')
-        release=Path(os.readlink(proc/'cwd')).resolve()
-        if not release.is_relative_to('/opt/lumi-trading/releases'):raise RuntimeError('RELEASE_PATH_UNEXPECTED')
-        out['process']={'pid':pid,'cwd':str(release),'exe':os.readlink(proc/'exe'),'start_ticks':int((proc/'stat').read_text().rsplit(')',1)[1].split()[19])}
-        out['current']=str(Path('/opt/lumi-trading/current').resolve())
-        out['disk_commit']=command(['git','-C',str(release),'rev-parse','HEAD'])
-        files=['scripts/trading-worker.mjs','package.json','package-lock.json','lib/trading/sqlite-store.js','lib/trading/secondary-futures.js','lib/trading/secondary-futures-engine.js','lib/trading/secondary-futures-runtime.js','lib/trading/secondary-evaluation-metrics.js','lib/trading/secondary-shadow-runtime.js','lib/trading/secondary-profit-protection.js','lib/trading/dashboard-publisher.js','deploy/trading/worker-release-manifest.json']
-        out['disk_files']={}
-        for name in files:
-            file=release/name
-            if not file.exists():out['disk_files'][name]={'present':False};continue
-            if not file.resolve().is_relative_to(release) or file.stat().st_size>4194304:raise RuntimeError('SOURCE_FILE_BOUNDARY')
-            before=file.stat();digest=sha(file.read_bytes());after=file.stat()
-            out['disk_files'][name]={'sha256':digest,'bytes':after.st_size,'mtime_ns':after.st_mtime_ns,'stable':(before.st_size,before.st_mtime_ns)==(after.st_size,after.st_mtime_ns)}
-        out['journal']=[]
-        for kind in ('lumi_trading_started','lumi_trading_health'):
-            raw=command(['journalctl','--no-pager','-o','json','-u',SERVICE,'_PID='+str(pid),'_SYSTEMD_INVOCATION_ID='+service['InvocationID'],'--grep='+kind,'-n','2'])
-            for line in raw.splitlines():
-                try:
-                    row=json.loads(line);data=json.loads(row.get('MESSAGE',''))
-                    if data.get('event')!=kind:continue
-                    allowed=pick(data,('event','mode','platform','policy_hash','revision','cpu_fraction','rss_bytes','quote_age_ms','secondary_execution','connected','reconciled','quotes','trades'))
-                    identity=obj(data.get('worker_identity'));allowed['worker_identity']=pick(identity,('pid','captured_at','process_started_at_utc_estimate','identity_sha256','lease_owner_sha256','fence','revision','declared_source_commit','manifest_sha256','source_tree_sha256','loaded_source_attested')) if identity else None
-                    if identity:allowed['worker_identity']['release']=pick(identity.get('release'),('status','declared_source_commit','manifest_sha256','source_tree_sha256','verification_scope','loaded_source_attested'))
-                    perf=obj(data.get('performance'));allowed['performance']={'event_loop':pick(perf.get('event_loop'),('utilization','p95_ms','max_ms')),'stages':{name:pick(obj(perf.get('stages')).get(name),('count','mean_ms','max_ms','p95_ms')) for name in ('tick','checkpoint','publish')}}
-                    allowed['queues']=pick(data.get('queues'),('events','notices','market','telegram_busy','telegram_identity_unavailable','detail_busy'))
-                    allowed.update(journal_pid=row.get('_PID'),invocation=row.get('_SYSTEMD_INVOCATION_ID'),realtime_us=row.get('__REALTIME_TIMESTAMP'));out['journal'].append(allowed)
-                except (ValueError,TypeError):continue
-        fs=os.statvfs(Path(DB).parent)
-        out['storage']={'available_bytes':fs.f_bavail*fs.f_frsize,'db_bytes':Path(DB).stat().st_size,'wal_bytes':Path(DB+'-wal').stat().st_size if Path(DB+'-wal').exists() else 0}
-        out['paper']=read_db()
-        final=dict(line.split('=',1) for line in command(['systemctl','show',SERVICE,'--property=MainPID,InvocationID']).splitlines() if '=' in line)
-        out['same_process_after_read']=final.get('MainPID')==str(pid) and final.get('InvocationID')==service['InvocationID']
+        pid,invocation=collect_runtime_identity(out)
+        try:collect_runtime_diagnostics(out,pid,invocation)
+        finally:
+            try:
+                final=dict(line.split('=',1) for line in command(['systemctl','show',SERVICE,'--property=MainPID,InvocationID']).splitlines() if '=' in line)
+                out['same_process_after_read']=final.get('MainPID')==str(pid) and final.get('InvocationID')==invocation
+            except Exception as error:
+                out['same_process_after_read']=None;out['final_process_check']={'status':'READ_FAILED','type':type(error).__name__}
+            if out.get('same_process_after_read') is not True:
+                out.setdefault('collection_warnings',[]).append({'section':'process','code':'PROCESS_STABILITY_NOT_CONFIRMED'});out['diagnostic_status']='DEGRADED'
     except Exception as error:out['error']={'type':type(error).__name__,'code':str(error) if isinstance(error,RuntimeError) else 'HOST_READ_FAILED'}
     out['finished_at_utc']=stamp(utc())
     raw=json.dumps(out,separators=(',',':')).encode();blob=base64.b64encode(zlib.compress(raw,9)).decode()
@@ -353,14 +433,13 @@ def cloudshell():
         _,digest,encoded=line.split(' ',2);raw=zlib.decompress(base64.b64decode(encoded,validate=True))
         if sha(raw)!=digest:raise RuntimeError('REMOTE_RECEIPT_CHECKSUM_MISMATCH')
         out['remote']=json.loads(raw);out['remote_sha256']=digest
-        valid=not out['remote'].get('error') and obj(out['remote'].get('paper')).get('consistent_read_transaction') is True
-        out['status']='COLLECTED_WITH_DECLARED_LIMITS' if valid else 'REMOTE_READ_INCOMPLETE'
+        out['status']=receipt_status(out['remote'])
     except Exception as error:out['status']='ACCESS_OR_READ_INCOMPLETE';out['error']={'type':type(error).__name__,'code':str(error) if isinstance(error,RuntimeError) else 'CLIENT_READ_FAILED'}
     with destination.open('x') as file:json.dump(out,file,ensure_ascii=False,indent=2)
     print('Estado:',out['status']);print('Archivo privado para devolver:',destination.name);print('SHA256:',sha(destination.read_bytes()))
     if out.get('error'):print(out['error']['code'])
     print('CloudShell > Actions > Download file:',destination)
-    return 0 if out['status']=='COLLECTED_WITH_DECLARED_LIMITS' else 2
+    return 0 if out['status'] in ('COLLECTED_WITH_DECLARED_LIMITS','COLLECTED_WITH_READ_GAPS') else 2
 
 if __name__=='__main__':
     if sys.argv[1:]==['--remote']:remote()

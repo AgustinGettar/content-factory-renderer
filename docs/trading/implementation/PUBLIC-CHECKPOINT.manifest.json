@@ -5,7 +5,7 @@
   "git_base": "9f8648abe12cb3457814bae9074d8e666fd56cba",
   "recovered_source_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
   "source_file_count": 34,
-  "listed_source_tree_sha256": "db74343d0c379d5c0587d0da56d43e60aecf35d15a44c69f7d55e89cf50c387d",
+  "listed_source_tree_sha256": "420df8da58873f6abb6e1d284226ac66665cfc39493c005ec9bc098fb66b978a",
   "tree_hash_definition": "SHA256 of UTF8 JSON files array with sort_keys=true and separators comma/colon",
   "files": [
     {
@@ -59,10 +59,10 @@
     },
     {
       "path": "docs/trading/implementation/stage0/lumi_etapa0.py",
-      "bytes": 30052,
-      "sha256": "194526d39c82bb7cba460253cebf0b1273d98819ffc1cd016cb46a8742222e9b",
+      "bytes": 34882,
+      "sha256": "45071d72f113d8267731a2c7beffc192434618ce6f3e53b5b9cd54004be94650",
       "component": "readonly_tool",
-      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+      "origin_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0"
     },
     {
       "path": "lib/trading/dashboard-publisher.js",
@@ -227,11 +227,10 @@
     },
     {
       "path": "test/lumi-stage0-collector.test.py",
-      "bytes": 12717,
-      "sha256": "db81e528e110ccca7f52a03d9f2bcbe6bfc5fa508afbc55af37484ef6bcad76b",
+      "bytes": 20312,
+      "sha256": "2bc0ab61d057eee8c787f468edfaa3564d043c9f64e148d48bd56131858a2724",
       "component": "tests",
-      "origin_commit": "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595",
-      "normalization": "Trailing whitespace on empty line only, no executable change"
+      "origin_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0"
     },
     {
       "path": "test/secondary-notification-policy.test.js",
@@ -250,8 +249,8 @@
   ],
   "generated_document": {
     "path": "docs/trading/implementation/PUBLIC-CHECKPOINT.md",
-    "bytes": 7829,
-    "sha256": "aaaa852f62879647cfb78fe967ae4c95556ba94dcf272cf5386e87925a2edddc"
+    "bytes": 8904,
+    "sha256": "f6d2010b23917b2437f330667168dd2a2f6c610a0372c03f86be89fccfcbcb92"
   },
   "complete_runtime_graph": false,
   "standalone_deployment_package": false,
@@ -271,7 +270,7 @@
       "command": "node --import ./docs/trading/audit-stage1-2026-11-05/no-network.mjs --test --test-isolation=none --test-reporter=tap test/l100-feasibility.test.js test/secondary-notification-policy.test.js test/trading-live-payload-budget.test.js"
     },
     "python": {
-      "passed": 24,
+      "passed": 34,
       "failed": 0,
       "skipped": 0,
       "exit_code": 0,
@@ -297,5 +296,11 @@
     "owner_private_preserved": true,
     "published_readonly_checks": "passed",
     "physical_iphone_verified": false
+  },
+  "collector_followup": {
+    "version": "lumi-stage0-readonly-1.0.1",
+    "source_commit": "5f943eba3c760e483b591fe528b36e3b565a68f0",
+    "remote_attempt_with_new_collector": false,
+    "raw_aws_receipt_included": false
   }
 }

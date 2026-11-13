@@ -1,5 +1,6 @@
 """Synthetic SQLite tests; never open the operational path or call AWS."""
-import datetime as dt, importlib.util, json, sqlite3, tempfile, unittest
+import base64, contextlib, datetime as dt, importlib.util, io, json, sqlite3, tempfile, unittest, zlib
+from unittest import mock
 from pathlib import Path
 SPEC=importlib.util.spec_from_file_location('collector',Path(__file__).resolve().parents[1]/'docs/trading/implementation/stage0/lumi_etapa0.py')
 m=importlib.util.module_from_spec(SPEC);SPEC.loader.exec_module(m)
@@ -86,5 +87,67 @@ class Collector(unittest.TestCase):
   out=self.read();s=out['window_closed_net'];self.assertEqual(s['value'],'4.2');self.assertEqual(s['positions'],1);self.assertEqual(s['provisional_or_unknown_finality_positions'],1);self.assertIn('not account net delta or historical total',s['scope']);self.assertEqual(out['closures_15m_1h'][0]['funding_corrections_in_window'][0]['net_after'],'4.5')
  def test_window_excludes_old_history_explicitly(self):
   self.event('CLOSED',{'ledger':'FREQUENT_PAPER','timeframe':60,'pnl':'9'},date='2026-11-11T11:00:00.000Z');out=self.read();self.assertEqual(out['frames']['60']['archived_events']['CLOSED']['status'],'ZERO_OBSERVED_IN_WINDOW');self.assertEqual(out['window']['requested_hours'],24)
+
+
+ def journal_row(self,kind='lumi_trading_health',pid='42',invocation='synthetic-invocation'):
+  return json.dumps({'_PID':pid,'_SYSTEMD_INVOCATION_ID':invocation,'__REALTIME_TIMESTAMP':'1000000','MESSAGE':json.dumps({'event':kind,'mode':'PAPER','revision':90,'cpu_fraction':0.2,'rss_bytes':100000,'worker_identity':{'pid':42,'lease_owner_sha256':'a'*64,'fence':4,'release':{'manifest_sha256':'b'*64,'declared_source_commit':'c'*40,'loaded_source_attested':False}},'secret':'SYNTHETIC_PRIVATE_LOG_FIELD'})})
+ def run_remote_with_journal(self,runner,*,final_response=None):
+  original=m.collect_runtime_diagnostics
+  def identify(out):
+   out.update(service={'MainPID':'42','InvocationID':'synthetic-invocation'},process={'pid':42},disk_commit='f'*40)
+   return 42,'synthetic-invocation'
+  def collect(out,pid,invocation):
+   return original(out,pid,invocation,db_path=self.path,journal_reader=lambda p,i,k:m.journal_query(p,i,k,run=runner))
+  stream=io.StringIO()
+  response='MainPID=42\nInvocationID=synthetic-invocation' if final_response is None else final_response
+  with mock.patch.object(m,'collect_runtime_identity',side_effect=identify),mock.patch.object(m,'collect_runtime_diagnostics',side_effect=collect),mock.patch.object(m,'command',return_value=response) as last,contextlib.redirect_stdout(stream):
+   m.remote()
+  last.assert_called_once_with(['systemctl','show',m.SERVICE,'--property=MainPID,InvocationID'])
+  prefix,digest,blob=stream.getvalue().strip().split(' ',2);raw=zlib.decompress(base64.b64decode(blob));self.assertEqual(prefix,m.PREFIX);self.assertEqual(m.sha(raw),digest)
+  return json.loads(raw)
+ def test_remote_journal_exit_one_continues_storage_sql_and_second_query(self):
+  calls=[]
+  def run(args,**kwargs):
+   calls.append(args);kind=next(v.split('=',1)[1] for v in args if v.startswith('--grep='))
+   return m.subprocess.CompletedProcess(args,1,'','') if kind=='lumi_trading_started' else m.subprocess.CompletedProcess(args,0,self.journal_row(),'')
+  out=self.run_remote_with_journal(run)
+  self.assertEqual(out['journal_queries'][0]['status'],'NONZERO_EXIT');self.assertEqual(out['journal_queries'][0]['return_code'],1);self.assertEqual(out['journal_queries'][0]['diagnostic']['codes'],[])
+  self.assertEqual(out['journal_queries'][1]['status'],'READ');self.assertEqual(len(out['journal']),1);self.assertEqual(out['journal'][0]['worker_identity']['release']['declared_source_commit'],'c'*40)
+  self.assertGreater(out['storage']['available_bytes'],0);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(out['paper']['checkpoint']['revision'],90);self.assertTrue(out['same_process_after_read']);self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_READ_GAPS')
+  self.assertEqual(len(calls),2);self.assertTrue(all('_PID=42' in a and '_SYSTEMD_INVOCATION_ID=synthetic-invocation' in a for a in calls));self.assertFalse(any(any(v.startswith('--since') for v in a) for a in calls));self.assertNotIn('SYNTHETIC_PRIVATE_LOG_FIELD',json.dumps(out))
+ def test_remote_journal_timeout_preserves_other_reads_and_records_safe_diagnostic(self):
+  def run(args,**kwargs):raise m.subprocess.TimeoutExpired(args,8,output='PRIVATE_OUTPUT',stderr=b'PRIVATE_STDERR')
+  out=self.run_remote_with_journal(run);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual([r['status'] for r in out['journal_queries']],['TIMEOUT','TIMEOUT']);self.assertTrue(all(r['return_code'] is None for r in out['journal_queries']));self.assertNotIn('PRIVATE_STDERR',json.dumps(out));self.assertNotIn('PRIVATE_OUTPUT',json.dumps(out));self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_READ_GAPS')
+ def test_remote_journal_os_error_does_not_export_path_or_abort_sql(self):
+  def run(args,**kwargs):raise PermissionError(13,'SYNTHETIC_SECRET','/private/path')
+  out=self.run_remote_with_journal(run);self.assertEqual(out['journal_queries'][0]['os_code'],'EACCES');self.assertEqual(out['journal_queries'][0]['os_errno'],13);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertNotIn('SYNTHETIC_SECRET',json.dumps(out));self.assertNotIn('/private/path',json.dumps(out))
+ def test_remote_invalid_journal_rows_are_explicit_and_do_not_erase_valid_rows(self):
+  def run(args,**kwargs):
+   kind=next(v.split('=',1)[1] for v in args if v.startswith('--grep='))
+   text='not-json\n[]\n'+json.dumps({'MESSAGE':'not-json'})+'\n'+self.journal_row(kind)
+   return m.subprocess.CompletedProcess(args,0,text,'')
+  out=self.run_remote_with_journal(run);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(len(out['journal']),2);self.assertTrue(all(r['invalid_rows']==3 and r['status']=='INVALID_OR_PARTIAL_ROWS' for r in out['journal_queries']));self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_READ_GAPS')
+ def test_remote_journal_execution_mismatch_is_not_accepted(self):
+  def run(args,**kwargs):
+   kind=next(v.split('=',1)[1] for v in args if v.startswith('--grep='))
+   return m.subprocess.CompletedProcess(args,0,self.journal_row(kind,pid='43'),'')
+  out=self.run_remote_with_journal(run);self.assertEqual(out['journal'],[]);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(out['journal_queries'][0]['invalid_rows'],1)
+ def test_remote_storage_error_does_not_prevent_sql_read(self):
+  run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,1,'','')
+  with mock.patch.object(m.os,'statvfs',side_effect=OSError(5,'SYNTHETIC_PRIVATE_DEVICE')):out=self.run_remote_with_journal(run)
+  self.assertEqual(out['storage']['status'],'READ_FAILED');self.assertTrue(out['paper']['consistent_read_transaction']);self.assertTrue(out['same_process_after_read']);self.assertEqual(m.receipt_status(out),'COLLECTED_WITH_READ_GAPS');self.assertNotIn('SYNTHETIC_PRIVATE_DEVICE',json.dumps(out))
+ def test_remote_sql_error_still_checks_final_pid_and_is_not_certified(self):
+  run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,1,'','')
+  with mock.patch.object(m,'read_db',side_effect=sqlite3.OperationalError('SYNTHETIC_SECRET_SQL')):out=self.run_remote_with_journal(run)
+  self.assertFalse(out['paper']['consistent_read_transaction']);self.assertTrue(out['same_process_after_read']);self.assertEqual(m.receipt_status(out),'REMOTE_READ_INCOMPLETE');self.assertNotIn('SYNTHETIC_SECRET_SQL',json.dumps(out))
+ def test_remote_changed_final_pid_prevents_successful_receipt(self):
+  run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,1,'','')
+  out=self.run_remote_with_journal(run,final_response='MainPID=43\nInvocationID=synthetic-invocation');self.assertFalse(out['same_process_after_read']);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(m.receipt_status(out),'REMOTE_READ_INCOMPLETE')
+ def test_journal_diagnostic_is_bounded_and_never_exports_raw_stderr(self):
+  raw='Permission denied token=SYNTHETIC_SECRET '+('x'*10000);r=m.journal_diagnostic(raw)
+  self.assertEqual(r['stderr_bytes'],len(raw));self.assertEqual(r['stderr_prefix_bytes'],4096);self.assertEqual(r['codes'],['PERMISSION_DENIED']);self.assertFalse(r['raw_text_exported']);self.assertNotIn('SYNTHETIC_SECRET',json.dumps(r));self.assertLess(len(json.dumps(r)),400)
+ def test_journal_oversized_output_is_an_explicit_optional_gap(self):
+  run=lambda args,**kwargs:m.subprocess.CompletedProcess(args,0,'x'*131073,'')
+  out=self.run_remote_with_journal(run);self.assertTrue(out['paper']['consistent_read_transaction']);self.assertEqual(out['journal_queries'][0]['status'],'OUTPUT_SIZE_LIMIT');self.assertEqual(out['journal'],[])
 
 if __name__=='__main__':unittest.main(verbosity=2)

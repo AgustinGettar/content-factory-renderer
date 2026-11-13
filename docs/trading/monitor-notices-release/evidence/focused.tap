@@ -1,0 +1,504 @@
+TAP version 13
+# Subtest: monitor separates fictitious contributions and net results while leaving the primary and rejected trial intact
+ok 1 - monitor separates fictitious contributions and net results while leaving the primary and rejected trial intact
+  ---
+  duration_ms: 19.937994
+  type: 'test'
+  ...
+# Subtest: stale market values are not promoted to current unrealized profits
+ok 2 - stale market values are not promoted to current unrealized profits
+  ---
+  duration_ms: 2.027104
+  type: 'test'
+  ...
+# Subtest: plan projection retains the execution contract and unfavorable cost label
+ok 3 - plan projection retains the execution contract and unfavorable cost label
+  ---
+  duration_ms: 0.26845
+  type: 'test'
+  ...
+# Subtest: operational projection preserves exit intent, uncertain funding, execution costs and complete lifecycle events
+ok 4 - operational projection preserves exit intent, uncertain funding, execution costs and complete lifecycle events
+  ---
+  duration_ms: 3.033575
+  type: 'test'
+  ...
+# Subtest: Telegram distinguishes selected, partial, open, expired, closed and fictitious deposits
+ok 5 - Telegram distinguishes selected, partial, open, expired, closed and fictitious deposits
+  ---
+  duration_ms: 2.269225
+  type: 'test'
+  ...
+# Subtest: new notification kinds use the verified transport and claimed outbox exactly once
+ok 6 - new notification kinds use the verified transport and claimed outbox exactly once
+  ---
+  duration_ms: 1.906264
+  type: 'test'
+  ...
+# Subtest: LIVE mode is rejected before starting a secondary runtime
+ok 7 - LIVE mode is rejected before starting a secondary runtime
+  ---
+  duration_ms: 0.648167
+  type: 'test'
+  ...
+# Subtest: partial reservation uses the remaining quantity and unresolved funding remains explicit
+ok 8 - partial reservation uses the remaining quantity and unresolved funding remains explicit
+  ---
+  duration_ms: 1.250385
+  type: 'test'
+  ...
+# Subtest: operational installation preserves pending contracts on shutdown and cannot install a second writer
+ok 9 - operational installation preserves pending contracts on shutdown and cannot install a second writer
+  ---
+  duration_ms: 2.653147
+  type: 'test'
+  ...
+# Subtest: migration is flat-only, idempotent and preserves real secondary and every legacy record
+ok 10 - migration is flat-only, idempotent and preserves real secondary and every legacy record
+  ---
+  duration_ms: 0.966912
+  type: 'test'
+  ...
+# Subtest: entries share one cash ledger and risk, reject opposites, duplicate and concentrated signals
+ok 11 - entries share one cash ledger and risk, reject opposites, duplicate and concentrated signals
+  ---
+  duration_ms: 4.186674
+  type: 'test'
+  ...
+# Subtest: maker selection is not a fill; touching, insufficient volume, old or wrong-side trades cannot fill
+ok 12 - maker selection is not a fill; touching, insufficient volume, old or wrong-side trades cannot fill
+  ---
+  duration_ms: 2.144038
+  type: 'test'
+  ...
+# Subtest: LONG fill and close conserve cash, costs and history
+ok 13 - LONG fill and close conserve cash, costs and history
+  ---
+  duration_ms: 5.426825
+  type: 'test'
+  ...
+# Subtest: SHORT fill and close conserve cash, costs and history
+ok 14 - SHORT fill and close conserve cash, costs and history
+  ---
+  duration_ms: 2.56791
+  type: 'test'
+  ...
+# Subtest: spot quotes cannot value or settle a futures position
+ok 15 - spot quotes cannot value or settle a futures position
+  ---
+  duration_ms: 1.621939
+  type: 'test'
+  ...
+# Subtest: gaps preserve uncertainty and resume; only an observed barrier can stop the position; funding is signed
+ok 16 - gaps preserve uncertainty and resume; only an observed barrier can stop the position; funding is signed
+  ---
+  duration_ms: 3.488334
+  type: 'test'
+  ...
+# Subtest: normal stop, pending expiry and time exits do not become hidden holds
+ok 17 - normal stop, pending expiry and time exits do not become hidden holds
+  ---
+  duration_ms: 2.922048
+  type: 'test'
+  ...
+# Subtest: manual close and lower net goal use fresh futures prices and durable control receipts
+ok 18 - manual close and lower net goal use fresh futures prices and durable control receipts
+  ---
+  duration_ms: 1.816249
+  type: 'test'
+  ...
+# Subtest: drawdown, daily budget and loss streak are not bypassed to obtain more entries
+ok 19 - drawdown, daily budget and loss streak are not bypassed to obtain more entries
+  ---
+  duration_ms: 0.813564
+  type: 'test'
+  ...
+# Subtest: confirmed breakout creates a genuine better-price pending plan without enlarging its target for costs
+ok 20 - confirmed breakout creates a genuine better-price pending plan without enlarging its target for costs
+  ---
+  duration_ms: 3.112001
+  type: 'test'
+  ...
+# Subtest: future candles and unavailable funding cannot fabricate a candidate
+ok 21 - future candles and unavailable funding cannot fabricate a candidate
+  ---
+  duration_ms: 1.698804
+  type: 'test'
+  ...
+# Subtest: wire adapter ignores snapshots and duplicate trade identifiers, preserving the observed market source
+ok 22 - wire adapter ignores snapshots and duplicate trade identifiers, preserving the observed market source
+  ---
+  duration_ms: 1.050637
+  type: 'test'
+  ...
+# Subtest: real mode or missing flag with migrated state fails closed
+ok 23 - real mode or missing flag with migrated state fails closed
+  ---
+  duration_ms: 0.139909
+  type: 'test'
+  ...
+# Subtest: durable notification produces an actual receipt once; ambiguous transmission is not retried
+ok 24 - durable notification produces an actual receipt once; ambiguous transmission is not retried
+  ---
+  duration_ms: 0.743188
+  type: 'test'
+  ...
+# Subtest: operational projection puts current account and active patterns in the usual secondary view
+ok 25 - operational projection puts current account and active patterns in the usual secondary view
+  ---
+  duration_ms: 0.816678
+  type: 'test'
+  ...
+# Subtest: policy is explicit, versioned and PAPER-only; no flag preserves existing delivery
+ok 26 - policy is explicit, versioned and PAPER-only; no flag preserves existing delivery
+  ---
+  duration_ms: 0.230324
+  type: 'test'
+  ...
+# Subtest: first partial entry is an opening; subsequent fills and pending signals are silent
+ok 27 - first partial entry is an opening; subsequent fills and pending signals are silent
+  ---
+  duration_ms: 0.494427
+  type: 'test'
+  ...
+# Subtest: final close reports the whole cycle, not the losing last fragment or fees subtracted again
+ok 28 - final close reports the whole cycle, not the losing last fragment or fees subtracted again
+  ---
+  duration_ms: 0.367918
+  type: 'test'
+  ...
+# Subtest: unknown funding or market quality never claims a final gain and never fabricates zero
+ok 29 - unknown funding or market quality never claims a final gain and never fabricates zero
+  ---
+  duration_ms: 0.380267
+  type: 'test'
+  ...
+# Subtest: wrong ledger, incomplete close and unexecuted payload cannot masquerade as lifecycle receipts
+ok 30 - wrong ledger, incomplete close and unexecuted payload cannot masquerade as lifecycle receipts
+  ---
+  duration_ms: 0.140169
+  type: 'test'
+  ...
+# Subtest: real SQLite outbox suppresses noise, sends two lifecycle notices once across repeat/restart, and leaves primary queued
+ok 31 - real SQLite outbox suppresses noise, sends two lifecycle notices once across repeat/restart, and leaves primary queued
+  ---
+  duration_ms: 24.139226
+  type: 'test'
+  ...
+# Subtest: ambiguous Telegram delivery remains UNKNOWN and is never retried after process recovery
+ok 32 - ambiguous Telegram delivery remains UNKNOWN and is never retried after process recovery
+  ---
+  duration_ms: 2.950431
+  type: 'test'
+  ...
+# Subtest: crash after durable claim cannot resend an uncertain lifecycle notification
+ok 33 - crash after durable claim cannot resend an uncertain lifecycle notification
+  ---
+  duration_ms: 4.617357
+  type: 'test'
+  ...
+# Subtest: suppression persistence failure is visible, cannot call transport, and can recover without lost receipt
+ok 34 - suppression persistence failure is visible, cannot call transport, and can recover without lost receipt
+  ---
+  duration_ms: 4.569161
+  type: 'test'
+  ...
+# Subtest: same implementation without explicit policy still delivers legacy secondary notifications
+ok 35 - same implementation without explicit policy still delivers legacy secondary notifications
+  ---
+  duration_ms: 2.324608
+  type: 'test'
+  ...
+# Subtest: backlog suppression is bounded and a deferred identity check retains lifecycle notification and outcomes
+ok 36 - backlog suppression is bounded and a deferred identity check retains lifecycle notification and outcomes
+  ---
+  duration_ms: 11.07936
+  type: 'test'
+  ...
+# Subtest: private owner mismatch remains a hard failure before any lifecycle send
+ok 37 - private owner mismatch remains a hard failure before any lifecycle send
+  ---
+  duration_ms: 2.274934
+  type: 'test'
+  ...
+# Subtest: normal broker partial and recovered final close produce only open/result notices with ledger cumulative net
+ok 38 - normal broker partial and recovered final close produce only open/result notices with ledger cumulative net
+  ---
+  duration_ms: 11.921021
+  type: 'test'
+  ...
+# Subtest: projection preserves immutable entry and exit contracts plus each position protection without changing state
+ok 39 - projection preserves immutable entry and exit contracts plus each position protection without changing state
+  ---
+  duration_ms: 2.195765
+  type: 'test'
+  ...
+# Subtest: legacy projection has no invented trailing policy and pending exit survives serialization
+ok 40 - legacy projection has no invented trailing policy and pending exit survives serialization
+  ---
+  duration_ms: 1.500569
+  type: 'test'
+  ...
+# Subtest: four persisted positions count four, one close leaves exactly the other three IDs
+ok 41 - four persisted positions count four, one close leaves exactly the other three IDs
+  ---
+  duration_ms: 2.792145
+  type: 'test'
+  ...
+# Subtest: economic rejects preserve pattern detection and the true evaluation time
+ok 42 - economic rejects preserve pattern detection and the true evaluation time
+  ---
+  duration_ms: 1.225118
+  type: 'test'
+  ...
+# Subtest: Telegram activation is a per-position notice, distinguishes trigger from guaranteed profit, and preserves small-net precision
+ok 43 - Telegram activation is a per-position notice, distinguishes trigger from guaranteed profit, and preserves small-net precision
+  ---
+  duration_ms: 0.282171
+  type: 'test'
+  ...
+# Subtest: new activation kinds reuse the claimed verified outbox and send no second message on another drain
+ok 44 - new activation kinds reuse the claimed verified outbox and send no second message on another drain
+  ---
+  duration_ms: 0.584953
+  type: 'test'
+  ...
+# Subtest: Telegram partials and cancellations show the post-latency quantity receipt instead of the full signal economics
+ok 45 - Telegram partials and cancellations show the post-latency quantity receipt instead of the full signal economics
+  ---
+  duration_ms: 0.265616
+  type: 'test'
+  ...
+# Subtest: policy activation notice is committed by policy hash and is not requeued after restart
+ok 46 - policy activation notice is committed by policy hash and is not requeued after restart
+  ---
+  duration_ms: 1.277045
+  type: 'test'
+  ...
+# Subtest: insufficient disk stops before SQLite copy or upload and persists the one-hour retry
+ok 47 - insufficient disk stops before SQLite copy or upload and persists the one-hour retry
+  ---
+  duration_ms: 3.993507
+  type: 'test'
+  ...
+# Subtest: configuration failure keeps hourly consistent local copies and throttles across restarts
+ok 48 - configuration failure keeps hourly consistent local copies and throttles across restarts
+  ---
+  duration_ms: 3.810309
+  type: 'test'
+  ...
+# Subtest: remote size rejection stays precise, removes only temporary ciphertext and waits one hour
+ok 49 - remote size rejection stays precise, removes only temporary ciphertext and waits one hour
+  ---
+  duration_ms: 15.35988
+  type: 'test'
+  ...
+# Subtest: a transient remote failure retries after five minutes without recopying and preserves snapshot revision
+ok 50 - a transient remote failure retries after five minutes without recopying and preserves snapshot revision
+  ---
+  duration_ms: 11.426043
+  type: 'test'
+  ...
+# Subtest: the ciphertext stream stops at its size budget without emitting oversized data
+ok 51 - the ciphertext stream stops at its size budget without emitting oversized data
+  ---
+  duration_ms: 1.789028
+  type: 'test'
+  ...
+# Subtest: filesystem inspection failure performs no copy and preserves a safe retry reason
+ok 52 - filesystem inspection failure performs no copy and preserves a safe retry reason
+  ---
+  duration_ms: 5.184373
+  type: 'test'
+  ...
+# Subtest: a failed partial copy preserves the previous local snapshot and clears its incomplete temporary file
+ok 53 - a failed partial copy preserves the previous local snapshot and clears its incomplete temporary file
+  ---
+  duration_ms: 3.284389
+  type: 'test'
+  ...
+{"event":"trading_dashboard_attention","code":"DASHBOARD_RECEIPT_INVALID"}
+{"event":"trading_dashboard_attention","code":"DASHBOARD_LIVE_PAYLOAD_LIMIT"}
+# Subtest: unknown transport errors cannot persist secrets and overlapping live updates do not duplicate backup work
+ok 54 - unknown transport errors cannot persist secrets and overlapping live updates do not duplicate backup work
+  ---
+  duration_ms: 1.503383
+  type: 'test'
+  ...
+# Subtest: live body omits candle evidence without changing authoritative balances, plans or net exits
+ok 55 - live body omits candle evidence without changing authoritative balances, plans or net exits
+  ---
+  duration_ms: 1.164386
+  type: 'test'
+  ...
+# Subtest: large historical proofs and contracts stay in detail while live preserves closures, partials and current protection
+ok 56 - large historical proofs and contracts stay in detail while live preserves closures, partials and current protection
+  ---
+  duration_ms: 87.055321
+  type: 'test'
+  ...
+# Subtest: two-second state publications continue during backup; unchanged detail waits for fifteen seconds
+ok 57 - two-second state publications continue during backup; unchanged detail waits for fifteen seconds
+  ---
+  duration_ms: 16.527953
+  type: 'test'
+  ...
+# Subtest: receipt must acknowledge the posted revision and failures preserve last successful timestamp
+ok 58 - receipt must acknowledge the posted revision and failures preserve last successful timestamp
+  ---
+  duration_ms: 1.183756
+  type: 'test'
+  ...
+# Subtest: overlapping publishes are skipped and failed detail does not erase successful live delivery
+ok 59 - overlapping publishes are skipped and failed detail does not erase successful live delivery
+  ---
+  duration_ms: 1.193706
+  type: 'test'
+  ...
+# Subtest: ten protected risk contracts fully filled fit live budget without changing detail or visible values
+ok 60 - ten protected risk contracts fully filled fit live budget without changing detail or visible values
+  ---
+  duration_ms: 171.941971
+  type: 'test'
+  ...
+# {"synthetic_empty_bytes":56766,"synthetic_ten_bytes":242450,"increment_bytes":185684,"observed_empty_baseline_bytes":636636,"estimated_total_bytes":822320,"margin_to_1MiB":226256,"detail_bytes":891994,"partial_entries":false,"pending_remainders":0}
+# Subtest: ten protected risk contracts with partial IOC fills fit live budget without changing detail or visible values
+ok 61 - ten protected risk contracts with partial IOC fills fit live budget without changing detail or visible values
+  ---
+  duration_ms: 213.486333
+  type: 'test'
+  ...
+# {"synthetic_empty_bytes":56633,"synthetic_ten_bytes":238830,"increment_bytes":182197,"observed_empty_baseline_bytes":636636,"estimated_total_bytes":818833,"margin_to_1MiB":229743,"detail_bytes":886289,"partial_entries":true,"pending_remainders":0}
+# Subtest: thirty new historical operations plus 10 open and 0 pending contracts stay bounded and keep display values
+ok 62 - thirty new historical operations plus 10 open and 0 pending contracts stay bounded and keep display values
+  ---
+  duration_ms: 399.759486
+  type: 'test'
+  ...
+# {"historical":30,"open":10,"pending":0,"secondary_notices":20,"frame_receipts":4,"increment_bytes":382809,"observed_empty_baseline_bytes":665427,"estimated_total_bytes":1048236,"margin_to_1MiB":340,"detail_bytes":2187113}
+# Subtest: thirty new historical operations plus 5 open and 5 pending contracts stay bounded and keep display values
+ok 63 - thirty new historical operations plus 5 open and 5 pending contracts stay bounded and keep display values
+  ---
+  duration_ms: 337.839878
+  type: 'test'
+  ...
+# {"historical":30,"open":5,"pending":5,"secondary_notices":20,"frame_receipts":4,"increment_bytes":331976,"observed_empty_baseline_bytes":665427,"estimated_total_bytes":997403,"margin_to_1MiB":51173,"detail_bytes":2010736}
+# Subtest: thirty new historical operations plus 0 open and 10 pending contracts stay bounded and keep display values
+ok 64 - thirty new historical operations plus 0 open and 10 pending contracts stay bounded and keep display values
+  ---
+  duration_ms: 305.845999
+  type: 'test'
+  ...
+# {"historical":30,"open":0,"pending":10,"secondary_notices":20,"frame_receipts":4,"increment_bytes":270274,"observed_empty_baseline_bytes":665427,"estimated_total_bytes":935701,"margin_to_1MiB":112875,"detail_bytes":1785159}
+# Subtest: normal publisher keeps live refreshing at documented outcome retention limit; complete history remains in detail
+ok 65 - normal publisher keeps live refreshing at documented outcome retention limit; complete history remains in detail
+  ---
+  duration_ms: 89.066989
+  type: 'test'
+  ...
+# {"synthetic_outcomes":2000,"comparison_domains":135,"live_bytes":119506,"detail_bytes":1243057,"site_live_limit":1048576}
+# Subtest: different internal and public comparison values are not silently dropped as duplicate aliases
+ok 66 - different internal and public comparison values are not silently dropped as duplicate aliases
+  ---
+  duration_ms: 5.891948
+  type: 'test'
+  ...
+# Subtest: unknown quant version, incomplete or mismatched summary is retained rather than projected under a guessed contract
+ok 67 - unknown quant version, incomplete or mismatched summary is retained rather than projected under a guessed contract
+  ---
+  duration_ms: 57.118165
+  type: 'test'
+  ...
+# Subtest: Site rejects oversized live bodies and preserves its previously accepted snapshot
+ok 68 - Site rejects oversized live bodies and preserves its previously accepted snapshot
+  ---
+  duration_ms: 6.523931
+  type: 'test'
+  ...
+# Subtest: unexpected uncompactable growth exposes its byte limit without sending or masking the last good receipt
+ok 69 - unexpected uncompactable growth exposes its byte limit without sending or masking the last good receipt
+  ---
+  duration_ms: 46.610894
+  type: 'test'
+  ...
+# Subtest: outbound adapter sends independent notice with receipt, Trading-only Mini App button and no menu/webhook edits, deduplicates
+ok 70 - outbound adapter sends independent notice with receipt, Trading-only Mini App button and no menu/webhook edits, deduplicates
+  ---
+  duration_ms: 7.914625
+  type: 'test'
+  ...
+# Subtest: ambiguous Telegram response remains UNKNOWN after a new notifier instance
+ok 71 - ambiguous Telegram response remains UNKNOWN after a new notifier instance
+  ---
+  duration_ms: 0.677741
+  type: 'test'
+  ...
+# Subtest: pre-send checks reject a passed trigger and an old decision
+ok 72 - pre-send checks reject a passed trigger and an old decision
+  ---
+  duration_ms: 0.410573
+  type: 'test'
+  ...
+# Subtest: 100 transient identity failures leave notices unclaimed and recover with exactly one send
+ok 73 - 100 transient identity failures leave notices unclaimed and recover with exactly one send
+  ---
+  duration_ms: 3.313142
+  type: 'test'
+  ...
+# Subtest: identity mismatch, unexpected errors and SQLite failures remain visible and cannot send
+ok 74 - identity mismatch, unexpected errors and SQLite failures remain visible and cannot send
+  ---
+  duration_ms: 0.655839
+  type: 'test'
+  ...
+# Subtest: lease, commit and outbox transactions do not decode a previous checkpoint
+ok 75 - lease, commit and outbox transactions do not decode a previous checkpoint
+  ---
+  duration_ms: 5.446514
+  type: 'test'
+  ...
+# Subtest: UTF-8 payload budget still rejects oversize checkpoint atomically
+ok 76 - UTF-8 payload budget still rejects oversize checkpoint atomically
+  ---
+  duration_ms: 21.879764
+  type: 'test'
+  ...
+# Subtest: synchronous SQLite checkpoint captures values before subsequent in-memory mutation
+ok 77 - synchronous SQLite checkpoint captures values before subsequent in-memory mutation
+  ---
+  duration_ms: 2.155505
+  type: 'test'
+  ...
+# Subtest: bounded immutable history cache invalidates by relevant event, outbox and external commit
+ok 78 - bounded immutable history cache invalidates by relevant event, outbox and external commit
+  ---
+  duration_ms: 3.466281
+  type: 'test'
+  ...
+# Subtest: slow detail transport never blocks fresh live publication or queues more detail
+ok 79 - slow detail transport never blocks fresh live publication or queues more detail
+  ---
+  duration_ms: 3.762733
+  type: 'test'
+  ...
+# Subtest: slow Telegram send leaves market ticks free, settles once and preserves receipt accounting
+ok 80 - slow Telegram send leaves market ticks free, settles once and preserves receipt accounting
+  ---
+  duration_ms: 2.231539
+  type: 'test'
+  ...
+# Subtest: performance sampling stays bounded and resets intervals
+ok 81 - performance sampling stays bounded and resets intervals
+  ---
+  duration_ms: 1.237125
+  type: 'test'
+  ...
+1..81
+# tests 81
+# suites 0
+# pass 81
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2621.668796

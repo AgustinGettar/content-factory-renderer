@@ -1,0 +1,201 @@
+diff --git a/lib/trading/dashboard-publisher.js b/lib/trading/dashboard-publisher.js
+index 7faab8e..3ec24cb 100644
+--- a/lib/trading/dashboard-publisher.js
++++ b/lib/trading/dashboard-publisher.js
+@@ -51,6 +51,9 @@ export function operationExitView(closed,reconciled=null){
+   funding_reconciled_at:r?.at??null};
+ }
+ export const LIVE_PUBLISH_MS=2000;
++// Existing Site ingestion contract; do not raise it to accommodate internal
++// histories in the two-second view. Complete evidence stays on detail/history.
++export const LIVE_MAX_BYTES=1024*1024;
+ export const DETAIL_PUBLISH_MS=15000;
+ export const BACKUP_INTERVAL_MS=3600000;
+ export const BACKUP_TRANSIENT_RETRY_MS=300000;
+@@ -114,6 +117,30 @@ function compactSecondaryCopies(d){
+   result.laboratory={...d.laboratory,lastDecision:decision(d.laboratory?.lastDecision),trials:d.laboratory?.trials?.map(t=>t.version===x.version?{...t,decisions:decisions(t.decisions),pattern_decisions:decisions(t.pattern_decisions)}:t)};
+   result.secondary_activity={...d.secondary_activity,last_evaluation:decision(d.secondary_activity.last_evaluation),frames:Object.fromEntries(Object.entries(d.secondary_activity.frames).map(([tf,f])=>[tf,{...f,last_evaluation:f.last_evaluation?{...f.last_evaluation,pattern_decisions:f.last_evaluation.pattern_decisions?.map(decision)}:f.last_evaluation}]))};
+  }
++ const x=result.secondary_execution,aliases=[];
++ if(x){
++  const execution={...x};
++  // These registries are copied verbatim into secondary_comparison by the
++  // same committed-row projection. Keep every comparison, once, and retain
++  // any discrepant/unknown alias rather than silently discarding information.
++  for(const key of ['by_pattern_version','statistics']){
++   if(x[key]&&d.secondary_comparison&&JSON.stringify(x[key])===JSON.stringify(d.secondary_comparison)){
++    delete execution[key];aliases.push('secondary_execution.'+key);
++   }
++  }
++  const summary=d.secondary_quant,quant=x.quant;
++  const completeSummary=summary&&quant&&['guard','counts'].every(key=>Object.hasOwn(summary,key)&&JSON.stringify(summary[key])===JSON.stringify(quant[key]))&&
++   summary.strategies&&Object.keys(summary.strategies).length>0&&Object.hasOwn(summary,'advanced')&&JSON.stringify(summary.advanced)===JSON.stringify(quant.policy?.advanced);
++  if(quant?.version==='secondary-quant-1.0.0'&&summary?.version===quant.version&&summary.active===quant.active&&completeSummary){
++   // Raw quant carries up to 2,000 outcomes, daily equity and microstructure
++   // windows. Those are research inputs, not the public live summary. Both
++   // panels already consume secondary_quant; preserve all of its fields.
++   execution.quant={...summary,projection:'DISPLAY_SUMMARY',detail_available:true};
++   aliases.push('secondary_execution.quant:internal_history');
++  }
++  result.secondary_execution=execution;
++ }
++ if(aliases.length)result.live_projection={version:'secondary-live-projection-2.0.0',detail_path:'/api/monitor',omitted_internal_aliases:aliases,secondary_comparison_scope:'COMPLETE_NO_ROWS_REMOVED'};
+  return result;
+ }
+ export const liveBody=d=>JSON.stringify({...compactSecondaryCopies(d),refresh_ms:LIVE_PUBLISH_MS,detail_refresh_ms:DETAIL_PUBLISH_MS},(key,value)=>{
+@@ -135,7 +162,7 @@ export class DashboardPublisher {
+   try{const saved=JSON.parse(store.db.prepare('SELECT value FROM metadata WHERE key=?').get('dashboard')?.value??'null');if(saved){this.lastBackup=Number(saved.backup_at)||0;this.lastLocalBackup=Number(saved.local_backup_at)||0;this.localBackupSlot=[0,1,2].includes(saved.local_backup_slot)?saved.local_backup_slot:null;this.nextBackupAttempt=Number(saved.next_backup_attempt_at)||0;this.backupError=BACKUP_ERRORS.has(saved.backup_error)?saved.backup_error:null;this.siteBackupRetryAt=Number(saved.site_backup_retry_at)||0;}}catch{}
+  }
+  headers(){return {'OAI-Sites-Authorization':'Bearer '+this.env.LUMI_TRADING_SITE_ACCESS,'X-Trading-Ingest-Key':this.env.LUMI_TRADING_PUBLISH_KEY};}
+- saveStatus(){this.store.db.prepare('INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run('dashboard',JSON.stringify({at:this.lastSuccess,backup_at:this.lastBackup,local_backup_at:this.lastLocalBackup,local_backup_slot:this.localBackupSlot,next_backup_attempt_at:this.nextBackupAttempt,site_backup_retry_at:this.siteBackupRetryAt,error:this.error,detail_at:this.lastDetail,detail_error:this.detailError,backup_error:this.backupError,interval_ms:LIVE_PUBLISH_MS,live_bytes:this.liveBytes}));}
++ saveStatus(){this.store.db.prepare('INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run('dashboard',JSON.stringify({at:this.lastSuccess,backup_at:this.lastBackup,local_backup_at:this.lastLocalBackup,local_backup_slot:this.localBackupSlot,next_backup_attempt_at:this.nextBackupAttempt,site_backup_retry_at:this.siteBackupRetryAt,error:this.error,detail_at:this.lastDetail,detail_error:this.detailError,backup_error:this.backupError,interval_ms:LIVE_PUBLISH_MS,live_bytes:this.liveBytes,attempted_live_bytes:this.attemptedLiveBytes,live_max_bytes:LIVE_MAX_BYTES}));}
+  async send(path,body,revision){
+   const r=await this.fetchImpl(PANEL_URL+path,{method:'PUT',headers:{...this.headers(),'Content-Type':'application/json'},body,redirect:'error',signal:AbortSignal.timeout(10000)});
+   if(!r.ok)throw Error('DASHBOARD_PUBLISH_FAILED');const ack=await r.json();if(ack.revision!==revision)throw Error('DASHBOARD_RECEIPT_INVALID');
+@@ -144,6 +171,7 @@ export class DashboardPublisher {
+   if(this.busy)return;this.busy=true;
+   try{
+    const d=snapshot(this.readCache,this.feed,this.now(),this.controls,this.projectSnapshot);d.secondary_history=this.history.status();const body=liveBody(d);
++   this.attemptedLiveBytes=Buffer.byteLength(body);if(this.attemptedLiveBytes>LIVE_MAX_BYTES)throw Error('DASHBOARD_LIVE_PAYLOAD_LIMIT');
+    await this.send('api/aws/live',body,d.revision,{projected:true});this.liveBytes=Buffer.byteLength(body);this.lastSuccess=this.now();this.error=null;
+    const shape=JSON.stringify(d.operations.map(o=>[o.ledger,o.id,o.status,o.plan.hash]));
+    if(this.now()-this.lastDetail>=DETAIL_PUBLISH_MS||shape!==this.lastShape){
+diff --git a/lib/trading/secondary-futures-runtime.js b/lib/trading/secondary-futures-runtime.js
+index a5bd8b0..5090bb4 100644
+--- a/lib/trading/secondary-futures-runtime.js
++++ b/lib/trading/secondary-futures-runtime.js
+@@ -1,3 +1,4 @@
++import {configuredSecondaryNoticePolicy,secondaryLifecycleNotice} from './secondary-notification-policy.js';
+ import {installExecutionRepair} from './quant-execution-repair.js';
+ import {installActivePaper} from './quant-active-paper.js';
+ import {installContextPullback,getContextProfile} from './quant-context-pullback.js';
+@@ -114,30 +115,46 @@ Ref. ${ref(e)}`+link;
+ export class SecondaryNotifier extends TradingNotifier{
+  constructor(options){
+   const original=options.store,filtered=new Proxy(original,{get(t,k){if(k==='queued')return async()=> (await t.queued()).filter(n=>!KINDS.has(n.kind));const v=Reflect.get(t,k,t);return typeof v==='function'?v.bind(t):v;}});
+-  super({...options,store:filtered});this.originalStore=original;this.quantOnly=options.quantOnly??(()=>false);this.secondaryPending=options.secondaryPending??null;
++  super({...options,store:filtered});this.originalStore=original;this.quantOnly=options.quantOnly??(()=>false);this.secondaryPending=options.secondaryPending??null;this.noticePolicy=configuredSecondaryNoticePolicy(options.env);
+  }
+  async drain(){
++  const suppressed=[];
++  if(this.noticePolicy){
++   // Bound maintenance to one outbox page. Suppress through the same fenced
++   // CLAIM/FINISH protocol, preserving receipts and pending send ambiguity.
++   for(const notice of (await this.originalStore.queued()).slice(0,20)){
++    if(!KINDS.has(notice.kind))continue;
++    const selected=secondaryLifecycleNotice(notice);if(selected.action==='SEND')continue;
++    const claim_id=randomUUID(),claim=await this.originalStore.tx({phase:'CLAIM',id:notice.id,claim_id});
++    if(claim.status!=='DISPATCHING'||claim.claim_id!==claim_id)continue;
++    const receipt={sent:false,notification_policy:this.noticePolicy,policy_action:selected.action};
++    await this.originalStore.tx({phase:'FINISH',id:notice.id,claim_id,status:'REJECTED',reason:selected.reason,receipt});
++    suppressed.push({id:notice.id,status:'REJECTED',reason:selected.reason,receipt});
++   }
++  }
+   if(this.quantOnly()){
+    const old=(await this.originalStore.queued()).find(legacyTradingNotice);
+    if(old){const claim_id=randomUUID(),claim=await this.originalStore.tx({phase:'CLAIM',id:old.id,claim_id});
+     if(claim.status==='DISPATCHING'&&claim.claim_id===claim_id)await this.originalStore.tx({phase:'FINISH',id:old.id,claim_id,status:'REJECTED',reason:'SUPERSEDED_BY_QUANT_ENGINE',receipt:{sent:false}});
+-    return [{id:old.id,status:claim.status==='DISPATCHING'?'REJECTED':claim.status,reason:'SUPERSEDED_BY_QUANT_ENGINE'}];}
++    return [...suppressed,{id:old.id,status:claim.status==='DISPATCHING'?'REJECTED':claim.status,reason:'SUPERSEDED_BY_QUANT_ENGINE'}];}
+   }
+-  const notice=(await this.originalStore.queued()).find(n=>KINDS.has(n.kind));if(!notice)return super.drain();
++  const notice=(await this.originalStore.queued()).find(n=>KINDS.has(n.kind));if(!notice)return [...suppressed,...await super.drain()];
++  if(this.noticePolicy&&secondaryLifecycleNotice(notice).action!=='SEND')return suppressed;
+   const expired=notice.kind==='SECONDARY_SELECTED'&&notice.payload?.plan?.quant_contract&&(Date.now()-notice.payload.plan.decision_at>30000||notice.payload.plan.expires_at<=Date.now()||this.secondaryPending&&!this.secondaryPending(notice.payload.plan.id));
+-  if(expired){const claim_id=randomUUID(),claim=await this.originalStore.tx({phase:'CLAIM',id:notice.id,claim_id});if(claim.status==='DISPATCHING'&&claim.claim_id===claim_id)await this.originalStore.tx({phase:'FINISH',id:notice.id,claim_id,status:'EXPIRED',reason:'QUANT_SIGNAL_NO_LONGER_PENDING',receipt:{sent:false}});return [{id:notice.id,status:'EXPIRED'}];}
+-  if(!await this.readyToDrain())return [];
++  if(expired){const claim_id=randomUUID(),claim=await this.originalStore.tx({phase:'CLAIM',id:notice.id,claim_id});if(claim.status==='DISPATCHING'&&claim.claim_id===claim_id)await this.originalStore.tx({phase:'FINISH',id:notice.id,claim_id,status:'EXPIRED',reason:'QUANT_SIGNAL_NO_LONGER_PENDING',receipt:{sent:false}});return [...suppressed,{id:notice.id,status:'EXPIRED'}];}
++  if(!await this.readyToDrain())return suppressed;
+   const owner=await this.owner(),id=notice.id,claim_id=randomUUID(),claim=await this.originalStore.tx({phase:'CLAIM',id,claim_id});
+-  if(claim.status!=='DISPATCHING'||claim.claim_id!==claim_id)return [{id,status:claim.status}];
++  if(claim.status!=='DISPATCHING'||claim.claim_id!==claim_id)return [...suppressed,{id,status:claim.status}];
+   let status='DELIVERED',reason=null,receipt={};
+   try{
+    if(notice.kind==='SECONDARY_SELECTED'&&notice.payload?.plan?.quant_contract&&(Date.now()-notice.payload.plan.decision_at>30000||notice.payload.plan.expires_at<=Date.now()||this.secondaryPending&&!this.secondaryPending(notice.payload.plan.id)))throw Object.assign(Error('QUANT_SIGNAL_NO_LONGER_PENDING'),{expired:true});
+-   const text=secondaryMessage(notice);if(text.length>4000)throw Object.assign(Error('MESSAGE_TOO_LONG'),{definite:true});
++   const text=this.noticePolicy?secondaryLifecycleNotice(notice).text:secondaryMessage(notice);if(text.length>4000)throw Object.assign(Error('MESSAGE_TOO_LONG'),{definite:true});
++   if(this.noticePolicy)receipt.notification_policy=this.noticePolicy;
+    receipt.attempt_at=Date.now();const r=await this.transport.call('sendMessage',{chat_id:owner,text,link_preview_options:{is_disabled:true},reply_markup:{inline_keyboard:[[{text:'Vista simple',web_app:{url:PANEL_URL.replace(/\/$/,'')+'/simple/'}},{text:'Vista completa',web_app:{url:PANEL_URL}}]]}});receipt.response_at=Date.now();
+    if(!Number.isSafeInteger(r?.message_id)||r.message_id<=0||String(r.chat?.id)!==owner)throw Error('INVALID_TELEGRAM_RECEIPT');
+    Object.assign(receipt,{message_id:r.message_id,telegram_date:r.date,recipient_hash:hash(owner),read_confirmed:false});
+   }catch(e){status=e.expired?'EXPIRED':e.definite?'REJECTED':'UNKNOWN';reason=/^[A-Z_]+$/.test(e.message)?e.message:'TELEGRAM_SEND_FAILED';receipt.response_at??=Date.now();}
+-  await this.originalStore.tx({phase:'FINISH',id,claim_id,status,receipt,reason});return [{id,status,reason,receipt}];
++  await this.originalStore.tx({phase:'FINISH',id,claim_id,status,receipt,reason});return [...suppressed,{id,status,reason,receipt}];
+  }
+ }
+ export function installOperational(engine,env){
+diff --git a/lib/trading/secondary-notification-policy.js b/lib/trading/secondary-notification-policy.js
+new file mode 100644
+index 0000000..db93e69
+--- /dev/null
++++ b/lib/trading/secondary-notification-policy.js
+@@ -0,0 +1,69 @@
++// Presentation and delivery selection only. Economic events and the durable
++// outbox remain intact; this policy has no broker, transport or ledger access.
++import {D} from './core.js';
++
++export const SECONDARY_NOTICE_POLICY = 'secondary-position-lifecycle-1.0.0';
++
++export function configuredSecondaryNoticePolicy(env = {}) {
++  const requested = env.LUMI_TRADING_SECONDARY_NOTICES;
++  if (!requested) return null;
++  if (requested !== SECONDARY_NOTICE_POLICY) throw Error('SECONDARY_NOTICE_POLICY_UNKNOWN');
++  if (env.LUMI_TRADING_MODE !== 'PAPER' || env.LUMI_RUNTIME_ENV !== 'staging' || env.LUMI_TRADING_STORAGE !== 'SQLITE') {
++    throw Error('SECONDARY_NOTICE_POLICY_PAPER_ONLY');
++  }
++  return requested;
++}
++
++const decimal = x => {
++  if (typeof x !== 'string' && typeof x !== 'number') return null;
++  try { const n = D(x); return n.isFinite() ? n : null; } catch { return null; }
++};
++const money = x => {
++  const n = decimal(x);
++  return n === null ? 'no disponible' : n.toFixed(!n.isZero() && n.abs().lt('.1') ? 6 : 2);
++};
++const signedMoney = n => `${n.gt(0) ? '+' : ''}${money(n.toString())}`;
++const timeframe = x => ({1:'1m',5:'5m',15:'15m',60:'1h',240:'4h'}[x] ?? 'plazo no disponible');
++const timestamp = x => Number.isFinite(x) && x > 0 && Number.isFinite(new Date(x).getTime()) ? new Date(x).toISOString() : 'hora no disponible';
++const reasons = {
++  STOP:'Stop loss', TARGET:'Objetivo', NET_TARGET:'Objetivo neto', STRUCTURAL_TARGET:'Objetivo estructural',
++  EXECUTABLE_TARGET_FULL_EXIT:'Objetivo neto; cierre completo', MANUAL_CLOSE:'Cierre solicitado', MANUAL_PROFIT:'Ganancia tomada',
++  TRAILING_RETRACEMENT:'Retroceso del beneficio neto', TRAILING_STAGNATION:'Continuación sin progreso',
++  QUANT_TECHNICAL_TRAILING:'Stop técnico protegido', QUANT_MOMENTUM_EXHAUSTION:'Agotamiento del impulso',
++  EXECUTION_BUFFER_PROTECTION:'Protección ante movimiento adverso', MARGIN_STRESS:'Protección de margen',
++  TIMEOUT:'Fin del horizonte', TIMEOUT_EXTENDED:'Fin de la extensión', DATA_GAP_CLOSE:'Cierre con datos incompletos',
++};
++
++export function secondaryLifecycleNotice(notice) {
++  const e = notice.payload ?? {};
++  if (!['SECONDARY_OPEN', 'SECONDARY_PARTIAL', 'SECONDARY_CLOSE'].includes(notice.kind)) {
++    return {action:'SUPPRESS', reason:'SECONDARY_LIFECYCLE_ONLY'};
++  }
++  // FILLED is the first executed entry, including an IOC that fills only part
++  // of the request. PARTIAL_FILL is a later fragment, not another opening.
++  const opened = ['SECONDARY_OPEN', 'SECONDARY_PARTIAL'].includes(notice.kind) && e.type === 'FILLED';
++  if (notice.kind === 'SECONDARY_PARTIAL' && e.type === 'PARTIAL_FILL') {
++    return {action:'SUPPRESS', reason:'SECONDARY_LIFECYCLE_ONLY'};
++  }
++  const closed = notice.kind === 'SECONDARY_CLOSE' && e.type === 'CLOSED';
++  const qty = decimal(e.cumulative_qty ?? e.qty);
++  const remaining = decimal(e.remaining_qty);
++  if ((!opened && !closed) || e.ledger !== 'FREQUENT_PAPER' || e.realTrading !== false ||
++      typeof e.id !== 'string' || !e.id || !qty?.gt(0) ||
++      (closed && (remaining === null || !remaining.isZero()))) {
++    return {action:'REJECT', reason:'SECONDARY_LIFECYCLE_RECEIPT_INVALID'};
++  }
++  const p = e.plan ?? {}, direction = e.direction ?? p.direction;
++  const side = direction === 'LONG' ? 'Compra' : direction === 'SHORT' ? 'Venta en corto' : 'Dirección no disponible';
++  const header = `Secundaria PAPER · PF_XBTUSD · ${side} · ${timeframe(e.timeframe ?? p.timeframe)}`;
++  const reference = `Posición ${e.id}\nEjecución ${timestamp(e.at)}`;
++  if (opened) {
++    const price = decimal(e.price), exposure = price === null ? null : price.mul(qty).toString();
++    return {action:'SEND', text:`OPERACIÓN ABIERTA\n${header}\nEntrada ejecutada: ${money(e.price)} USD · ${qty.toString()} BTC\nExposición ejecutada: ${money(exposure)} USD\nStop ${money(p.stop)} · objetivo de precio ${money(p.target)} USD\n${e.execution_state === 'EJECUCIÓN_PARCIAL' ? 'Se ejecutó parte de lo solicitado; solo esa cantidad está abierta.\n' : ''}${reference}\nTe avisaré al cerrar toda la posición.`};
++  }
++  // CLOSED.pnl and CLOSED.fees already aggregate all partials. Never add
++  // fill_pnl, charge entry costs twice, or infer a result from the last fill.
++  const net = decimal(e.pnl), final = e.result_final === true && e.funding_complete !== false && e.quality === 'OBSERVED';
++  const outcome = !final || net === null ? 'RESULTADO PROVISIONAL' : net.gt(0) ? 'GANANCIA' : net.lt(0) ? 'PÉRDIDA' : 'SIN GANANCIA NI PÉRDIDA';
++  return {action:'SEND', text:`OPERACIÓN CERRADA · ${outcome}\n${header}\nNeto ${final && net !== null ? 'realizado' : 'registrado, pendiente de confirmar'} del ciclo: ${net === null ? 'no disponible' : signedMoney(net)} USD\nIncluye todos los parciales y costes registrados (${money(e.fees)} USD, financiación con su signo).\nMotivo: ${reasons[e.reason] ?? 'ver detalle registrado en el panel'}\nEntrada ${money(e.entry)} → salida media ${money(e.price)} USD\n${!final ? 'Hay costes pendientes o datos incompletos; el neto puede cambiar.\n' : ''}${reference}`};
++}

@@ -1,0 +1,66 @@
+{
+  "kind": "SOURCE_REPLACEMENTS_ON_VERIFIED_DISK_BASE_NOT_STANDALONE_RELEASE",
+  "status": "LOCAL_TESTED_RUNTIME_IDENTITY_AND_RECOVERY_GATES_PENDING",
+  "branch": "fix/lumi-monitor-notices-release-2026-11-13",
+  "base_commit": "9f8648abe12cb3457814bae9074d8e666fd56cba",
+  "candidate_commit": "0d163ccd85d9528251e894caf968b0284dc0d709",
+  "created_at": "2026-11-13T10:30:00.385209+00:00",
+  "node_tested": "v24.19.0",
+  "source_origins": [
+    "4fe2a8ee9789fec6003a49f53456f744e6f40125",
+    "cdfd04b8a2e9eea7e8d32df1d35c2ef217518595"
+  ],
+  "runtime_files": [
+    {
+      "path": "lib/trading/dashboard-publisher.js",
+      "action": "REPLACE",
+      "base_sha256": "629c6be49ca6928b3e187b46e19252f22e4eeef83cbc5f574d65de7fe6544658",
+      "candidate_sha256": "dd777ac2752034c5c3c8342da792736de9e2b4cb974b6a07a1752061eb4cbb8b"
+    },
+    {
+      "path": "lib/trading/secondary-futures-runtime.js",
+      "action": "REPLACE",
+      "base_sha256": "f19e2b59b19053247413da227ecc16e572e1e0e8a4e8645e17d554c106e5feec",
+      "candidate_sha256": "45c9518fcab880f661116fc9430ebec4a7a5f9a033af2d15a5d754541f8040aa"
+    },
+    {
+      "path": "lib/trading/secondary-notification-policy.js",
+      "action": "ADD",
+      "base_sha256": null,
+      "candidate_sha256": "6c77e5d385d2ef3adf481e631248adf22557543b944f643dbf28ccff10acd0b9"
+    }
+  ],
+  "excluded": [
+    "economic engine and strategy",
+    "integrity counters and partial evidence fixes",
+    "exit shadow hooks",
+    "offline funding report",
+    "L100",
+    "Site",
+    "Telegram transport and authentication",
+    "tests and synthetic services",
+    "environment files and credentials",
+    "databases"
+  ],
+  "required_selector": {
+    "LUMI_TRADING_SECONDARY_NOTICES": "secondary-position-lifecycle-1.0.0"
+  },
+  "selector_requires_existing": {
+    "LUMI_RUNTIME_ENV": "staging",
+    "LUMI_TRADING_MODE": "PAPER",
+    "LUMI_TRADING_STORAGE": "SQLITE"
+  },
+  "runtime_identity_scope": "Base9f source files match reported AWS disk evidence; loaded process commit not attested. This package does not improve that attestation by itself.",
+  "source_tree_sha256": "5551c8c8b755b212715844a1215b5598f03ac3a45b5faba8183b356f0b04c868",
+  "minimum_diff_assertions": {
+    "tracked_runtime_changes": [
+      "lib/trading/dashboard-publisher.js",
+      "lib/trading/secondary-futures-runtime.js"
+    ],
+    "untracked_runtime_additions": [
+      "lib/trading/secondary-notification-policy.js"
+    ],
+    "notifier_outside_class_and_added_import_byte_identical_to_base": true,
+    "economic_engine_and_configuration_unchanged": true
+  }
+}

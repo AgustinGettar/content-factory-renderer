@@ -1,0 +1,10 @@
+{
+  "archive": "/workspace/lumi-monitor-notices-artifacts/lumi-monitor-notices-0d163cc.tar.gz",
+  "sha256": "030dd393f1ff204e5c31b488f8683b028ed08da1f5a749c3f483b6235e16004e",
+  "bytes": 26453,
+  "source_commit": "0d163ccd85d9528251e894caf968b0284dc0d709",
+  "runtime_files": 3,
+  "deploy_executed": false,
+  "data_files_included": false,
+  "requires_existing_base": "9f8648abe12cb3457814bae9074d8e666fd56cba"
+}

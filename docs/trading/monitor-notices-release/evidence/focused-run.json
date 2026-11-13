@@ -1,0 +1,49 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "./docs/trading/audit-stage1-2026-11-05/no-network.mjs",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "test/secondary-notification-policy.test.js",
+    "test/trading-notifier.test.js",
+    "test/secondary-exploration-monitor.test.js",
+    "test/secondary-profit-monitor.test.js",
+    "test/secondary-futures.test.js",
+    "test/trading-live-payload-budget.test.js",
+    "test/trading-live-dashboard.test.js",
+    "test/trading-runtime-performance.test.js",
+    "test/trading-dashboard-backup.test.js"
+  ],
+  "cwd": "/workspace/lumi-monitor-notices-candidate",
+  "start_utc": "2026-11-13T10:29:08.795603+00:00",
+  "end_utc": "2026-11-13T10:29:11.484650+00:00",
+  "exit_code": 0,
+  "node": "v24.19.0",
+  "test_files_sha256": {
+    "test/secondary-notification-policy.test.js": "c99332e3f8d9ed764ce4efb8f284ca32169ba7f2d288c1e40e4bfa7272ab8448",
+    "test/trading-notifier.test.js": "5bf32f2c76960816bb8deff82b17324a797bb4e2555e7a78adfc87db4cda94d6",
+    "test/secondary-exploration-monitor.test.js": "1f23f521a6c2b4e894eceb789211d1c2a9f67757af8d81fe862d4aa14c77ac13",
+    "test/secondary-profit-monitor.test.js": "20896d5329b7acdb2eabd4e07e5e536fdc540b3a890437d818c5b34ea3569246",
+    "test/secondary-futures.test.js": "862c648fe9b3391db4778b64b033f25b3ba5c66b8af8f5a651b907100355ac9b",
+    "test/trading-live-payload-budget.test.js": "8c080434780784d3e095de18dcf0156383035926b5b7a6df0265eec511f14b3d",
+    "test/trading-live-dashboard.test.js": "010b231e84efee3487ed4ce7890c52d82ccdcc58a6d4a7ca624c6ad93b294ca7",
+    "test/trading-runtime-performance.test.js": "e88de8ef12682efca9e19befee7a3ef03e2365a63896fdbb189d44dae1001c56",
+    "test/trading-dashboard-backup.test.js": "1d9c1ab095dcf983f9297fdded50f200ebe8691a6506cd19806fde56c398704d"
+  },
+  "summary": [
+    "# {\"synthetic_empty_bytes\":56766,\"synthetic_ten_bytes\":242450,\"increment_bytes\":185684,\"observed_empty_baseline_bytes\":636636,\"estimated_total_bytes\":822320,\"margin_to_1MiB\":226256,\"detail_bytes\":891994,\"partial_entries\":false,\"pending_remainders\":0}",
+    "# {\"synthetic_empty_bytes\":56633,\"synthetic_ten_bytes\":238830,\"increment_bytes\":182197,\"observed_empty_baseline_bytes\":636636,\"estimated_total_bytes\":818833,\"margin_to_1MiB\":229743,\"detail_bytes\":886289,\"partial_entries\":true,\"pending_remainders\":0}",
+    "# {\"historical\":30,\"open\":10,\"pending\":0,\"secondary_notices\":20,\"frame_receipts\":4,\"increment_bytes\":382809,\"observed_empty_baseline_bytes\":665427,\"estimated_total_bytes\":1048236,\"margin_to_1MiB\":340,\"detail_bytes\":2187113}",
+    "# {\"historical\":30,\"open\":5,\"pending\":5,\"secondary_notices\":20,\"frame_receipts\":4,\"increment_bytes\":331976,\"observed_empty_baseline_bytes\":665427,\"estimated_total_bytes\":997403,\"margin_to_1MiB\":51173,\"detail_bytes\":2010736}",
+    "# {\"historical\":30,\"open\":0,\"pending\":10,\"secondary_notices\":20,\"frame_receipts\":4,\"increment_bytes\":270274,\"observed_empty_baseline_bytes\":665427,\"estimated_total_bytes\":935701,\"margin_to_1MiB\":112875,\"detail_bytes\":1785159}",
+    "# {\"synthetic_outcomes\":2000,\"comparison_domains\":135,\"live_bytes\":119506,\"detail_bytes\":1243057,\"site_live_limit\":1048576}",
+    "# tests 81",
+    "# pass 81",
+    "# fail 0",
+    "# cancelled 0",
+    "# skipped 0",
+    "# duration_ms 2621.668796"
+  ]
+}
